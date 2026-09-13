@@ -59,6 +59,57 @@ function dent_voice_payment_contract_payload(array $payload, string $expectedAct
     ];
 }
 
+/**
+ * Resolve the active managed Zibal record without assuming that its public
+ * configuration key is literally "zibal". Legacy/unmanaged installations and
+ * managed stores that intentionally keep that key continue to work unchanged.
+ * Ambiguous multi-Zibal configurations fail closed instead of selecting a
+ * merchant nondeterministically.
+ */
+function dent_voice_payment_gateway_key(): string
+{
+    $direct = payments_gateway_resolve_record(PAYMENTS_GATEWAY_ZIBAL);
+    if (
+        is_array($direct)
+        && (bool) ($direct['is_enabled'] ?? false)
+        && payments_gateway_is_record_configured($direct)
+    ) {
+        return PAYMENTS_GATEWAY_ZIBAL;
+    }
+
+    $store = payments_gateway_managed_store();
+    if ($store === null) {
+        dent_error('درگاه پرداخت ربات در دسترس نیست.', 503, ['code' => 'VOICE_PAYMENT_GATEWAY_UNAVAILABLE']);
+    }
+
+    $matches = [];
+    foreach (($store['gateways'] ?? []) as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        if (payments_gateway_provider_clean((string) ($entry['provider'] ?? '')) !== PAYMENTS_GATEWAY_ZIBAL) {
+            continue;
+        }
+        if (!(bool) ($entry['is_enabled'] ?? false) || !payments_gateway_is_record_configured($entry)) {
+            continue;
+        }
+        $key = payments_gateway_clean((string) ($entry['key'] ?? ''));
+        if ($key !== '' && !in_array($key, $matches, true)) {
+            $matches[] = $key;
+        }
+    }
+
+    if (count($matches) !== 1) {
+        dent_error(
+            'تنظیم درگاه پرداخت ربات معتبر نیست.',
+            503,
+            ['code' => $matches === [] ? 'VOICE_PAYMENT_GATEWAY_UNAVAILABLE' : 'VOICE_PAYMENT_GATEWAY_AMBIGUOUS']
+        );
+    }
+
+    return $matches[0];
+}
+
 function dent_voice_payment_provider_response(array $gatewayResult): array
 {
     $raw = is_array($gatewayResult['raw'] ?? null) ? $gatewayResult['raw'] : [];
@@ -91,7 +142,7 @@ function dent_voice_payment_start(array $payload): array
     if (preg_match('/^[A-Za-z0-9_-]{32}$/D', $callbackToken) !== 1) {
         dent_error('شناسه بازگشت پرداخت نامعتبر است.', 422, ['code' => 'VOICE_PAYMENT_CALLBACK_INVALID']);
     }
-    $gateway = PAYMENTS_GATEWAY_ZIBAL;
+    $gateway = dent_voice_payment_gateway_key();
     $result = payments_gateway_start_payment(
         $gateway,
         ['title' => 'افزایش موجودی ربات تبدیل ویس به متن'],
@@ -138,7 +189,7 @@ function dent_voice_payment_verify(array $payload): array
         dent_error('شناسه پیگیری پرداخت نامعتبر است.', 422, ['code' => 'VOICE_PAYMENT_TRACK_INVALID']);
     }
     $result = payments_gateway_verify_payment(
-        PAYMENTS_GATEWAY_ZIBAL,
+        dent_voice_payment_gateway_key(),
         [
             'amount' => $request['amountRials'],
             'authority' => $trackId,
