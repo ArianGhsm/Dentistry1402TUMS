@@ -62,6 +62,24 @@ $ownerWithoutAssignment = ['studentNumber' => '40211272992', 'cohortKey' => DENT
 $otherCohortOwner = ['studentNumber' => $studentNumber, 'cohortKey' => 'prosthesis-1402', 'role' => 'owner'];
 $partialDate = new DateTimeImmutable('2026-11-25 00:00:00', $timezone);
 
+$practicalDate = new DateTimeImmutable('2026-09-19 00:00:00', $timezone);
+$practicalRows = array_values(array_filter(
+    classops_bot_ux_v3_term7_records($student, $practicalDate, $state),
+    static fn(array $item): bool => ($item['type'] ?? '') === 'practical'
+));
+classops_v3_assert(
+    count(array_filter($practicalRows, static fn(array $item): bool => str_contains((string) ($item['startsAt'] ?? ''), 'T09:00:00') && str_contains((string) ($item['endsAt'] ?? ''), 'T12:00:00'))) >= 1,
+    'Morning practical projection uses explicit 09:00-12:00 clock range'
+);
+classops_v3_assert(
+    count(array_filter($practicalRows, static fn(array $item): bool => str_contains((string) ($item['startsAt'] ?? ''), 'T13:00:00') && str_contains((string) ($item['endsAt'] ?? ''), 'T15:00:00'))) >= 1,
+    'Afternoon practical projection uses explicit 13:00-15:00 clock range'
+);
+classops_v3_assert(
+    count(array_filter($practicalRows, static fn(array $item): bool => in_array((string) ($item['timeLabel'] ?? ''), ['صبح', 'عصر'], true))) === 0,
+    'Practical timeline no longer leaks ambiguous morning/afternoon labels'
+);
+
 $studentAcademic = classops_bot_ux_v3_term7_records($student, $partialDate, $state);
 $ownerAcademic = classops_bot_ux_v3_term7_records($ownerStudent, $partialDate, $state);
 classops_v3_assert($studentAcademic === $ownerAcademic, 'Dual-role owner receives same personal Term 7 projection as student identity');

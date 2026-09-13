@@ -107,7 +107,7 @@ function classops_bot_ux_v3_term7_record(
     $sessionNumber = isset($event['sessionNumber']) && (int) $event['sessionNumber'] > 0 ? (int) $event['sessionNumber'] : null;
     $refIdentity = $slug . '|' . $period . '|' . ($sessionNumber ?? '');
     $ref = 't7_' . $date->format('Ymd') . '_' . substr(hash('sha256', $refIdentity), 0, 10);
-    $sortHour = $startsAt?->format('H:i') ?? ($period === 'afternoon' ? '13:00' : ($period === 'morning' ? '08:00' : '00:00'));
+    $sortHour = $startsAt?->format('H:i') ?? ($period === 'afternoon' ? '13:00' : ($period === 'morning' ? '09:00' : '00:00'));
     $sortAt = new DateTimeImmutable($date->format('Y-m-d') . ' ' . $sortHour, $timezone);
     return [
         'source' => 'term7', 'ref' => $ref, 'type' => $kind, 'status' => 'active',
@@ -116,7 +116,7 @@ function classops_bot_ux_v3_term7_record(
         'location' => (string) ($event['location'] ?? ''), 'importance' => 'normal',
         'localDate' => $date->format('Y-m-d'), 'startsAt' => $startsAt?->format('c') ?? '',
         'endsAt' => $endsAt?->format('c') ?? '', 'dueAt' => '',
-        'timeLabel' => $sessionMode === 'virtual' ? 'مجازی' : ($period === 'morning' ? 'صبح' : ($period === 'afternoon' ? 'عصر' : '')),
+        'timeLabel' => $sessionMode === 'virtual' ? 'مجازی' : ($startsAt !== null ? '' : ($period === 'morning' ? '۰۹:۰۰–۱۲:۰۰' : ($period === 'afternoon' ? '۱۳:۰۰–۱۵:۰۰' : ''))),
         'sortAt' => $sortAt->setTimezone(new DateTimeZone('UTC'))->format('c'), 'overdue' => false,
         'rotation' => $rotation, 'rotationLabel' => dent_term7_bot_service_rotation_label($rotation),
         'sessionNumber' => $sessionNumber,

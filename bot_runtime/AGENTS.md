@@ -10,3 +10,5 @@ unversioned `IntegratedDent1402Tums` sibling.
 - Before bot source writes, read `bot_runtime/docs/BOT_UX_SYSTEM.md` plus the existing implementation/tests that are the presentation or behavior benchmark for the affected surface.
 - Runtime source changes use targeted tests here, then the repository/runtime gates from `docs/DEVELOPMENT_WORKFLOW.md`.
 - Central router, scheduler, site API client, service units, deployment scripts, and dependency manifests remain high-risk shared files: edit them only when the current task explicitly requires it and add regression coverage.
+- Practical timetable periods are clock contracts: morning fallback is 09:00–12:00 and afternoon fallback is 13:00–15:00; explicit canonical source times override those fallbacks. Persian user-facing timetable/reminder output must show explicit ranges with Persian digits rather than bare morning/afternoon labels.
+- Academic next-day reminders must reuse the existing Telegram native Rich Text table primitive and keep Bale semantics equivalent/readable; do not create a parallel notification feed or schedule store.

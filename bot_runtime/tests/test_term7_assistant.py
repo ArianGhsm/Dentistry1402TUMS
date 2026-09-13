@@ -1,5 +1,7 @@
 import unittest
 
+from dent_bot.academic_term7_rich import install_academic_term7_rich_notifications
+install_academic_term7_rich_notifications()
 from dent_bot.ui import account_screen, notification_detail_screen
 
 
@@ -35,6 +37,35 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertEqual(telegram.keyboard, bale.keyboard)
         self.assertIn("http://foodstu.tums.ac.ir", str(telegram.keyboard))
         self.assertIn("notification-action:ref123:a1b2c3d4e5f6g7h8", str(telegram.keyboard))
+
+    def test_academic_reminder_uses_native_rich_table_and_clock_times(self):
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | شنبه ۱۴۰۵/۰۶/۲۸",
+            "body": "📚 کلاس‌های نظری\n• پریو نظری ۱\n  ⏰ ۰۷:۳۰ تا ۰۸:۳۰\n  📍 آمفی‌تئاتر ۹۰\n\n🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰\n• پروتز پارسیل عملی ۱\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰\n\n🌆 کارآموزی ۱۳:۰۰ تا ۱۵:۰۰\n• ترمیمی عملی ۲\n  ⏰ ۱۳:۰۰ تا ۱۵:۰۰",
+        }
+        telegram = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        bale = notification_detail_screen(item, "ref123", platform="bale", is_owner=False)
+        self.assertTrue(hasattr(telegram.text, "rich_html"))
+        self.assertIn("<table bordered striped compact>", telegram.text.rich_html)
+        self.assertIn("<th>زمان</th>", telegram.text.rich_html)
+        self.assertIn("۰۹:۰۰–۱۲:۰۰", telegram.text.rich_html)
+        self.assertIn("۱۳:۰۰–۱۵:۰۰", telegram.text.rich_html)
+        self.assertIn("۰۹:۰۰–۱۲:۰۰", str(telegram.text))
+        self.assertIn("۱۳:۰۰–۱۵:۰۰", str(bale.text))
+        self.assertNotIn("کارآموزی صبح", str(telegram.text))
+        self.assertNotIn("کارآموزی عصر", str(telegram.text))
+        self.assertEqual(telegram.keyboard, bale.keyboard)
+
+    def test_academic_reminder_missing_oral_health_is_explicit_without_guessing(self):
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | شنبه ۱۴۰۵/۰۶/۲۸",
+            "body": "📚 کلاس‌های نظری\n• کلاس نظری ثبت‌شده‌ای ندارد.\n\n🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰\n• برنامه‌ای برای گروه شما ثبت نشده است.\n\n🌆 کارآموزی ۱۳:۰۰ تا ۱۵:۰۰\n• برنامه‌ای برای گروه شما ثبت نشده است.\n\nℹ️ روز سلامت دهان عملی ۲ شما برای روتیشن اول هنوز ثبت نشده است؛ این بخش حدس زده نمی‌شود.",
+        }
+        screen = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        self.assertIn("روز سلامت دهان عملی ۲", str(screen.text))
+        self.assertIn("حدس زده نمی‌شود", str(screen.text))
 
     def test_notification_persian_html_is_escaped_without_breaking_structure(self):
         screen = notification_detail_screen(
