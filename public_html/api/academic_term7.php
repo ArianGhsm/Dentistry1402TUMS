@@ -565,13 +565,13 @@ function dent_term7_jalali_in_active_window(string $jalaliDate): bool
 
 function dent_term7_linked_eligible_users(): array
 {
-    if (!function_exists('dent_bot_store_read') || !function_exists('dent_bot_link_auth_complete')) {
+    if (!function_exists('dent_bot_store_read')) {
         return [];
     }
     $result = dent_bot_store_read(static function (array $store): array {
         $users = [];
         foreach (is_array($store['links'] ?? null) ? $store['links'] : [] as $link) {
-            if (!is_array($link) || !dent_bot_link_auth_complete($link)) {
+            if (!is_array($link)) {
                 continue;
             }
             $studentNumber = dent_normalize_student_number((string) ($link['studentNumber'] ?? ''));
