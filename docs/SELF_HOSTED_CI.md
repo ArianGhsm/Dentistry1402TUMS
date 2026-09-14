@@ -12,6 +12,9 @@ but it is not part of the website or bot runtime.
   must remain unreadable and unwritable to `ghrunner`.
 - The systemd unit uses a read-only system view and may write only its runner
   installation/work directories and private temporary directory.
+- The runner cgroup is capped below one CPU core (`CPUQuota=75%`), uses low
+  CPU/I/O scheduling weights, and has bounded memory/tasks so a test wave
+  cannot starve the production website or bot services.
 - Workflows use read-only repository permissions and checkout with
   `persist-credentials: false`.
 - Repository workflows must never turn this runner into a deployment agent or
@@ -27,6 +30,9 @@ The host provides PHP CLI with `mbstring`, `openssl` and `curl`, plus `qpdf`.
 Python 3.11 and Node 20 are provisioned per job by the official setup actions;
 Python test packages are installed into the runner-owned tool environment.
 Jobs must not use `sudo` or mutate global packages.
+
+Foreign package downloads use the VPS's loopback-only managed egress proxy via
+server-side systemd environment. Proxy configuration remains outside Git.
 
 ## Operations
 
