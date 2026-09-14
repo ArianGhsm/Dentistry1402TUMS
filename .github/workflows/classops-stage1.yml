@@ -33,7 +33,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify runner PHP
-        run: php -r 'foreach (["mbstring", "openssl", "curl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "missing PHP extension: $extension\n"); exit(1); } }'
+        run: |
+          php -r 'foreach (["mbstring", "openssl", "curl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "missing PHP extension: $extension\n"); exit(1); } }'
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
