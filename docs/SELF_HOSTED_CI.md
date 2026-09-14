@@ -1,12 +1,16 @@
-# Self-hosted CI runner
+# CI runner and private VPS fallback
 
-Deterministic GitHub Actions for this private repository run on the dedicated
-repository runner labeled `dentistry-ci`. The runner is hosted on the Iran VPS,
-but it is not part of the website or bot runtime.
+Public pull-request and push checks run on ephemeral GitHub-hosted
+`ubuntu-latest` runners. This keeps untrusted public workflow code away from the
+production VPS and provides the standard public-repository Actions allowance.
+
+The dedicated `dentistry-ci` runner remains provisioned on the Iran VPS only as
+a private, manual fallback for trusted runtime diagnostics. It is not selected
+by the public CI workflows and is not part of the website or bot runtime.
 
 ## Security boundary
 
-- The service runs as the unprivileged `ghrunner` account with no `sudo` access
+- If the private fallback is enabled, its service runs as the unprivileged `ghrunner` account with no `sudo` access
   and no membership in website or bot service groups.
 - Production storage, bot configuration, service secrets and deployment keys
   must remain unreadable and unwritable to `ghrunner`.
@@ -20,9 +24,9 @@ but it is not part of the website or bot runtime.
 - Repository workflows must never turn this runner into a deployment agent or
   read production state. Runtime, backup and deployment gates remain separate.
 
-Only trusted repository code may target `[self-hosted, Linux, X64,
-dentistry-ci]`. Changes to `.github/workflows/**` require the same review as
-deployment scripts because a self-hosted job executes code on the VPS.
+Public workflows must not target `[self-hosted, Linux, X64, dentistry-ci]`.
+Changes to `.github/workflows/**` require the same review as deployment scripts
+because workflow code is executable.
 
 ## Provisioned host dependencies
 

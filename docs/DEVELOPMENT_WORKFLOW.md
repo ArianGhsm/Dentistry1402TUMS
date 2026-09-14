@@ -44,9 +44,10 @@ merge; reconcile only when necessary and never hide a risky conflict.
 
 ## Layered gates
 
-Repository CI uses the isolated self-hosted runner documented in
-`docs/SELF_HOSTED_CI.md`. It is a test-only execution boundary: workflows must
-not read production data/secrets or perform deployment, and changes under
+Repository CI uses ephemeral GitHub-hosted `ubuntu-latest` runners. The
+Iran-server runner documented in `docs/SELF_HOSTED_CI.md` remains a private,
+test-only fallback for trusted runtime diagnostics; public workflows must not
+read production data/secrets or perform deployment, and changes under
 `.github/workflows/` receive deployment-grade review.
 
 ### Repository implementation gate

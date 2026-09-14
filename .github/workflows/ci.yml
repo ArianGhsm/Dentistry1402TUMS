@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
   static-checks:
-    runs-on: [self-hosted, Linux, X64, dentistry-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - name: Checkout
