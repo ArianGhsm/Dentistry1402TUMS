@@ -10,6 +10,9 @@ COMPLETE_PATH = ROOT / 'scripts/complete_task.ps1'
 DEPLOY = DEPLOY_PATH.read_text(encoding='utf-8')
 GATE = GATE_PATH.read_text(encoding='utf-8')
 COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
+AGENTS = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
+DEPLOY_DOC = (ROOT / 'DEPLOY.md').read_text(encoding='utf-8')
+WORKFLOW_DOC = (ROOT / 'docs/DEVELOPMENT_WORKFLOW.md').read_text(encoding='utf-8')
 
 for needle in [
     'ArianGhsm/Dentistry1402TUMS',
@@ -69,6 +72,27 @@ assert COMPLETE.index('Get-Command pwsh') < COMPLETE.index('Get-Command powershe
 assert 'deploy_public_html.ps1' not in COMPLETE, 'task completion must not invoke retired cPanel deployer'
 assert DEPLOY.index("Status succeeded") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'success lifecycle must occur only after remote live verification'
 assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation reporting must occur only after the remote installer contains its live-verification boundary'
+
+# Repository instructions must describe the same production route as the
+# executable release wrappers. This catches semantic documentation drift that
+# generic markdown/static checks cannot infer.
+for doc_name, text in (
+    ('AGENTS.md', AGENTS),
+    ('DEPLOY.md', DEPLOY_DOC),
+    ('docs/DEVELOPMENT_WORKFLOW.md', WORKFLOW_DOC),
+):
+    assert 'scripts/run_release_gate.ps1' in text, f'{doc_name} must name the canonical release gate'
+    assert 'scripts/deploy_site_vps.ps1' in text, f'{doc_name} must name the canonical VPS deployer'
+
+assert '.\\scripts\\deploy_public_html.ps1 -ReleaseSha' not in AGENTS, (
+    'AGENTS.md must not present the retired cPanel/FTP deployer as a canonical command'
+)
+assert 'scripts/deploy_public_html.ps1` is legacy evidence only' in DEPLOY_DOC, (
+    'DEPLOY.md must keep the retired deployer explicitly non-canonical'
+)
+assert 'scripts/deploy_public_html.ps1`\nare not production release routes' in WORKFLOW_DOC, (
+    'development workflow must keep the retired deployer outside production release routes'
+)
 
 # Hosted Ubuntu runners include PowerShell. Parse the scripts using the real
 # PowerShell AST when available so text-contract checks cannot hide syntax bugs.
