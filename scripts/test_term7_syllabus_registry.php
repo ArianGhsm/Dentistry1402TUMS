@@ -70,14 +70,35 @@ syllabus_assert(count($orth) === 2, 'Orthodontics preserves in-person and virtua
 syllabus_assert(
     array_column($orth, 'sessionNumber') === [5, 6]
         && ($orth[1]['sessionMode'] ?? '') === 'virtual'
-        && ($orth[1]['location'] ?? 'x') === '',
-    'Orthodontics shared-date virtual row is distinct and has no fabricated physical room'
+        && ($orth[1]['location'] ?? 'x') === ''
+        && ($orth[1]['start'] ?? '') === '12:30'
+        && ($orth[1]['end'] ?? '') === '13:30'
+        && !empty($orth[1]['sourceTimeExplicit']),
+    'Orthodontics virtual row keeps the explicit syllabus clock while omitting physical room'
 );
 
 $endo = classops_term7_syllabus_enrich_events([
     syllabus_event('endodontics-theory-1', 'اندو نظری ۱'),
 ], '1405/08/14');
-syllabus_assert(array_column($endo, 'sessionNumber') === [11, 12], 'Endodontics preserves sessions 11 and 12 as distinct rows on one date');
+syllabus_assert(
+    array_column($endo, 'sessionNumber') === [11, 12]
+        && ($endo[0]['start'] ?? '') === '08:30'
+        && ($endo[0]['end'] ?? '') === '10:30'
+        && ($endo[1]['start'] ?? '') === '08:30'
+        && ($endo[1]['end'] ?? '') === '10:30',
+    'Endodontics preserves sessions 11 and 12 and applies the two-session-day 08:30-10:30 window'
+);
+$endoSingle = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-theory-1', 'اندو نظری ۱'),
+], '1405/07/09');
+syllabus_assert(
+    count($endoSingle) === 1
+        && ($endoSingle[0]['sessionNumber'] ?? null) === 3
+        && ($endoSingle[0]['start'] ?? '') === '08:30'
+        && ($endoSingle[0]['end'] ?? '') === '09:30',
+    'Endodontics single-session day uses 08:30-09:30 from the syllabus header'
+);
+
 
 $diagnostic = $catalog['diagnostic-dentistry-3']['sessions'] ?? [];
 syllabus_assert(
@@ -92,8 +113,23 @@ $diagQuiz = classops_term7_syllabus_enrich_events([
 syllabus_assert(
     count($diagQuiz) === 1
         && ($diagQuiz[0]['sessionNumber'] ?? null) === 6
-        && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی',
-    'Diagnostic quiz metadata is preserved on its dated occurrence'
+        && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی'
+        && ($diagQuiz[0]['start'] ?? '') === '13:15'
+        && ($diagQuiz[0]['end'] ?? '') === '14:15',
+    'Diagnostic Monday metadata uses the syllabus-priority 13:15-14:15 clock'
+);
+$diagnosticFallback = classops_term7_syllabus_apply_source_times([[
+    'slug' => 'diagnostic-dentistry-3-mon',
+    'title' => 'دندانپزشکی تشخیصی ۳',
+    'start' => '13:45',
+    'end' => '14:45',
+]], '1405/07/14');
+syllabus_assert(
+    count($diagnosticFallback) === 1
+        && ($diagnosticFallback[0]['start'] ?? '') === '13:45'
+        && ($diagnosticFallback[0]['end'] ?? '') === '14:45'
+        && empty($diagnosticFallback[0]['sourceTimeExplicit']),
+    'Missing source session preserves the canonical fallback clock'
 );
 
 $research = classops_term7_syllabus_enrich_events([
@@ -102,10 +138,14 @@ $research = classops_term7_syllabus_enrich_events([
 syllabus_assert(count($research) === 2, 'Research Methodology keeps session 10 plus virtual session 11 on 1405/07/29');
 syllabus_assert(
     ($research[0]['sessionNumber'] ?? null) === 10
+        && ($research[0]['start'] ?? '') === '13:00'
+        && ($research[0]['end'] ?? '') === '15:30'
         && ($research[1]['sessionNumber'] ?? null) === 11
         && ($research[1]['sessionMode'] ?? '') === 'virtual'
-        && ($research[1]['location'] ?? 'x') === '',
-    'Research Methodology virtual row is distinct without overriding canonical timetable recurrence'
+        && ($research[1]['location'] ?? 'x') === ''
+        && ($research[1]['start'] ?? 'x') === ''
+        && ($research[1]['end'] ?? 'x') === '',
+    'Research Methodology uses 13:00-15:30 for timed rows and keeps source dash-time virtual rows untimed'
 );
 
 $researchWithSupplement = classops_term7_syllabus_enrich_events([
@@ -134,8 +174,10 @@ $healthTheory = classops_term7_syllabus_enrich_events([
 syllabus_assert(
     array_column($healthTheory, 'sessionNumber') === [5, 6]
         && ($healthTheory[1]['sessionMode'] ?? '') === 'offline'
-        && ($healthTheory[1]['location'] ?? 'x') === '',
-    'Oral Health Theory preserves same-date in-person and offline sessions separately'
+        && ($healthTheory[1]['location'] ?? 'x') === ''
+        && ($healthTheory[1]['start'] ?? '') === '07:30'
+        && ($healthTheory[1]['end'] ?? '') === '08:30',
+    'Oral Health Theory preserves offline session with the explicit syllabus clock and no physical room'
 );
 
 $perio = classops_term7_syllabus_enrich_events([
@@ -143,8 +185,10 @@ $perio = classops_term7_syllabus_enrich_events([
 ], '1405/08/02');
 syllabus_assert(
     array_column($perio, 'sessionNumber') === [6, 7]
-        && ($perio[1]['sessionMode'] ?? '') === 'virtual',
-    'Periodontology preserves the second 1405/08/02 row as a distinct virtual session'
+        && ($perio[1]['sessionMode'] ?? '') === 'virtual'
+        && ($perio[1]['start'] ?? '') === '07:30'
+        && ($perio[1]['end'] ?? '') === '08:30',
+    'Periodontology virtual row keeps the explicit 07:30-08:30 syllabus clock'
 );
 
 $boardRows = classops_term7_syllabus_enrich_events([
@@ -163,6 +207,18 @@ syllabus_assert(
         && ($healthPractical['dates'] ?? []) === ['1405/06/28', '1405/06/30', '1405/07/01'],
     'Oral Health Practical models one weekly session repeated across Saturday, Monday and Wednesday'
 );
+$healthVirtual = classops_term7_syllabus_enrich_events([
+    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+], '1405/07/11', 'A');
+syllabus_assert(
+    count($healthVirtual) === 1
+        && ($healthVirtual[0]['sessionNumber'] ?? null) === 3
+        && ($healthVirtual[0]['sessionMode'] ?? '') === 'virtual'
+        && ($healthVirtual[0]['start'] ?? '') === '09:00'
+        && ($healthVirtual[0]['end'] ?? '') === '12:00',
+    'Oral Health Practical virtual week keeps the explicit 09:00-12:00 syllabus clock'
+);
+
 $healthField = $catalog['oral-health-practical-2']['sessions'][4] ?? [];
 syllabus_assert(
     ($healthField['sessionNumber'] ?? null) === 5
@@ -215,6 +271,13 @@ $partial = classops_term7_syllabus_enrich_events([
 ], '1405/09/04');
 syllabus_assert(array_column($partial, 'sessionNumber') === [9, 10, 11], 'Existing Partial Theory same-date behavior is preserved by the shared registry');
 syllabus_assert(count(array_unique(array_column($partial, 'sessionKey'))) === 3, 'Shared registry gives same-date sessions stable distinct keys');
+syllabus_assert(
+    ($partial[1]['sessionMode'] ?? '') === 'virtual'
+        && ($partial[1]['start'] ?? '') === '07:30'
+        && ($partial[1]['end'] ?? '') === '08:30'
+        && ($partial[1]['location'] ?? 'x') === '',
+    'Partial virtual session keeps the explicit 07:30-08:30 syllabus clock without physical room'
+);
 
 if ($failures > 0) {
     fwrite(STDERR, "Term 7 syllabus registry tests: {$checks}; failures: {$failures}\n");

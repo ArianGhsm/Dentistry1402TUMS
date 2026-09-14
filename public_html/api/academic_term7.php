@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/classops_term7_syllabus.php';
+
 /**
  * Canonical Term 7 academic timetable and food-reminder state.
  *
@@ -9,7 +11,7 @@ declare(strict_types=1);
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.4';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.5';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -278,7 +280,6 @@ function dent_term7_schedule(): array
                 ['slug' => 'partial-basics-theory', 'title' => 'مبانی پارسیل نظری', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation],
             ],
             4 => [
-                // Explicit owner correction takes precedence over the older PDF cell.
                 ['slug' => 'endodontics-theory-1', 'title' => 'اندو نظری ۱', 'start' => '08:30', 'end' => '10:30', 'location' => $theoryLocation],
             ],
         ],
@@ -482,6 +483,10 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
             $morning[] = $event;
         }
     }
+    $timingRotation = $matchRotation !== '' ? $matchRotation : $rotation;
+    $theory = classops_term7_syllabus_apply_source_times($theory, $jalaliDate, $timingRotation);
+    $morning = classops_term7_syllabus_apply_source_times($morning, $jalaliDate, $timingRotation);
+    $afternoon = classops_term7_syllabus_apply_source_times($afternoon, $jalaliDate, $timingRotation);
     return [
         'date' => $jalaliDate,
         'weekday' => $weekday,
@@ -535,14 +540,14 @@ function dent_term7_summary_body(array $resolved): string
         $appendEvents($lines, $resolved['theory']);
     }
     $lines[] = '';
-    $lines[] = '🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰';
+    $lines[] = '🦷 کارآموزی صبح';
     if (($resolved['practicalMorning'] ?? []) === []) {
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {
         $appendEvents($lines, $resolved['practicalMorning']);
     }
     $lines[] = '';
-    $lines[] = '🌆 کارآموزی ۱۳:۰۰ تا ۱۵:۰۰';
+    $lines[] = '🌆 کارآموزی عصر';
     if (($resolved['practicalAfternoon'] ?? []) === []) {
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {

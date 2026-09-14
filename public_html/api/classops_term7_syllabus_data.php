@@ -16,6 +16,9 @@ function classops_term7_syllabus_source_catalog(): array
 {
   "orthodontics-theory-1": {
     "version": "1405-1406-1.corrected.1",
+    "sourceTiming": {
+      "default": {"start": "12:30", "end": "13:30", "appliesToVirtual": true}
+    },
     "eventSlugs": [
       "orthodontics-theory-1"
     ],
@@ -286,6 +289,10 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "endodontics-theory-1": {
     "version": "1405-1406-1.corrected.1",
+    "sourceTiming": {
+      "singleSessionDay": {"start": "08:30", "end": "09:30", "appliesToVirtual": true},
+      "multiSessionDay": {"start": "08:30", "end": "10:30", "appliesToVirtual": true}
+    },
     "eventSlugs": [
       "endodontics-theory-1"
     ],
@@ -447,6 +454,12 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "diagnostic-dentistry-3": {
     "version": "1405-1406-1.corrected.1",
+    "sourceTiming": {
+      "byEventSlug": {
+        "diagnostic-dentistry-3-sun": {"start": "07:30", "end": "08:30", "appliesToVirtual": true},
+        "diagnostic-dentistry-3-mon": {"start": "13:15", "end": "14:15", "appliesToVirtual": true}
+      }
+    },
     "eventSlugs": [
       "diagnostic-dentistry-3-sun",
       "diagnostic-dentistry-3-mon"
@@ -956,6 +969,9 @@ function classops_term7_syllabus_source_catalog(): array
     "version": "1405-1406-1.corrected.1",
     "rotationRelative": true,
     "rotationSourceAnchor": "1405/06/28",
+    "sourceTiming": {
+      "default": {"start": "13:00", "end": "15:30", "appliesToVirtual": false}
+    },
     "eventSlugs": [
       "research-methods-2-practical"
     ],
@@ -1218,6 +1234,9 @@ function classops_term7_syllabus_source_catalog(): array
     "version": "1405-1406-1.corrected.1",
     "rotationRelative": true,
     "rotationSourceAnchor": "1405/06/28",
+    "sourceTiming": {
+      "default": {"start": "09:00", "end": "12:00", "appliesToVirtual": true}
+    },
     "eventSlugs": [
       "oral-health-practical-2"
     ],
@@ -1362,6 +1381,9 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "oral-health-theory-2": {
     "version": "1405-1406-1.corrected.1",
+    "sourceTiming": {
+      "default": {"start": "07:30", "end": "08:30", "appliesToVirtual": true}
+    },
     "eventSlugs": [
       "oral-health-theory-2"
     ],
@@ -1644,6 +1666,9 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "periodontology-theory-1": {
     "version": "1405-1406-1.corrected.1",
+    "sourceTiming": {
+      "default": {"start": "07:30", "end": "08:30", "appliesToVirtual": true}
+    },
     "eventSlugs": [
       "periodontology-theory-1"
     ],

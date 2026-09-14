@@ -100,7 +100,8 @@ function classops_bot_ux_v3_term7_record(
     $end = trim((string) ($event['end'] ?? ''));
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
     $sessionMode = (string) ($event['sessionMode'] ?? '');
-    $untimedVirtual = in_array($sessionMode, ['virtual', 'offline'], true);
+    $sourceTimeExplicit = !empty($event['sourceTimeExplicit']);
+    $untimedVirtual = in_array($sessionMode, ['virtual', 'offline'], true) && !$sourceTimeExplicit;
     $startsAt = $start !== '' && !$untimedVirtual ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
     $endsAt = $end !== '' && !$untimedVirtual ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
     $selector = (string) ($event['selector'] ?? '');
