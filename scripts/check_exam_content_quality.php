@@ -60,7 +60,8 @@ function exam_quality_cli_targets(array $argv): array
         return array_values(array_unique(array_filter($targets, static fn (string $value): bool => $value !== '')));
     }
 
-    $git = @shell_exec('git status --short -- public_html/api 2>NUL');
+    $nullDevice = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+    $git = @shell_exec('git status --short -- public_html/api 2>' . escapeshellarg($nullDevice));
     if (!is_string($git) || trim($git) === '') {
         return [];
     }
