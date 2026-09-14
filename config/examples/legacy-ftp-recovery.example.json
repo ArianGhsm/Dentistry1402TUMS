@@ -1,0 +1,22 @@
+{
+  "name": "Retired cPanel FTP recovery only",
+  "host": "your-retired-host.example.com",
+  "protocol": "ftp",
+  "port": 21,
+  "username": "your-ftp-user",
+  "password": "__SET_IN_LOCAL_UNTRACKED_COPY__",
+  "remotePath": "public_html",
+  "passive": true,
+  "uploadOnSave": false,
+  "downloadOnOpen": false,
+  "syncMode": "update",
+  "ignore": [
+    ".vscode",
+    ".git",
+    ".gitignore",
+    "storage",
+    "scripts",
+    "server-only",
+    "tmp"
+  ]
+}
