@@ -11,7 +11,7 @@ require_once __DIR__ . '/../public_html/api/academic_term7.php';
 
 function term7_import_usage(): never
 {
-    fwrite(STDERR, "Usage: php scripts/import_term7_groups.php --field=group10|group8|oralHealthRotationAWeekday --file=path.csv|path.json [--commit]\n");
+    fwrite(STDERR, "Usage: php scripts/import_term7_groups.php --field=group10|group8|oralHealthRotationAWeekday|oralHealthRotationBWeekday --file=path.csv|path.json [--commit]\n");
     exit(2);
 }
 
@@ -60,15 +60,20 @@ function term7_import_rows(string $path): array
 $options = getopt('', ['field:', 'file:', 'commit']);
 $field = trim((string) ($options['field'] ?? ''));
 $file = trim((string) ($options['file'] ?? ''));
-if (!in_array($field, ['group10', 'group8', 'oralHealthRotationAWeekday'], true) || $file === '') {
+if (!in_array($field, ['group10', 'group8', 'oralHealthRotationAWeekday', 'oralHealthRotationBWeekday'], true) || $file === '') {
     term7_import_usage();
 }
 
 try {
     $rows = term7_import_rows($file);
-    $report = $field === 'oralHealthRotationAWeekday'
-        ? dent_term7_import_oral_health_rotation_a($rows, array_key_exists('commit', $options))
-        : dent_term7_import_assignments($rows, $field, array_key_exists('commit', $options));
+    $commit = array_key_exists('commit', $options);
+    if ($field === 'oralHealthRotationAWeekday') {
+        $report = dent_term7_import_oral_health_rotation_a($rows, $commit);
+    } elseif ($field === 'oralHealthRotationBWeekday') {
+        $report = dent_term7_import_oral_health_rotation_b($rows, $commit);
+    } else {
+        $report = dent_term7_import_assignments($rows, $field, $commit);
+    }
     echo json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL;
     if (($report['unmatched'] ?? []) !== [] || ($report['ambiguous'] ?? []) !== [] || ($report['duplicates'] ?? []) !== [] || ($report['invalid'] ?? []) !== []) {
         exit(1);

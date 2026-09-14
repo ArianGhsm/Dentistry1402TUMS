@@ -195,15 +195,20 @@ def _item_button(item: dict[str, Any], back: str) -> dict[str, Any] | None:
     return button(label, action=f"c3:i:{ref}:{back}")
 
 
+def _instructor(item: dict[str, Any]) -> str:
+    return _plain(item.get("instructor"), 80)
+
+
 def _rich_day_table(day: dict[str, Any], *, limit: int | None = None) -> str:
     items = [item for item in day.get("items", []) if isinstance(item, dict)]
     visible = items if limit is None else items[: max(0, limit)]
     if not visible:
         return "<blockquote>برای این روز موردی ثبت نشده است.</blockquote>"
-    parts = ["<table bordered striped compact><tr><th>زمان</th><th>مورد</th><th>وضعیت</th></tr>"]
+    parts = ["<table bordered striped compact><tr><th>زمان</th><th>مورد</th><th>استاد</th></tr>"]
     for item in visible:
-        icon, label = _meta(item); marker, state = _status(item)
-        parts.append(f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td><td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}</td><td>{marker} {_esc(state, 60)}</td></tr>")
+        icon, label = _meta(item)
+        instructor = _instructor(item)
+        parts.append(f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td><td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}</td><td>{html.escape(instructor)}</td></tr>")
     parts.append("</table>")
     omitted = len(items) - len(visible)
     if omitted > 0:
@@ -254,11 +259,13 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
     local_date = str(day.get("localDate") or "")
     back_date = local_date.replace("-", "")
     for item in visible:
-        icon, label = _meta(item); marker, state = _status(item)
+        icon, label = _meta(item)
         fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 120)}</b>")
-        meta = [label, state]
+        meta = [label]
+        instructor = _instructor(item)
+        if instructor: meta.append("👤 " + instructor)
         if item.get("location"): meta.append("📍 " + _plain(item.get("location"), 70))
-        fallback.append("   " + marker + " " + html.escape(" · ".join(meta)))
+        fallback.append("   " + html.escape(" · ".join(meta)))
         prefix = "od" if owner else "d"
         item_button = _item_button(item, f"{prefix}{back_date}p{page}")
         if item_button is not None: rows.append([item_button])
@@ -301,8 +308,10 @@ def weekly_screen(days: list[dict[str, Any]], week_offset: int, *, owner: bool =
         rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>")
         rich.append(_rich_day_table(day, limit=_WEEKLY_DAY_PREVIEW))
         for item in items[:_WEEKLY_DAY_PREVIEW]:
-            icon, label = _meta(item); marker, _ = _status(item)
-            fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 90)}</b> {marker}")
+            icon, label = _meta(item)
+            instructor = _instructor(item)
+            suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
+            fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 90)}</b>{suffix}")
         if len(items) > _WEEKLY_DAY_PREVIEW:
             fallback.append(f"+{to_persian_digits(len(items) - _WEEKLY_DAY_PREVIEW)} مورد دیگر؛ جزئیات در نمای روزانه")
         local = str(day.get("localDate") or "")
@@ -334,8 +343,10 @@ def month_screen(days: list[dict[str, Any]], page: int, *, owner: bool = False) 
         fallback.append(f"{accent} <b>{html.escape(day_title)}</b> · {to_persian_digits(len(items))} مورد")
         if items:
             for item in items[:4]:
-                icon, label = _meta(item); marker, _ = _status(item)
-                fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_esc(item.get('title') or label, 76)} {marker}")
+                icon, label = _meta(item)
+                instructor = _instructor(item)
+                suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
+                fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_esc(item.get('title') or label, 76)}{suffix}")
             if len(items) > 4: fallback.append(f"   +{to_persian_digits(len(items) - 4)} مورد دیگر")
             rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>")
             rich.append(_rich_day_table(day, limit=_MONTH_DAY_PREVIEW))

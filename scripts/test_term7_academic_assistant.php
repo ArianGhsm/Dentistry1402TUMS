@@ -109,6 +109,25 @@ try {
         'oralHealthRotationAWeekday' => 1,
     ]);
     term7_assert(term7_titles($oralHealthMonday['practicalMorning']) === ['سلامت دهان عملی ۲'], 'Rotation A Monday subgroup sees oral health on Monday');
+    foreach ([6, 1, 3] as $assignedWeekday) {
+        $weeklyHealthCount = 0;
+        foreach ([
+            ['1405/06/28', 6],
+            ['1405/06/30', 1],
+            ['1405/07/01', 3],
+        ] as [$healthDate, $healthWeekday]) {
+            $healthDay = dent_term7_resolve_jalali($healthDate, $healthWeekday, [
+                'group10' => 1,
+                'group8' => 11,
+                'oralHealthRotationAWeekday' => $assignedWeekday,
+            ]);
+            $weeklyHealthCount += count(array_filter(
+                $healthDay['practicalMorning'],
+                static fn(array $event): bool => ($event['slug'] ?? '') === 'oral-health-practical-2'
+            ));
+        }
+        term7_assert($weeklyHealthCount === 1, "Rotation A oral-health weekday {$assignedWeekday} appears exactly once in the three-day week");
+    }
     $oralHealthMissing = dent_term7_resolve_jalali('1405/06/28', 6, ['group10' => 1, 'group8' => 11]);
     term7_assert(
         $oralHealthMissing['practicalMorning'] === []
@@ -116,8 +135,47 @@ try {
             && str_contains(dent_term7_summary_body($oralHealthMissing), 'روز سلامت دهان عملی ۲ شما'),
         'Rotation A missing oral-health weekday fails closed and is explicit'
     );
-    $oralHealthRotationB = dent_term7_resolve_jalali('1405/09/01', 6, ['group10' => 6, 'group8' => 11]);
-    term7_assert(term7_titles($oralHealthRotationB['practicalMorning']) === ['سلامت دهان عملی ۲'], 'Rotation B remains unchanged until its subgroup roster exists');
+    $oralHealthRotationBMissing = dent_term7_resolve_jalali('1405/09/01', 6, ['group10' => 6, 'group8' => 11]);
+    term7_assert(
+        $oralHealthRotationBMissing['practicalMorning'] === []
+            && !empty($oralHealthRotationBMissing['missingOralHealthRotationB'])
+            && str_contains(dent_term7_summary_body($oralHealthRotationBMissing), 'روز سلامت دهان عملی ۲ شما'),
+        'Rotation B missing oral-health weekday fails closed instead of showing three weekly copies'
+    );
+    $oralHealthRotationBSaturday = dent_term7_resolve_jalali('1405/09/01', 6, [
+        'group10' => 6,
+        'group8' => 11,
+        'oralHealthRotationBWeekday' => 6,
+    ]);
+    $oralHealthRotationBMonday = dent_term7_resolve_jalali('1405/09/03', 1, [
+        'group10' => 6,
+        'group8' => 11,
+        'oralHealthRotationBWeekday' => 6,
+    ]);
+    term7_assert(
+        term7_titles($oralHealthRotationBSaturday['practicalMorning']) === ['سلامت دهان عملی ۲']
+            && $oralHealthRotationBMonday['practicalMorning'] === [],
+        'Rotation B oral-health student sees exactly one assigned weekday per week'
+    );
+    foreach ([6, 1, 3] as $assignedWeekday) {
+        $weeklyHealthCount = 0;
+        foreach ([
+            ['1405/09/01', 6],
+            ['1405/09/03', 1],
+            ['1405/09/05', 3],
+        ] as [$healthDate, $healthWeekday]) {
+            $healthDay = dent_term7_resolve_jalali($healthDate, $healthWeekday, [
+                'group10' => 6,
+                'group8' => 11,
+                'oralHealthRotationBWeekday' => $assignedWeekday,
+            ]);
+            $weeklyHealthCount += count(array_filter(
+                $healthDay['practicalMorning'],
+                static fn(array $event): bool => ($event['slug'] ?? '') === 'oral-health-practical-2'
+            ));
+        }
+        term7_assert($weeklyHealthCount === 1, "Rotation B oral-health weekday {$assignedWeekday} appears exactly once in the three-day week");
+    }
 
     foreach (['1405/10/02', '1405/10/16'] as $closedDate) {
         $closed = dent_term7_resolve_jalali($closedDate, 3, ['group10' => 2, 'group8' => 14]);
@@ -131,6 +189,36 @@ try {
                 && term7_titles($makeup['practicalMorning']) === ['ترمیمی عملی ۲']
                 && term7_titles($makeup['practicalAfternoon']) === ['ترمیمی عملی ۲'],
             "Makeup assignments {$makeupDate}"
+        );
+    }
+
+    foreach (['1405/10/19', '1405/10/20'] as $makeupDate) {
+        $makeupHealthWednesday = dent_term7_resolve_jalali($makeupDate, 6, [
+            'group10' => 6,
+            'group8' => 14,
+            'oralHealthRotationBWeekday' => 3,
+        ]);
+        $makeupHealthSaturday = dent_term7_resolve_jalali($makeupDate, 6, [
+            'group10' => 6,
+            'group8' => 14,
+            'oralHealthRotationBWeekday' => 6,
+        ]);
+        $makeupHealthMissing = dent_term7_resolve_jalali($makeupDate, 6, [
+            'group10' => 6,
+            'group8' => 14,
+        ]);
+        term7_assert(
+            in_array('سلامت دهان عملی ۲', term7_titles($makeupHealthWednesday['practicalMorning']), true),
+            "Makeup {$makeupDate} applies Rotation B Wednesday oral-health subgroup"
+        );
+        term7_assert(
+            !in_array('سلامت دهان عملی ۲', term7_titles($makeupHealthSaturday['practicalMorning']), true),
+            "Makeup {$makeupDate} does not leak oral health to Rotation B Saturday subgroup"
+        );
+        term7_assert(
+            !in_array('سلامت دهان عملی ۲', term7_titles($makeupHealthMissing['practicalMorning']), true)
+                && !empty($makeupHealthMissing['missingOralHealthRotationB']),
+            "Makeup {$makeupDate} fails closed when Rotation B oral-health weekday is missing"
         );
     }
 
