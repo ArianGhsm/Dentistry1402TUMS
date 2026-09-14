@@ -48,6 +48,14 @@ task or digest semantics per platform. Machine UTC/ISO time remains internal:
 every visible Class Operations date/time uses the shared Tehran Solar Hijri
 formatter and every visible number uses Persian digits.
 
+In the Daily, Weekly and Monthly academic-program tables, the compact columns
+are `زمان | مورد | استاد`. The instructor comes only from canonical syllabus
+session metadata; there is no fallback to course coordinator or another
+teacher. If the source syllabus does not name an instructor, the instructor
+cell stays empty. Status remains available where it is semantically required
+(for tasks, notifications and owner delivery/admin views), not as a column in
+the academic-program tables.
+
 Class Operations callback navigation remains in one app-like message. A
 callback that opens or refreshes a native-rich report edits the existing
 `message_id` through `editMessageText.rich_message`, including regular-to-rich

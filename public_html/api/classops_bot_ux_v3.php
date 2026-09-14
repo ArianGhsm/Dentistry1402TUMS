@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/classops_bot_service.php';
 require_once __DIR__ . '/academic_term7_bot_service.php';
-require_once __DIR__ . '/classops_partial_theory_syllabus.php';
+require_once __DIR__ . '/classops_term7_syllabus.php';
 
 function classops_bot_ux_v3_action(string $action): bool
 {
@@ -100,12 +100,15 @@ function classops_bot_ux_v3_term7_record(
     $end = trim((string) ($event['end'] ?? ''));
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
     $sessionMode = (string) ($event['sessionMode'] ?? '');
-    $startsAt = $start !== '' && $sessionMode !== 'virtual' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
-    $endsAt = $end !== '' && $sessionMode !== 'virtual' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
+    $untimedVirtual = in_array($sessionMode, ['virtual', 'offline'], true);
+    $startsAt = $start !== '' && !$untimedVirtual ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
+    $endsAt = $end !== '' && !$untimedVirtual ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
     $selector = (string) ($event['selector'] ?? '');
     $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : null);
     $sessionNumber = isset($event['sessionNumber']) && (int) $event['sessionNumber'] > 0 ? (int) $event['sessionNumber'] : null;
-    $refIdentity = $slug . '|' . $period . '|' . ($sessionNumber ?? '');
+    $sessionKey = trim((string) ($event['sessionKey'] ?? ''));
+    if ($sessionKey === '') $sessionKey = $sessionNumber !== null ? (string) $sessionNumber : '';
+    $refIdentity = $slug . '|' . $period . '|' . $sessionKey;
     $ref = 't7_' . $date->format('Ymd') . '_' . substr(hash('sha256', $refIdentity), 0, 10);
     $sortHour = $startsAt?->format('H:i') ?? ($period === 'afternoon' ? '13:00' : ($period === 'morning' ? '09:00' : '00:00'));
     $sortAt = new DateTimeImmutable($date->format('Y-m-d') . ' ' . $sortHour, $timezone);
@@ -116,16 +119,24 @@ function classops_bot_ux_v3_term7_record(
         'location' => (string) ($event['location'] ?? ''), 'importance' => 'normal',
         'localDate' => $date->format('Y-m-d'), 'startsAt' => $startsAt?->format('c') ?? '',
         'endsAt' => $endsAt?->format('c') ?? '', 'dueAt' => '',
-        'timeLabel' => $sessionMode === 'virtual' ? 'مجازی' : ($startsAt !== null ? '' : ($period === 'morning' ? '۰۹:۰۰–۱۲:۰۰' : ($period === 'afternoon' ? '۱۳:۰۰–۱۵:۰۰' : ''))),
+        'timeLabel' => $untimedVirtual ? ((string) ($event['sessionModeLabel'] ?? '') ?: 'مجازی') : ($startsAt !== null ? '' : ($period === 'morning' ? '۰۹:۰۰–۱۲:۰۰' : ($period === 'afternoon' ? '۱۳:۰۰–۱۵:۰۰' : ''))),
         'sortAt' => $sortAt->setTimezone(new DateTimeZone('UTC'))->format('c'), 'overdue' => false,
         'rotation' => $rotation, 'rotationLabel' => dent_term7_bot_service_rotation_label($rotation),
+        'sessionKey' => $sessionKey,
         'sessionNumber' => $sessionNumber,
+        'sessionNumbers' => is_array($event['sessionNumbers'] ?? null) ? $event['sessionNumbers'] : [],
+        'sessionLabel' => (string) ($event['sessionLabel'] ?? ''),
         'sessionTitle' => (string) ($event['sessionTitle'] ?? ''),
+        'sessionDetails' => (string) ($event['sessionDetails'] ?? ''),
         'instructor' => (string) ($event['instructor'] ?? ''),
         'sessionMode' => $sessionMode,
         'sessionModeLabel' => (string) ($event['sessionModeLabel'] ?? ''),
         'references' => is_array($event['references'] ?? null) ? $event['references'] : [],
+        'segments' => is_array($event['segments'] ?? null) ? $event['segments'] : [],
+        'sourceFile' => (string) ($event['sourceFile'] ?? ''),
+        'sourcePage' => max(0, (int) ($event['sourcePage'] ?? 0)),
         'sourceDate' => (string) ($event['sourceDate'] ?? ''),
+        'assessmentPart' => (string) ($event['assessmentPart'] ?? ''),
         'applicability' => [
             'selector' => $selector,
             'group' => is_int($group) ? $group : null,
@@ -145,17 +156,26 @@ function classops_bot_ux_v3_term7_records(array $user, DateTimeImmutable $date, 
     $resolved = dent_term7_resolve_date($date, $assignment);
     $rotation = (string) ($resolved['rotation'] ?? '');
     $out = [];
-    $theory = classops_partial_theory_enrich_events(
+    $jalaliDate = (string) ($resolved['date'] ?? '');
+    $theory = classops_term7_syllabus_enrich_events(
         is_array($resolved['theory'] ?? null) ? $resolved['theory'] : [],
-        (string) ($resolved['date'] ?? '')
+        $jalaliDate
+    );
+    $morning = classops_term7_syllabus_enrich_events(
+        is_array($resolved['practicalMorning'] ?? null) ? $resolved['practicalMorning'] : [],
+        $jalaliDate
+    );
+    $afternoon = classops_term7_syllabus_enrich_events(
+        is_array($resolved['practicalAfternoon'] ?? null) ? $resolved['practicalAfternoon'] : [],
+        $jalaliDate
     );
     foreach ($theory as $event) {
         if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
     }
-    foreach (($resolved['practicalMorning'] ?? []) as $event) {
+    foreach ($morning as $event) {
         if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'practical', 'morning', $rotation, $assignment);
     }
-    foreach (($resolved['practicalAfternoon'] ?? []) as $event) {
+    foreach ($afternoon as $event) {
         if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'practical', 'afternoon', $rotation, $assignment);
     }
     return $out;
