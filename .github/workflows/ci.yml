@@ -10,10 +10,16 @@ on:
       - "bot_runtime/**"
       - "contracts/**"
       - "docs/**"
+      - "ops/**"
+      - "config/**"
+      - "server-only/**"
+      - ".env.example"
+      - ".gitignore"
+      - "README.md"
       - "AGENTS.md"
       - "DEPLOY.md"
       - "CONTRIBUTING.md"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/**"
   pull_request:
     types:
       - opened
@@ -26,10 +32,16 @@ on:
       - "bot_runtime/**"
       - "contracts/**"
       - "docs/**"
+      - "ops/**"
+      - "config/**"
+      - "server-only/**"
+      - ".env.example"
+      - ".gitignore"
+      - "README.md"
       - "AGENTS.md"
       - "DEPLOY.md"
       - "CONTRIBUTING.md"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
