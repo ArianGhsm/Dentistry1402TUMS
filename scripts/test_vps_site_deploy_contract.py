@@ -74,15 +74,16 @@ assert DEPLOY.index("Status succeeded") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 's
 assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation reporting must occur only after the remote installer contains its live-verification boundary'
 
 # Repository instructions must describe the same production route as the
-# executable release wrappers. This catches semantic documentation drift that
-# generic markdown/static checks cannot infer.
+# executable release wrappers. Normalize only path separators so semantically
+# equivalent PowerShell/Markdown spellings cannot create a false failure.
 for doc_name, text in (
     ('AGENTS.md', AGENTS),
     ('DEPLOY.md', DEPLOY_DOC),
     ('docs/DEVELOPMENT_WORKFLOW.md', WORKFLOW_DOC),
 ):
-    assert 'scripts/run_release_gate.ps1' in text, f'{doc_name} must name the canonical release gate'
-    assert 'scripts/deploy_site_vps.ps1' in text, f'{doc_name} must name the canonical VPS deployer'
+    normalized = text.replace('\\', '/')
+    assert 'scripts/run_release_gate.ps1' in normalized, f'{doc_name} must name the canonical release gate'
+    assert 'scripts/deploy_site_vps.ps1' in normalized, f'{doc_name} must name the canonical VPS deployer'
 
 assert '.\\scripts\\deploy_public_html.ps1 -ReleaseSha' not in AGENTS, (
     'AGENTS.md must not present the retired cPanel/FTP deployer as a canonical command'
