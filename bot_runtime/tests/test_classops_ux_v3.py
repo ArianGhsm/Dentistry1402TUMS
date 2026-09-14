@@ -56,6 +56,18 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertLess(str(screen.text).find("امتحان"), str(screen.text).find("ددلاین"))
         self.assertIn("<table bordered striped compact>", screen.text.rich_html)
 
+    def test_same_clock_keeps_numeric_session_order_before_title_order(self):
+        start = "2026-11-25T07:30:00+03:30"
+        end = "2026-11-25T08:30:00+03:30"
+        day = {"localDate": "2026-11-25", "items": [
+            sample_item(title="جلسه ۱۰", startsAt=start, endsAt=end, sessionNumber=10),
+            sample_item(title="جلسه ۱۱", startsAt=start, endsAt=end, sessionNumber=11),
+            sample_item(title="جلسه ۹", startsAt=start, endsAt=end, sessionNumber=9),
+        ]}
+        text = str(daily_screen(day).text)
+        self.assertLess(text.find("جلسه ۹"), text.find("جلسه ۱۰"))
+        self.assertLess(text.find("جلسه ۱۰"), text.find("جلسه ۱۱"))
+
     def test_empty_day_and_cancelled_item_are_explicit(self):
         self.assertIn("موردی ثبت نشده", str(daily_screen({"localDate": "2026-09-10", "items": []}).text))
         cancelled = daily_screen({"localDate": "2026-09-10", "items": [sample_item(status="cancelled")]})

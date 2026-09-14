@@ -20,10 +20,10 @@ def _partial_item(number: int, title: str, *, virtual: bool = False) -> dict[str
         "sessionMode": "virtual" if virtual else "in_person",
         "sessionModeLabel": "مجازی" if virtual else "حضوری",
         "localDate": "2026-11-25",
-        "startsAt": "" if virtual else "2026-11-25T07:30:00+03:30",
-        "endsAt": "" if virtual else "2026-11-25T08:30:00+03:30",
+        "startsAt": "2026-11-25T07:30:00+03:30",
+        "endsAt": "2026-11-25T08:30:00+03:30",
         "sortAt": "2026-11-25T04:00:00+00:00",
-        "timeLabel": "مجازی" if virtual else "",
+        "timeLabel": "",
         "overdue": False,
     }
 

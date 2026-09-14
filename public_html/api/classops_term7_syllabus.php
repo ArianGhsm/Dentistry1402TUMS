@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.2';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.3';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -42,6 +42,9 @@ function classops_term7_syllabus_catalog(): array
         'sourceCourseTitle' => (string) ($partial['sourceCourseTitle'] ?? 'مبانی پروتز پارسیل نظری'),
         'sourceFile' => 'مبانی پروتز پارسیل نظری.pdf',
         'courseCoordinator' => (string) ($partial['courseCoordinator'] ?? ''),
+        'sourceTiming' => [
+            'default' => ['start' => '07:30', 'end' => '08:30', 'appliesToVirtual' => true],
+        ],
         'sessions' => $partialSessions,
     ];
     return $catalog;
@@ -133,6 +136,87 @@ function classops_term7_syllabus_sessions_for_date(array $course, string $jalali
     return $sessions;
 }
 
+function classops_term7_syllabus_valid_clock(string $value): bool
+{
+    return preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', trim($value)) === 1;
+}
+
+function classops_term7_syllabus_timing_for_session(array $course, array $sessions, array $session, string $eventSlug): ?array
+{
+    $config = is_array($course['sourceTiming'] ?? null) ? $course['sourceTiming'] : [];
+    if ($config === []) return null;
+
+    $timing = null;
+    $bySlug = is_array($config['byEventSlug'] ?? null) ? $config['byEventSlug'] : [];
+    if (is_array($bySlug[$eventSlug] ?? null)) {
+        $timing = $bySlug[$eventSlug];
+    } elseif (is_array($config['singleSessionDay'] ?? null) && is_array($config['multiSessionDay'] ?? null)) {
+        $sessionCount = 0;
+        foreach ($sessions as $row) {
+            if (!is_array($row)) continue;
+            $numbers = array_values(array_filter(array_map('intval', is_array($row['sessionNumbers'] ?? null) ? $row['sessionNumbers'] : []), static fn(int $value): bool => $value > 0));
+            if ($numbers !== []) {
+                $sessionCount += count($numbers);
+            } elseif (isset($row['sessionNumber']) && (int) $row['sessionNumber'] > 0) {
+                $sessionCount++;
+            }
+        }
+        $timing = $sessionCount > 1 ? $config['multiSessionDay'] : $config['singleSessionDay'];
+    } elseif (is_array($config['default'] ?? null)) {
+        $timing = $config['default'];
+    }
+    if (!is_array($timing)) return null;
+
+    $mode = trim((string) ($session['sessionMode'] ?? 'in_person')) ?: 'in_person';
+    if (in_array($mode, ['virtual', 'offline'], true) && empty($timing['appliesToVirtual'])) {
+        return null;
+    }
+    $start = trim((string) ($timing['start'] ?? ''));
+    $end = trim((string) ($timing['end'] ?? ''));
+    if (!classops_term7_syllabus_valid_clock($start) || !classops_term7_syllabus_valid_clock($end)) return null;
+    return ['start' => $start, 'end' => $end];
+}
+
+function classops_term7_syllabus_source_time_for_event(string $eventSlug, string $jalaliDate, string $rotation = ''): ?array
+{
+    $mapping = classops_term7_syllabus_course_for_slug($eventSlug);
+    if ($mapping === null) return null;
+    $course = $mapping['course'];
+    $sessions = classops_term7_syllabus_sessions_for_date($course, $jalaliDate, $rotation);
+    if ($sessions === []) return null;
+
+    $timings = [];
+    foreach ($sessions as $session) {
+        if (!is_array($session)) continue;
+        $timing = classops_term7_syllabus_timing_for_session($course, $sessions, $session, $eventSlug);
+        if ($timing !== null) $timings[] = $timing;
+    }
+    if ($timings === []) return null;
+    usort($timings, static fn(array $a, array $b): int => strcmp((string) $a['start'], (string) $b['start']));
+    $start = (string) $timings[0]['start'];
+    $end = (string) $timings[0]['end'];
+    foreach ($timings as $timing) {
+        if (strcmp((string) $timing['start'], $start) < 0) $start = (string) $timing['start'];
+        if (strcmp((string) $timing['end'], $end) > 0) $end = (string) $timing['end'];
+    }
+    return ['start' => $start, 'end' => $end];
+}
+
+function classops_term7_syllabus_apply_source_times(array $events, string $jalaliDate, string $rotation = ''): array
+{
+    return array_map(static function (array $event) use ($jalaliDate, $rotation): array {
+        $slug = trim((string) ($event['slug'] ?? ''));
+        if ($slug === '') return $event;
+        $timing = classops_term7_syllabus_source_time_for_event($slug, $jalaliDate, $rotation);
+        if ($timing === null) return $event;
+        $event['start'] = $timing['start'];
+        $event['end'] = $timing['end'];
+        $event['sourceTimeExplicit'] = true;
+        $event['timeSource'] = 'term7-course-syllabus';
+        return $event;
+    }, $events);
+}
+
 function classops_term7_syllabus_session_label(array $session): string
 {
     $explicit = trim((string) ($session['sessionLabel'] ?? ''));
@@ -188,6 +272,17 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             $copy['references'] = is_array($session['references'] ?? null) ? $session['references'] : [];
             $copy['sessionMode'] = $mode;
             $copy['sessionModeLabel'] = $modeLabel;
+            $timing = classops_term7_syllabus_timing_for_session($course, $sessions, $session, $slug);
+            if ($timing !== null) {
+                $copy['start'] = $timing['start'];
+                $copy['end'] = $timing['end'];
+                $copy['sourceTimeExplicit'] = true;
+                $copy['timeSource'] = 'term7-course-syllabus';
+            } elseif (in_array($mode, ['virtual', 'offline'], true)) {
+                $copy['start'] = '';
+                $copy['end'] = '';
+                $copy['sourceTimeExplicit'] = false;
+            }
             $copy['segments'] = is_array($session['segments'] ?? null) ? $session['segments'] : [];
             $copy['sourceFile'] = (string) ($course['sourceFile'] ?? '');
             $copy['sourcePage'] = max(0, (int) ($session['sourcePage'] ?? 0));

@@ -160,10 +160,12 @@ def _clock(value: object) -> str:
     return to_persian_digits(parsed.astimezone(_TEHRAN).strftime("%H:%M"))
 
 
-def _item_sort_key(item: dict[str, Any]) -> tuple[str, str]:
+def _item_sort_key(item: dict[str, Any]) -> tuple[str, int, str]:
     values = [str(item.get(key) or "").strip() for key in ("startsAt", "dueAt", "endsAt")]
     effective = next((value for value in values if value), "9999-12-31T23:59:59+00:00")
-    return effective, _plain(item.get("title"), 160)
+    raw_session = item.get("sessionNumber")
+    session_number = raw_session if isinstance(raw_session, int) and raw_session > 0 else 1_000_000
+    return effective, session_number, _plain(item.get("title"), 160)
 
 
 def _row_time(item: dict[str, Any]) -> str:

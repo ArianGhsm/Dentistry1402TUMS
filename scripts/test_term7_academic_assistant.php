@@ -228,7 +228,26 @@ try {
             && $thursday['theory'][0]['title'] === 'اندو نظری ۱'
             && $thursday['theory'][0]['start'] === '08:30'
             && $thursday['theory'][0]['end'] === '10:30',
-        'Owner correction: Thursday Endo is 08:30-10:30'
+        'Two-session Thursday Endo uses syllabus-priority 08:30-10:30'
+    );
+
+    $singleEndoThursday = dent_term7_resolve_jalali('1405/07/09', 4, []);
+    term7_assert(
+        count($singleEndoThursday['theory']) === 1
+            && ($singleEndoThursday['theory'][0]['start'] ?? '') === '08:30'
+            && ($singleEndoThursday['theory'][0]['end'] ?? '') === '09:30'
+            && !empty($singleEndoThursday['theory'][0]['sourceTimeExplicit']),
+        'Single-session Thursday Endo uses syllabus-priority 08:30-09:30'
+    );
+
+    $diagnosticMonday = dent_term7_resolve_jalali('1405/07/13', 1, []);
+    $diagnosticMondayRows = array_values(array_filter($diagnosticMonday['theory'], static fn(array $event): bool => ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'));
+    term7_assert(
+        count($diagnosticMondayRows) === 1
+            && ($diagnosticMondayRows[0]['start'] ?? '') === '13:15'
+            && ($diagnosticMondayRows[0]['end'] ?? '') === '14:15'
+            && !empty($diagnosticMondayRows[0]['sourceTimeExplicit']),
+        'Monday Diagnostic Dentistry 3 uses syllabus-priority 13:15-14:15'
     );
 
     $missing = dent_term7_resolve_jalali('1405/07/05', 7, []);
@@ -280,10 +299,10 @@ try {
     $researchCases = [
         ['1405/07/04', 6, ['group10' => 1, 'group8' => 11, 'oralHealthRotationAWeekday' => 1], 1],
         ['1405/07/04', 6, ['group10' => 6, 'group8' => 15], 0],
-        ['1405/09/01', 6, ['group10' => 6, 'group8' => 11], 1],
-        ['1405/09/01', 6, ['group10' => 1, 'group8' => 12], 0],
+        ['1405/08/30', 6, ['group10' => 6, 'group8' => 11], 1],
+        ['1405/08/30', 6, ['group10' => 1, 'group8' => 12], 0],
         ['1405/07/08', 3, ['group10' => 1, 'group8' => 18, 'oralHealthRotationAWeekday' => 1], 1],
-        ['1405/09/05', 3, ['group10' => 6, 'group8' => 14], 1],
+        ['1405/09/04', 3, ['group10' => 6, 'group8' => 14], 1],
     ];
     foreach ($researchCases as [$date, $weekday, $assignment, $expectedCount]) {
         $resolvedResearch = dent_term7_resolve_jalali($date, $weekday, $assignment);
@@ -293,9 +312,9 @@ try {
         if ($expectedCount === 1) {
             term7_assert(
                 ($researchRows[0]['start'] ?? '') === '13:00'
-                    && ($researchRows[0]['end'] ?? '') === '15:00'
+                    && ($researchRows[0]['end'] ?? '') === '15:30'
                     && ($researchRows[0]['location'] ?? '') === (dent_term7_schedule()['theory'][6][0]['location'] ?? ''),
-                'Research Methodology 2 keeps canonical time and amphitheater location'
+                'Research Methodology 2 uses syllabus-priority time and amphitheater location'
             );
         }
     }
@@ -304,9 +323,19 @@ try {
     term7_assert(
         str_contains($clockSummary, '۰۹:۰۰ تا ۱۲:۰۰')
             && str_contains($clockSummary, '۱۳:۰۰ تا ۱۵:۰۰')
-            && !str_contains($clockSummary, 'کارآموزی صبح')
-            && !str_contains($clockSummary, 'کارآموزی عصر'),
-        'User-facing practical summary is clock-based with Persian digits'
+            && str_contains($clockSummary, 'کارآموزی صبح')
+            && str_contains($clockSummary, 'کارآموزی عصر'),
+        'User-facing practical summary keeps exact per-event clocks with daypart headings'
+    );
+    $researchSummary = dent_term7_summary_body(dent_term7_resolve_jalali('1405/07/04', 6, [
+        'group10' => 1,
+        'group8' => 11,
+        'oralHealthRotationAWeekday' => 1,
+    ]));
+    term7_assert(
+        str_contains($researchSummary, '۱۳:۰۰ تا ۱۵:۳۰')
+            && !str_contains($researchSummary, 'کارآموزی ۱۳:۰۰ تا ۱۵:۰۰'),
+        'Research Methodology summary exposes the syllabus-priority 13:00-15:30 window without a conflicting section clock'
     );
     term7_assert(dent_term7_schedule()['prepChecklists'] === [], 'Preparation checklist remains intentionally empty');
     term7_assert(dent_term7_schedule()['foodUrl'] === DENT_TERM7_FOOD_URL, 'Food URL has one canonical config source');
