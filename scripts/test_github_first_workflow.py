@@ -10,6 +10,25 @@ ROOT = Path(__file__).resolve().parents[1]
 DEPLOY = (ROOT / "scripts/deploy_public_html.ps1").read_text(encoding="utf-8")
 VPS_DEPLOY = (ROOT / "scripts/deploy_site_vps.ps1").read_text(encoding="utf-8")
 RELEASE_GATE = (ROOT / "scripts/run_release_gate.ps1").read_text(encoding="utf-8")
+SELF_HOSTED_DOC = (ROOT / "docs/SELF_HOSTED_CI.md").read_text(encoding="utf-8")
+
+for workflow_name in ("ci.yml", "classops-stage1.yml", "persian-text-integrity.yml"):
+    workflow = (ROOT / ".github/workflows" / workflow_name).read_text(encoding="utf-8")
+    assert "runs-on: ubuntu-latest" in workflow, (
+        f"public CI workflow must use an ephemeral GitHub-hosted runner: {workflow_name}"
+    )
+    assert "persist-credentials: false" in workflow, (
+        f"workflow checkout must not persist the job token: {workflow_name}"
+    )
+    assert "timeout-minutes:" in workflow, f"public CI job must have a bounded timeout: {workflow_name}"
+    if workflow_name == "ci.yml":
+        assert "sudo apt-get install -y --no-install-recommends qpdf" in workflow, (
+            "the hosted static workflow must install its qpdf verification dependency"
+        )
+    else:
+        assert "sudo " not in workflow, f"public CI job must not invoke sudo: {workflow_name}"
+
+assert "must never turn this runner into a deployment agent" in SELF_HOSTED_DOC
 
 # The legacy FTP deployer remains test-covered as recovery/history evidence, but
 # it is no longer a canonical production route. GitHub-first release wrappers

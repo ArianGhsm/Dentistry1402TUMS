@@ -209,8 +209,11 @@ def _rich_day_table(day: dict[str, Any], *, limit: int | None = None) -> str:
     parts = ["<table bordered striped compact><tr><th>زمان</th><th>مورد</th><th>استاد</th></tr>"]
     for item in visible:
         icon, label = _meta(item)
+        marker, state = _status(item)
         instructor = _instructor(item)
-        parts.append(f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td><td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}</td><td>{html.escape(instructor)}</td></tr>")
+        status_key = str(item.get("status") or "unknown")
+        status_suffix = f" · {marker} {html.escape(state)}" if status_key not in {"active", "unknown"} else ""
+        parts.append(f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td><td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}{status_suffix}</td><td>{html.escape(instructor)}</td></tr>")
     parts.append("</table>")
     omitted = len(items) - len(visible)
     if omitted > 0:
@@ -262,7 +265,10 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
     back_date = local_date.replace("-", "")
     for item in visible:
         icon, label = _meta(item)
-        fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 120)}</b>")
+        marker, state = _status(item)
+        status_key = str(item.get("status") or "unknown")
+        status_suffix = f" · {marker} {html.escape(state)}" if status_key not in {"active", "unknown"} else ""
+        fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 120)}</b>{status_suffix}")
         meta = [label]
         instructor = _instructor(item)
         if instructor: meta.append("👤 " + instructor)

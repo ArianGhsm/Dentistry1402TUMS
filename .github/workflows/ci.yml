@@ -41,16 +41,22 @@ concurrency:
 jobs:
   static-checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
-          extensions: mbstring, openssl, curl
-          coverage: none
+          persist-credentials: false
+
+      - name: Install qpdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qpdf
+
+      - name: Verify runner PHP and qpdf
+        run: |
+          php -r 'foreach (["mbstring", "openssl", "curl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "missing PHP extension: $extension\n"); exit(1); } }'
+          qpdf --version
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -61,11 +67,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: Install qpdf for bounded-memory PDF assembly tests
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qpdf
 
       - name: Install deterministic bot runtime test dependencies
         run: |
