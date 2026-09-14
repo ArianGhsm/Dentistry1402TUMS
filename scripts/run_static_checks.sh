@@ -51,6 +51,7 @@ section "Repository and shared-contract freeze"
 "$PYTHON_BIN" scripts/test_release_source_contract.py || fail "test_release_source_contract.py"
 "$PYTHON_BIN" scripts/test_github_first_workflow.py || fail "test_github_first_workflow.py"
 "$PYTHON_BIN" scripts/test_vps_site_deploy_contract.py || fail "test_vps_site_deploy_contract.py"
+"$PYTHON_BIN" scripts/test_operational_hygiene.py || fail "test_operational_hygiene.py"
 
 section "Auth store resilience"
 "$PHP_BIN" scripts/check_auth_store_resilience.php || fail "check_auth_store_resilience.php"
