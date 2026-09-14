@@ -108,6 +108,26 @@ syllabus_assert(
     'Research Methodology virtual row is distinct without overriding canonical timetable recurrence'
 );
 
+$researchWithSupplement = classops_term7_syllabus_enrich_events([
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲'),
+], '1405/07/08', 'A');
+syllabus_assert(
+    count($researchWithSupplement) === 2
+        && ($researchWithSupplement[0]['sessionNumber'] ?? null) === 4
+        && ($researchWithSupplement[1]['sessionLabel'] ?? '') === 'محتوای تکمیلی جلسه ۴',
+    'Research Methodology keeps the numbered session before its supplemental row'
+);
+
+$researchRotationB = classops_term7_syllabus_enrich_events([
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲'),
+], '1405/09/25', 'B');
+syllabus_assert(
+    array_column($researchRotationB, 'sessionNumber') === [10, 11]
+        && ($researchRotationB[0]['instructor'] ?? '') !== ''
+        && ($researchRotationB[1]['sessionMode'] ?? '') === 'virtual',
+    'Research Methodology repeats the same source-relative session sequence in Rotation B'
+);
+
 $healthTheory = classops_term7_syllabus_enrich_events([
     syllabus_event('oral-health-theory-2', 'سلامت دهان نظری ۲'),
 ], '1405/07/28');
@@ -161,6 +181,34 @@ foreach (['1405/06/28', '1405/06/30', '1405/07/01'] as $date) {
         "Oral Health Practical repeats session 1 metadata on {$date} without creating a new session number"
     );
 }
+
+foreach (['1405/08/23', '1405/08/25', '1405/08/27'] as $date) {
+    $rows = classops_term7_syllabus_enrich_events([
+        syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+    ], $date, 'B');
+    syllabus_assert(
+        count($rows) === 1
+            && ($rows[0]['sessionNumber'] ?? null) === 1
+            && ($rows[0]['instructor'] ?? '') === 'دکتر سرگران / دکتر پاکدامن',
+        "Oral Health Practical repeats Rotation B week 1 as session 1 on {$date}"
+    );
+}
+$healthRotationBWeek8 = classops_term7_syllabus_enrich_events([
+    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+], '1405/10/14', 'B');
+syllabus_assert(
+    count($healthRotationBWeek8) === 1
+        && ($healthRotationBWeek8[0]['sessionNumber'] ?? null) === 8
+        && str_contains((string) ($healthRotationBWeek8[0]['sessionTitle'] ?? ''), 'ارائه کار گروهی'),
+    'Oral Health Practical maps Rotation B week 8 to source session 8'
+);
+$healthNoRotationGuess = classops_term7_syllabus_enrich_events([
+    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+], '1405/08/23');
+syllabus_assert(
+    count($healthNoRotationGuess) === 1 && !isset($healthNoRotationGuess[0]['sessionNumber']),
+    'Rotation-relative syllabus metadata fails closed when rotation context is absent'
+);
 
 $partial = classops_term7_syllabus_enrich_events([
     syllabus_event('partial-basics-theory', 'مبانی پارسیل نظری'),

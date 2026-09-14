@@ -54,6 +54,7 @@ $state['assignments'][$studentNumber] = dent_term7_normalize_assignment($student
     'studentNumber' => $studentNumber,
     'group10' => 6,
     'group8' => 15,
+    'oralHealthRotationBWeekday' => 6,
     'updatedAt' => '',
 ]);
 $student = ['studentNumber' => $studentNumber, 'cohortKey' => DENT_TERM7_COHORT, 'role' => 'student'];
@@ -78,6 +79,29 @@ classops_v3_assert(
 classops_v3_assert(
     count(array_filter($practicalRows, static fn(array $item): bool => in_array((string) ($item['timeLabel'] ?? ''), ['صبح', 'عصر'], true))) === 0,
     'Practical timeline no longer leaks ambiguous morning/afternoon labels'
+);
+
+$rotationBStart = new DateTimeImmutable('2026-11-14 00:00:00', $timezone); // 1405/08/23
+$rotationBRows = classops_bot_ux_v3_term7_records($student, $rotationBStart, $state);
+$rotationBHealth = array_values(array_filter(
+    $rotationBRows,
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'سلامت دهان عملی ۲'
+));
+$rotationBResearch = array_values(array_filter(
+    $rotationBRows,
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'روش تحقیق ۲'
+));
+classops_v3_assert(
+    count($rotationBHealth) === 1
+        && ($rotationBHealth[0]['sessionNumber'] ?? null) === 1
+        && ($rotationBHealth[0]['instructor'] ?? '') === 'دکتر سرگران / دکتر پاکدامن',
+    'Rotation B ClassOps projection enriches Oral Health Practical with session 1 and instructor'
+);
+classops_v3_assert(
+    count($rotationBResearch) === 1
+        && ($rotationBResearch[0]['sessionNumber'] ?? null) === 1
+        && str_contains((string) ($rotationBResearch[0]['title'] ?? ''), 'مقدمه و معرفی دوره'),
+    'Rotation B ClassOps projection enriches Research Methodology with the repeated source sequence'
 );
 
 $studentAcademic = classops_bot_ux_v3_term7_records($student, $partialDate, $state);

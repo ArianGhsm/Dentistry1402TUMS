@@ -159,15 +159,18 @@ function classops_bot_ux_v3_term7_records(array $user, DateTimeImmutable $date, 
     $jalaliDate = (string) ($resolved['date'] ?? '');
     $theory = classops_term7_syllabus_enrich_events(
         is_array($resolved['theory'] ?? null) ? $resolved['theory'] : [],
-        $jalaliDate
+        $jalaliDate,
+        $rotation
     );
     $morning = classops_term7_syllabus_enrich_events(
         is_array($resolved['practicalMorning'] ?? null) ? $resolved['practicalMorning'] : [],
-        $jalaliDate
+        $jalaliDate,
+        $rotation
     );
     $afternoon = classops_term7_syllabus_enrich_events(
         is_array($resolved['practicalAfternoon'] ?? null) ? $resolved['practicalAfternoon'] : [],
-        $jalaliDate
+        $jalaliDate,
+        $rotation
     );
     foreach ($theory as $event) {
         if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);

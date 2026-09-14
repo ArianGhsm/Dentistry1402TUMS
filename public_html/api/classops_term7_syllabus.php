@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.1';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.2';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -65,22 +65,68 @@ function classops_term7_syllabus_course_for_slug(string $slug): ?array
     return is_array($bySlug[$slug] ?? null) ? $bySlug[$slug] : null;
 }
 
-function classops_term7_syllabus_sessions_for_date(array $course, string $jalaliDate): array
+function classops_term7_syllabus_jalali_day_of_year(string $jalaliDate): ?int
+{
+    if (!preg_match('/^(\d{4})\/(\d{2})\/(\d{2})$/', trim($jalaliDate), $match)) return null;
+    $year = (int) $match[1];
+    $month = (int) $match[2];
+    $day = (int) $match[3];
+    if ($year !== 1405 || $month < 1 || $month > 12) return null;
+    $monthLengths = [1 => 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+    if ($day < 1 || $day > $monthLengths[$month]) return null;
+    $ordinal = $day;
+    for ($cursor = 1; $cursor < $month; $cursor++) $ordinal += $monthLengths[$cursor];
+    return $ordinal;
+}
+
+function classops_term7_syllabus_rotation_anchor(string $rotation): string
+{
+    return match (strtoupper(trim($rotation))) {
+        'A' => '1405/06/28',
+        'B' => '1405/08/23',
+        default => '',
+    };
+}
+
+function classops_term7_syllabus_session_matches_date(array $course, array $session, string $jalaliDate, string $rotation): bool
+{
+    $dates = array_values(array_filter(array_map(
+        static fn($value): string => trim((string) $value),
+        is_array($session['dates'] ?? null) ? $session['dates'] : []
+    )));
+    if (empty($course['rotationRelative']) || !in_array(strtoupper(trim($rotation)), ['A', 'B'], true)) {
+        return in_array($jalaliDate, $dates, true);
+    }
+
+    $sourceAnchor = trim((string) ($course['rotationSourceAnchor'] ?? ''));
+    $targetAnchor = classops_term7_syllabus_rotation_anchor($rotation);
+    $sourceOrdinal = classops_term7_syllabus_jalali_day_of_year($sourceAnchor);
+    $targetOrdinal = classops_term7_syllabus_jalali_day_of_year($targetAnchor);
+    $dateOrdinal = classops_term7_syllabus_jalali_day_of_year($jalaliDate);
+    if ($sourceOrdinal === null || $targetOrdinal === null || $dateOrdinal === null) return false;
+    $targetOffset = $dateOrdinal - $targetOrdinal;
+    if ($targetOffset < 0) return false;
+    foreach ($dates as $sourceDate) {
+        $sourceDateOrdinal = classops_term7_syllabus_jalali_day_of_year($sourceDate);
+        if ($sourceDateOrdinal !== null && ($sourceDateOrdinal - $sourceOrdinal) === $targetOffset) return true;
+    }
+    return false;
+}
+
+function classops_term7_syllabus_sessions_for_date(array $course, string $jalaliDate, string $rotation = ''): array
 {
     $sessions = [];
     foreach (is_array($course['sessions'] ?? null) ? $course['sessions'] : [] as $session) {
         if (!is_array($session)) continue;
-        $dates = array_values(array_filter(array_map(
-            static fn($value): string => trim((string) $value),
-            is_array($session['dates'] ?? null) ? $session['dates'] : []
-        )));
-        if (in_array($jalaliDate, $dates, true)) {
+        if (classops_term7_syllabus_session_matches_date($course, $session, $jalaliDate, $rotation)) {
             $sessions[] = $session;
         }
     }
     usort($sessions, static function (array $left, array $right): int {
-        $a = (int) (($left['sessionNumbers'][0] ?? null) ?: ($left['sessionNumber'] ?? 0));
-        $b = (int) (($right['sessionNumbers'][0] ?? null) ?: ($right['sessionNumber'] ?? 0));
+        $aNumber = (int) (($left['sessionNumbers'][0] ?? null) ?: ($left['sessionNumber'] ?? 0));
+        $bNumber = (int) (($right['sessionNumbers'][0] ?? null) ?: ($right['sessionNumber'] ?? 0));
+        $a = $aNumber > 0 ? $aNumber : PHP_INT_MAX;
+        $b = $bNumber > 0 ? $bNumber : PHP_INT_MAX;
         if ($a !== $b) return $a <=> $b;
         return strcmp((string) ($left['sessionKey'] ?? ''), (string) ($right['sessionKey'] ?? ''));
     });
@@ -100,7 +146,7 @@ function classops_term7_syllabus_session_label(array $session): string
     return 'جلسات ' . implode(' و ', $numbers);
 }
 
-function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate): array
+function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate, string $rotation = ''): array
 {
     $out = [];
     foreach ($events as $event) {
@@ -112,7 +158,7 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             continue;
         }
         $course = $mapping['course'];
-        $sessions = classops_term7_syllabus_sessions_for_date($course, $jalaliDate);
+        $sessions = classops_term7_syllabus_sessions_for_date($course, $jalaliDate, $rotation);
         if ($sessions === []) {
             $out[] = $event;
             continue;

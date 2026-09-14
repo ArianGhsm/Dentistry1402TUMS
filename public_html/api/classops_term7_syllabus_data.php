@@ -954,6 +954,8 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "research-methods-2": {
     "version": "1405-1406-1.corrected.1",
+    "rotationRelative": true,
+    "rotationSourceAnchor": "1405/06/28",
     "eventSlugs": [
       "research-methods-2-practical"
     ],
@@ -1214,6 +1216,8 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "oral-health-practical-2": {
     "version": "1405-1406-1.corrected.1",
+    "rotationRelative": true,
+    "rotationSourceAnchor": "1405/06/28",
     "eventSlugs": [
       "oral-health-practical-2"
     ],
