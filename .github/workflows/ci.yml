@@ -48,6 +48,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install qpdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qpdf
+
       - name: Verify runner PHP and qpdf
         run: |
           php -r 'foreach (["mbstring", "openssl", "curl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "missing PHP extension: $extension\n"); exit(1); } }'

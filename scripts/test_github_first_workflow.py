@@ -21,7 +21,12 @@ for workflow_name in ("ci.yml", "classops-stage1.yml", "persian-text-integrity.y
         f"workflow checkout must not persist the job token: {workflow_name}"
     )
     assert "timeout-minutes:" in workflow, f"public CI job must have a bounded timeout: {workflow_name}"
-    assert "sudo " not in workflow, f"public CI job must not invoke sudo: {workflow_name}"
+    if workflow_name == "ci.yml":
+        assert "sudo apt-get install -y --no-install-recommends qpdf" in workflow, (
+            "the hosted static workflow must install its qpdf verification dependency"
+        )
+    else:
+        assert "sudo " not in workflow, f"public CI job must not invoke sudo: {workflow_name}"
 
 assert "must never turn this runner into a deployment agent" in SELF_HOSTED_DOC
 
