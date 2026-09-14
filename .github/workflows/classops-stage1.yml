@@ -1,6 +1,22 @@
 name: ClassOps Stage 1 Domain Matrix
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "public_html/api/classops_*"
+      - "public_html/api/classops_modules/**"
+      - "public_html/classops/**"
+      - "public_html/assets/classops_ops/**"
+      - "contracts/**"
+      - "docs/classops/**"
+      - "docs/SHARED_CONTRACTS.md"
+      - "docs/CLASSOPS_FOUNDATION.md"
+      - "docs/DEVELOPMENT_WORKFLOW.md"
+      - "scripts/test_classops_*"
+      - "scripts/run_static_checks.sh"
+      - ".github/workflows/classops-stage1.yml"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
