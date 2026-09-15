@@ -24,3 +24,10 @@ def test_notes_direct_upload_workflow_is_extracted_once() -> None:
         signature = f"function {name}"
         assert signature in direct
         assert signature not in notes
+
+
+def test_upload_pipeline_checker_tracks_split_notes_contract() -> None:
+    checker = (ROOT / "scripts/check_upload_pipeline_config.php").read_text(encoding="utf-8")
+    assert "$notesDirectUploadPath" in checker
+    assert "notes_direct_upload.php" in checker
+    assert "notes direct-upload modules are not configured for bounded stream-to-FTP upload plans." in checker
