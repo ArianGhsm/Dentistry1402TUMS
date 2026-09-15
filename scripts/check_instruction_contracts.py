@@ -467,6 +467,60 @@ def check_mature_flat_design_contract(repo_root: Path) -> list[tuple[Path, int, 
     return issues
 
 
+def check_documentation_hygiene(repo_root: Path) -> list[tuple[Path, int, str, str]]:
+    """Keep historical evidence out of active operational documentation."""
+    issues: list[tuple[Path, int, str, str]] = []
+    retired_active_paths = (
+        repo_root / "docs" / "WORKFLOW_MIGRATION_AUDIT.md",
+        repo_root / "docs" / "classops" / "INTEGRATION_STAGE1_REPORT.md",
+        repo_root / "docs" / "classops" / "INTEGRATION_STAGE2_REPORT.md",
+    )
+    for path in retired_active_paths:
+        if path.exists():
+            issues.append(issue(path.relative_to(repo_root), 0, "historical-doc-in-active-tree", "Move completed migration/integration reports under docs/archive/."))
+
+    archive_paths = (
+        repo_root / "docs" / "archive" / "WORKFLOW_MIGRATION_AUDIT.md",
+        repo_root / "docs" / "archive" / "classops" / "INTEGRATION_STAGE1_REPORT.md",
+        repo_root / "docs" / "archive" / "classops" / "INTEGRATION_STAGE2_REPORT.md",
+    )
+    for path in archive_paths:
+        if not path.is_file():
+            issues.append(issue(path.relative_to(repo_root), 0, "missing-historical-archive", "Historical evidence must remain retained after active-doc cleanup."))
+            continue
+        if not read_text(path).startswith("> **Historical record — non-normative.**"):
+            issues.append(issue(path.relative_to(repo_root), 1, "missing-historical-banner", "Archived reports must be explicitly non-normative."))
+
+    readme_path = repo_root / "README.md"
+    readme = read_text(readme_path)
+    if "docs/archive/WORKFLOW_MIGRATION_AUDIT.md" not in readme:
+        issues.append(issue(readme_path.relative_to(repo_root), 0, "stale-workflow-audit-link", "README must link to archived migration evidence."))
+
+    workflow_path = repo_root / "docs" / "DEVELOPMENT_WORKFLOW.md"
+    workflow = read_text(workflow_path)
+    if "Remote task branches are deleted after their PR is merged or intentionally closed" not in workflow:
+        issues.append(issue(workflow_path.relative_to(repo_root), 0, "missing-branch-cleanup-policy", "Remote task branches must not accumulate after PR completion."))
+    if "docs/archive/classops/" not in workflow:
+        issues.append(issue(workflow_path.relative_to(repo_root), 0, "stale-classops-report-location", "Historical ClassOps reports must point to docs/archive/classops/."))
+
+    current_docs = (
+        repo_root / "docs" / "CLASSOPS_FOUNDATION.md",
+        repo_root / "docs" / "SHARED_CONTRACTS.md",
+        repo_root / "docs" / "classops" / "CROSS_SURFACE_UX.md",
+    )
+    stale_phrases = (
+        "Stage 2 remains **unreleased**",
+        "Stage 2 will connect",
+        "Stage 2 must:",
+        "The integration branch adds",
+    )
+    for path in current_docs:
+        text = read_text(path)
+        for phrase in stale_phrases:
+            if phrase in text:
+                issues.append(issue(path.relative_to(repo_root), line_number_for_offset(text, text.index(phrase)), "stale-pre-release-doc", phrase))
+    return issues
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Audit enforceable instruction contracts.")
     parser.parse_args()
@@ -484,6 +538,7 @@ def main() -> int:
         check_upload_stream_contracts,
         check_pwa_update_signal_contract,
         check_mature_flat_design_contract,
+        check_documentation_hygiene,
     ]
 
     issues: list[tuple[Path, int, str, str]] = []

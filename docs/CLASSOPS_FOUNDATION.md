@@ -1,12 +1,12 @@
-# ClassOps Foundation and Stage 1 domain layer
+# ClassOps Foundation and domain contracts
 
 ## Current status
 
 `classops-v1` remains the persisted Foundation contract. It provides the canonical generic item lifecycle, revision history, optimistic concurrency, idempotency, audit and owner-only Foundation API.
 
-Stage 1 integration now adds **pure/versioned domain implementations** for Audience, Delivery planning, AI structured drafts, Tasks/Requirements, Exam/Critical ACK, Reminder planning and Tomorrow/Weekly digests. These modules are integrated in the repository and exposed through `public_html/api/classops_modules/domain_facade.php`, but cross-surface Website/Telegram/Bale wiring and production migration/deploy remain Stage 2/runtime work.
+The repository contains the versioned Audience, Delivery planning, AI structured draft, Tasks/Requirements, Exam/Critical ACK, Reminder planning and Tomorrow/Weekly digest domains exposed through `public_html/api/classops_modules/domain_facade.php`. The historical “Stage 1/Stage 2” labels describe the rollout sequence; cross-surface Website/Telegram/Bale integration is now present in the current product.
 
-This distinction is intentional: Stage 1 domain availability is not a claim that a reminder was sent, that a candidate AI draft was committed, or that new domain state is already migrated into production storage.
+Version labels remain schema/wire compatibility identifiers, not evidence that the runtime still uses parallel generation installers or unreleased integration branches.
 
 ## Canonical source-of-truth boundaries
 
@@ -37,7 +37,7 @@ The persisted contract remains:
 
 Historical audience/delivery/reminder placeholders remain readable and are not silently reinterpreted.
 
-Stage 1 performs no production-data migration. Trusted persistence of server-produced audience snapshots, per-student task/ACK state and delivery/scheduler state is reserved for Stage 2 and must remain inside the same canonical ClassOps storage family with an explicit versioned schema/migration/rollback decision. A second ClassOps database is forbidden.
+Historical Stage 1 performed no production-data migration. Current trusted ClassOps persistence remains inside the same canonical ClassOps storage family with explicit versioned schema/migration/rollback rules. A second ClassOps database remains forbidden.
 
 ## Generic item types
 
@@ -92,7 +92,7 @@ It is **planning-only**:
 - retries, supersession and cancellation are explicit;
 - platform capabilities are not invented—unknown Bale capabilities remain unknown until evidence exists.
 
-Stage 2 will connect these intents to the existing notification/runtime transport boundary.
+The current runtime connects these intents through the existing notification/runtime transport boundary.
 
 ## Stage 1 AI Copilot
 
@@ -142,7 +142,7 @@ Critical ACK is canonical application state bound to exact item revision and can
 
 Recurring rules are limited to approved `service_reminder` use cases. Saba support is reminder-only: usernames, passwords, tokens, cookies, sessions and automated login are forbidden.
 
-The planner produces due intents; it does not send or persist transport outcomes. Stage 2 owns single-coordinator runtime wiring to prevent Telegram/Bale duplicate background effects.
+The planner produces due intents; it does not send or persist transport outcomes. The current runtime owns single-coordinator wiring to prevent Telegram/Bale duplicate background effects.
 
 ## Stage 1 Tomorrow Summary / Weekly Digest
 
@@ -156,18 +156,18 @@ It does not copy Term 7 state, use AI to invent summaries, expose another studen
 
 The machine-readable graph is `contracts/classops-domain-contracts-v1.json`.
 
-## Stage 2 boundary
+## Completed cross-surface boundary
 
-Stage 2 must:
+The completed rollout established these continuing invariants:
 
-1. merge/reconcile `classops-surface-v1` and the cross-surface workstream;
-2. add trusted Website Operations Center/API confirmation flows;
-3. persist new trusted domain state through one versioned canonical ClassOps storage family;
-4. connect deterministic intents to the existing notification/runtime boundary;
-5. wire Telegram and Bale as thin adapters with capability-tested parity/fallbacks;
-6. wire one background coordinator for scheduled side effects;
-7. expose personalized task/exam/ACK/digest reads safely;
-8. prepare a Codex runtime migration/deploy handoff.
+1. `classops-surface-v1` and current cross-surface behavior use the canonical ClassOps domain family;
+2. trusted Website Operations Center/API confirmation flows remain owner-authorized;
+3. trusted domain state stays in one versioned canonical ClassOps storage family;
+4. deterministic intents connect through the existing notification/runtime boundary;
+5. Telegram and Bale remain thin adapters with capability-tested parity/fallbacks;
+6. scheduled side effects have one background coordinator;
+7. personalized task/exam/ACK/digest reads preserve cohort/privacy boundaries;
+8. relevant production changes still require backup, exact-SHA deployment, verification and rollback readiness.
 
 ## Tests
 

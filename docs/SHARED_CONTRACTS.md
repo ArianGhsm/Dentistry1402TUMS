@@ -1,7 +1,7 @@
-# Shared contracts — ClassOps Stage 1 integration
+# Shared contracts — ClassOps
 
 The machine-readable contract graph is `contracts/classops-domain-contracts-v1.json`.
-Contracts and tests define boundaries so parallel work cannot silently create a second source of truth.
+Contracts and tests define boundaries so future work cannot silently create a second source of truth.
 
 ## Frozen compatibility contracts
 
@@ -18,7 +18,7 @@ These historical contracts remain readable and are **not** reinterpreted in plac
 
 ## Stage 1 approved domain contracts
 
-The integration branch has approved the following implementations as the Stage 1 domain graph:
+The current repository contract graph includes the following versioned domain implementations:
 
 - `classops-audience-v1` — deterministic whole-cohort/explicit/include-exclude/canonical-selector AND/OR/NOT resolution with snapshot/live policy and drift detection.
 - `classops-delivery-v1` — symbolic destination registry plus deterministic, revision-bound delivery planning. It is planning-only and cannot send or write notification state.
@@ -42,7 +42,7 @@ The existing ClassOps store remains schema/contract version 1 and therefore rema
 - unknown historical extension namespaces remain opaque/readable;
 - promoted audience/delivery/reminder contracts are **not** accepted as silent replacements for frozen stored placeholders.
 
-This is deliberately narrower than Stage 2 persistence. Trusted server-produced audience snapshots, delivery/scheduler execution state, per-student task state and critical-ACK state are not yet exposed as arbitrary Foundation item fields. When they require persistence, Stage 2 must place them inside the **same canonical ClassOps storage family** with explicit schema/version/atomic-transaction and migration/rollback tests. No second ClassOps database/store is permitted.
+This historical compatibility rule remains authoritative: trusted server-produced audience snapshots, delivery/scheduler execution state, per-student task state and critical-ACK state belong inside the **same canonical ClassOps storage family** with explicit schema/version/atomic-transaction and migration/rollback tests. No second ClassOps database/store is permitted.
 
 The Stage 1 HTTP boundary requires the store adapter for create/update and exposes only a non-sensitive read-only `domain-capabilities` action in addition to the frozen Foundation API. It does not send messages, execute reminder jobs, invoke the AI provider as a side effect, or write a parallel notification feed.
 
@@ -53,13 +53,13 @@ The Stage 1 HTTP boundary requires the store adapter for create/update and expos
 - notification feed/read state: existing notification subsystem
 - payment order/transaction verification: existing payment subsystem
 - ClassOps operational state: canonical ClassOps storage family
-- Telegram/Bale: later thin transport adapters over shared application/domain logic
+- Telegram/Bale: thin transport adapters over shared application/domain logic
 
 Audience membership is independent from delivery capability. A missing bot link never removes a canonical student from an audience. Raw Telegram/Bale destination IDs are runtime configuration facts and must not be persisted in ClassOps items.
 
-## Stage 2 surface contract
+## Current cross-surface contract
 
-`classops-surface-v1` remains Stage 2-only. Stage 1 audits it for compatibility but does not merge the website/bot cross-surface branch. Stage 2 will wire the approved domain graph to the Website Operations Center, Telegram and Bale, including trusted state persistence and canonical notification/runtime adapters.
+`classops-surface-v1` is integrated with the approved domain graph across the Website Operations Center, Telegram and Bale. Trusted state persistence and notification/runtime adapters remain canonical shared boundaries; transport-specific code must not create independent business state.
 
 ## Change process
 

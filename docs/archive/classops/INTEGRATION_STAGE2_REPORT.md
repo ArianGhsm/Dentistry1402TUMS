@@ -1,3 +1,5 @@
+> **Historical record — non-normative.** This file is preserved as provenance for a completed migration/integration wave. Do not use its branch names, pre-release status, or deployment wording as current instructions. See `AGENTS.md`, `docs/DEVELOPMENT_WORKFLOW.md`, and `DEPLOY.md` for current policy.
+
 # ClassOps Stage 2 — Final GitHub Integration Report
 
 Date: 2026-09-08
