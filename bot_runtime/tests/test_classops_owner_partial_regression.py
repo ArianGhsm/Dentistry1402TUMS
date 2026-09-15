@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dent_bot.classops_ux_v3 import daily_screen, month_screen, weekly_screen
+from dent_bot.classops_ui import daily_screen, month_screen, weekly_screen
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -51,8 +51,8 @@ def test_partial_titles_render_in_daily_weekly_monthly_with_persian_digits_and_o
         assert "جلسه 10" not in rendered
 
 
-def test_classops_v3_stays_shared_between_telegram_and_bale() -> None:
+def test_classops_ui_stays_shared_between_telegram_and_bale() -> None:
     telegram = (ROOT / "bot_runtime/dent_bot/service.py").read_text(encoding="utf-8")
     bale = (ROOT / "bot_runtime/dent_bot/bale_service.py").read_text(encoding="utf-8")
-    assert "install_classops_ux_v3()" in telegram
-    assert "install_classops_ux_v3()" in bale
+    assert "install_classops_ui()" in telegram
+    assert "install_classops_ui()" in bale

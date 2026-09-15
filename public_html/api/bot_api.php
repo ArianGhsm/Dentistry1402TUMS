@@ -4,8 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/bot_store.php';
 require_once __DIR__ . '/academic_term7_bot_service.php';
 require_once __DIR__ . '/classops_bot_service.php';
-require_once __DIR__ . '/classops_bot_ux_v2.php';
-require_once __DIR__ . '/classops_bot_ux_v3.php';
+require_once __DIR__ . '/classops_bot_ui.php';
 
 header('Cache-Control: private, no-store, max-age=0');
 header('Pragma: no-cache');
@@ -23,13 +22,11 @@ if ($action === 'service') {
     dent_json_response(
         dent_term7_bot_service_action($serviceAction)
             ? dent_term7_bot_service_dispatch($payload)
-            : (classops_bot_ux_v3_action($serviceAction)
-                ? classops_bot_ux_v3_dispatch($payload)
-                : (classops_bot_ux_v2_action($serviceAction)
-                    ? classops_bot_ux_v2_dispatch($payload)
-                    : (classops_bot_service_action($serviceAction)
-                        ? classops_bot_service_dispatch($payload)
-                        : dent_bot_service_dispatch($payload))))
+            : (classops_bot_ui_action($serviceAction)
+                ? classops_bot_ui_dispatch($payload)
+                : (classops_bot_service_action($serviceAction)
+                    ? classops_bot_service_dispatch($payload)
+                    : dent_bot_service_dispatch($payload)))
     );
 }
 

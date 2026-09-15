@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "bot_runtime"))
 
-from dent_bot.classops_ux_v3 import daily_screen, weekly_screen, month_screen
+from dent_bot.classops_ui import daily_screen, weekly_screen, month_screen
 
 
 def assert_true(condition: bool, message: str) -> None:

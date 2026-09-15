@@ -3,11 +3,24 @@ from __future__ import annotations
 import html
 from copy import deepcopy
 from datetime import date, datetime, timedelta
-from typing import Any, Callable
+from typing import Any
 from zoneinfo import ZoneInfo
 
+from . import app as app_module
 from . import class_operations as classops
 from .app import DentBotApp
+from .classops_owner_workflows import (
+    decorate_owner_detail,
+    dialog_kind_supported,
+    handle_dialog_message,
+    owner_action_screen,
+)
+from .classops_shell import (
+    canonical_home_screen,
+    navid_center_screen,
+    owner_management_screen,
+    service_status_screen,
+)
 from .persian_datetime import PERSIAN_WEEKDAYS, format_jalali_datetime, gregorian_to_jalali, to_persian_digits
 from .site_api import SiteApiError
 from .ui import Screen, button, keyboard, native_rich_text
@@ -521,9 +534,9 @@ def owner_home_screen() -> Screen:
             [button("📝 امتحان‌ها", action="c3:o:l:exams"), button("📌 رویدادها", action="c3:o:l:events")],
             [button("✅ کارها و ددلاین‌ها", action="c3:o:l:tasks")],
             [button("👥 مرور گروه‌بندی", action="t7")],
-            [button("➕ امتحان", action="classops-v2:add:exam"), button("➕ رویداد", action="classops-v2:add:event")],
-            [button("➕ کار", action="classops-v2:add:task"), button("➕ ددلاین", action="classops-v2:add:deadline")],
-            [button("➕ الزام", action="classops-v2:add:requirement")],
+            [button("➕ امتحان", action="c3:o:add:exam"), button("➕ رویداد", action="c3:o:add:event")],
+            [button("➕ کار", action="c3:o:add:task"), button("➕ ددلاین", action="c3:o:add:deadline")],
+            [button("➕ الزام", action="c3:o:add:requirement")],
             [button("↩️ مدیریت ربات", action="admin"), button("🏠 خانه", action="home")],
         ),
     )
@@ -643,42 +656,155 @@ def _error_screen(owner: bool = False) -> Screen:
     )
 
 
-def install_classops_ux_v3() -> None:
+def _legacy_classops_action(data: str) -> str:
+    """Translate callbacks already present in old bot messages to canonical routes.
+
+    New renderers never emit ``classops-v2:*``. Keeping translation at the
+    ingress boundary lets pre-deploy messages remain usable without retaining a
+    second renderer or installer generation.
+    """
+    if not data.startswith("classops-v2:"):
+        return data
+    if data == "classops-v2:owner":
+        return "c3:owner"
+    if data == "classops-v2:grouping":
+        return "c3:g"
+    if data == "classops-v2:student-notifications":
+        return "c3:n"
+    if data == "classops-v2:notification-status":
+        return "c3:o:n"
+    if data == "classops-v2:compose-cancel":
+        return "c3:o:compose-cancel"
+    translations = (
+        ("classops-v2:month:", "c3:m:"),
+        ("classops-v2:list:", "c3:l:"),
+        ("classops-v2:future:", "c3:o:m:"),
+        ("classops-v2:add:", "c3:o:add:"),
+        ("classops-v2:edit:", "c3:o:edit:"),
+        ("classops-v2:confirm-cancel:", "c3:o:confirm-cancel:"),
+        ("classops-v2:confirm-archive:", "c3:o:confirm-archive:"),
+    )
+    for old, new in translations:
+        if data.startswith(old):
+            return new + data[len(old):]
+    return data
+
+
+def _callback_with_action(callback: dict[str, Any], action: str) -> dict[str, Any]:
+    clone = deepcopy(callback)
+    clone["data"] = "v1:" + action
+    return clone
+
+
+def install_classops_ui() -> None:
+    """Install the single current ClassOps UI router for Telegram and Bale."""
     global _INSTALLED
     if _INSTALLED:
         return
     _INSTALLED = True
+
+    previous_section = app_module.section
+
+    def home_current(
+        site_url: str,
+        *,
+        is_owner: bool,
+        student_assistant_enabled: bool = False,
+        has_products: bool = False,
+    ) -> Screen:
+        del site_url, student_assistant_enabled, has_products
+        return canonical_home_screen(is_owner=is_owner)
+
+    def section_current(name: str, site_url: str, *, is_owner: bool) -> Screen:
+        if name == "admin" and is_owner:
+            return owner_management_screen()
+        return previous_section(name, site_url, is_owner=is_owner)
+
+    app_module.home = home_current
+    app_module.section = section_current
+
     previous_callback = DentBotApp._callback
 
-    def callback_v3(self: DentBotApp, callback: dict[str, Any], *, interaction_version: int | None = None) -> Any:
-        chat_id, user_id, data = _context(callback)
-        handled = data == "class-operations" or data in {"classops-v2:owner", "class-operations:owner"} or data.startswith("c3:")
+    def callback_current(self: DentBotApp, callback: dict[str, Any], *, interaction_version: int | None = None) -> Any:
+        chat_id, user_id, raw_data = _context(callback)
+        data = _legacy_classops_action(raw_data)
+        handled = (
+            data in {"class-operations", "class-operations:owner", "system-status", "navid-center"}
+            or data.startswith("c3:")
+        )
         if not handled or chat_id == 0 or user_id == 0:
             return previous_callback(self, callback, interaction_version=interaction_version)
+
         callback_id = str(callback.get("id") or "")
         if callback_id:
-            try: self.api.answer_callback(callback_id)
-            except Exception: pass
+            try:
+                self.api.answer_callback(callback_id)
+            except Exception:
+                pass
         chat = dict(dict(callback.get("message") or {}).get("chat") or {})
         if str(chat.get("type") or "private") != "private":
-            self.api.send(chat_id, "امور کلاس فقط در گفت‌وگوی خصوصی ربات در دسترس است.", {"inline_keyboard": []})
+            self.api.send(chat_id, "این بخش فقط در گفت‌وگوی خصوصی ربات در دسترس است.", {"inline_keyboard": []})
             return None
+
+        if data == "navid-center":
+            if user_id == int(getattr(self, "owner_id", -1)):
+                return previous_callback(
+                    self,
+                    _callback_with_action(callback, "navid"),
+                    interaction_version=interaction_version,
+                )
+            try:
+                _show(self, chat_id, callback, navid_center_screen(self.site_api.student_assistant_summary(user_id)))
+            except SiteApiError:
+                _show(
+                    self,
+                    chat_id,
+                    callback,
+                    Screen(
+                        "<b>🧭 مرکز نوید</b>\n\nوضعیت نوید فعلاً قابل دریافت نیست.",
+                        keyboard([button("↩️ بازگشت", action="home")]),
+                    ),
+                )
+            return None
+
+        if data == "system-status":
+            if user_id != int(getattr(self, "owner_id", -1)):
+                return previous_callback(self, callback, interaction_version=interaction_version)
+            try:
+                status_screen = service_status_screen(self.site_api.request("classopsRuntimeStatus", user_id))
+            except SiteApiError:
+                status_screen = service_status_screen(None, api_failed=True)
+            _show(self, chat_id, callback, status_screen)
+            return None
+
         blocked = getattr(self, "_private_access_gate", lambda _uid: None)(user_id)
         if blocked is not None:
             _show(self, chat_id, callback, blocked)
             return None
-        owner_route = data in {"classops-v2:owner", "class-operations:owner"} or data == "c3:owner" or data.startswith("c3:o:")
+
+        owner_route = (
+            data in {"class-operations:owner", "c3:owner"}
+            or data.startswith("c3:o:")
+        )
         if owner_route and not _owner_allowed(self, user_id):
             return previous_callback(self, callback, interaction_version=interaction_version)
+
         try:
             if data == "class-operations":
                 items = _list_items(self, user_id)
                 academic = self.site_api.request("academicTerm7Self", user_id)
                 _show(self, chat_id, callback, classops_home_screen(items, academic))
                 return None
-            if data in {"classops-v2:owner", "class-operations:owner", "c3:owner"}:
+            if data in {"class-operations:owner", "c3:owner"}:
                 _show(self, chat_id, callback, owner_home_screen())
                 return None
+
+            workflow_handled, workflow_screen = owner_action_screen(self, callback, data, owner_home_screen)
+            if workflow_handled:
+                if workflow_screen is not None:
+                    _show(self, chat_id, callback, workflow_screen)
+                return None
+
             if data.startswith("c3:d:"):
                 target, page = _parse_daily_target(data.split(":", 2)[2])
                 _show(self, chat_id, callback, daily_screen(_daily_from_action(self, user_id, target), page=page))
@@ -690,20 +816,23 @@ def install_classops_ux_v3() -> None:
             if data.startswith("c3:w:") or data.startswith("c3:o:w:"):
                 owner = data.startswith("c3:o:w:")
                 week_offset = int(data.rsplit(":", 1)[-1])
-                if week_offset < 0 or week_offset > 8: raise ValueError("week offset")
+                if week_offset < 0 or week_offset > 8:
+                    raise ValueError("week offset")
                 start = _week_start(week_offset).isoformat()
                 _show(self, chat_id, callback, weekly_screen(_timeline(self, user_id, start_date=start, days=7), week_offset, owner=owner))
                 return None
             if data.startswith("c3:m:") or data.startswith("c3:o:m:"):
                 owner = data.startswith("c3:o:m:")
                 page = int(data.rsplit(":", 1)[-1])
-                if page < 0 or page > 4: raise ValueError("month page")
+                if page < 0 or page > 4:
+                    raise ValueError("month page")
                 _show(self, chat_id, callback, month_screen(_timeline(self, user_id, days=31), page, owner=owner))
                 return None
             if data.startswith("c3:l:") or data.startswith("c3:o:l:"):
                 owner = data.startswith("c3:o:l:")
                 mode = data.rsplit(":", 1)[-1]
-                if mode not in FILTER_TYPES: raise ValueError("filter")
+                if mode not in FILTER_TYPES:
+                    raise ValueError("filter")
                 _show(self, chat_id, callback, filtered_screen(_list_items(self, user_id), mode, owner=owner))
                 return None
             if data == "c3:g":
@@ -719,10 +848,18 @@ def install_classops_ux_v3() -> None:
                 return None
             if data.startswith("c3:i:cop_"):
                 parts = data.split(":", 3)
-                if len(parts) != 4: raise ValueError("detail")
+                if len(parts) != 4:
+                    raise ValueError("detail")
                 item_id, back = parts[2], parts[3]
+                owner_detail = back.startswith("o")
+                if owner_detail and not _owner_allowed(self, user_id):
+                    return previous_callback(self, callback, interaction_version=interaction_version)
                 response = self.site_api.request("classopsGet", user_id, id=item_id)
-                screen = classops._detail_screen(dict(response.get("item") or {}), dict(response.get("actions") or {}))
+                item = dict(response.get("item") or {})
+                actions = dict(response.get("actions") or {})
+                screen = classops._detail_screen(item, actions)
+                if owner_detail:
+                    screen = decorate_owner_detail(screen, item, actions)
                 _show(self, chat_id, callback, detail_with_back(screen, back))
                 return None
         except (SiteApiError, ValueError):
@@ -730,12 +867,17 @@ def install_classops_ux_v3() -> None:
             return None
         return previous_callback(self, callback, interaction_version=interaction_version)
 
-    DentBotApp._callback = callback_v3  # type: ignore[method-assign]
+    DentBotApp._callback = callback_current  # type: ignore[method-assign]
 
     previous_dynamic_screen = DentBotApp._dynamic_screen
 
-    def dynamic_screen_v3(
-        self: DentBotApp, name: str, user_id: int, *, request_id: str = "", sender: dict[str, Any] | None = None
+    def dynamic_screen_current(
+        self: DentBotApp,
+        name: str,
+        user_id: int,
+        *,
+        request_id: str = "",
+        sender: dict[str, Any] | None = None,
     ) -> Screen:
         screen = previous_dynamic_screen(self, name, user_id, request_id=request_id, sender=sender)
         if name not in {"account", "check-link", "link-required"} or self.site_api is None:
@@ -757,23 +899,41 @@ def install_classops_ux_v3() -> None:
             academic_context = None
         return account_screen_with_academic_context(screen, linked_user, academic_context)
 
-    DentBotApp._dynamic_screen = dynamic_screen_v3  # type: ignore[method-assign]
+    DentBotApp._dynamic_screen = dynamic_screen_current  # type: ignore[method-assign]
 
     previous_message = DentBotApp._message
-    def message_v3(self: DentBotApp, message: dict[str, Any]) -> Any:
+
+    def message_current(self: DentBotApp, message: dict[str, Any]) -> Any:
+        sender = dict(message.get("from") or {})
+        try:
+            user_id = int(sender.get("id") or 0)
+        except (TypeError, ValueError):
+            user_id = 0
+        if user_id:
+            dialog = self.state.dialog(user_id)
+            if dialog is not None and dialog_kind_supported(dialog.get("kind")):
+                if handle_dialog_message(self, message, dialog, owner_home_screen):
+                    return None
+
         text = str(message.get("text") or "").strip().lower()
         first = text.split(maxsplit=1)[0] if text else ""
         if first == "/classops" or first.startswith("/classops@"):
-            sender = dict(message.get("from") or {}); chat = dict(message.get("chat") or {})
-            try: user_id = int(sender.get("id") or 0); chat_id = int(chat.get("id") or user_id)
-            except (TypeError, ValueError): return previous_message(self, message)
+            chat = dict(message.get("chat") or {})
+            try:
+                chat_id = int(chat.get("id") or user_id)
+            except (TypeError, ValueError):
+                return previous_message(self, message)
             blocked = getattr(self, "_private_access_gate", lambda _uid: None)(user_id)
-            if blocked is not None: self.api.send(chat_id, blocked.text, blocked.keyboard); return None
+            if blocked is not None:
+                self.api.send(chat_id, blocked.text, blocked.keyboard)
+                return None
             try:
                 academic = self.site_api.request("academicTerm7Self", user_id)
                 screen = classops_home_screen(_list_items(self, user_id), academic)
             except SiteApiError:
                 screen = _error_screen(False)
-            self.api.send(chat_id, screen.text, screen.keyboard); return None
+            self.api.send(chat_id, screen.text, screen.keyboard)
+            return None
         return previous_message(self, message)
-    DentBotApp._message = message_v3  # type: ignore[method-assign]
+
+    DentBotApp._message = message_current  # type: ignore[method-assign]

@@ -13,8 +13,7 @@ def test_production_install_sequence_preserves_message_and_callback_contracts() 
         from tempfile import TemporaryDirectory
 
         from dent_bot.app import DentBotApp
-        from dent_bot.bot_home_classops_ux_v2 import install_bot_home_classops_ux_v2
-        from dent_bot.bot_home_classops_ux_v2_compat import install_bot_home_classops_ux_v2_compat
+        from dent_bot.classops_ui import install_classops_ui
         from dent_bot.class_operations import install_class_operations_product
         from dent_bot.state import BotState
         from dent_bot.term7_group_management import install_term7_group_management
@@ -33,13 +32,11 @@ def test_production_install_sequence_preserves_message_and_callback_contracts() 
 
         install_class_operations_product()
         install_term7_group_management()
-        canonical_callback = DentBotApp._callback
-        install_bot_home_classops_ux_v2()
-        install_bot_home_classops_ux_v2_compat(base_callback=canonical_callback)
+        install_classops_ui()
 
         callback = {
             "id": "cb-runtime-regression",
-            "data": "v1:not-a-v2-action",
+            "data": "v1:not-a-classops-action",
             "from": {"id": 1402},
             "message": {
                 "message_id": 11,
@@ -56,7 +53,7 @@ def test_production_install_sequence_preserves_message_and_callback_contracts() 
 
         with TemporaryDirectory() as temporary:
             state = BotState(Path(temporary) / "state.sqlite3")
-            state.start_dialog(1402, "non-v2-dialog", "step", {"type": "exam"})
+            state.start_dialog(1402, "non-classops-dialog", "step", {"type": "exam"})
             dummy.state = state
             message = {
                 "message_id": 12,
@@ -66,9 +63,8 @@ def test_production_install_sequence_preserves_message_and_callback_contracts() 
             }
             DentBotApp._message(dummy, message)
             assert message_calls == [message]
-            dialog = state.get_dialog(1402)
-            assert dialog == state.dialog(1402)
-            assert dialog["kind"] == "non-v2-dialog"
+            dialog = state.dialog(1402)
+            assert dialog["kind"] == "non-classops-dialog"
             assert dialog["step"] == "step"
             assert dialog["payload"] == {"type": "exam"}
         '''

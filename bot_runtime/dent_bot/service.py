@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from .api import TelegramBotApi
-from .app import DentBotApp
 from .academic_term7_rich import install_academic_term7_rich_notifications
-from .bot_home_classops_ux_v2 import install_bot_home_classops_ux_v2
-from .bot_home_classops_ux_v2_compat import install_bot_home_classops_ux_v2_compat
 from .class_operations import install_class_operations_product
-from .classops_ux_v3 import install_classops_ux_v3
+from .classops_ui import install_classops_ui
 from .config import load_settings
 from .runtime import run_service
 from .term7_group_management import install_term7_group_management
@@ -18,10 +15,7 @@ def main() -> int:
     install_class_operations_product()
     install_term7_group_management()
     install_academic_term7_rich_notifications()
-    base_callback = DentBotApp._callback
-    install_bot_home_classops_ux_v2()
-    install_bot_home_classops_ux_v2_compat(base_callback=base_callback)
-    install_classops_ux_v3()
+    install_classops_ui()
     return run_service(settings=settings, api=api, platform_name="Telegram")
 
 

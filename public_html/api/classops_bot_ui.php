@@ -5,12 +5,12 @@ require_once __DIR__ . '/classops_bot_service.php';
 require_once __DIR__ . '/academic_term7_bot_service.php';
 require_once __DIR__ . '/classops_term7_syllabus.php';
 
-function classops_bot_ux_v3_action(string $action): bool
+function classops_bot_ui_action(string $action): bool
 {
-    return in_array($action, ['classopsTimelineV3', 'classopsNotificationStatusV3'], true);
+    return in_array($action, ['classopsTimelineV3', 'classopsNotificationStatusV3', 'classopsAckStatusV2'], true);
 }
 
-function classops_bot_ux_v3_local_start(array $request): DateTimeImmutable
+function classops_bot_ui_local_start(array $request): DateTimeImmutable
 {
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
     $today = (new DateTimeImmutable('now', $timezone))->setTime(0, 0, 0);
@@ -30,7 +30,7 @@ function classops_bot_ux_v3_local_start(array $request): DateTimeImmutable
     return $today->modify(($offset >= 0 ? '+' : '') . $offset . ' days');
 }
 
-function classops_bot_ux_v3_visible_items(array $user): array
+function classops_bot_ui_visible_items(array $user): array
 {
     $cohort = dent_user_cohort_key($user);
     $owner = classops_stage2_is_owner($user);
@@ -49,7 +49,7 @@ function classops_bot_ux_v3_visible_items(array $user): array
     return $out;
 }
 
-function classops_bot_ux_v3_effective_timestamp(array $item): ?int
+function classops_bot_ui_effective_timestamp(array $item): ?int
 {
     $timing = is_array($item['timing'] ?? null) ? $item['timing'] : [];
     foreach (['startsAt', 'dueAt', 'endsAt'] as $field) {
@@ -61,9 +61,9 @@ function classops_bot_ux_v3_effective_timestamp(array $item): ?int
     return null;
 }
 
-function classops_bot_ux_v3_classops_record(array $item, DateTimeZone $timezone): ?array
+function classops_bot_ui_classops_record(array $item, DateTimeZone $timezone): ?array
 {
-    $timestamp = classops_bot_ux_v3_effective_timestamp($item);
+    $timestamp = classops_bot_ui_effective_timestamp($item);
     if ($timestamp === null) return null;
     $local = (new DateTimeImmutable('@' . $timestamp))->setTimezone($timezone);
     $timing = is_array($item['timing'] ?? null) ? $item['timing'] : [];
@@ -87,7 +87,7 @@ function classops_bot_ux_v3_classops_record(array $item, DateTimeZone $timezone)
         'sortAt' => gmdate('c', $timestamp), 'overdue' => $overdue,
     ];
 }
-function classops_bot_ux_v3_term7_record(
+function classops_bot_ui_term7_record(
     array $event,
     DateTimeImmutable $date,
     string $kind,
@@ -146,7 +146,7 @@ function classops_bot_ux_v3_term7_record(
     ];
 }
 
-function classops_bot_ux_v3_term7_records(array $user, DateTimeImmutable $date, ?array $term7State = null): array
+function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?array $term7State = null): array
 {
     if (dent_user_cohort_key($user) !== DENT_TERM7_COHORT) return [];
     $student = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
@@ -174,20 +174,20 @@ function classops_bot_ux_v3_term7_records(array $user, DateTimeImmutable $date, 
         $rotation
     );
     foreach ($theory as $event) {
-        if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
+        if (is_array($event)) $out[] = classops_bot_ui_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
     }
     foreach ($morning as $event) {
-        if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'practical', 'morning', $rotation, $assignment);
+        if (is_array($event)) $out[] = classops_bot_ui_term7_record($event, $date, 'practical', 'morning', $rotation, $assignment);
     }
     foreach ($afternoon as $event) {
-        if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'practical', 'afternoon', $rotation, $assignment);
+        if (is_array($event)) $out[] = classops_bot_ui_term7_record($event, $date, 'practical', 'afternoon', $rotation, $assignment);
     }
     return $out;
 }
-function classops_bot_ux_v3_timeline(array $request, array $user): array
+function classops_bot_ui_timeline(array $request, array $user): array
 {
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
-    $start = classops_bot_ux_v3_local_start($request);
+    $start = classops_bot_ui_local_start($request);
     $days = max(1, min(31, (int) ($request['days'] ?? 1)));
     $buckets = [];
     for ($index = 0; $index < $days; $index++) {
@@ -199,14 +199,14 @@ function classops_bot_ux_v3_timeline(array $request, array $user): array
             'items' => [],
         ];
     }
-    foreach (classops_bot_ux_v3_visible_items($user) as $item) {
-        $record = classops_bot_ux_v3_classops_record($item, $timezone);
+    foreach (classops_bot_ui_visible_items($user) as $item) {
+        $record = classops_bot_ui_classops_record($item, $timezone);
         if ($record === null || !isset($buckets[$record['localDate']])) continue;
         $buckets[$record['localDate']]['items'][] = $record;
     }
     foreach ($buckets as $dateKey => &$bucket) {
         $date = new DateTimeImmutable($dateKey . ' 00:00:00', $timezone);
-        $bucket['items'] = array_merge($bucket['items'], classops_bot_ux_v3_term7_records($user, $date));
+        $bucket['items'] = array_merge($bucket['items'], classops_bot_ui_term7_records($user, $date));
     }
     unset($bucket);
     foreach ($buckets as &$bucket) {
@@ -230,7 +230,7 @@ function classops_bot_ux_v3_timeline(array $request, array $user): array
     ];
 }
 
-function classops_bot_ux_v3_notification_status(array $request, array $owner): array
+function classops_bot_ui_notification_status(array $request, array $owner): array
 {
     $base = classops_bot_service_notification_status($request, $owner);
     $state = classops_stage2_read_state();
@@ -257,18 +257,68 @@ function classops_bot_ux_v3_notification_status(array $request, array $owner): a
     return $base;
 }
 
-function classops_bot_ux_v3_dispatch(array $request): array
+function classops_bot_ui_ack_status(array $owner): array
+{
+    $listed = classops_list_items([
+        'cohortKey' => dent_user_cohort_key($owner),
+        'type' => 'critical_notice',
+        'status' => '',
+        'limit' => CLASSOPS_BOT_SERVICE_MAX_LIST,
+        'cursor' => '',
+    ]);
+
+    $eligible = 0;
+    $acked = 0;
+    $pending = 0;
+    $notices = [];
+    foreach (($listed['items'] ?? []) as $item) {
+        if (!is_array($item) || empty($item['requireAck']) || ($item['status'] ?? '') === 'archived') {
+            continue;
+        }
+        $stats = classops_stage2_owner_ack_stats($owner, $item);
+        $eligible += (int) ($stats['eligible'] ?? 0);
+        $acked += (int) ($stats['acked'] ?? 0);
+        $pending += (int) ($stats['pending'] ?? 0);
+        $notices[] = [
+            'title' => (string) ($item['title'] ?? 'اطلاعیه مهم'),
+            'status' => (string) ($item['status'] ?? 'unknown'),
+            'revision' => (int) ($item['revision'] ?? 0),
+            'eligible' => (int) ($stats['eligible'] ?? 0),
+            'acked' => (int) ($stats['acked'] ?? 0),
+            'pending' => (int) ($stats['pending'] ?? 0),
+        ];
+    }
+
+    return [
+        'success' => true,
+        'ack' => [
+            'eligible' => $eligible,
+            'acked' => $acked,
+            'pending' => $pending,
+            'noticeCount' => count($notices),
+        ],
+        'notices' => array_slice($notices, 0, 12),
+    ];
+}
+
+function classops_bot_ui_dispatch(array $request): array
 {
     $action = trim((string) ($request['action'] ?? ''));
     $user = classops_bot_service_linked_user($request);
     if ($action === 'classopsTimelineV3') {
-        return classops_bot_ux_v3_timeline($request, $user);
+        return classops_bot_ui_timeline($request, $user);
     }
     if ($action === 'classopsNotificationStatusV3') {
         if (!classops_stage2_is_owner($user)) {
             classops_domain_error('CLASSOPS_OWNER_REQUIRED', 'Owner status required.', 403);
         }
-        return classops_bot_ux_v3_notification_status($request, $user);
+        return classops_bot_ui_notification_status($request, $user);
     }
-    classops_domain_error('CLASSOPS_BOT_UX_V3_ACTION_UNKNOWN', 'ClassOps bot UX v3 action is not recognized.', 404);
+    if ($action === 'classopsAckStatusV2') {
+        if (!classops_stage2_is_owner($user)) {
+            classops_domain_error('CLASSOPS_OWNER_REQUIRED', 'Owner status required.', 403);
+        }
+        return classops_bot_ui_ack_status($user);
+    }
+    classops_domain_error('CLASSOPS_BOT_UI_ACTION_UNKNOWN', 'ClassOps bot UI action is not recognized.', 404);
 }
