@@ -8,10 +8,8 @@ from dent_bot.term7_group_management import (
     _group_index,
     _group_screen,
     _home_screen,
-    _owner_screen_with_term7,
     _student_screen,
 )
-from dent_bot.ui import Screen, button, keyboard
 
 
 ROSTER = [
@@ -83,14 +81,20 @@ class Term7GroupManagementTests(unittest.TestCase):
         labels = [item.get("text") for row in choose.keyboard["inline_keyboard"] for item in row]
         self.assertIn("پاک‌کردن گروه", labels)
 
-    def test_owner_screen_gets_single_term7_management_entry(self):
-        def original(*args, **kwargs):
-            return Screen("owner", keyboard([button("خانه", action="home")]))
+    def test_owner_surfaces_have_single_term7_management_entry(self):
+        from dent_bot.class_operations import _owner_screen
+        from dent_bot.classops_ui import owner_home_screen
 
-        first = _owner_screen_with_term7(original)
-        second = _owner_screen_with_term7(lambda: first)
-        labels = [item.get("text") for row in second.keyboard["inline_keyboard"] for item in row]
-        self.assertEqual(labels.count("گروه‌بندی ترم ۷"), 1)
+        class App:
+            site_url = "https://example.test"
+
+        for screen in (_owner_screen(App(), {}), owner_home_screen()):
+            callbacks = [
+                str(item.get("callback_data") or "")
+                for row in screen.keyboard["inline_keyboard"]
+                for item in row
+            ]
+            self.assertEqual(callbacks.count("v1:t7"), 1)
 
 
 if __name__ == "__main__":

@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, time
 import re
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 from zoneinfo import ZoneInfo
 
 from . import class_operations as classops
-from .app import DentBotApp
 from .persian_datetime import jalali_to_gregorian
 from .site_api import SiteApiError
 from .ui import Screen, button, keyboard
+
+if TYPE_CHECKING:
+    from .app import DentBotApp
 
 
 DIALOG_KIND = "classops-owner-compose"

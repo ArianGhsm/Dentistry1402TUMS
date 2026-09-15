@@ -33,7 +33,6 @@ from .ui import (
     account_screen,
     exam_screen,
     grades_screen,
-    home,
     identity_mapping_remove_confirmation,
     identity_mapping_remove_screen,
     notification_audience_screen,
@@ -72,7 +71,7 @@ from .ui import (
     required_channel_membership_screen,
     student_assistant_screen,
     integration_challenge_waiting_screen,
-    section,
+    section as base_section,
 )
 from .navid import local_now, send_daily_challenge
 from .student_assistant import challenge_expired, clean_captcha_answer, send_private_challenge
@@ -90,6 +89,9 @@ from .booklets import (
     sessions_screen as booklet_sessions_screen,
     source_records_from_channel_post,
 )
+from .academic_term7_rich import decorate_academic_notification_screen
+from .classops_shell import canonical_home_screen, owner_management_screen
+from .feature_router import decorate_feature_screen, route_feature_callback, route_feature_message
 from .onboarding import (
     BACK_STEP,
     CANCEL,
@@ -111,6 +113,23 @@ from .onboarding import (
     prompt_screen as onboarding_prompt_screen,
     success_screen as onboarding_success_screen,
 )
+
+
+def home(
+    site_url: str,
+    *,
+    is_owner: bool,
+    student_assistant_enabled: bool = False,
+    has_products: bool = False,
+) -> Screen:
+    del site_url, student_assistant_enabled, has_products
+    return canonical_home_screen(is_owner=is_owner)
+
+
+def section(name: str, site_url: str, *, is_owner: bool) -> Screen:
+    if name == "admin" and is_owner:
+        return owner_management_screen()
+    return base_section(name, site_url, is_owner=is_owner)
 
 
 class DentBotApp:
@@ -821,6 +840,11 @@ class DentBotApp:
         return True
 
     def _message(self, message: dict) -> None:
+        if route_feature_message(self, message):
+            return
+        self._message_core(message)
+
+    def _message_core(self, message: dict) -> None:
         chat = dict(message.get("chat") or {})
         sender = dict(message.get("from") or {})
         if chat.get("type") != "private" or not isinstance(sender.get("id"), int):
@@ -2164,6 +2188,11 @@ class DentBotApp:
             return self._interaction_versions.get(user_id) == version
 
     def _callback(self, callback: dict, *, interaction_version: int | None = None) -> None:
+        if route_feature_callback(self, callback, interaction_version=interaction_version):
+            return
+        self._callback_core(callback, interaction_version=interaction_version)
+
+    def _callback_core(self, callback: dict, *, interaction_version: int | None = None) -> None:
         callback_id = str(callback.get("id") or "")
         sender = dict(callback.get("from") or {})
         message = dict(callback.get("message") or {})
@@ -2313,6 +2342,17 @@ class DentBotApp:
                 raise
 
     def _dynamic_screen(
+        self,
+        name: str,
+        user_id: int,
+        *,
+        request_id: str = "",
+        sender: dict | None = None,
+    ) -> Screen:
+        screen = self._dynamic_screen_core(name, user_id, request_id=request_id, sender=sender)
+        return decorate_feature_screen(self, name, user_id, screen)
+
+    def _dynamic_screen_core(
         self,
         name: str,
         user_id: int,
@@ -3199,6 +3239,7 @@ class DentBotApp:
                     site_url=self.site_url,
                     show_mark_read=False,
                 )
+                screen = decorate_academic_notification_screen(screen, item)
                 message = html.escape(str(result.get("message") or "انجام شد."))[:240]
                 return Screen(f"<b>✅ {message}</b>\n\n{screen.text}", screen.keyboard)
             except SiteApiError as error:
@@ -3217,7 +3258,7 @@ class DentBotApp:
                 item = next((entry for entry in items if str(entry.get("id") or "") == notification_id), None)
                 if not isinstance(item, dict):
                     raise SiteApiError("اعلان پیدا نشد.", code="NOTIFICATION_NOT_FOUND", status=404)
-                return notification_detail_screen(
+                screen = notification_detail_screen(
                     item,
                     ref,
                     platform=self.platform,
@@ -3225,6 +3266,7 @@ class DentBotApp:
                     site_url=self.site_url,
                     show_mark_read=False,
                 )
+                return decorate_academic_notification_screen(screen, item)
             except SiteApiError as error:
                 if error.code == "ACCOUNT_LINK_REQUIRED":
                     return account_screen(self.site_url, platform=self.platform)

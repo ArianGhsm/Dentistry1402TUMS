@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import html
 from datetime import date
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from .api import BotApiError
-from .app import DentBotApp
-from .classops_runtime import install_classops_runtime
 from .persian_datetime import (
     PERSIAN_WEEKDAYS,
     format_jalali_datetime,
@@ -16,7 +14,10 @@ from .persian_datetime import (
 from .site_api import SiteApiError
 from .ui import Screen, button, frame, keyboard, native_rich_text
 
-_INSTALLED = False
+
+if TYPE_CHECKING:
+    from .app import DentBotApp
+
 _DIALOG_KIND = "class-operations-product"
 
 _ITEM_LABELS = {
@@ -226,24 +227,6 @@ def _render_screen(
             if not any(marker in lowered for marker in _EDIT_FALLBACK_MARKERS):
                 raise
     app.api.send(chat_id, screen.text, screen.keyboard)
-
-
-def _home_keyboard(screen: Screen) -> Screen:
-    rows = [list(row) for row in screen.keyboard.get("inline_keyboard", [])]
-    if any(
-        str(item.get("callback_data") or "").endswith(":class-operations")
-        for row in rows for item in row if isinstance(item, dict)
-    ):
-        return screen
-    entry = [button("📅 امور کلاس", action="class-operations", style="primary")]
-    insert_at = len(rows)
-    for index, row in enumerate(rows):
-        callbacks = {str(item.get("callback_data") or "") for item in row if isinstance(item, dict)}
-        if any(value.endswith(":notifications") or value.endswith(":help") for value in callbacks):
-            insert_at = index
-            break
-    rows.insert(insert_at, entry)
-    return Screen(screen.text, keyboard(*rows))
 
 
 def _class_home_screen(app: DentBotApp, *, role: str, items: list[dict[str, Any]]) -> Screen:
@@ -513,6 +496,7 @@ def _owner_screen(app: DentBotApp, capabilities: dict[str, Any]) -> Screen:
     site = _site_url(app)
     if site:
         rows.append([button("مدیریت کامل در سایت", url=site + "/classops/")])
+    rows.append([button("گروه‌بندی ترم ۷", action="t7")])
     rows.append([button("↩️ امور کلاس", action="class-operations"), button("🏠 خانه", action="home")])
     return Screen(
         frame(
@@ -1034,55 +1018,22 @@ def _handle_product(app: DentBotApp, update: dict[str, Any]) -> bool:
         return True
 
 
-def install_class_operations_product() -> None:
-    """Integrate Class Operations through DentBot's canonical interaction pipeline."""
-    global _INSTALLED
-    if _INSTALLED:
-        return
+def handle_class_operations_callback(app: "DentBotApp", callback: dict[str, Any]) -> bool:
+    """Handle legacy/current Class Operations callbacks without mutating DentBotApp."""
+    if not _is_product_callback(callback.get("data")):
+        return False
+    return _handle_product(app, {"callback_query": callback})
 
-    # Keep the ClassOps background companion, but restore the canonical DentBot
-    # handle pipeline. The legacy runtime installer used to intercept handle()
-    # before membership/auth/serialization; product routing now lives below those
-    # gates in _callback/_message instead.
-    canonical_handle = DentBotApp.handle
-    install_classops_runtime()
-    DentBotApp.handle = canonical_handle  # type: ignore[method-assign]
 
-    from . import app as app_module
-    original_home = app_module.home
-
-    def home_wrapper(*args: Any, **kwargs: Any) -> Screen:
-        return _home_keyboard(original_home(*args, **kwargs))
-
-    app_module.home = home_wrapper  # type: ignore[assignment]
-
-    original_callback: Callable[..., None] = DentBotApp._callback
-    original_message: Callable[..., None] = DentBotApp._message
-
-    def callback_wrapper(
-        self: DentBotApp,
-        callback: dict[str, Any],
-        *,
-        interaction_version: int | None = None,
-    ) -> None:
-        if _is_product_callback(callback.get("data")):
-            _handle_product(self, {"callback_query": callback})
-            return
-        original_callback(self, callback, interaction_version=interaction_version)
-
-    def message_wrapper(self: DentBotApp, message: dict[str, Any]) -> None:
-        sender = dict(message.get("from") or {})
-        user_id = sender.get("id")
-        if isinstance(user_id, int):
-            dialog = self.state.dialog(user_id)
-            if dialog is not None and str(dialog.get("kind") or "") == _DIALOG_KIND:
-                if _handle_dialog_message(self, message, dialog):
-                    return
-        if _is_product_command(message.get("text")):
-            if _handle_product(self, {"message": message}):
-                return
-        original_message(self, message)
-
-    DentBotApp._callback = callback_wrapper  # type: ignore[method-assign]
-    DentBotApp._message = message_wrapper  # type: ignore[method-assign]
-    _INSTALLED = True
+def handle_class_operations_message(app: "DentBotApp", message: dict[str, Any]) -> bool:
+    """Handle Class Operations dialogs/commands through the explicit feature router."""
+    sender = dict(message.get("from") or {})
+    user_id = sender.get("id")
+    if isinstance(user_id, int):
+        dialog = app.state.dialog(user_id)
+        if dialog is not None and str(dialog.get("kind") or "") == _DIALOG_KIND:
+            if _handle_dialog_message(app, message, dialog):
+                return True
+    if _is_product_command(message.get("text")):
+        return _handle_product(app, {"message": message})
+    return False

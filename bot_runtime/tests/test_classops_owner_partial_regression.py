@@ -54,5 +54,7 @@ def test_partial_titles_render_in_daily_weekly_monthly_with_persian_digits_and_o
 def test_classops_ui_stays_shared_between_telegram_and_bale() -> None:
     telegram = (ROOT / "bot_runtime/dent_bot/service.py").read_text(encoding="utf-8")
     bale = (ROOT / "bot_runtime/dent_bot/bale_service.py").read_text(encoding="utf-8")
-    assert "install_classops_ui()" in telegram
-    assert "install_classops_ui()" in bale
+    assert "run_service(settings=settings, api=api" in telegram
+    assert "run_service(settings=settings, api=api" in bale
+    assert "install_classops" not in telegram
+    assert "install_classops" not in bale

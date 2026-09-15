@@ -77,30 +77,7 @@ def academic_notification_text(item: dict[str, Any]):
     return ui_module.native_rich_text("\n".join(fallback), "".join(rich))
 
 
-def install_academic_term7_rich_notifications() -> None:
-    from . import app as app_module
-    from . import runtime as runtime_module
-
-    if getattr(ui_module, "_academic_term7_rich_installed", False):
-        return
-
-    original_detail = ui_module.notification_detail_screen
-    original_push = ui_module.notification_push_screen
-
-    def detail(item, ref, *args, **kwargs):
-        screen = original_detail(item, ref, *args, **kwargs)
-        rich = academic_notification_text(item)
-        return ui_module.Screen(rich, screen.keyboard) if rich is not None else screen
-
-    def push(item, ref, *args, **kwargs):
-        screen = original_push(item, ref, *args, **kwargs)
-        rich = academic_notification_text(item)
-        return ui_module.Screen(rich, screen.keyboard) if rich is not None else screen
-
-    ui_module.notification_detail_screen = detail
-    ui_module.notification_push_screen = push
-    app_module.notification_detail_screen = detail
-    if hasattr(app_module, "notification_push_screen"):
-        app_module.notification_push_screen = push
-    runtime_module.notification_push_screen = push
-    ui_module._academic_term7_rich_installed = True
+def decorate_academic_notification_screen(screen: ui_module.Screen, item: dict[str, Any]) -> ui_module.Screen:
+    """Apply the existing Term 7 rich renderer explicitly, without module monkey-patching."""
+    rich = academic_notification_text(item)
+    return ui_module.Screen(rich, screen.keyboard) if rich is not None else screen

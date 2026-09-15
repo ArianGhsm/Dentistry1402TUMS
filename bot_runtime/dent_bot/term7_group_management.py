@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import html
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from . import class_operations as classops
-from .app import DentBotApp
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
 from .ui import Screen, button, frame, keyboard, native_rich_text
 
-_INSTALLED = False
+if TYPE_CHECKING:
+    from .app import DentBotApp
 
 
 def _field_meta(field: str) -> tuple[str, range]:
@@ -234,20 +234,6 @@ def _roster(app: DentBotApp, user_id: int) -> list[dict[str, Any]]:
     return [row for row in response.get("roster", []) if isinstance(row, dict)]
 
 
-def _owner_screen_with_term7(original: Callable[..., Screen], *args: Any, **kwargs: Any) -> Screen:
-    screen = original(*args, **kwargs)
-    rows = [list(row) for row in screen.keyboard.get("inline_keyboard", [])]
-    if not any(
-        str(item.get("callback_data") or "").endswith(":t7")
-        for row in rows
-        for item in row
-        if isinstance(item, dict)
-    ):
-        insert_at = max(0, len(rows) - 1)
-        rows.insert(insert_at, [button("گروه‌بندی ترم ۷", action="t7")])
-    return Screen(screen.text, keyboard(*rows))
-
-
 def _handle_term7(app: DentBotApp, callback: dict[str, Any]) -> None:
     message = dict(callback.get("message") or {})
     sender = dict(callback.get("from") or {})
@@ -353,30 +339,9 @@ def _handle_term7(app: DentBotApp, callback: dict[str, Any]) -> None:
         )
 
 
-def install_term7_group_management() -> None:
-    global _INSTALLED
-    if _INSTALLED:
-        return
-
-    original_owner_screen = classops._owner_screen
-
-    def owner_screen_wrapper(*args: Any, **kwargs: Any) -> Screen:
-        return _owner_screen_with_term7(original_owner_screen, *args, **kwargs)
-
-    classops._owner_screen = owner_screen_wrapper  # type: ignore[assignment]
-
-    original_callback = DentBotApp._callback
-
-    def callback_wrapper(
-        self: DentBotApp,
-        callback: dict[str, Any],
-        *,
-        interaction_version: int | None = None,
-    ) -> None:
-        if _is_term7_callback(callback.get("data")):
-            _handle_term7(self, callback)
-            return
-        original_callback(self, callback, interaction_version=interaction_version)
-
-    DentBotApp._callback = callback_wrapper  # type: ignore[method-assign]
-    _INSTALLED = True
+def handle_term7_callback(app: "DentBotApp", callback: dict[str, Any]) -> bool:
+    """Handle owner Term 7 grouping callbacks without patching DentBotApp."""
+    if not _is_term7_callback(callback.get("data")):
+        return False
+    _handle_term7(app, callback)
+    return True
