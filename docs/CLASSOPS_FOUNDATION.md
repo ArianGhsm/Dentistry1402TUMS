@@ -18,6 +18,9 @@ ClassOps coordinates operational class management without replacing existing aut
 - existing payment order/transaction verification remains canonical;
 - Telegram and Bale remain thin adapters over shared application/domain logic;
 - raw platform chat IDs are runtime/configuration facts, not ClassOps item facts.
+- runtime bot presentation has one current router: `bot_runtime/dent_bot/classops_ui.py`; shared Home/Admin presentation lives in `classops_shell.py` and owner create/edit dialogs live in `classops_owner_workflows.py`. Telegram and Bale install that router exactly once.
+- versioned bot UI installer generations are not runtime architecture. Old `classops-v2:*` callback payloads are accepted only by a bounded ingress translator so buttons already present in user chats remain usable after upgrade.
+- the bot service API has one ClassOps UI dispatcher, `public_html/api/classops_bot_ui.php`. Versioned service action names remain compatible wire-protocol identifiers, not separate endpoint generations.
 
 ClassOps may represent one-off `class_change` operational overlays. It must not create a parallel official schedule database.
 

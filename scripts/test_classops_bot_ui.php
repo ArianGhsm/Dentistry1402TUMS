@@ -6,7 +6,7 @@ putenv('DENT_STORAGE_ROOT=' . $testRoot);
 putenv('DENT_SERVER_ONLY_ROOT=' . $testRoot . DIRECTORY_SEPARATOR . 'server-only');
 putenv('DENT_AUTH_SECRET_KEY=' . base64_encode(str_repeat('t', 32)));
 
-require_once dirname(__DIR__) . '/public_html/api/classops_bot_ux_v3.php';
+require_once dirname(__DIR__) . '/public_html/api/classops_bot_ui.php';
 
 function classops_v3_assert(bool $condition, string $message): void
 {
@@ -65,7 +65,7 @@ $partialDate = new DateTimeImmutable('2026-11-25 00:00:00', $timezone);
 
 $practicalDate = new DateTimeImmutable('2026-09-19 00:00:00', $timezone);
 $practicalRows = array_values(array_filter(
-    classops_bot_ux_v3_term7_records($student, $practicalDate, $state),
+    classops_bot_ui_term7_records($student, $practicalDate, $state),
     static fn(array $item): bool => ($item['type'] ?? '') === 'practical'
 ));
 classops_v3_assert(
@@ -82,7 +82,7 @@ classops_v3_assert(
 );
 
 $rotationBStart = new DateTimeImmutable('2026-11-14 00:00:00', $timezone); // 1405/08/23
-$rotationBRows = classops_bot_ux_v3_term7_records($student, $rotationBStart, $state);
+$rotationBRows = classops_bot_ui_term7_records($student, $rotationBStart, $state);
 $rotationBHealth = array_values(array_filter(
     $rotationBRows,
     static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'سلامت دهان عملی ۲'
@@ -104,8 +104,8 @@ classops_v3_assert(
     'Rotation B ClassOps projection enriches Research Methodology with the repeated source sequence'
 );
 
-$studentAcademic = classops_bot_ux_v3_term7_records($student, $partialDate, $state);
-$ownerAcademic = classops_bot_ux_v3_term7_records($ownerStudent, $partialDate, $state);
+$studentAcademic = classops_bot_ui_term7_records($student, $partialDate, $state);
+$ownerAcademic = classops_bot_ui_term7_records($ownerStudent, $partialDate, $state);
 classops_v3_assert($studentAcademic === $ownerAcademic, 'Dual-role owner receives same personal Term 7 projection as student identity');
 classops_v3_assert($ownerAcademic !== [], 'Owner role must not suppress student academic projection');
 classops_v3_assert(classops_stage2_is_owner($ownerStudent), 'Owner privilege remains intact');
@@ -118,8 +118,8 @@ dent_term7_state_with_lock(static function (array &$storedState) use ($studentNu
     ]);
     return [];
 });
-$studentTimeline = classops_bot_ux_v3_timeline(['startDate' => '2026-11-25', 'days' => 1], $student);
-$ownerTimeline = classops_bot_ux_v3_timeline(['startDate' => '2026-11-25', 'days' => 1], $ownerStudent);
+$studentTimeline = classops_bot_ui_timeline(['startDate' => '2026-11-25', 'days' => 1], $student);
+$ownerTimeline = classops_bot_ui_timeline(['startDate' => '2026-11-25', 'days' => 1], $ownerStudent);
 $studentTimelineAcademic = array_values(array_filter(
     $studentTimeline['days'][0]['items'] ?? [],
     static fn(array $item): bool => ($item['source'] ?? '') === 'term7'
@@ -129,8 +129,8 @@ $ownerTimelineAcademic = array_values(array_filter(
     static fn(array $item): bool => ($item['source'] ?? '') === 'term7'
 ));
 classops_v3_assert($studentTimelineAcademic === $ownerTimelineAcademic, 'Student-facing timeline academic rows are identical for student and dual-role owner');
-classops_v3_assert(classops_bot_ux_v3_term7_records($ownerWithoutAssignment, $partialDate, $state) === [], 'Owner without explicit Term 7 assignment receives no fabricated projection');
-classops_v3_assert(classops_bot_ux_v3_term7_records($otherCohortOwner, $partialDate, $state) === [], 'Non-target cohort behavior remains unchanged');
+classops_v3_assert(classops_bot_ui_term7_records($ownerWithoutAssignment, $partialDate, $state) === [], 'Owner without explicit Term 7 assignment receives no fabricated projection');
+classops_v3_assert(classops_bot_ui_term7_records($otherCohortOwner, $partialDate, $state) === [], 'Non-target cohort behavior remains unchanged');
 
 $partialRows = array_values(array_filter(
     $ownerAcademic,
@@ -159,7 +159,7 @@ classops_v3_assert(
 
 $doubleDate = new DateTimeImmutable('2026-12-16 00:00:00', $timezone);
 $doubleRows = array_values(array_filter(
-    classops_bot_ux_v3_term7_records($student, $doubleDate, $state),
+    classops_bot_ui_term7_records($student, $doubleDate, $state),
     static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'مبانی پارسیل نظری'
 ));
 classops_v3_assert(array_column($doubleRows, 'sessionNumber') === [14, 15], 'Sessions 14 and 15 remain distinct on shared date');
@@ -175,4 +175,4 @@ function classops_v3_cleanup(string $path): void
 }
 classops_v3_cleanup($testRoot);
 
-echo "ClassOps UX V3 owner/student + partial syllabus checks passed.\n";
+echo "ClassOps bot UI owner/student + partial syllabus checks passed.\n";

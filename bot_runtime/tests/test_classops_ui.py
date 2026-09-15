@@ -4,8 +4,9 @@ import inspect
 import unittest
 from pathlib import Path
 
-from dent_bot.classops_ux_v3 import (
+from dent_bot.classops_ui import (
     ITEM_META,
+    _legacy_classops_action,
     classops_home_screen,
     daily_screen,
     detail_with_back,
@@ -178,7 +179,7 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertTrue(hasattr(screen.text, "rich_html")); self.assertIn("<table", screen.text.rich_html)
         service = (ROOT / "bot_runtime/dent_bot/service.py").read_text(encoding="utf-8")
         bale = (ROOT / "bot_runtime/dent_bot/bale_service.py").read_text(encoding="utf-8")
-        self.assertIn("install_classops_ux_v3()", service); self.assertIn("install_classops_ux_v3()", bale)
+        self.assertIn("install_classops_ui()", service); self.assertIn("install_classops_ui()", bale)
 
     def test_owner_management_has_structured_views_and_mutation_entries(self):
         screen = owner_home_screen()
@@ -187,7 +188,7 @@ class ClassOpsUxV3Tests(unittest.TestCase):
             self.assertIn(label, rendered)
         self.assertIn("↩️ مدیریت ربات", rendered)
 
-    def test_v3_user_surfaces_do_not_leak_internal_english_terms(self):
+    def test_user_surfaces_do_not_leak_internal_english_terms(self):
         screens = [
             classops_home_screen([], None),
             grouping_screen({"eligible": False}),
@@ -205,13 +206,51 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertEqual(ITEM_META["theory"], ("📚", "جلسه آموزشی"))
         self.assertEqual(ITEM_META["class_change"], ("⚠️", "تغییر مهم"))
 
-    def test_read_side_v3_has_no_shadow_persistence_or_mutation_calls(self):
-        py_source = inspect.getsource(__import__("dent_bot.classops_ux_v3", fromlist=["*"]))
-        php_source = (ROOT / "public_html/api/classops_bot_ux_v3.php").read_text(encoding="utf-8")
+    def test_read_side_ui_has_no_shadow_persistence_or_mutation_calls(self):
+        py_source = inspect.getsource(__import__("dent_bot.classops_ui", fromlist=["*"]))
+        php_source = (ROOT / "public_html/api/classops_bot_ui.php").read_text(encoding="utf-8")
         for forbidden in ("sqlite3", "json.dump", "Path(\"classops", "classops_stage2_transaction", "classops_domain_store_update_item"):
             self.assertNotIn(forbidden, py_source + php_source)
         self.assertIn("classops_read_store()", php_source)
         self.assertIn("classops_stage2_student_item_projection", php_source)
+
+
+    def test_owner_authorization_is_handler_level_and_ack_is_read_only(self):
+        source = inspect.getsource(__import__("dent_bot.classops_ui", fromlist=["*"]).install_classops_ui)
+        self.assertIn("_owner_allowed(self, user_id)", source)
+        self.assertIn("classopsCapabilities", inspect.getsource(__import__("dent_bot.classops_ui", fromlist=["*"])._owner_allowed))
+        php = (ROOT / "public_html/api/classops_bot_ui.php").read_text(encoding="utf-8")
+        self.assertIn("classops_stage2_is_owner($user)", php)
+        self.assertIn("classops_stage2_owner_ack_stats", php)
+        for forbidden in ("classops_stage2_transaction", "classops_domain_store_update_item", "notifications_with_store_lock"):
+            self.assertNotIn(forbidden, php)
+
+    def test_new_owner_buttons_emit_only_current_routes(self):
+        screen = owner_home_screen()
+        callbacks = [
+            str(entry.get("callback_data") or "")
+            for row in screen.keyboard["inline_keyboard"]
+            for entry in row
+        ]
+        self.assertTrue(any("c3:o:add:exam" in raw for raw in callbacks))
+        self.assertFalse(any("classops-v2:" in raw for raw in callbacks))
+
+    def test_legacy_v2_callbacks_translate_at_ingress_only(self):
+        expected = {
+            "classops-v2:owner": "c3:owner",
+            "classops-v2:month:1": "c3:m:1",
+            "classops-v2:list:tasks": "c3:l:tasks",
+            "classops-v2:grouping": "c3:g",
+            "classops-v2:student-notifications": "c3:n",
+            "classops-v2:future:2": "c3:o:m:2",
+            "classops-v2:notification-status": "c3:o:n",
+            "classops-v2:add:exam": "c3:o:add:exam",
+            "classops-v2:edit:cop_abc": "c3:o:edit:cop_abc",
+            "classops-v2:compose-cancel": "c3:o:compose-cancel",
+        }
+        for old, current in expected.items():
+            self.assertEqual(_legacy_classops_action(old), current)
+        self.assertEqual(_legacy_classops_action("home"), "home")
 
     def test_callback_payloads_fit_shared_safe_limit(self):
         screens = [classops_home_screen([], None), owner_home_screen(), month_screen([{"localDate": "2026-09-09", "items": [sample_item()]}], 0)]
