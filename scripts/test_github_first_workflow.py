@@ -27,6 +27,47 @@ for workflow_name in ("ci.yml", "classops-stage1.yml", "persian-text-integrity.y
     else:
         assert "sudo " not in workflow, f"public CI job must not invoke sudo: {workflow_name}"
 
+# The general repository gate must be future-proof: adding a new top-level
+# source/config/ops path must not silently bypass CI because someone forgot to
+# extend a path allow-list. ClassOps remains a specialist matrix, but its
+# push/PR filters must cover the current web + bot integration surface.
+CI_WORKFLOW = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+assert "\n    paths:" not in CI_WORKFLOW and "\n    paths-ignore:" not in CI_WORKFLOW, (
+    "general CI must run for every pull request and every push to main; path filters can create silent coverage gaps"
+)
+assert "push:\n    branches:\n      - main" in CI_WORKFLOW, "general CI must run after merges to main"
+assert "pull_request:" in CI_WORKFLOW, "general CI must run on pull requests"
+
+CLASSOPS_WORKFLOW = (ROOT / ".github/workflows/classops-stage1.yml").read_text(encoding="utf-8")
+assert "push:\n    branches:\n      - main\n    paths:" in CLASSOPS_WORKFLOW, (
+    "ClassOps domain matrix must verify relevant pushes to main as well as pull requests"
+)
+assert "pull_request:" in CLASSOPS_WORKFLOW, "ClassOps domain matrix must run on relevant pull requests"
+for classops_path in [
+    "public_html/api/classops_*",
+    "public_html/api/classops_modules/**",
+    "public_html/api/classops_stage2/**",
+    "public_html/api/bot_api.php",
+    "public_html/api/academic_term7_*",
+    "public_html/classops/**",
+    "public_html/assets/classops_ops/**",
+    "bot_runtime/**",
+    "contracts/**",
+    "docs/classops/**",
+    "docs/SHARED_CONTRACTS.md",
+    "docs/CLASSOPS_FOUNDATION.md",
+    "docs/DEVELOPMENT_WORKFLOW.md",
+    "scripts/test_classops_*",
+    "scripts/test_shared_contracts.py",
+    "scripts/setup_classops_*",
+    "scripts/run_static_checks.sh",
+    ".github/workflows/classops-stage1.yml",
+]:
+    rendered = f'- "{classops_path}"'
+    assert CLASSOPS_WORKFLOW.count(rendered) == 2, (
+        f"ClassOps push and pull_request path filters must both cover {classops_path}"
+    )
+
 assert "must never turn this runner into a deployment agent" in SELF_HOSTED_DOC
 
 for retired in ("scripts/deploy_public_html.ps1", "scripts/deploy_public_html.sh"):
