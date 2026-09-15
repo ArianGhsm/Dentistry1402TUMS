@@ -76,9 +76,10 @@ SHA contains production website or runtime code changes, that exact merged
 6. post-deploy data, log, notification and release-marker invariants.
 
 The canonical website release path is `scripts/run_release_gate.ps1` ->
-`scripts/deploy_site_vps.ps1`. cPanel/FTP and `scripts/deploy_public_html.ps1`
-are not production release routes. The VPS website deployer replaces code only;
-it must never copy, delete or overwrite either shared production root.
+`scripts/deploy_site_vps.ps1`. Retired cPanel/FTP deployers have been removed from
+the working tree and must not be restored as production release routes. The VPS
+website deployer replaces code only; it must never copy, delete or overwrite
+either shared production root.
 
 A docs/tests/workflow-only merge with no production code/runtime delta must not
 perform an empty production deploy merely to make the active production marker
@@ -138,7 +139,6 @@ appropriate regression coverage:
 - `AGENTS.md`, `DEPLOY.md`, `.env.example`, `.github/workflows/*`
 - `scripts/run_static_checks.sh`, `scripts/complete_task.ps1`,
   `scripts/run_release_gate.ps1`, `scripts/deploy_site_vps.ps1`
-- `scripts/deploy_public_html.ps1` only as retired legacy/recovery evidence;
 - `public_html/api/bootstrap.php`, `auth_store.php`, `bot_store.php`, `bot_api.php`
 - `public_html/api/notifications_store.php`, `academic_term7.php`
 - `public_html/api/classops_api.php`, `classops_store.php`,

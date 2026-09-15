@@ -8,6 +8,10 @@ DEPLOY_PATH = ROOT / 'scripts/deploy_site_vps.ps1'
 GATE_PATH = ROOT / 'scripts/run_release_gate.ps1'
 COMPLETE_PATH = ROOT / 'scripts/complete_task.ps1'
 LEGACY_MAIN_SITE_FTP_EXAMPLE = ROOT / 'config/examples/sftp.example.json'
+RETIRED_MAIN_SITE_DEPLOYERS = (
+    ROOT / 'scripts/deploy_public_html.ps1',
+    ROOT / 'scripts/deploy_public_html.sh',
+)
 DEPLOY = DEPLOY_PATH.read_text(encoding='utf-8')
 GATE = GATE_PATH.read_text(encoding='utf-8')
 COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
@@ -89,12 +93,17 @@ for doc_name, text in (
 assert '.\\scripts\\deploy_public_html.ps1 -ReleaseSha' not in AGENTS, (
     'AGENTS.md must not present the retired cPanel/FTP deployer as a canonical command'
 )
-assert 'scripts/deploy_public_html.ps1` is legacy evidence only' in DEPLOY_DOC, (
-    'DEPLOY.md must keep the retired deployer explicitly non-canonical'
+assert 'retired cPanel/FTP deployer files have been removed from the working tree' in AGENTS, (
+    'AGENTS.md must keep removed cPanel/FTP deployers non-operational'
 )
-assert 'scripts/deploy_public_html.ps1`\nare not production release routes' in WORKFLOW_DOC, (
-    'development workflow must keep the retired deployer outside production release routes'
+assert 'retired main-site cPanel/FTP deployer scripts have been removed from the working tree' in DEPLOY_DOC, (
+    'DEPLOY.md must keep removed cPanel/FTP deployers non-operational'
 )
+assert 'cPanel/FTP deployers have been removed from' in WORKFLOW_DOC, (
+    'development workflow must keep removed cPanel/FTP deployers outside production release routes'
+)
+for retired_path in RETIRED_MAIN_SITE_DEPLOYERS:
+    assert not retired_path.exists(), f'retired main-site deployer must not be tracked: {retired_path.name}'
 assert not LEGACY_MAIN_SITE_FTP_EXAMPLE.exists(), (
     'tracked Main Site FTP/uploadOnSave example must stay retired; website production uses the exact-SHA VPS release path'
 )

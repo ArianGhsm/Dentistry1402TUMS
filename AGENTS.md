@@ -8,7 +8,7 @@
 - `main` is integration/release only. Feature branches start at an immutable declared SHA, do not rebase/pull mid-task, do not self-merge, and do not deploy.
 - Feature-branch completion and integrated-release completion are distinct. Only an integrated release requires backup, exact-SHA canonical deploy and live verification. A docs/tests/workflow-only change with no production code change does not trigger an empty production deploy.
 - The canonical release command requires `-ReleaseSha <exact-origin-main-sha>`. Deploy never creates or pushes a Git commit and never rewrites source files.
-- The canonical website production release path is `scripts/run_release_gate.ps1` -> `scripts/deploy_site_vps.ps1`; `scripts/complete_task.ps1` is only an alias into that same gate. `scripts/deploy_public_html.ps1` is retired legacy/recovery evidence and is never a production release route.
+- The canonical website production release path is `scripts/run_release_gate.ps1` -> `scripts/deploy_site_vps.ps1`; `scripts/complete_task.ps1` is only an alias into that same gate. The retired cPanel/FTP deployer files have been removed from the working tree; Git history is evidence only and no operational workflow may invoke or recreate them.
 - Shared contracts and high-risk hotspots are defined in `docs/SHARED_CONTRACTS.md` and `docs/DEVELOPMENT_WORKFLOW.md`. `AGENTS.md`, `DEPLOY.md` and `docs/DEVELOPMENT_WORKFLOW.md` must remain semantically aligned; contradictory release instructions are a failing contract.
 - No agent lock-in is allowed. Any capable agent, including Codex, must be able to continue from the exact SHA plus repository docs/contracts/tests.
 
@@ -349,7 +349,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -Release
 powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-origin-main-sha>
 ```
 - `complete_task.ps1` فقط همان `run_release_gate.ps1 -Deploy` را فراخوانی می‌کند و مسیر deploy مستقلی نیست. `run_release_gate.ps1` نیز فقط `scripts/deploy_site_vps.ps1` را برای website production اجرا می‌کند.
-- `scripts/deploy_public_html.ps1` و cPanel/FTP مسیر production نیستند؛ این فایل فقط legacy/recovery evidence است و هیچ wrapper canonical حق فراخوانی آن را ندارد.
+- deployerهای قدیمی cPanel/FTP از working tree حذف شده‌اند؛ تاریخچه Git فقط مرجع forensic است و هیچ wrapper یا recovery workflow نباید آن‌ها را اجرا یا دوباره به‌عنوان مسیر عملیاتی برگرداند.
 - target production سایت فقط VPS ایران با layout `/srv/dentistry1402/current -> releases/<sha>` است. release workspace باید repository درست، `HEAD == ReleaseSha`، `origin/main == ReleaseSha` و worktree پاک داشته باشد.
 - deploy website فقط code-only `public_html` را به release immutable می‌برد. `/srv/dentistry1402/shared/storage` و `/srv/dentistry1402/shared/server-only` باید در تمام مسیر محافظت شوند و از Git/laptop overwrite یا synchronize نشوند.
 - قبل از activation، backup/rollback ورودیِ قابل‌تأیید و validation لازم است؛ بعد از activation نیز website/Telegram/Bale/storage health، lifecycle notification و `release-report.json` باید موفق باشند. failure بعد از activation باید rollback خودکار مسیر کد را فعال کند.

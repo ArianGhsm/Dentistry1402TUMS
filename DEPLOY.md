@@ -11,7 +11,7 @@
   timestamped `dent-site-data-*` backups; forensic/manual backup namespaces are
   not part of this automatic cleanup.
 
-The website no longer deploys to cPanel/FTP. cPanel is retired as a production target. `scripts/deploy_public_html.ps1` is legacy evidence only and must not be used by any canonical release wrapper.
+The website no longer deploys to cPanel/FTP. The retired main-site cPanel/FTP deployer scripts have been removed from the working tree; Git history is forensic evidence only and must not be restored as an operational release path.
 
 Deploy must never push to GitHub, create a commit, stamp/mutate source, upload local production data, or treat a dirty workspace as a release source.
 
