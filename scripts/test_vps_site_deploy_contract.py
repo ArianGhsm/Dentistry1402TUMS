@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEPLOY_PATH = ROOT / 'scripts/deploy_site_vps.ps1'
 GATE_PATH = ROOT / 'scripts/run_release_gate.ps1'
 COMPLETE_PATH = ROOT / 'scripts/complete_task.ps1'
+LEGACY_MAIN_SITE_FTP_EXAMPLE = ROOT / 'config/examples/sftp.example.json'
 DEPLOY = DEPLOY_PATH.read_text(encoding='utf-8')
 GATE = GATE_PATH.read_text(encoding='utf-8')
 COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
@@ -93,6 +94,9 @@ assert 'scripts/deploy_public_html.ps1` is legacy evidence only' in DEPLOY_DOC, 
 )
 assert 'scripts/deploy_public_html.ps1`\nare not production release routes' in WORKFLOW_DOC, (
     'development workflow must keep the retired deployer outside production release routes'
+)
+assert not LEGACY_MAIN_SITE_FTP_EXAMPLE.exists(), (
+    'tracked Main Site FTP/uploadOnSave example must stay retired; website production uses the exact-SHA VPS release path'
 )
 
 # Hosted Ubuntu runners include PowerShell. Parse the scripts using the real
