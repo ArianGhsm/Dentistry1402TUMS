@@ -1,0 +1,19 @@
+[Unit]
+Description=Clean Dentistry1402 PHP session files
+After=php8.3-fpm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/dentistry1402/session-clean
+User=root
+Group=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/srv/dentistry1402/shared/server-only/sessions

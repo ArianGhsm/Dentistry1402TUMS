@@ -14,7 +14,8 @@ release_dir="$root/releases/$release_sha"
 [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid release sha" >&2; exit 65; }
 for required in \
   "code-$release_sha.tar.gz" storage.tar.gz server-only.tar.gz production.env \
-  site-cert.pem site-key.pem nginx-dentistry1402.conf php-fpm-dentistry1402.conf; do
+  site-cert.pem site-key.pem nginx-dentistry1402.conf php-fpm-dentistry1402.conf \
+  session-clean.sh dentistry1402-session-clean.service dentistry1402-session-clean.timer; do
   [[ -f "$bundle_dir/$required" ]] || { echo "missing bundle: $required" >&2; exit 66; }
 done
 
@@ -33,6 +34,7 @@ install -d -o dentweb -g dentweb -m 0750 \
   "$root/shared/server-only/backups"
 install -d -o root -g root -m 0755 "$root/shared/acme/.well-known/acme-challenge"
 install -d -o root -g root -m 0750 "$root/shared/tls"
+install -d -o root -g root -m 0755 /usr/local/lib/dentistry1402
 
 if [[ ! -d "$release_dir" ]]; then
   install -d -o root -g dentweb -m 0750 "$release_dir"
@@ -65,10 +67,16 @@ mv -Tf "$root/current.next" "$root/current"
 install -o root -g root -m 0644 "$bundle_dir/php-fpm-dentistry1402.conf" /etc/php/8.3/fpm/pool.d/dentistry1402.conf
 install -o root -g root -m 0644 "$bundle_dir/nginx-dentistry1402.conf" /etc/nginx/sites-available/dentistry1402.conf
 ln -sfn /etc/nginx/sites-available/dentistry1402.conf /etc/nginx/sites-enabled/dentistry1402.conf
+install -o root -g root -m 0755 "$bundle_dir/session-clean.sh" /usr/local/lib/dentistry1402/session-clean
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-session-clean.service" /etc/systemd/system/dentistry1402-session-clean.service
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-session-clean.timer" /etc/systemd/system/dentistry1402-session-clean.timer
 
 php-fpm8.3 -t
 nginx -t
+systemctl daemon-reload
 systemctl reload php8.3-fpm
 systemctl reload nginx
+systemctl enable --now dentistry1402-session-clean.timer
+systemctl start dentistry1402-session-clean.service
 
 printf 'SITE_INSTALL_OK release=%s\n' "$release_sha"

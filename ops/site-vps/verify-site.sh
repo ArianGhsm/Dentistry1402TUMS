@@ -61,6 +61,10 @@ for service in nginx php8.3-fpm integrated-dent-bot.service integrated-dent-bale
   systemctl is-active --quiet "$service"
 done
 
+systemctl is-active --quiet dentistry1402-session-clean.timer
+systemctl is-enabled --quiet dentistry1402-session-clean.timer
+test -x /usr/local/lib/dentistry1402/session-clean
+
 curl --fail --silent --show-error --output /dev/null https://dentistry1402tums.ir/
 curl --fail --silent --show-error --output /dev/null 'https://dentistry1402tums.ir/api/auth_api.php?action=me'
 echo SITE_VERIFY_OK
