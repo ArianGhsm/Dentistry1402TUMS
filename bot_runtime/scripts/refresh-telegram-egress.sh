@@ -45,6 +45,8 @@ if current_healthy; then
 fi
 
 work="$(mktemp -d /run/integrated-dent-egress-refresh.XXXXXX)"
+chown root:dentegress "$work"
+chmod 0750 "$work"
 trap 'rm -rf -- "$work"' EXIT
 candidate="$work/candidate.json"
 previous="$work/previous.json"
