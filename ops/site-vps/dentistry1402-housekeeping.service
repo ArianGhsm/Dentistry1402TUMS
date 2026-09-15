@@ -1,0 +1,22 @@
+[Unit]
+Description=Dentistry1402 release retention housekeeping
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/lib/dentistry1402/housekeeping
+Nice=15
+IOSchedulingClass=idle
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/srv/dentistry1402/releases /opt/integrated-dent/releases
+ReadOnlyPaths=/srv/dentistry1402 /opt/integrated-dent /proc

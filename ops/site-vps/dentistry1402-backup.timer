@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily verified Dentistry1402 runtime backup
+
+[Timer]
+OnCalendar=*-*-* 03:20:00 Asia/Tehran
+RandomizedDelaySec=5m
+Persistent=true
+AccuracySec=1m
+Unit=dentistry1402-backup.service
+
+[Install]
+WantedBy=timers.target

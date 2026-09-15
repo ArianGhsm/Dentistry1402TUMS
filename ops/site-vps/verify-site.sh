@@ -61,9 +61,16 @@ for service in nginx php8.3-fpm integrated-dent-bot.service integrated-dent-bale
   systemctl is-active --quiet "$service"
 done
 
-systemctl is-active --quiet dentistry1402-session-clean.timer
-systemctl is-enabled --quiet dentistry1402-session-clean.timer
-test -x /usr/local/lib/dentistry1402/session-clean
+for timer in dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-housekeeping.timer; do
+  systemctl is-active --quiet "$timer"
+  systemctl is-enabled --quiet "$timer"
+done
+for executable in session-clean backup-runtime housekeeping; do
+  test -x "/usr/local/lib/dentistry1402/$executable"
+done
+
+test -d /var/backups/dentistry1402-runtime
+test "$(stat -c %a /var/backups/dentistry1402-runtime)" = 700
 
 curl --fail --silent --show-error --output /dev/null https://dentistry1402tums.ir/
 curl --fail --silent --show-error --output /dev/null 'https://dentistry1402tums.ir/api/auth_api.php?action=me'
