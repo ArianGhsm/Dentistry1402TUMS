@@ -1,8 +1,13 @@
 import unittest
 
-from dent_bot.academic_term7_rich import install_academic_term7_rich_notifications
-install_academic_term7_rich_notifications()
-from dent_bot.ui import account_screen, notification_detail_screen
+from dent_bot.academic_term7_rich import decorate_academic_notification_screen
+from dent_bot.ui import account_screen, notification_detail_screen as base_notification_detail_screen
+
+
+def notification_detail_screen(item, ref, *args, **kwargs):
+    return decorate_academic_notification_screen(
+        base_notification_detail_screen(item, ref, *args, **kwargs), item
+    )
 
 
 class Term7AssistantUiTests(unittest.TestCase):
@@ -92,7 +97,9 @@ class Term7AssistantUiTests(unittest.TestCase):
             "title": "📅 برنامه فردا | شنبه ۱۴۰۵/۰۶/۲۸",
             "body": "🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰\n• پروتز پارسیل عملی ۱\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰",
         }
-        screen = runtime_module.notification_push_screen(item, "ref123", platform="telegram")
+        screen = decorate_academic_notification_screen(
+            runtime_module.notification_push_screen(item, "ref123", platform="telegram"), item
+        )
         self.assertIn("۰۹:۰۰–۱۲:۰۰", str(screen.text))
 
     def test_notification_persian_html_is_escaped_without_breaking_structure(self):

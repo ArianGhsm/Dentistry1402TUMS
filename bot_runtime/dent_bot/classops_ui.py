@@ -3,12 +3,10 @@ from __future__ import annotations
 import html
 from copy import deepcopy
 from datetime import date, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
-from . import app as app_module
 from . import class_operations as classops
-from .app import DentBotApp
 from .classops_owner_workflows import (
     decorate_owner_detail,
     dialog_kind_supported,
@@ -16,21 +14,21 @@ from .classops_owner_workflows import (
     owner_action_screen,
 )
 from .classops_shell import (
-    canonical_home_screen,
     navid_center_screen,
-    owner_management_screen,
     service_status_screen,
 )
 from .persian_datetime import PERSIAN_WEEKDAYS, format_jalali_datetime, gregorian_to_jalali, to_persian_digits
 from .site_api import SiteApiError
 from .ui import Screen, button, keyboard, native_rich_text
 
+if TYPE_CHECKING:
+    from .app import DentBotApp
+
 _TEHRAN = ZoneInfo("Asia/Tehran")
 _MONTH_PAGE_SIZE = 7
 _DAILY_PAGE_SIZE = 8
 _WEEKLY_DAY_PREVIEW = 3
 _MONTH_DAY_PREVIEW = 4
-_INSTALLED = False
 
 ITEM_META: dict[str, tuple[str, str]] = {
     "exam": ("📝", "امتحان"), "event": ("📌", "رویداد"), "class_change": ("⚠️", "تغییر مهم"),
@@ -696,244 +694,223 @@ def _callback_with_action(callback: dict[str, Any], action: str) -> dict[str, An
     return clone
 
 
-def install_classops_ui() -> None:
-    """Install the single current ClassOps UI router for Telegram and Bale."""
-    global _INSTALLED
-    if _INSTALLED:
-        return
-    _INSTALLED = True
+def handle_classops_ui_callback(
+    app: "DentBotApp",
+    callback: dict[str, Any],
+    *,
+    interaction_version: int | None = None,
+) -> bool:
+    """Handle the current ClassOps callback surface without replacing DentBotApp methods."""
+    chat_id, user_id, raw_data = _context(callback)
+    data = _legacy_classops_action(raw_data)
+    handled = (
+        data in {"class-operations", "class-operations:owner", "system-status", "navid-center"}
+        or data.startswith("c3:")
+    )
+    if not handled or chat_id == 0 or user_id == 0:
+        return False
 
-    previous_section = app_module.section
+    callback_id = str(callback.get("id") or "")
 
-    def home_current(
-        site_url: str,
-        *,
-        is_owner: bool,
-        student_assistant_enabled: bool = False,
-        has_products: bool = False,
-    ) -> Screen:
-        del site_url, student_assistant_enabled, has_products
-        return canonical_home_screen(is_owner=is_owner)
-
-    def section_current(name: str, site_url: str, *, is_owner: bool) -> Screen:
-        if name == "admin" and is_owner:
-            return owner_management_screen()
-        return previous_section(name, site_url, is_owner=is_owner)
-
-    app_module.home = home_current
-    app_module.section = section_current
-
-    previous_callback = DentBotApp._callback
-
-    def callback_current(self: DentBotApp, callback: dict[str, Any], *, interaction_version: int | None = None) -> Any:
-        chat_id, user_id, raw_data = _context(callback)
-        data = _legacy_classops_action(raw_data)
-        handled = (
-            data in {"class-operations", "class-operations:owner", "system-status", "navid-center"}
-            or data.startswith("c3:")
-        )
-        if not handled or chat_id == 0 or user_id == 0:
-            return previous_callback(self, callback, interaction_version=interaction_version)
-
-        callback_id = str(callback.get("id") or "")
+    def acknowledge() -> None:
         if callback_id:
             try:
-                self.api.answer_callback(callback_id)
+                app.api.answer_callback(callback_id)
             except Exception:
                 pass
-        chat = dict(dict(callback.get("message") or {}).get("chat") or {})
-        if str(chat.get("type") or "private") != "private":
-            self.api.send(chat_id, "این بخش فقط در گفت‌وگوی خصوصی ربات در دسترس است.", {"inline_keyboard": []})
-            return None
 
-        if data == "navid-center":
-            if user_id == int(getattr(self, "owner_id", -1)):
-                return previous_callback(
-                    self,
-                    _callback_with_action(callback, "navid"),
-                    interaction_version=interaction_version,
-                )
-            try:
-                _show(self, chat_id, callback, navid_center_screen(self.site_api.student_assistant_summary(user_id)))
-            except SiteApiError:
-                _show(
-                    self,
-                    chat_id,
-                    callback,
-                    Screen(
-                        "<b>🧭 مرکز نوید</b>\n\nوضعیت نوید فعلاً قابل دریافت نیست.",
-                        keyboard([button("↩️ بازگشت", action="home")]),
-                    ),
-                )
-            return None
+    chat = dict(dict(callback.get("message") or {}).get("chat") or {})
+    if str(chat.get("type") or "private") != "private":
+        acknowledge()
+        app.api.send(chat_id, "این بخش فقط در گفت‌وگوی خصوصی ربات در دسترس است.", {"inline_keyboard": []})
+        return True
 
-        if data == "system-status":
-            if user_id != int(getattr(self, "owner_id", -1)):
-                return previous_callback(self, callback, interaction_version=interaction_version)
-            try:
-                status_screen = service_status_screen(self.site_api.request("classopsRuntimeStatus", user_id))
-            except SiteApiError:
-                status_screen = service_status_screen(None, api_failed=True)
-            _show(self, chat_id, callback, status_screen)
-            return None
-
-        blocked = getattr(self, "_private_access_gate", lambda _uid: None)(user_id)
-        if blocked is not None:
-            _show(self, chat_id, callback, blocked)
-            return None
-
-        owner_route = (
-            data in {"class-operations:owner", "c3:owner"}
-            or data.startswith("c3:o:")
-        )
-        if owner_route and not _owner_allowed(self, user_id):
-            return previous_callback(self, callback, interaction_version=interaction_version)
-
+    if data == "navid-center":
+        if user_id == int(getattr(app, "owner_id", -1)):
+            app._callback_core(
+                _callback_with_action(callback, "navid"),
+                interaction_version=interaction_version,
+            )
+            return True
+        acknowledge()
         try:
-            if data == "class-operations":
-                items = _list_items(self, user_id)
-                academic = self.site_api.request("academicTerm7Self", user_id)
-                _show(self, chat_id, callback, classops_home_screen(items, academic))
-                return None
-            if data in {"class-operations:owner", "c3:owner"}:
-                _show(self, chat_id, callback, owner_home_screen())
-                return None
-
-            workflow_handled, workflow_screen = owner_action_screen(self, callback, data, owner_home_screen)
-            if workflow_handled:
-                if workflow_screen is not None:
-                    _show(self, chat_id, callback, workflow_screen)
-                return None
-
-            if data.startswith("c3:d:"):
-                target, page = _parse_daily_target(data.split(":", 2)[2])
-                _show(self, chat_id, callback, daily_screen(_daily_from_action(self, user_id, target), page=page))
-                return None
-            if data.startswith("c3:o:d:"):
-                target, page = _parse_daily_target(data.split(":", 3)[3])
-                _show(self, chat_id, callback, daily_screen(_daily_from_action(self, user_id, target), owner=True, page=page))
-                return None
-            if data.startswith("c3:w:") or data.startswith("c3:o:w:"):
-                owner = data.startswith("c3:o:w:")
-                week_offset = int(data.rsplit(":", 1)[-1])
-                if week_offset < 0 or week_offset > 8:
-                    raise ValueError("week offset")
-                start = _week_start(week_offset).isoformat()
-                _show(self, chat_id, callback, weekly_screen(_timeline(self, user_id, start_date=start, days=7), week_offset, owner=owner))
-                return None
-            if data.startswith("c3:m:") or data.startswith("c3:o:m:"):
-                owner = data.startswith("c3:o:m:")
-                page = int(data.rsplit(":", 1)[-1])
-                if page < 0 or page > 4:
-                    raise ValueError("month page")
-                _show(self, chat_id, callback, month_screen(_timeline(self, user_id, days=31), page, owner=owner))
-                return None
-            if data.startswith("c3:l:") or data.startswith("c3:o:l:"):
-                owner = data.startswith("c3:o:l:")
-                mode = data.rsplit(":", 1)[-1]
-                if mode not in FILTER_TYPES:
-                    raise ValueError("filter")
-                _show(self, chat_id, callback, filtered_screen(_list_items(self, user_id), mode, owner=owner))
-                return None
-            if data == "c3:g":
-                _show(self, chat_id, callback, grouping_screen(self.site_api.request("academicTerm7Self", user_id)))
-                return None
-            if data == "c3:n":
-                _show(self, chat_id, callback, student_notifications_screen(self.site_api.notifications(user_id, limit=30)))
-                return None
-            if data == "c3:o:n":
-                status = self.site_api.request("classopsNotificationStatusV3", user_id)
-                ack = self.site_api.request("classopsAckStatusV2", user_id)
-                _show(self, chat_id, callback, owner_notification_status_screen(status, ack))
-                return None
-            if data.startswith("c3:i:cop_"):
-                parts = data.split(":", 3)
-                if len(parts) != 4:
-                    raise ValueError("detail")
-                item_id, back = parts[2], parts[3]
-                owner_detail = back.startswith("o")
-                if owner_detail and not _owner_allowed(self, user_id):
-                    return previous_callback(self, callback, interaction_version=interaction_version)
-                response = self.site_api.request("classopsGet", user_id, id=item_id)
-                item = dict(response.get("item") or {})
-                actions = dict(response.get("actions") or {})
-                screen = classops._detail_screen(item, actions)
-                if owner_detail:
-                    screen = decorate_owner_detail(screen, item, actions)
-                _show(self, chat_id, callback, detail_with_back(screen, back))
-                return None
-        except (SiteApiError, ValueError):
-            _show(self, chat_id, callback, _error_screen(owner_route))
-            return None
-        return previous_callback(self, callback, interaction_version=interaction_version)
-
-    DentBotApp._callback = callback_current  # type: ignore[method-assign]
-
-    previous_dynamic_screen = DentBotApp._dynamic_screen
-
-    def dynamic_screen_current(
-        self: DentBotApp,
-        name: str,
-        user_id: int,
-        *,
-        request_id: str = "",
-        sender: dict[str, Any] | None = None,
-    ) -> Screen:
-        screen = previous_dynamic_screen(self, name, user_id, request_id=request_id, sender=sender)
-        if name not in {"account", "check-link", "link-required"} or self.site_api is None:
-            return screen
-        try:
-            account = self.site_api.account(user_id)
+            _show(app, chat_id, callback, navid_center_screen(app.site_api.student_assistant_summary(user_id)))
         except SiteApiError:
-            return screen
-        linked_user = (
-            dict(account.get("user") or {})
-            if account.get("linked") and account.get("authComplete")
-            else None
-        )
-        if not linked_user or str(linked_user.get("cohortKey") or "") != "dentistry-1402":
-            return screen
+            _show(
+                app,
+                chat_id,
+                callback,
+                Screen(
+                    "<b>🧭 مرکز نوید</b>\n\nوضعیت نوید فعلاً قابل دریافت نیست.",
+                    keyboard([button("↩️ بازگشت", action="home")]),
+                ),
+            )
+        return True
+
+    if data == "system-status":
+        if user_id != int(getattr(app, "owner_id", -1)):
+            return False
+        acknowledge()
         try:
-            academic_context = self.site_api.request("academicTerm7Self", user_id)
+            status_screen = service_status_screen(app.site_api.request("classopsRuntimeStatus", user_id))
         except SiteApiError:
-            academic_context = None
-        return account_screen_with_academic_context(screen, linked_user, academic_context)
+            status_screen = service_status_screen(None, api_failed=True)
+        _show(app, chat_id, callback, status_screen)
+        return True
 
-    DentBotApp._dynamic_screen = dynamic_screen_current  # type: ignore[method-assign]
+    blocked = getattr(app, "_private_access_gate", lambda _uid: None)(user_id)
+    if blocked is not None:
+        acknowledge()
+        _show(app, chat_id, callback, blocked)
+        return True
 
-    previous_message = DentBotApp._message
+    owner_route = (
+        data in {"class-operations:owner", "c3:owner"}
+        or data.startswith("c3:o:")
+    )
+    owner_detail_route = False
+    if data.startswith("c3:i:cop_"):
+        parts = data.split(":", 3)
+        owner_detail_route = len(parts) == 4 and parts[3].startswith("o")
+    if (owner_route or owner_detail_route) and not _owner_allowed(app, user_id):
+        return False
 
-    def message_current(self: DentBotApp, message: dict[str, Any]) -> Any:
-        sender = dict(message.get("from") or {})
-        try:
-            user_id = int(sender.get("id") or 0)
-        except (TypeError, ValueError):
-            user_id = 0
-        if user_id:
-            dialog = self.state.dialog(user_id)
-            if dialog is not None and dialog_kind_supported(dialog.get("kind")):
-                if handle_dialog_message(self, message, dialog, owner_home_screen):
-                    return None
+    acknowledge()
+    try:
+        if data == "class-operations":
+            items = _list_items(app, user_id)
+            academic = app.site_api.request("academicTerm7Self", user_id)
+            _show(app, chat_id, callback, classops_home_screen(items, academic))
+            return True
+        if data in {"class-operations:owner", "c3:owner"}:
+            _show(app, chat_id, callback, owner_home_screen())
+            return True
 
-        text = str(message.get("text") or "").strip().lower()
-        first = text.split(maxsplit=1)[0] if text else ""
-        if first == "/classops" or first.startswith("/classops@"):
-            chat = dict(message.get("chat") or {})
-            try:
-                chat_id = int(chat.get("id") or user_id)
-            except (TypeError, ValueError):
-                return previous_message(self, message)
-            blocked = getattr(self, "_private_access_gate", lambda _uid: None)(user_id)
-            if blocked is not None:
-                self.api.send(chat_id, blocked.text, blocked.keyboard)
-                return None
-            try:
-                academic = self.site_api.request("academicTerm7Self", user_id)
-                screen = classops_home_screen(_list_items(self, user_id), academic)
-            except SiteApiError:
-                screen = _error_screen(False)
-            self.api.send(chat_id, screen.text, screen.keyboard)
-            return None
-        return previous_message(self, message)
+        workflow_handled, workflow_screen = owner_action_screen(app, callback, data, owner_home_screen)
+        if workflow_handled:
+            if workflow_screen is not None:
+                _show(app, chat_id, callback, workflow_screen)
+            return True
 
-    DentBotApp._message = message_current  # type: ignore[method-assign]
+        if data.startswith("c3:d:"):
+            target, page = _parse_daily_target(data.split(":", 2)[2])
+            _show(app, chat_id, callback, daily_screen(_daily_from_action(app, user_id, target), page=page))
+            return True
+        if data.startswith("c3:o:d:"):
+            target, page = _parse_daily_target(data.split(":", 3)[3])
+            _show(app, chat_id, callback, daily_screen(_daily_from_action(app, user_id, target), owner=True, page=page))
+            return True
+        if data.startswith("c3:w:") or data.startswith("c3:o:w:"):
+            owner = data.startswith("c3:o:w:")
+            week_offset = int(data.rsplit(":", 1)[-1])
+            if week_offset < 0 or week_offset > 8:
+                raise ValueError("week offset")
+            start_date = _week_start(week_offset).isoformat()
+            _show(app, chat_id, callback, weekly_screen(_timeline(app, user_id, start_date=start_date, days=7), week_offset, owner=owner))
+            return True
+        if data.startswith("c3:m:") or data.startswith("c3:o:m:"):
+            owner = data.startswith("c3:o:m:")
+            page = int(data.rsplit(":", 1)[-1])
+            if page < 0 or page > 4:
+                raise ValueError("month page")
+            _show(app, chat_id, callback, month_screen(_timeline(app, user_id, days=31), page, owner=owner))
+            return True
+        if data.startswith("c3:l:") or data.startswith("c3:o:l:"):
+            owner = data.startswith("c3:o:l:")
+            mode = data.rsplit(":", 1)[-1]
+            if mode not in FILTER_TYPES:
+                raise ValueError("filter")
+            _show(app, chat_id, callback, filtered_screen(_list_items(app, user_id), mode, owner=owner))
+            return True
+        if data == "c3:g":
+            _show(app, chat_id, callback, grouping_screen(app.site_api.request("academicTerm7Self", user_id)))
+            return True
+        if data == "c3:n":
+            _show(app, chat_id, callback, student_notifications_screen(app.site_api.notifications(user_id, limit=30)))
+            return True
+        if data == "c3:o:n":
+            status = app.site_api.request("classopsNotificationStatusV3", user_id)
+            ack = app.site_api.request("classopsAckStatusV2", user_id)
+            _show(app, chat_id, callback, owner_notification_status_screen(status, ack))
+            return True
+        if data.startswith("c3:i:cop_"):
+            parts = data.split(":", 3)
+            if len(parts) != 4:
+                raise ValueError("detail")
+            item_id, back = parts[2], parts[3]
+            owner_detail = back.startswith("o")
+            response = app.site_api.request("classopsGet", user_id, id=item_id)
+            item = dict(response.get("item") or {})
+            actions = dict(response.get("actions") or {})
+            screen = classops._detail_screen(item, actions)
+            if owner_detail:
+                screen = decorate_owner_detail(screen, item, actions)
+            _show(app, chat_id, callback, detail_with_back(screen, back))
+            return True
+    except (SiteApiError, ValueError):
+        _show(app, chat_id, callback, _error_screen(owner_route))
+        return True
+    _show(app, chat_id, callback, _error_screen(owner_route))
+    return True
+
+
+def decorate_classops_dynamic_screen(
+    app: "DentBotApp",
+    name: str,
+    user_id: int,
+    screen: Screen,
+) -> Screen:
+    """Add Term 7 account context after the canonical DentBot screen is resolved."""
+    if name not in {"account", "check-link", "link-required"} or app.site_api is None:
+        return screen
+    try:
+        account = app.site_api.account(user_id)
+    except SiteApiError:
+        return screen
+    linked_user = (
+        dict(account.get("user") or {})
+        if account.get("linked") and account.get("authComplete")
+        else None
+    )
+    if not linked_user or str(linked_user.get("cohortKey") or "") != "dentistry-1402":
+        return screen
+    try:
+        academic_context = app.site_api.request("academicTerm7Self", user_id)
+    except SiteApiError:
+        academic_context = None
+    return account_screen_with_academic_context(screen, linked_user, academic_context)
+
+
+def handle_classops_ui_message(app: "DentBotApp", message: dict[str, Any]) -> bool:
+    """Handle current ClassOps dialogs and /classops before the base message router."""
+    sender = dict(message.get("from") or {})
+    try:
+        user_id = int(sender.get("id") or 0)
+    except (TypeError, ValueError):
+        user_id = 0
+    if user_id:
+        dialog = app.state.dialog(user_id)
+        if dialog is not None and dialog_kind_supported(dialog.get("kind")):
+            if handle_dialog_message(app, message, dialog, owner_home_screen):
+                return True
+
+    text = str(message.get("text") or "").strip().lower()
+    first = text.split(maxsplit=1)[0] if text else ""
+    if first != "/classops" and not first.startswith("/classops@"):
+        return False
+    chat = dict(message.get("chat") or {})
+    try:
+        chat_id = int(chat.get("id") or user_id)
+    except (TypeError, ValueError):
+        return False
+    blocked = getattr(app, "_private_access_gate", lambda _uid: None)(user_id)
+    if blocked is not None:
+        app.api.send(chat_id, blocked.text, blocked.keyboard)
+        return True
+    try:
+        academic = app.site_api.request("academicTerm7Self", user_id)
+        screen = classops_home_screen(_list_items(app, user_id), academic)
+    except SiteApiError:
+        screen = _error_screen(False)
+    app.api.send(chat_id, screen.text, screen.keyboard)
+    return True

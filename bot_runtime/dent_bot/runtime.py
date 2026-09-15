@@ -9,6 +9,8 @@ from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as Futur
 from datetime import datetime
 
 from .api import BotApiError
+from .academic_term7_rich import decorate_academic_notification_screen
+from .classops_runtime import run_classops_background_loop
 from .app import DentBotApp
 from .state import BotState
 from .site_api import SiteApiClient, SiteApiError
@@ -79,6 +81,7 @@ def dispatch_notification_batch(*, settings, api, state: BotState, site_api: Sit
             continue
         ref = state.remember_notification(str(notification["id"]))
         screen = notification_push_screen(notification, ref, platform=settings.platform)
+        screen = decorate_academic_notification_screen(screen, notification)
         try:
             api.send(chat_id, screen.text, screen.keyboard)
             state.mark_notification_delivery(delivery_id)
@@ -543,7 +546,7 @@ def _persist_completed_updates(
             state.save_offset(update_id + 1)
 
 
-def _run_background_tasks(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event) -> None:
+def _run_background_tasks_core(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event) -> None:
     next_account_disconnect_poll = 0.0
     next_notification_poll = 0.0
     next_payment_result_poll = 0.0
@@ -660,3 +663,32 @@ def _run_background_tasks(*, settings, api, state, site_api, platform_name: str,
                 getattr(settings, "navid_group_poll_seconds", 60)
             )
         stop_event.wait(1)
+
+
+def _run_background_tasks(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event) -> None:
+    classops_background = threading.Thread(
+        target=run_classops_background_loop,
+        kwargs={
+            "settings": settings,
+            "api": api,
+            "state": state,
+            "site_api": site_api,
+            "platform_name": platform_name,
+            "stop_event": stop_event,
+        },
+        name="dent-bot-classops",
+        daemon=True,
+    )
+    classops_background.start()
+    try:
+        _run_background_tasks_core(
+            settings=settings,
+            api=api,
+            state=state,
+            site_api=site_api,
+            platform_name=platform_name,
+            stop_event=stop_event,
+        )
+    finally:
+        stop_event.set()
+        classops_background.join(timeout=5)

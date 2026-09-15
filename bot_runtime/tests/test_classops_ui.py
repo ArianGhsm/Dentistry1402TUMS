@@ -10,7 +10,6 @@ from dent_bot.classops_ui import (
     classops_home_screen,
     daily_screen,
     detail_with_back,
-    filtered_screen,
     grouping_screen,
     month_screen,
     owner_home_screen,
@@ -179,7 +178,9 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertTrue(hasattr(screen.text, "rich_html")); self.assertIn("<table", screen.text.rich_html)
         service = (ROOT / "bot_runtime/dent_bot/service.py").read_text(encoding="utf-8")
         bale = (ROOT / "bot_runtime/dent_bot/bale_service.py").read_text(encoding="utf-8")
-        self.assertIn("install_classops_ui()", service); self.assertIn("install_classops_ui()", bale)
+        self.assertNotIn("install_classops", service); self.assertNotIn("install_classops", bale)
+        router = (ROOT / "bot_runtime/dent_bot/feature_router.py").read_text(encoding="utf-8")
+        self.assertIn("handle_classops_ui_callback", router)
 
     def test_owner_management_has_structured_views_and_mutation_entries(self):
         screen = owner_home_screen()
@@ -215,9 +216,69 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertIn("classops_stage2_student_item_projection", php_source)
 
 
+    def test_unknown_current_classops_callback_fails_closed_inside_owned_namespace(self):
+        from dent_bot.classops_ui import handle_classops_ui_callback
+
+        class Api:
+            def __init__(self):
+                self.answers = []
+                self.edits = []
+
+            def answer_callback(self, callback_id, *args, **kwargs):
+                self.answers.append(callback_id)
+
+            def edit(self, chat_id, message_id, text, keyboard):
+                self.edits.append((chat_id, message_id, str(text), keyboard))
+
+        class App:
+            owner_id = 999
+            api = Api()
+            site_api = object()
+
+            @staticmethod
+            def _private_access_gate(_user_id):
+                return None
+
+        callback = {
+            "id": "cb-unknown-c3",
+            "data": "v1:c3:unknown-route",
+            "from": {"id": 1402},
+            "message": {"message_id": 8, "chat": {"id": 1402, "type": "private"}},
+        }
+        app = App()
+        self.assertTrue(handle_classops_ui_callback(app, callback, interaction_version=1))
+        self.assertEqual(app.api.answers, ["cb-unknown-c3"])
+        self.assertEqual(len(app.api.edits), 1)
+        self.assertIn("این نما فعلاً قابل دریافت نیست", app.api.edits[0][2])
+
+    def test_unhandled_owner_only_callback_has_zero_side_effects_before_base_fallback(self):
+        from dent_bot.classops_ui import handle_classops_ui_callback
+
+        class Api:
+            def __init__(self):
+                self.answers = []
+
+            def answer_callback(self, callback_id, *args, **kwargs):
+                self.answers.append(callback_id)
+
+        class App:
+            owner_id = 999
+            api = Api()
+
+        callback = {
+            "id": "cb-non-owner",
+            "data": "v1:system-status",
+            "from": {"id": 1402},
+            "message": {"message_id": 5, "chat": {"id": 1402, "type": "private"}},
+        }
+        app = App()
+        self.assertFalse(handle_classops_ui_callback(app, callback, interaction_version=1))
+        self.assertEqual(app.api.answers, [])
+        self.assertEqual(callback["data"], "v1:system-status")
+
     def test_owner_authorization_is_handler_level_and_ack_is_read_only(self):
-        source = inspect.getsource(__import__("dent_bot.classops_ui", fromlist=["*"]).install_classops_ui)
-        self.assertIn("_owner_allowed(self, user_id)", source)
+        source = inspect.getsource(__import__("dent_bot.classops_ui", fromlist=["*"]).handle_classops_ui_callback)
+        self.assertIn("_owner_allowed(app, user_id)", source)
         self.assertIn("classopsCapabilities", inspect.getsource(__import__("dent_bot.classops_ui", fromlist=["*"])._owner_allowed))
         php = (ROOT / "public_html/api/classops_bot_ui.php").read_text(encoding="utf-8")
         self.assertIn("classops_stage2_is_owner($user)", php)

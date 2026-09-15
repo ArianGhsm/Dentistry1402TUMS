@@ -11,13 +11,11 @@ from dent_bot.class_operations import (
     _compose_prompt,
     _detail_screen,
     _digest_screen,
-    _home_keyboard,
     _legacy_action,
     _list_screen,
     _preview_screen,
     _render_screen,
 )
-from dent_bot.ui import Screen, button, keyboard
 
 
 class _App:
@@ -64,24 +62,6 @@ class ClassOperationsProductTests(unittest.TestCase):
             "task": {"state": "pending"},
         }
 
-    def test_main_menu_uses_distinct_class_operations_semantic_icon(self) -> None:
-        original = Screen(
-            "<b>خانه</b>",
-            keyboard(
-                [button("📚 جزوات", action="notes")],
-                [button("📝 آزمون‌ها", action="exams")],
-                [button("🔔 اعلان‌ها", action="notifications"), button("🛟 راهنما", action="help")],
-            ),
-        )
-        updated = _home_keyboard(original)
-        buttons = [item for row in updated.keyboard["inline_keyboard"] for item in row]
-        labels = [str(item.get("text") or "") for item in buttons]
-        callbacks = [str(item.get("callback_data") or "") for item in buttons]
-        self.assertIn("📅 امور کلاس", labels)
-        self.assertNotIn("📚 امور کلاس", labels)
-        self.assertIn("📚 جزوات", labels)
-        self.assertIn("v1:class-operations", callbacks)
-        self.assertLess(callbacks.index("v1:class-operations"), callbacks.index("v1:notifications"))
 
     def test_student_class_home_matches_compact_core_bot_hub(self) -> None:
         screen = _class_home_screen(
