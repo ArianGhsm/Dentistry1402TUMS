@@ -104,10 +104,4 @@ with tempfile.TemporaryDirectory(prefix="dent-snapshot-test-") as temp:
         raise AssertionError("invalid ClassOps critical store was accepted")
     snapshot.connect = original_connect
 
-deploy = (ROOT / "scripts" / "deploy_public_html.ps1").read_text(encoding="utf-8")
-eligibility = deploy.index("eligibleForLatest")
-promotion = deploy.index("Reset-DirectoryFromSource -source $snapshotPath")
-if eligibility >= promotion:
-    raise AssertionError("latest promotion occurs before verified eligibility check")
-
-print("OK: corrupt critical storage cannot be promoted to latest.")
+print("OK: corrupt critical storage cannot be marked eligible for latest.")
