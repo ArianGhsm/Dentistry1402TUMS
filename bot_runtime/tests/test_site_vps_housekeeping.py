@@ -21,6 +21,8 @@ def test_backup_is_verified_and_has_bounded_retention() -> None:
     assert "len(weekly) < 8" in backup
     assert "--exclude='./sessions'" in backup
     assert "--exclude='./backups'" in backup
+    assert "local rc=$?" in backup
+    assert 'return "$rc"' in backup
     assert "ReadWritePaths=/var/backups/dentistry1402-runtime" in service
     assert "OnCalendar=*-*-* 03:20:00 Asia/Tehran" in timer
     assert "Persistent=true" in timer
