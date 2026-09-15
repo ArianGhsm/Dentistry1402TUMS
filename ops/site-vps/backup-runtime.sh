@@ -9,9 +9,17 @@ verify=""
 partial=""
 
 cleanup() {
-  [[ -n "$stage" ]] && rm -rf --one-file-system -- "$stage"
-  [[ -n "$verify" ]] && rm -rf --one-file-system -- "$verify"
-  [[ -n "$partial" ]] && rm -f -- "$partial"
+  local rc=$?
+  if [[ -n "$stage" ]]; then
+    rm -rf --one-file-system -- "$stage" || true
+  fi
+  if [[ -n "$verify" ]]; then
+    rm -rf --one-file-system -- "$verify" || true
+  fi
+  if [[ -n "$partial" ]]; then
+    rm -f -- "$partial" || true
+  fi
+  return "$rc"
 }
 trap cleanup EXIT
 
