@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily Dentistry1402 release retention housekeeping
+
+[Timer]
+OnCalendar=*-*-* 04:10:00 Asia/Tehran
+RandomizedDelaySec=5m
+Persistent=true
+AccuracySec=1m
+Unit=dentistry1402-housekeeping.service
+
+[Install]
+WantedBy=timers.target
