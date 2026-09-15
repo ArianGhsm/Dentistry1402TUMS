@@ -8,7 +8,8 @@
 - `main` is integration/release only. Feature branches start at an immutable declared SHA, do not rebase/pull mid-task, do not self-merge, and do not deploy.
 - Feature-branch completion and integrated-release completion are distinct. Only an integrated release requires backup, exact-SHA canonical deploy and live verification. A docs/tests/workflow-only change with no production code change does not trigger an empty production deploy.
 - The canonical release command requires `-ReleaseSha <exact-origin-main-sha>`. Deploy never creates or pushes a Git commit and never rewrites source files.
-- Shared contracts and integration-only hotspots are defined in `docs/SHARED_CONTRACTS.md` and `docs/DEVELOPMENT_WORKFLOW.md`; those documents override older local-first wording below.
+- The canonical website production release path is `scripts/run_release_gate.ps1` -> `scripts/deploy_site_vps.ps1`; `scripts/complete_task.ps1` is only an alias into that same gate. `scripts/deploy_public_html.ps1` is retired legacy/recovery evidence and is never a production release route.
+- Shared contracts and high-risk hotspots are defined in `docs/SHARED_CONTRACTS.md` and `docs/DEVELOPMENT_WORKFLOW.md`. `AGENTS.md`, `DEPLOY.md` and `docs/DEVELOPMENT_WORKFLOW.md` must remain semantically aligned; contradictory release instructions are a failing contract.
 - No agent lock-in is allowed. Any capable agent, including Codex, must be able to continue from the exact SHA plus repository docs/contracts/tests.
 
 اصل اساسی: اگر بعد تغییر فایل های md و اینستراکشن ها نیاز به تغغیر داشتند(حذف کردن یا اضافه کردن موارد) حتما چک کن و انجام بده. مثلا یک قابلیتی حذف، اصول سایت تغییر یا چیزهایی به سایت اضافه شود(و یا موارد دیگر)
@@ -150,9 +151,9 @@
 - Deploy نباید باعث wipe/reset/fork/desync داده شود.
 - تنها نسخه داده نباید در فایل‌های deploy-replaced یا temp runtime نگه‌داری شود.
 - هر تغییر در storage/sync/backup/restore/migration/deploy باید continuity تاریخچه پیام و داده را حفظ کند.
-- منبع حقیقت دیتا در زمان deploy، `storage/` روی هاست است؛ قبل از deploy باید از هاست به لپتاپ بکاپ/ mirror شود.
-- جهت sync دیتابیس و state فقط هاست -> لپتاپ است. دیتای موجود روی لپتاپ (`storage/`, `server-only/storage/`, backupها، sessionها، lockها، `.env`) نباید به هاست یا GitHub ارسال شود.
-- deploy عادی نباید delta بزرگ و ناخواسته را آپلود کند؛ اگر plan بیش از ۸۰ upload یا بیش از ۲۵ delete داشت، باید قبل از upload متوقف شود مگر deploy گسترده با dry-run دیده‌شده و flag صریح `-AllowLargeDeploy` یا `-FullSync` تایید شده باشد.
+- منبع حقیقت داده در زمان deploy، shared production storage روی VPS ایران است. release gate canonical باید پیش از هر mutation اعتبار داده و backup/rollback ورودیِ قابل‌تأیید را روی VPS بررسی/ایجاد کند؛ صحت production نباید به mirror لپ‌تاپ وابسته باشد.
+- snapshot یا mirror محلیِ ignoreشده فقط recovery evidence است و هرگز source of truth یا ورودی deploy به shared storage نیست. deployer canonical حق copy/delete/replace کردن `/srv/dentistry1402/shared/storage` یا `/srv/dentistry1402/shared/server-only` را ندارد.
+- deploy production سایت یک release کد-only و immutable از exact SHA است، نه FTP/file-delta از لپ‌تاپ. کنترل‌های legacy مانند `-AllowLargeDeploy`، `-FullSync` و `host_last_deploy*` فقط متعلق به tooling بازنشسته‌اند و نباید رفتار release canonical را کنترل کنند.
 - داده‌های فرم‌ساز جدید باید در storage مشترک `forms/store.json` بماند و داده‌های قبلی DIS در `dis_request/store.json` یا نظرسنجی‌های قدیمی chat بدون migration صریح حذف/بازنویسی نشوند.
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
@@ -334,31 +335,26 @@ powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha
 8. وضعیت integrated release فقط وقتی کامل است که backup، deploy exact-SHA، live health/log/smoke و rollback readiness موفق باشند.
 
 ## 12) Deploy پیش‌فرض
+- اتمام source task و production deploy دو مرحله جدا هستند. فقط integrated release از SHA دقیق merge‌شده‌ی `origin/main` وارد release gate می‌شود؛ feature branch و تغییر صرفاً docs/tests/workflow production deploy نمی‌کنند.
+- dry-run canonical:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -DryRun
+```
+- deploy canonical:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -Deploy
+```
+- alias بستن integrated release:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-origin-main-sha>
 ```
-- این مرحله بخشی از definition of done هر کار است: بعد از اصلاح، تست و قبل از پاسخ نهایی باید اجرا شود، نه اینکه به حافظه یا پیگیری دستی موکول شود.
-- این wrapper فقط alias بستن کار است و در نهایت همان deploy canonical زیر را اجرا می‌کند:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -ReleaseSha <exact-origin-main-sha>
-```
-- guard freshness حالا داخل همان run canonical اجرا می‌شود؛ اگر `host_last_deploy.json` و `host_last_deploy_manifest.json` با درخت فعلی `public_html/` mismatch داشته باشند، خود command باید fail شود و کار هنوز done نیست.
-- audit دستی اختیاری بعد از deploy:
-```powershell
-python .\scripts\check_host_deploy_freshness.py
-```
-- ترتیب اجباری:
-  - verify exact GitHub SHA -> host storage backup/mirror -> local validation -> host deploy -> live health-check/freshness
-- local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.
-- چک‌های static قطعی و آفلاین (lint PHP/JS، text-integrity، instruction-contracts، resilience/quality/upload، و unit testهای `scripts/test_unit.php`) از `scripts/run_static_checks.sh` اجرا می‌شوند و همین اسکریپت در GitHub Actions (`.github/workflows/ci.yml`) روی push/PR هم اجرا می‌شود. این مسیر CI نباید به سرور زنده، دیتابیس، شبکه یا credential وابسته شود؛ smoke چندورودی که نیاز به login مالک دارد فقط در deploy محلی می‌ماند نه CI. توابع pure جدید (مثل crypto، token signing، access decision یا normalization) باید همراه خود unit test در همین فایل بیایند.
-- قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود. تنها snapshotی حق promotion به `latest` دارد که همه JSONها parse، schema/size/checksum آن verify و همه storeهای atomic حیاتی در دو read پیاپی byte-stable باشند؛ snapshot خراب یا transition evidence هرگز latest نمی‌شود.
-- upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
-- `git pull` داخل release workspace ممنوع است؛ release workspace از SHA دقیق آماده می‌شود.
-- deploy نباید به سقف حجمی/proxy budget وابسته باشد؛ budget حجمی نباید blocker دپلوی باشد.
-- بعد از اتمام موفق deploy هیچ مرحله‌ی پیامکی اجرا نمی‌شود. اما در هر deploy موفق باید یک اعلان داخل سایت فقط برای مالک از مسیر shared اعلان‌ها ثبت شود و نسخه‌ی فعال + تاریخ و زمان دقیق deploy را داخل خود اعلان ذکر کند.
-- credential مالک برای smoke validation چندورودی، login تستی و ثبت همین اعلان deploy مجاز است؛ برای ارسال پیامک یا workflowهای ad-hoc دیگر مجاز نیست.
-- version stamp باید پیش از commit در integration آماده و تست شود؛ deploy exact-SHA source را mutate نمی‌کند.
-- صرفا فایل هایی که تغییر کردن یا اضافه/حذف شدن دپلوی/حذف بشن! نیاز نیست هربار کل فایل ها من جمله کل فونت ها آپلود بشن!
+- `complete_task.ps1` فقط همان `run_release_gate.ps1 -Deploy` را فراخوانی می‌کند و مسیر deploy مستقلی نیست. `run_release_gate.ps1` نیز فقط `scripts/deploy_site_vps.ps1` را برای website production اجرا می‌کند.
+- `scripts/deploy_public_html.ps1` و cPanel/FTP مسیر production نیستند؛ این فایل فقط legacy/recovery evidence است و هیچ wrapper canonical حق فراخوانی آن را ندارد.
+- target production سایت فقط VPS ایران با layout `/srv/dentistry1402/current -> releases/<sha>` است. release workspace باید repository درست، `HEAD == ReleaseSha`، `origin/main == ReleaseSha` و worktree پاک داشته باشد.
+- deploy website فقط code-only `public_html` را به release immutable می‌برد. `/srv/dentistry1402/shared/storage` و `/srv/dentistry1402/shared/server-only` باید در تمام مسیر محافظت شوند و از Git/laptop overwrite یا synchronize نشوند.
+- قبل از activation، backup/rollback ورودیِ قابل‌تأیید و validation لازم است؛ بعد از activation نیز website/Telegram/Bale/storage health، lifecycle notification و `release-report.json` باید موفق باشند. failure بعد از activation باید rollback خودکار مسیر کد را فعال کند.
+- اگر همان exact SHA از قبل active است، release فقط verification-only است و production mutation انجام نمی‌دهد.
+- چک‌های deterministic و آفلاین repository از `scripts/run_static_checks.sh` اجرا می‌شوند و CI باید قبل از merge سبز باشد. جزئیات اجرایی release در `DEPLOY.md` و policy توسعه در `docs/DEVELOPMENT_WORKFLOW.md` مرجع هستند و این سه سند نباید درباره مسیر canonical با هم تناقض داشته باشند.
 
 ## 13) درصورت نیاز به تست سایت
 credential انسانی مالک نباید در فایل‌های tracked، fixtureها، log یا command line ثبت شود.
