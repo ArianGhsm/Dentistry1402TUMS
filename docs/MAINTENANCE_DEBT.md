@@ -12,6 +12,6 @@ Current decomposition targets:
 - `public_html/assets/site/scripts/account.js` — separate authentication/OTP, profile, settings, payments, and account-linked product controllers.
 - `public_html/api/auth_store.php` — separate persistence primitives from OTP/SMS, identity/session, and account-domain operations while preserving the single canonical auth store.
 - `public_html/api/notes_api.php` — separate authorization/indexing from file/delivery operations without weakening private-note access rules.
-- `bot_runtime/dent_bot/app.py` — continue extracting explicit feature routers/workflows rather than reintroducing installer/monkey-patch generations.
+- `bot_runtime/dent_bot/app.py` — payment/report orchestration has been extracted into `payment_app_workflows.py`; continue extracting the remaining large dynamic-screen/dialog routing workflows rather than reintroducing installer/monkey-patch generations.
 
 Any decomposition should be its own scoped task with before/after behavior tests. “Fewer lines” alone is not an acceptance criterion.
