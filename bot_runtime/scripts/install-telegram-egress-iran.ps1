@@ -90,13 +90,14 @@ try {
     $environmentLines.Clear()
 
     $selectorPath = Join-Path $root "scripts\select-xray-telegram-egress.py"
+    $refreshPath = Join-Path $root "scripts\refresh-telegram-egress.sh"
     $installerPath = Join-Path $temporaryRoot "install.sh"
     $installer = @'
 #!/usr/bin/env bash
 set -euo pipefail
 umask 077
 prefix='__REMOTE_PREFIX__'
-trap 'rm -f -- "${prefix}.xray" "${prefix}.selector.py" "${prefix}.env" "${prefix}.install.sh"' EXIT
+trap 'rm -f -- "${prefix}.xray" "${prefix}.selector.py" "${prefix}.refresh.sh" "${prefix}.env" "${prefix}.install.sh"' EXIT
 install -d -m 0755 /usr/local/lib/integrated-dent/xray
 install -d -o root -g root -m 0711 /etc/integrated-dent
 if ! id dentegress >/dev/null 2>&1; then
@@ -106,65 +107,7 @@ install -o root -g root -m 0755 "${prefix}.xray" /usr/local/lib/integrated-dent/
 install -o root -g root -m 0755 "${prefix}.selector.py" /usr/local/lib/integrated-dent/xray/select-telegram-egress.py
 install -o root -g root -m 0600 "${prefix}.env" /etc/integrated-dent/telegram-egress.env
 
-cat >/usr/local/lib/integrated-dent/xray/refresh-telegram-egress <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-exec 9>/run/lock/integrated-dent-telegram-egress-refresh.lock
-if ! flock -n 9; then
-  echo '{"success":true,"skipped":"already-running"}'
-  exit 0
-fi
-current_hash=''
-previous_config="$(mktemp /run/integrated-dent-egress-previous.XXXXXX)"
-trap 'rm -f -- "$previous_config"' EXIT
-if test -s /etc/integrated-dent/telegram-egress.json; then
-  current_hash="$(sha256sum /etc/integrated-dent/telegram-egress.json | cut -d' ' -f1)"
-  cp -a /etc/integrated-dent/telegram-egress.json "$previous_config"
-fi
-was_active=0
-if systemctl is-active --quiet integrated-dent-telegram-egress.service; then
-  was_active=1
-fi
-/usr/local/lib/integrated-dent/xray/select-telegram-egress.py \
-  --env-file /etc/integrated-dent/telegram-egress.env \
-  --xray /usr/local/lib/integrated-dent/xray/xray \
-  --output /etc/integrated-dent/telegram-egress.json \
-  --port 11080 --probe-port 11081
-chown root:dentegress /etc/integrated-dent/telegram-egress.json
-chmod 0640 /etc/integrated-dent/telegram-egress.json
-selected_hash="$(sha256sum /etc/integrated-dent/telegram-egress.json | cut -d' ' -f1)"
-if test "$selected_hash" != "$current_hash"; then
-  if test "$was_active" = 1; then
-    systemctl restart integrated-dent-telegram-egress.service
-    live_ok=0
-    listener_ready=0
-    for wait_attempt in $(seq 1 50); do
-      if ss -H -lnt 'sport = :11080' | grep -q '127.0.0.1:11080'; then
-        listener_ready=1
-        break
-      fi
-      sleep 0.2
-    done
-    if test "$listener_ready" = 1; then
-      for live_attempt in 1 2; do
-        if curl --silent --show-error --proxy http://127.0.0.1:11080 --max-time 12 \
-          https://api.telegram.org/bot0:invalid/getMe | grep -q '"error_code":401'; then
-          live_ok=$((live_ok + 1))
-        fi
-      done
-    fi
-    if test "$live_ok" != 2; then
-      if test -s "$previous_config"; then
-        install -o root -g dentegress -m 0640 "$previous_config" /etc/integrated-dent/telegram-egress.json
-        systemctl restart integrated-dent-telegram-egress.service
-      fi
-      echo '{"success":false,"reason":"live-post-activation-probe"}' >&2
-      exit 1
-    fi
-  fi
-fi
-SH
-chmod 0755 /usr/local/lib/integrated-dent/xray/refresh-telegram-egress
+install -o root -g root -m 0755 "${prefix}.refresh.sh" /usr/local/lib/integrated-dent/xray/refresh-telegram-egress
 
 cat >/etc/systemd/system/integrated-dent-telegram-egress.service <<'UNIT'
 [Unit]
@@ -251,6 +194,8 @@ echo TELEGRAM_EGRESS_INSTALL_OK
     if ($LASTEXITCODE -ne 0) { throw "Xray transfer failed." }
     & scp @scpOptions $selectorPath "${target}:${remotePrefix}.selector.py"
     if ($LASTEXITCODE -ne 0) { throw "Selector transfer failed." }
+    & scp @scpOptions $refreshPath "${target}:${remotePrefix}.refresh.sh"
+    if ($LASTEXITCODE -ne 0) { throw "Refresh worker transfer failed." }
     & scp @scpOptions $envPath "${target}:${remotePrefix}.env"
     if ($LASTEXITCODE -ne 0) { throw "Egress environment transfer failed." }
     & scp @scpOptions $installerPath "${target}:${remotePrefix}.install.sh"
@@ -273,7 +218,7 @@ catch {
 }
 finally {
     if ($sshOptions) {
-        & ssh @sshOptions $target "sudo rm -f -- '${remotePrefix}.xray' '${remotePrefix}.selector.py' '${remotePrefix}.env' '${remotePrefix}.install.sh'" 2>$null
+        & ssh @sshOptions $target "sudo rm -f -- '${remotePrefix}.xray' '${remotePrefix}.selector.py' '${remotePrefix}.refresh.sh' '${remotePrefix}.env' '${remotePrefix}.install.sh'" 2>$null
     }
     if ($secretBuffers) {
         foreach ($buffer in $secretBuffers) { [Array]::Clear($buffer, 0, $buffer.Length) }
