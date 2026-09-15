@@ -18,7 +18,8 @@ class TelegramEgressStaticTests(unittest.TestCase):
         self.assertIn("TimeoutStartSec=20m", installer)
         self.assertIn("Nice=10", installer)
         self.assertIn("IOSchedulingClass=idle", installer)
-        self.assertIn("flock -n 9", installer)
+        refresh = (ROOT / "scripts" / "refresh-telegram-egress.sh").read_text(encoding="utf-8")
+        self.assertIn("flock -n 9", refresh)
         self.assertIn('Publish-DentDeployLifecycle -Service integrated-ops -Status started', installer)
         self.assertIn('Publish-DentDeployLifecycle -Service integrated-ops -Status succeeded', installer)
         self.assertIn('"backup-vps-state.ps1"', installer)
@@ -44,24 +45,34 @@ class TelegramEgressStaticTests(unittest.TestCase):
                 for unsafe in forbidden:
                     self.assertNotIn(unsafe, text)
 
-    def test_refresh_keeps_old_config_on_failure_and_avoids_needless_restart(self) -> None:
+    def test_refresh_is_health_first_and_bot_dependency_is_soft(self) -> None:
         installer = (ROOT / "scripts" / "install-telegram-egress-iran.ps1").read_text(encoding="utf-8")
+        refresh = (ROOT / "scripts" / "refresh-telegram-egress.sh").read_text(encoding="utf-8")
         selector = (ROOT / "scripts" / "select-xray-telegram-egress.py").read_text(encoding="utf-8")
-        self.assertIn("set -euo pipefail", installer)
-        self.assertLess(installer.index("select-telegram-egress.py"), installer.index("selected_hash="))
-        self.assertIn('if test "$selected_hash" != "$current_hash"; then', installer)
-        self.assertIn("live-post-activation-probe", installer)
-        self.assertIn('install -o root -g dentegress -m 0640 "$previous_config"', installer)
-        self.assertIn("listener_ready=0", installer)
-        self.assertIn("for wait_attempt in $(seq 1 50)", installer)
-        self.assertIn("https://api.telegram.org/bot0:invalid/getMe", installer)
+        self.assertIn("set -euo pipefail", refresh)
+        self.assertLess(refresh.index("if current_healthy; then"), refresh.index('"$selector"'))
+        self.assertIn("for attempt in 1 2 3", refresh)
+        self.assertIn('test "$success" -ge 2', refresh)
+        self.assertIn('"action":"healthy-no-change"', refresh)
+        self.assertIn("live-post-activation-probe", refresh)
+        self.assertIn('install -o root -g dentegress -m 0640 "$previous"', refresh)
+        self.assertIn("https://api.telegram.org/bot0:invalid/getMe", refresh)
+        self.assertIn('install -o root -g root -m 0755 "${prefix}.refresh.sh"', installer)
+        for relative in (
+            "scripts/deploy-telegram-to-iran.ps1",
+            "scripts/deploy-shared-payment-offers-to-iran.ps1",
+        ):
+            deploy = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("Wants=integrated-dent-telegram-egress.service", deploy)
+            self.assertNotIn("Requires=integrated-dent-telegram-egress.service", deploy)
         self.assertIn("temporary_output.replace(args.output)", selector)
         self.assertLess(selector.index("if stable is None:"), selector.index("temporary_output.replace(args.output)"))
 
     def test_runbook_records_subscription_refetch_and_real_api_probes(self) -> None:
         runbook = (ROOT / "docs" / "TELEGRAM_IRAN_EGRESS.md").read_text(encoding="utf-8")
         self.assertIn("every ten minutes", runbook)
-        self.assertIn("downloads both subscriptions again", runbook)
+        self.assertIn("without fetching subscriptions", runbook)
+        self.assertIn("failover path", runbook)
         self.assertIn("last working configuration stays in place", runbook)
 
     def test_telegram_deploy_restarts_the_real_process_and_preserves_live_state(self) -> None:

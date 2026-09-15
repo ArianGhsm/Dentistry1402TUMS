@@ -209,7 +209,7 @@ chmod 0600 /etc/integrated-dent/dent-bot.env /etc/integrated-dent/bale-bot.env
 
 sed \
   -e 's#After=network-online.target#After=network-online.target integrated-dent-telegram-egress.service#' \
-  -e '/^Wants=network-online.target$/a Requires=integrated-dent-telegram-egress.service' \
+  -e '/^Wants=network-online.target$/a Wants=integrated-dent-telegram-egress.service' \
   -e 's#WorkingDirectory=/opt/integrated-dent/current#WorkingDirectory=/opt/integrated-dent/telegram/current#' \
   "$telegram_unit" > /etc/systemd/system/integrated-dent-bot.service
 sed 's#WorkingDirectory=/opt/integrated-dent/current#WorkingDirectory=/opt/integrated-dent/bale/current#' \

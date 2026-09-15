@@ -37,17 +37,25 @@ It does not print node addresses or credentials. Failed selection leaves the
 previous working configuration intact.
 
 The refresh timer runs every ten minutes in Tehran with up to 30 seconds of
-randomized delay. A non-blocking process lock prevents overlapping selectors.
-Each run downloads both subscriptions again, tolerates one temporarily failed
-source, deduplicates the combined nodes, validates every supported entry, probes
-all valid candidates against the real Telegram API, and confirms the fastest
-reachable candidate twice before accepting it. If the subscription fetch or
-all probes fail, the last working configuration stays in place. Xray restarts
-only when the selected configuration actually changes. After activation, the
-main loopback port is probed twice again; a failure atomically restores and
-restarts the previous configuration. A transient profile-metadata request also
-cannot terminate the bot polling process during the short switch. Xray and the
-selector are reinstallable; the subscription environment is authoritative.
+randomized delay, but it is a health watcher rather than a node-rotation timer.
+Each normal run probes the already-active loopback proxy three times and exits
+without fetching subscriptions, changing configuration, or restarting Xray when
+at least two probes succeed. A non-blocking process lock prevents overlapping
+health checks.
+
+Only after the active route fails that health quorum does the failover path
+download the configured subscriptions again, tolerate a temporarily failed
+source, deduplicate the combined nodes, validate supported entries, probe
+candidates against the real Telegram API on the isolated loopback probe port,
+and pre-validate the replacement Xray configuration. If selection or probes fail,
+the last working configuration stays in place. The previous configuration is
+kept for rollback. Xray restarts only on this recovery/failover path. The
+Telegram bot uses a soft `Wants=` dependency on Xray, so restarting the egress
+service does not restart the long-polling bot process; polling may only observe a
+brief transport retry while the loopback listener is handed over. After
+activation the live listener is probed twice. A failed activation immediately
+restores and restarts the previous Xray configuration. Xray and the selector are
+reinstallable; the subscription environment remains authoritative.
 
 ## Telegram deployment and smoke test
 
@@ -61,7 +69,7 @@ replacement, disable every previous poller. Verify `getWebhookInfo.url` is empty
 then verify bot identity, commands, signed website health, state SQLite, one real
 send/edit, zero restarts and the loopback-only listener.
 
-If egress fails, Telegram may stop while Bale, the website and administration
-remain healthy. A complete international-network shutdown also prevents the
+If every egress route fails, Telegram network operations may pause while the bot
+process remains running; Bale, the website and administration remain healthy. A complete international-network shutdown also prevents the
 subscription tunnel from working; this design isolates ordinary filtering, not
 a total physical disconnection from international networks.

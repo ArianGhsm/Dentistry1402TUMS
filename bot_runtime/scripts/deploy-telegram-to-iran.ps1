@@ -229,7 +229,7 @@ printf '\n%s\n' \
 
 sed \
   -e 's#After=network-online.target#After=network-online.target integrated-dent-telegram-egress.service#' \
-  -e '/^Wants=network-online.target$/a Requires=integrated-dent-telegram-egress.service' \
+  -e '/^Wants=network-online.target$/a Wants=integrated-dent-telegram-egress.service' \
   -e 's#WorkingDirectory=/opt/integrated-dent/current#WorkingDirectory=/opt/integrated-dent/telegram/current#' \
   -e 's#ExecStart=/usr/bin/python3 -m dent_bot.service#ExecStart=/opt/integrated-dent/telegram-venv/bin/python -m dent_bot.service#' \
   "${prefix}.service" > /etc/systemd/system/integrated-dent-bot.service
