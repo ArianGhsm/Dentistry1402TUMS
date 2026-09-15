@@ -1,0 +1,10 @@
+[Unit]
+Description=Clean Dentistry1402 PHP sessions every 30 minutes
+
+[Timer]
+OnCalendar=*-*-* *:14,44:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
