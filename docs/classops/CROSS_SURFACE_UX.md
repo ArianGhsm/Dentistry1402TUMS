@@ -1,11 +1,10 @@
-# ClassOps cross-surface UX — Stage 2 integration
+# ClassOps cross-surface UX contract
 
 ## Status
 
-This document describes the integrated Stage 2 branch `integration/classops-final-unification-v1`.
-It supersedes the earlier foundation-only/candidate handoff text for this branch.
+This document originated during the completed Stage 2 integration wave and now describes the continuing cross-surface product contract. The historical integration branches have been retired; current source authority is `main`.
 
-Stage 2 remains **unreleased** until the acceptance matrix, repository CI, runtime verification, backup and exact-SHA deployment gates are green. The integration branch must not be treated as production state merely because a capability is implemented in source.
+Later cleanup consolidated the bot UI/runtime generations and replaced runtime monkey-patch ordering with explicit routing. The acceptance, backup and exact-SHA release gates below remain requirements for relevant future production changes.
 
 ## Authority model
 
@@ -184,11 +183,11 @@ The canonical website/service layer resolves item, audience and authorization. B
 
 ## Test gates
 
-The integration branch adds `scripts/test_classops_stage2_web_surface.py` and wires it into `.github/workflows/classops-stage1.yml` alongside the domain matrix.
+The repository includes `scripts/test_classops_stage2_web_surface.py` in `.github/workflows/classops-stage1.yml` alongside the domain matrix.
 
 The repository-wide static workflow also checks JavaScript syntax, PHP lint, UTF-8 integrity, repository hygiene, Foundation compatibility, persistence/concurrency and existing product regressions.
 
-Stage 2 is not releasable until all of the following are true:
+A future ClassOps production change is not releasable until all relevant items below are true:
 
 1. domain matrix green;
 2. repository static checks green;

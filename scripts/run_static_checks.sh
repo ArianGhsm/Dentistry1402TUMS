@@ -52,6 +52,9 @@ section "Repository and shared-contract freeze"
 "$PYTHON_BIN" scripts/test_github_first_workflow.py || fail "test_github_first_workflow.py"
 "$PYTHON_BIN" scripts/test_vps_site_deploy_contract.py || fail "test_vps_site_deploy_contract.py"
 
+section "Central module maintenance budget"
+"$PYTHON_BIN" scripts/check_module_size_budget.py || fail "check_module_size_budget.py"
+
 section "Auth store resilience"
 "$PHP_BIN" scripts/check_auth_store_resilience.php || fail "check_auth_store_resilience.php"
 "$PHP_BIN" scripts/test_json_persistence.php || fail "test_json_persistence.php"

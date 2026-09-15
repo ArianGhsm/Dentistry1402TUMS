@@ -12,8 +12,8 @@ Telegram/Bale runtime source.
 Start with [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), and
 [DEPLOY.md](DEPLOY.md). Parallel development and release rules are in
 [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md).
-The migration evidence is recorded in
-[docs/WORKFLOW_MIGRATION_AUDIT.md](docs/WORKFLOW_MIGRATION_AUDIT.md).
+Historical migration evidence is retained under
+[docs/archive/WORKFLOW_MIGRATION_AUDIT.md](docs/archive/WORKFLOW_MIGRATION_AUDIT.md) and is non-normative.
 
 `bot_runtime/` contains source, tests, documentation, and non-secret service
 templates only. It never contains live tokens, sessions, databases, logs,

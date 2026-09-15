@@ -99,6 +99,7 @@ production code/runtime change exists.
 - Parallel workers/branches and integration-wave branches are not part of the
   current workflow.
 - Force-overwriting `main` or task-branch history is forbidden.
+- Remote task branches are deleted after their PR is merged or intentionally closed; GitHub PR/commit history is the durable review record, not a permanent pile of stale branch refs.
 - Shared-contract semantic changes still require explicit compatibility/version
   review and producer/consumer tests.
 - A task may merge its own PR only after the required CI, divergence and
@@ -190,9 +191,9 @@ Historical workstreams:
 
 Historical integration branches were
 `integration/classops-domain-unification-v1` and
-`integration/classops-final-unification-v1`. Their reports remain under
-`docs/classops/` and should not be rewritten merely to make their historical
-wording match the current sequential policy.
+`integration/classops-final-unification-v1`. Their reports are archived under
+`docs/archive/classops/` and remain provenance only; their historical wording
+must not be read as current development policy.
 
 ## Agent reversibility
 
