@@ -10,14 +10,18 @@ ExecStart=/usr/local/lib/dentistry1402/restore-drill
 Nice=15
 IOSchedulingClass=idle
 UMask=0077
-NoNewPrivileges=true
+# The drill must recreate canonical ownership/setgid bits and then drop to
+# service identities inside its private recovery tree. Keep only those caps.
+NoNewPrivileges=false
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER CAP_KILL CAP_SETGID CAP_SETUID
+TimeoutStartSec=5min
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
-RestrictSUIDSGID=true
+RestrictSUIDSGID=false
 LockPersonality=true
 IPAddressDeny=any
 IPAddressAllow=localhost

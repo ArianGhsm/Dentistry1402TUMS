@@ -24,6 +24,9 @@ def test_restore_drill_verifies_snapshot_and_reconstructs_service_ownership() ->
     assert "DENT_SERVER_ONLY_ROOT" in script
     assert "mktemp -d /var/tmp/dentistry1402-restore-drill.XXXXXX" in script
     assert 'php -S "127.0.0.1:$port"' in script
+    assert "stop_php_server" in script
+    assert script.index("ISOLATED_PHP_BOOT=PASS") < script.index("ISOLATED_PHP_SERVER_STOP=PASS")
+    assert script.index("ISOLATED_PHP_SERVER_STOP=PASS") < script.index("PRODUCTION_UNTOUCHED=PASS")
     assert "PRODUCTION_UNTOUCHED=PASS" in script
     assert "restore-drill-*.txt" in script
     assert "tail -n +25" in script
@@ -35,7 +38,12 @@ def test_restore_drill_systemd_contract_is_monthly_and_loopback_only() -> None:
 
     assert "ExecStart=/usr/local/lib/dentistry1402/restore-drill" in service
     assert "ProtectSystem=strict" in service
-    assert "NoNewPrivileges=true" in service
+    assert "NoNewPrivileges=false" in service
+    assert "RestrictSUIDSGID=false" in service
+    assert "NoNewPrivileges=true" not in service
+    assert "RestrictSUIDSGID=true" not in service
+    assert "CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER CAP_KILL CAP_SETGID CAP_SETUID" in service
+    assert "TimeoutStartSec=5min" in service
     assert "IPAddressDeny=any" in service
     assert "IPAddressAllow=localhost" in service
     assert "ReadOnlyPaths=/srv/dentistry1402 /var/lib/integrated-dent /etc/integrated-dent" in service
