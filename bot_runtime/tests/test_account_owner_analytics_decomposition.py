@@ -8,8 +8,8 @@ NAMES = ['renderOwnerSummary', 'summaryCard', 'ownerStatsMetric', 'syncOwnerStat
 
 def test_owner_analytics_module_order_and_factory_contract():
     html = HTML.read_text(encoding="utf-8")
-    a=html.index("account-utils.js?v=20260916-p4-owneranalytics1"); b=html.index("account-owner-analytics.js?v=20260916-p4-owneranalytics1"); c=html.index("account.js?v=20260916-p4-owneranalytics1")
-    assert a < b < c
+    a=html.index("account-utils.js?v=20260916-p4-notifications1"); b=html.index("account-owner-analytics.js?v=20260916-p4-notifications1"); c=html.index("account-notifications.js?v=20260916-p4-notifications1"); d=html.index("account.js?v=20260916-p4-notifications1")
+    assert a < b < c < d
     module=MODULE.read_text(encoding="utf-8")
     assert "window.Dent1402AccountOwnerAnalytics" in module and "function create(context)" in module
 

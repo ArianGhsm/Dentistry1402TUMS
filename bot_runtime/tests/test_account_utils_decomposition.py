@@ -14,10 +14,11 @@ NAMES = [
 
 def test_account_utility_module_is_loaded_before_account_shell():
     html = HTML.read_text(encoding="utf-8")
-    utils_pos = html.index("account-utils.js?v=20260916-p4-owneranalytics1")
-    analytics_pos = html.index("account-owner-analytics.js?v=20260916-p4-owneranalytics1")
-    account_pos = html.index("account.js?v=20260916-p4-owneranalytics1")
-    assert utils_pos < analytics_pos < account_pos
+    utils_pos = html.index("account-utils.js?v=20260916-p4-notifications1")
+    analytics_pos = html.index("account-owner-analytics.js?v=20260916-p4-notifications1")
+    notifications_pos = html.index("account-notifications.js?v=20260916-p4-notifications1")
+    account_pos = html.index("account.js?v=20260916-p4-notifications1")
+    assert utils_pos < analytics_pos < notifications_pos < account_pos
 
 def test_pure_utilities_live_only_in_dedicated_module():
     account = ACCOUNT.read_text(encoding="utf-8-sig")
