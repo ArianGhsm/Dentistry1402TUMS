@@ -8,8 +8,8 @@ NAMES=['chatStorage', 'chatCacheUserKey', 'chatCacheKey', 'chatDraftKey', 'compa
 
 def test_chat_cache_module_order_and_factory_contract():
     html=HTML.read_text(encoding="utf-8")
-    a=html.index("chat-utils.js?v=20260916-p4-cache1"); b=html.index("chat-cache-drafts.js?v=20260916-p4-cache1"); c=html.index("chat.js?v=20260916-p4-cache1")
-    assert a < b < c
+    a=html.index("chat-utils.js?v=20260916-p4-realtime1"); b=html.index("chat-cache-drafts.js?v=20260916-p4-realtime1"); c=html.index("chat-realtime-transport.js?v=20260916-p4-realtime1"); d=html.index("chat.js?v=20260916-p4-realtime1")
+    assert a < b < c < d
     module=MODULE.read_text(encoding="utf-8")
     assert "window.Dent1402ChatCache" in module and "function create(context)" in module
 
