@@ -77,6 +77,7 @@ $downloadHostPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTO
 $contentToolsApiPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'content_tools_api.php';
 $contentToolsDownloadHostPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'content_tools_download_host.php';
 $notesApiPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'notes_api.php';
+$notesDirectUploadPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'notes_direct_upload.php';
 $contentToolsFilesJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'content-tools-files.js';
 $notesFilesJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-files.js';
 $notesHostPickerJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-host-picker.js';
@@ -90,6 +91,7 @@ foreach ([
     $contentToolsApiPath,
     $contentToolsDownloadHostPath,
     $notesApiPath,
+    $notesDirectUploadPath,
     $contentToolsFilesJsPath,
     $notesFilesJsPath,
     $notesHostPickerJsPath,
@@ -179,15 +181,19 @@ if ($errors === []) {
     }
 
     $notesApiContents = (string) file_get_contents($notesApiPath);
+    $notesDirectUploadContents = (string) file_get_contents($notesDirectUploadPath);
+    if (strpos($notesApiContents, "require_once __DIR__ . '/notes_direct_upload.php';") === false) {
+        $errors[] = 'notes_api is not wired to the direct-upload workflow module.';
+    }
     if (strpos($notesApiContents, "notes_download_host_request_header('X-Dent-Upload-Name')") === false) {
         $errors[] = 'notes_api raw upload header handling is missing.';
     }
     if (strpos($notesApiContents, "if (\$action === 'streamHostUploadChunk')") === false
-        || strpos($notesApiContents, "'mode' => 'stream'") === false
-        || strpos($notesApiContents, "'transport' => 'raw-chunk-to-ftp'") === false
+        || strpos($notesDirectUploadContents, "'mode' => 'stream'") === false
+        || strpos($notesDirectUploadContents, "'transport' => 'raw-chunk-to-ftp'") === false
         || strpos($notesApiContents, "notes_download_host_request_header('X-Dent-Chunk-Encoding')") === false
         || strpos($notesApiContents, "dent_base64url_decode(trim(\$encoded))") === false) {
-        $errors[] = 'notes_api is not configured for bounded stream-to-FTP upload plans.';
+        $errors[] = 'notes direct-upload modules are not configured for bounded stream-to-FTP upload plans.';
     }
 
     $contentToolsFilesJsContents = (string) file_get_contents($contentToolsFilesJsPath);

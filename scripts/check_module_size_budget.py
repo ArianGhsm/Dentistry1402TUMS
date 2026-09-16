@@ -13,7 +13,7 @@ BUDGETS = {
     "public_html/chat/chat_api.php": 9800,
     "public_html/assets/site/scripts/account.js": 8950,
     "public_html/api/auth_store.php": 4825,
-    "public_html/api/notes_api.php": 4580,
+    "public_html/api/notes_api.php": 4180,
     "bot_runtime/dent_bot/app.py": 3050,
 }
 
