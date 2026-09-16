@@ -9,7 +9,10 @@ NAMES = ['asObject', 'toText', 'escapeHtml', 'formatNavBadgeCount', 'normalizeSp
 
 def test_chat_utility_module_is_loaded_before_chat_shell():
     html = HTML.read_text(encoding="utf-8")
-    assert html.index("chat-utils.js?v=20260916-p4-utils1") < html.index("chat.js?v=20260916-p4-utils1")
+    utils_pos = html.index("chat-utils.js?v=20260916-p4-cache1")
+    cache_pos = html.index("chat-cache-drafts.js?v=20260916-p4-cache1")
+    chat_pos = html.index("chat.js?v=20260916-p4-cache1")
+    assert utils_pos < cache_pos < chat_pos
 
 def test_pure_chat_utilities_live_only_in_dedicated_module():
     chat = CHAT.read_text(encoding="utf-8-sig")
