@@ -47,3 +47,5 @@ releases. SQLite `.backup` copies are root-owned inside the archive, so a real
 restore must explicitly reconstruct `dentbot:dentbot`, `dentbale:dentbale`, and
 `root:dentcommerce` ownership before services are started. The restore drill fails
 closed if an unrecognized SQLite database appears without an ownership recipe.
+
+The restore-drill service must recreate setgid ownership and drop to service users inside its private recovery tree. It therefore bounds root to `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `KILL`, `SETGID`, and `SETUID` while keeping production paths read-only and networking loopback-only.

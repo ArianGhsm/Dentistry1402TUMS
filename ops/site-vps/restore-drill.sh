@@ -8,12 +8,25 @@ drill=""
 php_pid=""
 report=""
 
+stop_php_server() {
+  [[ -n "$php_pid" ]] || return 0
+  kill "$php_pid" 2>/dev/null || true
+  for _ in $(seq 1 20); do
+    if ! kill -0 "$php_pid" 2>/dev/null; then
+      break
+    fi
+    sleep 0.05
+  done
+  if kill -0 "$php_pid" 2>/dev/null; then
+    kill -KILL "$php_pid" 2>/dev/null || true
+  fi
+  wait "$php_pid" 2>/dev/null || true
+  php_pid=""
+}
+
 cleanup() {
   local rc=$?
-  if [[ -n "$php_pid" ]]; then
-    kill "$php_pid" 2>/dev/null || true
-    wait "$php_pid" 2>/dev/null || true
-  fi
+  stop_php_server
   if [[ -n "$drill" ]]; then
     rm -rf --one-file-system -- "$drill" || true
   fi
@@ -233,6 +246,12 @@ if grep -Eqi 'Fatal error|Uncaught|Parse error' "$php_log"; then
   exit 12
 fi
 printf 'ISOLATED_PHP_BOOT=PASS root=%s auth=%s\n' "$root_code" "$auth_code"
+stop_php_server
+if ss -ltnH | awk '{print $4}' | grep -qE "(^|:)${port}$"; then
+  echo 'isolated PHP server remained listening after shutdown' >&2
+  exit 13
+fi
+printf 'ISOLATED_PHP_SERVER_STOP=PASS\n'
 
 # A restore drill is not allowed to mutate live deployment pointers or restart
 # the bot processes.
