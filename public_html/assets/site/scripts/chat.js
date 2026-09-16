@@ -11242,8 +11242,8 @@
     });
   }
 
-  function bindEvents() {
-    if (conversationSearch) {
+    function bindConversationListEvents() {
+if (conversationSearch) {
       conversationSearch.addEventListener("input", function () {
         state.conversationFilter = conversationSearch.value || "";
         renderConversationList();
@@ -11498,8 +11498,10 @@
         }
       });
     });
+  }
 
-    if (newPollLink) {
+  function bindConversationDialogEvents() {
+if (newPollLink) {
       newPollLink.addEventListener("click", function (event) {
         if (canOpenPollCenterForUser(state.me)) return;
         event.preventDefault();
@@ -11737,7 +11739,10 @@
     if (contextBackdrop) contextBackdrop.addEventListener("click", closeContextMenu);
     if (listContextBackdrop) listContextBackdrop.addEventListener("click", closeListContextMenu);
     bindMessageListDelegation();
-    if (messagesEl) messagesEl.addEventListener("scroll", function () {
+  }
+
+  function bindComposerEvents() {
+if (messagesEl) messagesEl.addEventListener("scroll", function () {
       if (state.contextOpen) closeContextMenu();
       if (state.listContextOpen) closeListContextMenu();
       state.threadAutoStick = isThreadNearBottom(56);
@@ -11953,7 +11958,10 @@
         removeComposerAttachmentByLocalId(button.getAttribute("data-upl-remove"));
       });
     }
-    if (imageEditorClose) {
+  }
+
+  function bindEditorAndSearchEvents() {
+if (imageEditorClose) {
       imageEditorClose.addEventListener("click", closeImageEditor);
     }
     if (imageEditorDone) {
@@ -12147,7 +12155,10 @@
         });
       });
     }
-    if (voiceBtn) {
+  }
+
+  function bindVoiceAndMediaEvents() {
+if (voiceBtn) {
       voiceBtn.addEventListener("pointerdown", function (event) {
         if (!touchLikePointer(event.pointerType)) return;
         if (event.button != null && event.button !== 0) return;
@@ -12400,8 +12411,10 @@
         setMediaViewerScale(state.mediaViewerScale * factor, { live: true });
       }, { passive: false });
     }
+  }
 
-    if (logoutBtn) {
+  function bindGlobalChatEvents() {
+if (logoutBtn) {
       logoutBtn.addEventListener("click", function () {
         var auth = safeAuthApi();
         if (!auth || typeof auth.logout !== "function") {
@@ -12587,6 +12600,15 @@
       navBadgeState.notificationsUnread = Math.max(0, Math.floor(toNumber(detail.unreadCount, 0)));
       updateChatNavBadges();
     });
+  }
+
+  function bindEvents() {
+    bindConversationListEvents();
+    bindConversationDialogEvents();
+    bindComposerEvents();
+    bindEditorAndSearchEvents();
+    bindVoiceAndMediaEvents();
+    bindGlobalChatEvents();
   }
 
 
