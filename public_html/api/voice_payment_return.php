@@ -22,8 +22,12 @@ if (!in_array($platform, ['telegram', 'bale'], true)) {
     dent_error('بستر بازگشت پرداخت نامعتبر است.', 422);
 }
 
-// The website remains stateless: the browser is returned to the independent
-// voice-bot callback, where the canonical SQLite order is verified and credited.
+// Keep the browser on the canonical TLS origin. The HTTPS vhost proxies the
+// opaque callback token to the platform-specific loopback callback service.
 $callbackPath = $platform === 'bale' ? 'voice-bale-pay' : 'voice-pay';
-header('Location: http://185.239.0.235/' . $callbackPath . '/callback/' . rawurlencode($token), true, 303);
+header(
+    'Location: https://dentistry1402tums.ir/' . $callbackPath . '/callback/' . rawurlencode($token),
+    true,
+    303
+);
 exit;
