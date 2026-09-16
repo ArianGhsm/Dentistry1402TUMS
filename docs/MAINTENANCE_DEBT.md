@@ -6,7 +6,7 @@ The executable budget is `scripts/check_module_size_budget.py`. CI fails when on
 
 Current decomposition targets:
 
-- `public_html/assets/site/scripts/chat.js` (pure normalization/format helpers extracted to `chat-utils.js`) — separate transport/state, message rendering, composer/media, and navigation concerns before adding substantial new chat behavior.
+- `public_html/assets/site/scripts/chat.js` (pure helpers in `chat-utils.js`; cache/draft persistence in `chat-cache-drafts.js`) — separate transport/state, message rendering, composer/media, and navigation concerns before adding substantial new chat behavior.
 - Chat CSS — the former `chat.css` monolith is split in original cascade order into `chat.css` (foundation), `chat-messenger.css` (messenger/mobile refinement), and `chat-enhancements.css` (final feature/polish layers); preserve this layered boundary and RTL behavior.
 - `public_html/chat/chat_api.php` — attachment/media storage, preview, access and upload primitives have been extracted into `chat_media.php`; continue isolating request/auth validation, conversation queries and message mutation behind tested modules/endpoints.
 - `public_html/assets/site/scripts/account.js` (pure helpers in `account-utils.js`; owner analytics in `account-owner-analytics.js`) — separate authentication/OTP, profile, settings, payments, and account-linked product controllers.
