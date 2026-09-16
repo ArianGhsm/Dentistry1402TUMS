@@ -8,7 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BUDGETS = {
-    "public_html/assets/site/scripts/chat.js": 13600,
+    "public_html/assets/site/scripts/chat.js": 13260,
+    "public_html/assets/site/scripts/chat-utils.js": 330,
     "public_html/assets/site/styles/chat.css": 5460,
     "public_html/assets/site/styles/chat-messenger.css": 2540,
     "public_html/assets/site/styles/chat-enhancements.css": 3980,
