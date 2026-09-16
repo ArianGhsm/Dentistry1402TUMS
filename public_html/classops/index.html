@@ -60,7 +60,7 @@
                 <button id="classops-student-tomorrow" type="button" class="classops-button classops-button--primary">🌤 فردا</button>
                 <button id="classops-student-weekly" type="button" class="classops-button classops-button--secondary">🗓 هفته پیش رو</button>
             </div>
-            <pre id="classops-student-digest" class="classops-preview" hidden aria-live="polite"></pre>
+            <div id="classops-student-digest" class="classops-readable" hidden aria-live="polite"></div>
             <div id="classops-student-list" class="class-operations-student-list"></div>
             <div id="classops-student-detail" class="class-operations-student-detail" hidden></div>
         </section>
@@ -169,7 +169,7 @@
                         <label data-technical-only>شناسه ورودی<input id="classops-ai-cohort" value="dentistry-1402" maxlength="80"></label>
                         <button id="classops-ai-submit" type="submit" class="classops-button classops-button--secondary">ساخت پیش‌نویس</button>
                     </form>
-                    <pre id="classops-ai-preview" class="classops-preview" hidden aria-live="polite"></pre>
+                    <div id="classops-ai-preview" class="classops-readable" hidden aria-live="polite"></div>
                     <div id="classops-ai-edit-wrap" class="classops-ai-edit" hidden>
                         <label>درخواست اصلاح<textarea id="classops-ai-edit-text" rows="3" maxlength="8000" placeholder="مثلاً: عنوان را کوتاه‌تر کن"></textarea></label>
                         <div class="classops-action-row">
@@ -188,7 +188,7 @@
                         <p>مخاطبان، زمان و مسیرهای ارسال را بررسی کن.</p>
                     </div>
                 </div>
-                <pre id="classops-stage2-preview" class="classops-preview"></pre>
+                <div id="classops-stage2-preview" class="classops-readable"></div>
                 <div class="classops-action-row">
                     <button id="classops-stage2-dismiss" type="button" class="classops-button classops-button--secondary">انصراف</button>
                     <button id="classops-stage2-confirm" type="button" class="classops-button classops-button--primary">تأیید و ثبت</button>
@@ -241,7 +241,7 @@
                         <button id="classops-task-state" type="button" class="classops-button classops-button--secondary">مشاهده وضعیت تکلیف</button>
                     </div>
                     <button id="classops-ack-stats" type="button" class="classops-button classops-button--secondary" hidden>آمار تأیید مشاهده</button>
-                    <pre id="classops-selected-output" class="classops-preview" hidden></pre>
+                    <div id="classops-selected-output" class="classops-readable" hidden></div>
                     <p class="classops-note">ویرایش‌ها ابتدا پیش‌نمایش می‌شوند؛ اگر اطلاعات در فاصله بازبینی تا ثبت تغییر کند، از شما خواسته می‌شود دوباره بررسی کنید.</p>
                 </article>
             </div>
@@ -257,14 +257,14 @@
                     <button id="classops-digest-tomorrow" type="button" class="classops-button classops-button--primary">🌤 فردا</button>
                     <button id="classops-digest-weekly" type="button" class="classops-button classops-button--secondary">🗓 هفته پیش رو</button>
                 </div>
-                <pre id="classops-digest-output" class="classops-preview" hidden></pre>
+                <div id="classops-digest-output" class="classops-readable" hidden></div>
             </section>
         </section>
     </main>
 
     <dialog id="classops-confirm-dialog" class="classops-dialog" aria-labelledby="classops-confirm-title">
         <h3 id="classops-confirm-title">تأیید نهایی</h3>
-        <pre id="classops-confirm-text"></pre>
+        <div id="classops-confirm-text" class="classops-confirm-copy"></div>
         <div class="classops-action-row">
             <button id="classops-confirm-no" type="button" class="classops-button classops-button--secondary">انصراف</button>
             <button id="classops-confirm-yes" type="button" class="classops-button classops-button--danger">تأیید</button>

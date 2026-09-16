@@ -23,7 +23,7 @@ if ($action === 'ownerCatalog') {
 
 if ($action === 'ownerImportGrades') {
     if (dent_request_method() !== 'POST') {
-        dent_error('متد import نمرات نامعتبر است.', 405);
+        dent_error('روش ثبت نمرات نامعتبر است.', 405);
     }
 
     dent_grades_require_user();
@@ -53,19 +53,19 @@ if ($action === 'ownerImportGrades') {
     } else {
         $importText = (string) ($_POST['importText'] ?? '');
         if (trim($importText) === '') {
-            dent_error('متن import یا فایل نمرات را وارد کن.', 422);
+            dent_error('متن نمرات یا فایل نمرات را وارد کن.', 422);
         }
         $result = dent_owner_import_grades_from_text($importText);
     }
 
     dent_json_response(array_merge($result, [
-        'message' => 'Import نمرات انجام شد.',
+        'message' => 'ثبت نمرات انجام شد.',
     ]));
 }
 
 if ($action === 'ownerDeleteGradeCourse') {
     if (dent_request_method() !== 'POST') {
-        dent_error('متد حذف درس نامعتبر است.', 405);
+        dent_error('روش حذف درس نامعتبر است.', 405);
     }
 
     dent_grades_require_user();
@@ -80,14 +80,14 @@ if ($action === 'ownerDeleteGradeCourse') {
 
 if ($action === 'ownerResetGradebook') {
     if (dent_request_method() !== 'POST') {
-        dent_error('متد ریست کارنامه نامعتبر است.', 405);
+        dent_error('روش بازنشانی کارنامه نامعتبر است.', 405);
     }
 
     dent_grades_require_user();
     dent_require_owner();
     $confirm = trim((string) ($_POST['confirm'] ?? ''));
     if ($confirm !== 'RESET') {
-        dent_error('برای ریست کامل کارنامه تایید معتبر ارسال نشده است.', 422);
+        dent_error('برای بازنشانی کامل کارنامه تأیید معتبر ارسال نشده است.', 422);
     }
 
     $result = dent_owner_reset_gradebook();

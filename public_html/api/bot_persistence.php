@@ -35,6 +35,14 @@ function dent_bot_persistence_request_id(): string
 
 function dent_bot_persistence_log(string $level, array $context): void
 {
+    $level = strtolower(trim($level));
+    if ($level === 'info') {
+        $flag = strtolower(trim((string) (getenv('DENT_BOT_PERSISTENCE_INFO_LOG') ?: '')));
+        if (!in_array($flag, ['1', 'true', 'yes', 'on'], true)) {
+            return;
+        }
+    }
+
     $safe = [
         'event' => 'bot_store_persistence',
         'level' => $level,

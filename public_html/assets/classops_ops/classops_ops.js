@@ -35,6 +35,47 @@
         'reminder.preview': false, 'summary.tomorrow': false, 'summary.weekly': false
     });
 
+    const UI_LABELS = Object.freeze({
+        itemType: Object.freeze({
+            announcement:'اطلاعیه', event:'رویداد', class_change:'تغییر کلاس', deadline:'مهلت',
+            task:'تکلیف', requirement:'مورد الزامی', exam:'امتحان', critical_notice:'اطلاعیه مهم',
+            service_reminder:'یادآوری', schedule_ref:'برنامه کلاس'
+        }),
+        state: Object.freeze({
+            draft:'پیش‌نویس', scheduled:'زمان‌بندی‌شده', active:'فعال', completed:'انجام‌شده',
+            cancelled:'لغوشده', canceled:'لغوشده', archived:'بایگانی‌شده', pending:'در انتظار',
+            submitted:'ارسال‌شده', needs_revision:'نیازمند اصلاح', waived:'نیاز نیست', overdue:'عقب‌افتاده',
+            acked:'تأییدشده', not_required:'نیاز به تأیید ندارد', superseded:'جایگزین‌شده'
+        }),
+        importance: Object.freeze({normal:'عادی', important:'مهم', critical:'فوری'}),
+        destination: Object.freeze({private_users:'پیام خصوصی', class_group:'گروه کلاس', information_channel:'کانال اطلاع‌رسانی'}),
+        platform: Object.freeze({telegram:'تلگرام', bale:'بله', website:'سایت'}),
+        capability: Object.freeze({
+            foundation:'پایه', audience:'مخاطبان', delivery:'ارسال', ai:'هوش مصنوعی',
+            tasks:'تکالیف و الزامات', exam:'امتحان و تأیید', scheduler:'زمان‌بندی', digest:'خلاصه‌ها',
+            telegram:'تلگرام', bale:'بله', website:'سایت', saba:'صبا'
+        }),
+        capabilityState: Object.freeze({
+            available:'فعال', configured:'فعال', 'reminder-only':'فقط یادآوری',
+            unavailable:'غیرفعال', unconfigured:'غیرفعال', unknown:'نامشخص', blocked:'در دسترس نیست'
+        }),
+        field: Object.freeze({
+            type:'نوع', title:'عنوان', description:'توضیحات', location:'مکان', importance:'اهمیت',
+            requireAck:'تأیید مشاهده', reminderHint:'یادآوری', course:'درس', timing:'زمان',
+            audience:'مخاطبان', delivery:'مسیرهای ارسال'
+        })
+    });
+
+    function uiLabel(group, value, fallback) {
+        const catalog = UI_LABELS[group] || {};
+        const key = String(value == null ? '' : value);
+        return Object.prototype.hasOwnProperty.call(catalog, key) ? catalog[key] : String(fallback == null ? '' : fallback);
+    }
+
+    function toPersianDigits(value) {
+        return String(value == null ? '' : value).replace(/[0-9]/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
+    }
+
     const FORBIDDEN_KEY = /(chat[_-]?id|telegram[_-]?id|bale[_-]?id|bot[_-]?token|token|secret|password|national[_-]?code|phone|mobile|otp)/i;
 
     function safePayload(value) {
@@ -192,8 +233,8 @@
     }
 
     return Object.freeze({
-        CONTRACT_VERSION, ACTIONS, FOUNDATION_CAPABILITIES, ClassOpsClient,
+        CONTRACT_VERSION, ACTIONS, FOUNDATION_CAPABILITIES, UI_LABELS, ClassOpsClient,
         buildIntent, confirmIntent, makeIdempotencyKey, diffItem, capabilityModel,
-        studentViewModel, safePayload
+        studentViewModel, safePayload, uiLabel, toPersianDigits
     });
 });

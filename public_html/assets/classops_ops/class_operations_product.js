@@ -1,31 +1,6 @@
 (function () {
     "use strict";
 
-    var ITEM_LABELS = {
-        announcement: "اطلاعیه",
-        event: "رویداد",
-        class_change: "تغییر کلاس",
-        deadline: "مهلت",
-        task: "تکلیف",
-        requirement: "مورد الزامی",
-        exam: "امتحان",
-        critical_notice: "اطلاعیه مهم",
-        service_reminder: "یادآوری"
-    };
-    var STATE_LABELS = {
-        draft: "پیش‌نویس",
-        scheduled: "زمان‌بندی‌شده",
-        active: "فعال",
-        completed: "انجام‌شده",
-        cancelled: "لغوشده",
-        canceled: "لغوشده",
-        archived: "بایگانی‌شده",
-        pending: "در انتظار",
-        submitted: "ارسال‌شده",
-        needs_revision: "نیازمند اصلاح",
-        waived: "نیاز نیست"
-    };
-
     function $(id) { return document.getElementById(id); }
     function text(value) { return String(value == null ? "" : value); }
     function esc(value) {
@@ -33,8 +8,17 @@
             return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[char];
         });
     }
-    function itemLabel(value) { return ITEM_LABELS[text(value)] || "مورد کلاس"; }
-    function stateLabel(value) { return STATE_LABELS[text(value)] || ""; }
+    function core() { return window.ClassOpsOps || {}; }
+    function label(group, value, fallback) {
+        var api = core();
+        return typeof api.uiLabel === "function" ? api.uiLabel(group, value, fallback) : text(fallback || "");
+    }
+    function fa(value) {
+        var api = core();
+        return typeof api.toPersianDigits === "function" ? api.toPersianDigits(value) : text(value);
+    }
+    function itemLabel(value) { return label("itemType", value, "مورد کلاس"); }
+    function stateLabel(value) { return label("state", value, value ? "نامشخص" : ""); }
     function commandId(prefix) {
         var value = "";
         if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
@@ -48,127 +32,154 @@
         var raw = text(value).trim();
         if (!raw) return "";
         var date = new Date(raw);
-        if (!Number.isFinite(date.getTime())) return raw;
+        if (!Number.isFinite(date.getTime())) return fa(raw);
         try {
-            return date.toLocaleString("fa-IR-u-ca-persian", {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
+            return date.toLocaleString("fa-IR-u-ca-persian", {
+                year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false,
+                timeZone:"Asia/Tehran"
+            });
         } catch (_error) {
-            return raw;
+            return fa(raw);
         }
     }
-
-    function productizeText(raw) {
-        var value = text(raw);
-        var replacements = [
-            [/ClassOps Stage 2/gi, "امور کلاس"],
-            [/ClassOps/gi, "امور کلاس"],
-            [/canonical/gi, "اصلی"],
-            [/structured draft/gi, "پیش‌نویس ساختاریافته"],
-            [/Trusted preview/gi, "پیش‌نمایش"],
-            [/Runtime capabilities/gi, "وضعیت ارسال و سرویس‌ها"],
-            [/Canonical items/gi, "موارد کلاس"],
-            [/Selected revision/gi, "مورد انتخاب‌شده"],
-            [/Deterministic digests/gi, "خلاصه‌ها"],
-            [/ساخت آیتم جدید/g, "ثبت مورد جدید"],
-            [/ثبت revision جدید برای آیتم موجود/gi, "ثبت ویرایش جدید"],
-            [/revision\s*\d+/gi, ""],
-            [/revision/gi, "ویرایش"],
-            [/audience hash/gi, ""],
-            [/resolution hash/gi, ""],
-            [/هشدار audience/gi, "هشدار مخاطبان"],
-            [/snapshot مخاطب/gi, "فهرست مخاطبان"],
-            [/همان hash/gi, "همان مخاطبان"],
-            [/commit انجام می‌شود/gi, "ثبت انجام می‌شود"],
-            [/mutation\/send/gi, "ثبت یا ارسال"],
-            [/mutation/gi, "ثبت"],
-            [/send/gi, "ارسال"],
-            [/side effect/gi, "نتیجه"],
-            [/zero mutation until confirm/gi, "تا قبل از تأیید چیزی ثبت یا ارسال نمی‌شود"],
-            [/resolve\s*→\s*preview\s*→\s*confirm/gi, "پیش‌نمایش → تأیید"],
-            [/unknown\/blocked\s*≠\s*success/gi, "وضعیت واقعی هر مسیر نمایش داده می‌شود"],
-            [/Foundation/gi, "پایه"],
-            [/Audience/gi, "مخاطبان"],
-            [/Delivery/gi, "ارسال"],
-            [/Tasks\s*\/\s*Requirements/gi, "تکالیف و الزامات"],
-            [/Exam\s*\/\s*ACK/gi, "امتحان و تأیید"],
-            [/Scheduler/gi, "زمان‌بندی"],
-            [/Digest/gi, "خلاصه‌ها"],
-            [/Website/gi, "سایت"],
-            [/Telegram/gi, "تلگرام"],
-            [/Bale/gi, "بله"],
-            [/\bAI\b/gi, "هوش مصنوعی"],
-            [/private_users/gi, "پیام خصوصی"],
-            [/class_group/gi, "گروه کلاس"],
-            [/information_channel/gi, "کانال اطلاع‌رسانی"],
-            [/available/gi, "فعال"],
-            [/unavailable/gi, "غیرفعال"],
-            [/configured/gi, "فعال"],
-            [/unconfigured/gi, "غیرفعال"],
-            [/reminder-only/gi, "فقط یادآوری"],
-            [/unknown/gi, "نامشخص"],
-            [/blocked/gi, "در دسترس نیست"],
-            [/scheduled/gi, "زمان‌بندی‌شده"],
-            [/completed/gi, "انجام‌شده"],
-            [/active/gi, "فعال"],
-            [/draft/gi, "پیش‌نویس"],
-            [/ACK/gi, "تأیید"],
-            [/Saba/gi, "صبا"],
-            [/\btype\b/gi, "نوع"],
-            [/\btitle\b/gi, "عنوان"],
-            [/\bdescription\b/gi, "توضیحات"],
-            [/\blocation\b/gi, "مکان"],
-            [/\bimportance\b/gi, "اهمیت"],
-            [/\bcourse\b/gi, "درس"],
-            [/timing clue/gi, "نشانه زمانی"],
-            [/audience clue/gi, "نشانه مخاطب"],
-            [/\bdelivery\b/gi, "ارسال"],
-            [/\bmodel\b/gi, "مدل"]
-        ];
-        replacements.forEach(function (entry) { value = value.replace(entry[0], entry[1]); });
-        return value.replace(/\s+·\s+·/g, " · ").replace(/\s{2,}/g, " ").trim();
+    function persianLocalDate(value) {
+        var raw = text(value).trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return fa(raw);
+        var date = new Date(raw + "T12:00:00+03:30");
+        if (!Number.isFinite(date.getTime())) return fa(raw);
+        try {
+            return date.toLocaleDateString("fa-IR-u-ca-persian", {
+                weekday:"long", year:"numeric", month:"long", day:"numeric", timeZone:"Asia/Tehran"
+            });
+        } catch (_error) {
+            return fa(raw);
+        }
     }
-
-    function localizeDynamicNode(node) {
-        if (!node || node.dataset.productRaw === node.textContent) return;
-        var before = node.textContent || "";
-        var after = productizeText(before);
-        if (after && after !== before) node.textContent = after;
-        node.dataset.productRaw = node.textContent || "";
+    function markerForType(type, needsAck) {
+        if (type === "critical_notice" && needsAck) return "🚨";
+        if (type === "exam") return "📝";
+        if (type === "task" || type === "requirement") return "✅";
+        if (type === "class_change") return "🔄";
+        if (type === "deadline") return "⏳";
+        if (type === "service_reminder") return "🔔";
+        if (type === "event" || type === "schedule_ref") return "📅";
+        return "📌";
     }
-
-    function localizeTextTree(root) {
-        if (!root) return;
-        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        var nodes = [];
-        var current;
-        while ((current = walker.nextNode())) nodes.push(current);
-        nodes.forEach(function (node) {
-            var before = node.nodeValue || "";
-            var after = productizeText(before);
-            if (after && after !== before) node.nodeValue = after;
-        });
+    function digestItemTime(item) {
+        var timing = item && item.timing || {};
+        if (timing.allDay && timing.localDate) return persianLocalDate(timing.localDate) + " · تمام‌روز";
+        var raw = timing.dueAtUtc || timing.dueAt || timing.startsAtUtc || timing.startsAt || item.effectiveAtUtc || "";
+        return raw ? persianDate(raw) : "";
     }
+    function itemCourse(item) {
+        var course = item && item.course;
+        if (course && typeof course === "object") return text(course.title || "").trim();
+        return "";
+    }
+    function make(tag, className, value) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (value != null) node.textContent = text(value);
+        return node;
+    }
+    function appendFact(container, labelText, valueText) {
+        if (!valueText) return;
+        var fact = make("span", "classops-readable__fact");
+        var key = make("small", "", labelText);
+        var value = make("b", "", valueText);
+        fact.append(key, value);
+        container.appendChild(fact);
+    }
+    function renderFacts(container, title, rows, note, tone) {
+        if (!container) return;
+        container.replaceChildren();
+        container.className = "classops-readable" + (tone ? " is-" + tone : "");
+        if (title) container.appendChild(make("h4", "classops-readable__title", title));
+        var facts = make("div", "classops-readable__facts");
+        (rows || []).forEach(function (row) {
+            if (!row || row.length < 2 || row[1] === "" || row[1] == null) return;
+            appendFact(facts, row[0], row[1]);
+        });
+        if (facts.children.length) container.appendChild(facts);
+        if (note) container.appendChild(make("p", "classops-readable__note", note));
+        container.hidden = false;
+    }
+    function renderDigest(container, digest, kind) {
+        if (!container) return;
+        var weekly = kind === "weekly" || text(digest && digest.digestKind) === "weekly";
+        container.replaceChildren();
+        container.className = "classops-readable classops-digest-view " + (weekly ? "is-weekly" : "is-tomorrow");
 
-    function installCopyObserver() {
-        var scalarIds = [
-            "classops-access-state", "classops-operation-state", "classops-ai-state",
-            "classops-selected-meta", "classops-item-state", "classops-selected-output",
-            "classops-digest-output", "classops-stage2-preview", "classops-ai-preview",
-            "classops-confirm-text"
-        ];
-        var scalarNodes = scalarIds.map($).filter(Boolean);
-        var treeNodes = [$("classops-capabilities"), $("classops-item-list")].filter(Boolean);
-        var observer = new MutationObserver(function () {
-            scalarNodes.forEach(localizeDynamicNode);
-            treeNodes.forEach(localizeTextTree);
+        var head = make("div", "classops-digest-view__head");
+        var headingCopy = make("div", "classops-digest-view__heading");
+        headingCopy.appendChild(make("span", "classops-readable__eyebrow", weekly ? "نمای هفتگی" : "برنامه فردا"));
+        headingCopy.appendChild(make("h4", "classops-readable__title", weekly ? "هفته پیش رو" : "فردا"));
+        var windowData = digest && digest.window || {};
+        var range = "";
+        if (weekly) {
+            var start = persianLocalDate(windowData.localStartDate || "");
+            var endExclusive = text(windowData.localEndDateExclusive || "");
+            var end = "";
+            if (/^\d{4}-\d{2}-\d{2}$/.test(endExclusive)) {
+                var endDate = new Date(endExclusive + "T12:00:00+03:30");
+                endDate.setDate(endDate.getDate() - 1);
+                end = endDate.toLocaleDateString("fa-IR-u-ca-persian", {month:"long", day:"numeric", timeZone:"Asia/Tehran"});
+            }
+            range = start + (end ? " تا " + end : "");
+        } else {
+            range = persianLocalDate(windowData.localStartDate || "");
+        }
+        if (range) headingCopy.appendChild(make("p", "classops-readable__sub", range));
+        head.appendChild(headingCopy);
+        container.appendChild(head);
+
+        var sections = Array.isArray(digest && digest.sections) ? digest.sections : [];
+        var visibleSections = sections.filter(function (section) { return Array.isArray(section.items) && section.items.length; });
+        if (!visibleSections.length) {
+            var empty = make("div", "classops-readable__empty");
+            empty.appendChild(make("strong", "", weekly ? "این هفته مورد فعالی ثبت نشده است." : "برای فردا موردی ثبت نشده است."));
+            empty.appendChild(make("span", "", weekly ? "اگر برنامه، تکلیف یا تغییری ثبت شود در همین نما دیده می‌شود." : "برنامه فردای شما فعلاً خالی است."));
+            container.appendChild(empty);
+            container.hidden = false;
+            return;
+        }
+
+        visibleSections.forEach(function (section) {
+            var block = make("section", "classops-digest-section");
+            var title = make("div", "classops-digest-section__head");
+            title.appendChild(make("h5", "", text(section.label || "موارد")));
+            var sectionTotal = Number(section.total || section.items.length || 0);
+            title.appendChild(make("span", "", fa(sectionTotal) + " مورد"));
+            block.appendChild(title);
+            var list = make("div", "classops-digest-section__items");
+            section.items.forEach(function (item) {
+                var article = make("article", "classops-digest-item");
+                var row = make("div", "classops-digest-item__row");
+                row.appendChild(make("span", "classops-digest-item__mark", markerForType(item.itemType, item.flags && item.flags.criticalAck)));
+                var copy = make("div", "classops-digest-item__copy");
+                copy.appendChild(make("strong", "", text(item.title || itemLabel(item.itemType))));
+                var chips = make("div", "classops-digest-item__meta");
+                var when = digestItemTime(item);
+                var course = itemCourse(item);
+                if (when) chips.appendChild(make("span", "", "🕒 " + when));
+                if (course) chips.appendChild(make("span", "", "📚 " + course));
+                if (item.location) chips.appendChild(make("span", "", "📍 " + text(item.location)));
+                if (item.changeLabel) chips.appendChild(make("span", "is-change", text(item.changeLabel)));
+                copy.appendChild(chips);
+                if (!weekly && item.description) copy.appendChild(make("p", "classops-digest-item__description", text(item.description)));
+                row.appendChild(copy);
+                article.appendChild(row);
+                list.appendChild(article);
+            });
+            block.appendChild(list);
+            container.appendChild(block);
         });
-        scalarNodes.forEach(function (node) {
-            localizeDynamicNode(node);
-            observer.observe(node, {childList:true,subtree:true,characterData:true});
-        });
-        treeNodes.forEach(function (node) {
-            localizeTextTree(node);
-            observer.observe(node, {childList:true,subtree:true,characterData:true});
-        });
+
+        var budget = digest && digest.budget || {};
+        if (budget.truncated) {
+            container.appendChild(make("p", "classops-readable__note", fa(budget.omittedItems || 0) + " مورد دیگر برای خوانایی این نما خلاصه شده است."));
+        }
+        container.hidden = false;
     }
 
     function installTypeAwareComposer() {
@@ -209,13 +220,12 @@
         var when = persianDate(timing.dueAt || timing.startsAt || "");
         var task = item.task || null;
         var taskState = task ? stateLabel(task.state) : "";
-        var ack = item.ack || null;
-        var marker = item.type === "critical_notice" && ack && !ack.acked ? "🔴" : item.type === "exam" ? "📝" : item.type === "task" || item.type === "requirement" ? "✅" : "📌";
+        var marker = markerForType(item.type, item.ack && !item.ack.acked);
         return '<button class="class-operations-student-item" type="button" data-student-item="' + esc(item.id) + '">' +
             '<span class="class-operations-student-item__mark">' + marker + '</span>' +
             '<span class="class-operations-student-item__copy"><strong>' + esc(item.title || kind) + '</strong>' +
             '<small>' + esc(kind + (status ? " · " + status : "") + (when ? " · " + when : "") + (taskState ? " · " + taskState : "")) + '</small></span>' +
-            '<span aria-hidden="true">‹</span></button>';
+            '<span class="class-operations-student-item__chevron" aria-hidden="true">‹</span></button>';
     }
 
     function studentDetail(item) {
@@ -268,13 +278,13 @@
                 if (ownerCenter) ownerCenter.hidden = true;
                 var access = $("classops-access-state");
                 if (access) access.hidden = true;
-                state.textContent = items.length ? items.length.toLocaleString("fa-IR") + " مورد برای حساب شما" : "فعلاً موردی برای شما ثبت نشده است.";
-                list.innerHTML = items.length ? items.map(studentCard).join("") : '<p class="classops-empty">وقتی اطلاعیه، تکلیف یا برنامه‌ای برای شما ثبت شود، اینجا نمایش داده می‌شود.</p>';
+                state.textContent = items.length ? fa(items.length) + " مورد برای حساب شما" : "فعلاً موردی برای شما ثبت نشده است.";
+                list.innerHTML = items.length ? items.map(studentCard).join("") : '<div class="classops-readable__empty"><strong>فعلاً چیزی برای شما ثبت نشده است.</strong><span>اطلاعیه، تکلیف و تغییرات برنامه در این بخش نمایش داده می‌شوند.</span></div>';
                 return true;
             } catch (error) {
                 if (Number(error && error.status) === 403) return false;
                 root.hidden = false;
-                state.textContent = "این بخش فعلاً در دسترس نیست. چند لحظه بعد دوباره امتحان کن.";
+                state.textContent = "این بخش فعلاً در دسترس نیست. صفحه را تازه کن و دوباره امتحان کن.";
                 list.innerHTML = "";
                 return true;
             }
@@ -346,13 +356,12 @@
                 var output = $("classops-student-digest");
                 if (!output) return;
                 output.hidden = false;
-                output.textContent = "در حال آماده‌سازی…";
+                renderFacts(output, kind === "weekly" ? "هفته پیش رو" : "فردا", [], "در حال آماده‌سازی…", "loading");
                 try {
                     var result = await client.request(kind === "tomorrow" ? "tomorrow-summary" : "weekly-digest");
-                    var digest = result && result.digest || {};
-                    output.textContent = text(digest.plainText || "موردی ثبت نشده است.");
+                    renderDigest(output, result && result.digest || {}, kind);
                 } catch (_error) {
-                    output.textContent = "خلاصه فعلاً در دسترس نیست.";
+                    renderFacts(output, "خلاصه در دسترس نیست", [], "صفحه را تازه کن و دوباره امتحان کن.", "error");
                 }
             });
         });
@@ -360,18 +369,17 @@
         return loadList();
     }
 
-    function installStudentStyles() {
-        var style = document.createElement("style");
-        style.textContent = ".class-operations-student-list{display:grid;gap:10px}.class-operations-student-item{width:100%;display:flex;align-items:center;gap:11px;text-align:right;border:1px solid var(--border-color,#dbe2ea);border-radius:16px;background:var(--surface-color,#fff);padding:12px 13px;color:inherit;font:inherit;cursor:pointer}.class-operations-student-item__mark{font-size:1.2rem}.class-operations-student-item__copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}.class-operations-student-item__copy strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.class-operations-student-item__copy small{color:var(--text-muted,#64748b);line-height:1.55}.class-operations-student-detail{margin-top:14px;border-top:1px solid var(--border-color,#dbe2ea);padding-top:16px}.class-operations-student-detail__head span{color:var(--text-muted,#64748b);font-size:.82rem}.class-operations-student-detail__head h3{margin:4px 0 0}.class-operations-student-detail__meta{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.class-operations-student-detail__meta span,.class-operations-product-note,.class-operations-product-alert,.class-operations-product-ok{border-radius:12px;padding:9px 11px;background:color-mix(in srgb,var(--text-color,#172033) 5%,transparent);line-height:1.7}.class-operations-product-alert{background:color-mix(in srgb,#dc2626 8%,transparent);color:#991b1b}.class-operations-product-ok{background:color-mix(in srgb,#059669 9%,transparent);color:#047857}";
-        document.head.appendChild(style);
-    }
-
     async function mount() {
-        installStudentStyles();
         installTypeAwareComposer();
-        installCopyObserver();
         await mountStudentSurface();
     }
 
-    window.ClassOperationsProduct = Object.freeze({mount:mount, productizeText:productizeText});
+    window.ClassOperationsProduct = Object.freeze({
+        mount:mount,
+        renderDigest:renderDigest,
+        renderFacts:renderFacts,
+        persianDate:persianDate,
+        stateLabel:stateLabel,
+        itemLabel:itemLabel
+    });
 })();

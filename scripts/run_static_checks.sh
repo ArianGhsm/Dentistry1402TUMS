@@ -41,6 +41,7 @@ fi
 
 section "Persian / UTF-8 text integrity"
 "$PYTHON_BIN" scripts/check_text_integrity.py || fail "check_text_integrity.py"
+"$PYTHON_BIN" scripts/test_product_ui_contract.py || fail "test_product_ui_contract.py"
 
 section "Instruction contract audit"
 "$PYTHON_BIN" scripts/check_instruction_contracts.py || fail "check_instruction_contracts.py"
