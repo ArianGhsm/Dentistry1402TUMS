@@ -27,8 +27,12 @@ def test_sms_provider_functions_live_in_sms_module_not_central_store():
         assert f"function {name}(" in module
 
 
-def test_otp_workflows_remain_in_central_auth_store():
+def test_sms_module_coexists_with_dedicated_otp_engine():
     central = AUTH.read_text(encoding="utf-8")
-    assert "function dent_issue_otp_for_phone(" in central
-    assert "function dent_verify_otp_for_phone(" in central
+    otp = (ROOT / "public_html/api/auth_store_otp.php").read_text(encoding="utf-8")
+    assert "require_once __DIR__ . '/auth_store_otp.php';" in central
+    assert "function dent_issue_otp_for_phone(" not in central
+    assert "function dent_verify_otp_for_phone(" not in central
+    assert "function dent_issue_otp_for_phone(" in otp
+    assert "function dent_verify_otp_for_phone(" in otp
     assert "function dent_request_login_otp(" in central
