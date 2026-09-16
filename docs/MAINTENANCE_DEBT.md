@@ -7,7 +7,7 @@ The executable budget is `scripts/check_module_size_budget.py`. CI fails when on
 Current decomposition targets:
 
 - `public_html/assets/site/scripts/chat.js` — separate transport/state, message rendering, composer/media, and navigation concerns before adding substantial new chat behavior.
-- `public_html/assets/site/styles/chat.css` — split stable tokens/layout primitives from view-specific chat/list/composer rules without changing RTL behavior.
+- Chat CSS — the former `chat.css` monolith is split in original cascade order into `chat.css` (foundation), `chat-messenger.css` (messenger/mobile refinement), and `chat-enhancements.css` (final feature/polish layers); preserve this layered boundary and RTL behavior.
 - `public_html/chat/chat_api.php` — attachment/media storage, preview, access and upload primitives have been extracted into `chat_media.php`; continue isolating request/auth validation, conversation queries and message mutation behind tested modules/endpoints.
 - `public_html/assets/site/scripts/account.js` — separate authentication/OTP, profile, settings, payments, and account-linked product controllers.
 - `public_html/api/auth_store.php` — persistence primitives are in `auth_store_persistence.php`, SMS provider/configuration primitives are in `auth_store_sms.php`, and the provider-neutral OTP engine is in `auth_store_otp.php`; continue separating identity/session and account-domain operations while preserving the single canonical auth store.
