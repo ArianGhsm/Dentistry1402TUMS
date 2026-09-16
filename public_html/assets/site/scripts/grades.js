@@ -537,7 +537,7 @@
         }
         if (ownerImportSubmit) {
             ownerImportSubmit.disabled = ownerState.loading || ownerState.importing || ownerState.resetting;
-            ownerImportSubmit.textContent = ownerState.importing ? "در حال import..." : "Import نمرات";
+            ownerImportSubmit.textContent = ownerState.importing ? "در حال ثبت..." : "ثبت نمرات";
         }
         if (ownerDeleteCourseBtn) {
             var currentCourseKey = ownerCourseSelect ? String(ownerCourseSelect.value || "") : "";
@@ -547,7 +547,7 @@
         }
         if (ownerResetAllBtn) {
             ownerResetAllBtn.disabled = ownerState.loading || ownerState.importing || ownerState.resetting || !courses.length;
-            ownerResetAllBtn.textContent = ownerState.resetting ? "در حال ریست..." : "ریست کامل کارنامه";
+            ownerResetAllBtn.textContent = ownerState.resetting ? "در حال بازنشانی..." : "بازنشانی کامل کارنامه";
         }
         [ownerImportText, ownerImportFile].forEach(function (node) {
             if (node) {
@@ -674,7 +674,7 @@
         var text = ownerImportText ? ownerImportText.value.trim() : "";
         var file = ownerImportFile && ownerImportFile.files ? ownerImportFile.files[0] : null;
         if (!text && !file) {
-            showOwnerFeedback("متن import یا فایل نمرات را وارد کن.", "error");
+            showOwnerFeedback("متن نمرات یا فایل نمرات را وارد کن.", "error");
             return;
         }
 
@@ -687,7 +687,7 @@
         }
 
         ownerState.importing = true;
-        showOwnerFeedback("در حال import نمرات", "", true);
+        showOwnerFeedback("در حال ثبت نمرات", "", true);
         renderOwnerManager();
 
         try {
@@ -697,7 +697,7 @@
                 return;
             }
             if (!response || !response.success) {
-                showOwnerFeedback((response && response.error) || "Import نمرات انجام نشد.", "error");
+                showOwnerFeedback((response && response.error) || "ثبت نمرات انجام نشد.", "error");
                 return;
             }
 
@@ -710,7 +710,7 @@
                 ownerImportFile.value = "";
             }
             showOwnerFeedback(
-                (response.message || "Import نمرات انجام شد.") + " " +
+                (response.message || "ثبت نمرات انجام شد.") + " " +
                 Math.max(0, Math.floor(toSafeNumber(response.importedCount, 0))).toLocaleString("fa-IR") +
                 " ردیف پردازش شد.",
                 "success"
@@ -718,7 +718,7 @@
             await loadGrades();
         } catch (error) {
             console.error(error);
-            showOwnerFeedback(error.message || "Import نمرات انجام نشد.", "error");
+            showOwnerFeedback(error.message || "ثبت نمرات انجام نشد.", "error");
         } finally {
             ownerState.importing = false;
             renderOwnerManager();
@@ -776,14 +776,14 @@
             return;
         }
 
-        var confirmation = window.prompt("برای ریست کامل همه درس‌ها و نمرات، عبارت RESET را وارد کن.");
-        if (confirmation !== "RESET") {
-            showOwnerFeedback("ریست کارنامه لغو شد.", "");
+        var confirmation = window.prompt("برای بازنشانی کامل همه درس‌ها و نمرات، عبارت «حذف همه نمرات» را وارد کن.");
+        if (String(confirmation || "").trim() !== "حذف همه نمرات") {
+            showOwnerFeedback("بازنشانی کارنامه لغو شد.", "");
             return;
         }
 
         ownerState.resetting = true;
-        showOwnerFeedback("در حال ریست کامل کارنامه", "", true);
+        showOwnerFeedback("در حال بازنشانی کامل کارنامه", "", true);
         renderOwnerManager();
 
         try {
@@ -793,17 +793,17 @@
                 return;
             }
             if (!response || !response.success) {
-                showOwnerFeedback((response && response.error) || "ریست کارنامه انجام نشد.", "error");
+                showOwnerFeedback((response && response.error) || "بازنشانی کارنامه انجام نشد.", "error");
                 return;
             }
 
             ownerState.courses = [];
             ownerState.loaded = true;
-            showOwnerFeedback(response.message || "کارنامه ریست شد.", "success");
+            showOwnerFeedback(response.message || "کارنامه بازنشانی شد.", "success");
             await loadGrades();
         } catch (error) {
             console.error(error);
-            showOwnerFeedback(error.message || "ریست کارنامه انجام نشد.", "error");
+            showOwnerFeedback(error.message || "بازنشانی کارنامه انجام نشد.", "error");
         } finally {
             ownerState.resetting = false;
             renderOwnerManager();

@@ -88,6 +88,24 @@ if (($argv[1] ?? '') === '--worker') {
 
 $root = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dent-bot-persistence-' . bin2hex(random_bytes(6));
 dent_ensure_directory($root);
+
+// Informational persistence telemetry is opt-in so FastCGI stderr does not flood Nginx error logs.
+$telemetryLog = $root . DIRECTORY_SEPARATOR . 'persistence-telemetry.log';
+$priorErrorLog = (string) ini_get('error_log');
+$priorLogErrors = (string) ini_get('log_errors');
+ini_set('log_errors', '1');
+ini_set('error_log', $telemetryLog);
+putenv('DENT_BOT_PERSISTENCE_INFO_LOG');
+dent_bot_persistence_log('info', ['action' => 'test-info-suppressed', 'path' => $root . DIRECTORY_SEPARATOR . 'x.json']);
+clearstatcache(true, $telemetryLog);
+test_assert(!is_file($telemetryLog) || trim((string) file_get_contents($telemetryLog)) === '', 'info persistence telemetry must be suppressed by default');
+dent_bot_persistence_log('error', ['action' => 'test-error-kept', 'path' => $root . DIRECTORY_SEPARATOR . 'x.json']);
+clearstatcache(true, $telemetryLog);
+test_assert(is_file($telemetryLog) && str_contains((string) file_get_contents($telemetryLog), 'DENT_BOT_STORAGE'), 'error persistence telemetry must remain logged');
+@unlink($telemetryLog);
+ini_set('error_log', $priorErrorLog);
+ini_set('log_errors', $priorLogErrors);
+
 $path = $root . DIRECTORY_SEPARATOR . 'store.json';
 $default = ['schemaVersion' => 1, 'records' => []];
 $tests = 0;

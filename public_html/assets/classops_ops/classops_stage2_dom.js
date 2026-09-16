@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (core) {
     'use strict';
 
-    const {ClassOpsClient} = core;
+    const {ClassOpsClient, uiLabel, toPersianDigits} = core;
     const STAGE2_EXTENSION = 'classops_stage2_v1';
     const PRIMARY_COHORT = 'dentistry-1402';
     const ALLOWED_TYPES = new Set([
@@ -20,6 +20,26 @@
     function setHidden(node, value) { if (node) node.hidden = !!value; }
     function value(id) { const node = qs(id); return node ? String(node.value || '').trim() : ''; }
     function checked(id) { const node = qs(id); return !!(node && node.checked); }
+    function label(group, raw, fallback) { return typeof uiLabel === 'function' ? uiLabel(group, raw, fallback) : String(fallback || ''); }
+    function fa(raw) { return typeof toPersianDigits === 'function' ? toPersianDigits(raw) : String(raw == null ? '' : raw); }
+    function itemTypeLabel(raw) { return label('itemType', raw, 'مورد کلاس'); }
+    function stateLabel(raw) { return label('state', raw, raw ? 'نامشخص' : ''); }
+    function safeError(error, fallback) {
+        const status = Number(error && error.status || 0);
+        if (status === 401 || status === 403) return 'دسترسی این عملیات برای حساب شما فعال نیست.';
+        if (status === 409) return 'اطلاعات از زمان نمایش تغییر کرده است؛ دوباره بررسی کن.';
+        if (status === 422) return 'اطلاعات واردشده معتبر نیست؛ فیلدها را دوباره بررسی کن.';
+        if (status >= 500) return 'سرویس موقتاً در دسترس نیست؛ دوباره امتحان کن.';
+        return fallback || 'عملیات انجام نشد.';
+    }
+    function renderFacts(node, title, rows, note, tone) {
+        if (window.ClassOperationsProduct && typeof window.ClassOperationsProduct.renderFacts === 'function') {
+            window.ClassOperationsProduct.renderFacts(node, title, rows, note, tone);
+            return;
+        }
+        setText(node, note || title || '');
+        setHidden(node, false);
+    }
 
     function randomIdempotency() {
         const random = (typeof crypto !== 'undefined' && crypto.randomUUID)
@@ -67,10 +87,10 @@
         } else if (mode === 'selector') {
             const kind = value('classops-audience-selector-kind');
             const key = value('classops-audience-selector-key');
-            if (!['role','group','category'].includes(kind) || !key) throw new Error('نوع و کلید selector مخاطب الزامی است.');
+            if (!['role','group','category'].includes(kind) || !key) throw new Error('نوع و شناسه گروه مخاطبان الزامی است.');
             expression = {op:'selector', kind, key};
         } else {
-            throw new Error('نوع audience معتبر نیست.');
+            throw new Error('نوع مخاطب معتبر نیست.');
         }
         return {
             version:'classops-audience-v1',
@@ -94,7 +114,7 @@
         const title = value('classops-title');
         if (!ALLOWED_TYPES.has(type)) throw new Error('نوع آیتم معتبر نیست.');
         if (!ALLOWED_IMPORTANCE.has(importance)) throw new Error('اهمیت معتبر نیست.');
-        if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(cohortKey)) throw new Error('شناسه canonical ورودی معتبر نیست.');
+        if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(cohortKey)) throw new Error('شناسه ورودی معتبر نیست.');
         if (!title) throw new Error('عنوان الزامی است.');
 
         const startsAt = tehranIso(value('classops-starts-at'));
@@ -154,24 +174,24 @@
     }
 
     function deliverySummary(plans) {
-        if (!plans || typeof plans !== 'object') return ['برنامه مقصدی برنگشت.'];
-        const lines = [];
+        if (!plans || typeof plans !== 'object') return [['مسیر ارسال', 'برنامه‌ای برای ارسال آماده نشده است.']];
+        const rows = [];
         for (const destination of Object.keys(plans)) {
             const plan = plans[destination] || {};
             const outcomes = Array.isArray(plan.outcomes) ? plan.outcomes : [];
+            const destinationLabel = label('destination', destination, 'مسیر ارسال');
             if (!outcomes.length) {
-                lines.push(destination + ': بدون route قابل اجرا');
+                rows.push([destinationLabel, 'مسیر فعالی پیدا نشد']);
                 continue;
             }
             const states = outcomes.map((outcome) => {
-                const platform = String(outcome.platform || 'unknown');
-                const state = String(outcome.state || 'unknown');
-                const reason = outcome.reason ? ' (' + String(outcome.reason) + ')' : '';
-                return platform + '=' + state + reason;
+                const platform = label('platform', outcome.platform, 'سرویس');
+                const state = label('capabilityState', outcome.state, stateLabel(outcome.state) || 'نامشخص');
+                return platform + ': ' + state;
             });
-            lines.push(destination + ': ' + states.join(' · '));
+            rows.push([destinationLabel, states.join(' · ')]);
         }
-        return lines;
+        return rows;
     }
 
     function renderSurfaceCapabilities(surface) {
@@ -179,28 +199,28 @@
         if (!container) return;
         container.replaceChildren();
         const entries = [
-            ['Foundation', surface && surface.foundation],
-            ['Audience', surface && surface.audience],
-            ['Delivery', surface && surface.deliveryPlanning],
-            ['AI', surface && surface.ai],
-            ['Tasks / Requirements', surface && surface.tasksRequirements],
-            ['Exam / ACK', surface && surface.examAck],
-            ['Scheduler', surface && surface.scheduler],
-            ['Digest', surface && surface.digest],
-            ['Telegram', surface && surface.telegram],
-            ['Bale', surface && surface.bale],
-            ['Website', surface && surface.website],
-            ['Saba', surface && surface.saba]
+            ['foundation', surface && surface.foundation],
+            ['audience', surface && surface.audience],
+            ['delivery', surface && surface.deliveryPlanning],
+            ['ai', surface && surface.ai],
+            ['tasks', surface && surface.tasksRequirements],
+            ['exam', surface && surface.examAck],
+            ['scheduler', surface && surface.scheduler],
+            ['digest', surface && surface.digest],
+            ['telegram', surface && surface.telegram],
+            ['bale', surface && surface.bale],
+            ['website', surface && surface.website],
+            ['saba', surface && surface.saba]
         ];
-        entries.forEach(([label, spec]) => {
+        entries.forEach(([key, spec]) => {
             const card = document.createElement('article');
             card.className = 'classops-capability';
             const state = spec && typeof spec === 'object' ? String(spec.state || 'unknown') : 'unknown';
             card.dataset.enabled = ['available','configured','reminder-only'].includes(state) ? 'true' : 'false';
             const strong = document.createElement('strong');
-            strong.textContent = label;
+            strong.textContent = label('capability', key, 'سرویس');
             const span = document.createElement('span');
-            span.textContent = state;
+            span.textContent = label('capabilityState', state, 'نامشخص');
             card.append(strong, span);
             container.appendChild(card);
         });
@@ -235,23 +255,26 @@
         const output = qs('classops-stage2-preview');
         const confirm = qs('classops-stage2-confirm');
         const audience = preview && preview.audience ? preview.audience : {};
-        const lines = [];
-        lines.push(context.mode === 'create' ? 'ساخت آیتم جدید' : 'ثبت revision جدید برای آیتم موجود');
-        lines.push('مخاطبان: ' + String(audience.total == null ? '—' : audience.total));
-        lines.push('حل‌نشده: ' + String(audience.unresolved == null ? 0 : audience.unresolved));
+        const rows = [
+            ['عملیات', context.mode === 'create' ? 'ثبت مورد جدید' : 'ثبت ویرایش جدید'],
+            ['مخاطبان', audience.total == null ? '—' : fa(audience.total)],
+            ['نیازمند بررسی', audience.unresolved == null ? '۰' : fa(audience.unresolved)]
+        ];
         if (Array.isArray(audience.warningCounts) && audience.warningCounts.length) {
-            lines.push('هشدار audience: ' + audience.warningCounts.map((w) => String(w.code) + '×' + String(w.count)).join('، '));
+            rows.push(['هشدار مخاطبان', fa(audience.warningCounts.reduce((sum, entry) => sum + Number(entry.count || 0), 0)) + ' مورد']);
         }
-        lines.push(...deliverySummary(preview.destinations));
-        if (preview.reminderPolicy && Array.isArray(preview.reminderPolicy.rules)) {
-            lines.push('قواعد یادآوری: ' + String(preview.reminderPolicy.rules.length));
+        deliverySummary(preview && preview.destinations).forEach((row) => rows.push(row));
+        if (preview && preview.reminderPolicy && Array.isArray(preview.reminderPolicy.rules)) {
+            rows.push(['یادآوری‌ها', fa(preview.reminderPolicy.rules.length) + ' قاعده']);
         }
-        if (preview.serviceRef === 'saba') {
-            lines.push('Saba: فقط reminder محلی؛ هیچ credential/login ذخیره یا اجرا نمی‌شود.');
-        }
-        lines.push('با تأیید، snapshot مخاطب دوباره بررسی می‌شود و فقط در صورت همان hash، commit انجام می‌شود.');
-        lines.push('اعلان/ارسال طبق مقصدهای انتخاب‌شده می‌تواند ایجاد شود؛ این مرحله دیگر صرفاً preview نیست.');
-        setText(output, lines.join('\n'));
+        if (preview && preview.serviceRef === 'saba') rows.push(['صبا', 'فقط یادآوری محلی']);
+        renderFacts(
+            output,
+            context.mode === 'create' ? 'پیش‌نمایش ثبت' : 'پیش‌نمایش ویرایش',
+            rows,
+            'در تأیید نهایی، فهرست مخاطبان دوباره بررسی می‌شود. پس از تأیید ممکن است اعلان یا ارسال طبق مسیرهای انتخاب‌شده ایجاد شود.',
+            'preview'
+        );
         setHidden(panel, false);
         if (confirm) { confirm.disabled = false; confirm.dataset.mode = context.mode; }
     }
@@ -261,18 +284,22 @@
         const editWrap = qs('classops-ai-edit-wrap');
         const apply = qs('classops-ai-apply');
         const fields = draft && draft.fields ? draft.fields : {};
-        const lines = ['پیش‌نویس ساختاری AI — هنوز هیچ mutation/send انجام نشده است.'];
-        for (const key of ['type','title','description','location','importance','requireAck','reminderHint']) {
-            if (fields[key] !== null && fields[key] !== undefined && fields[key] !== '') lines.push(key + ': ' + String(fields[key]));
+        const rows = [];
+        if (fields.type) rows.push(['نوع', itemTypeLabel(fields.type)]);
+        if (fields.title) rows.push(['عنوان', String(fields.title)]);
+        if (fields.description) rows.push(['توضیحات', String(fields.description)]);
+        if (fields.location) rows.push(['مکان', String(fields.location)]);
+        if (fields.importance) rows.push(['اهمیت', label('importance', fields.importance, 'عادی')]);
+        if (typeof fields.requireAck === 'boolean') rows.push(['تأیید مشاهده', fields.requireAck ? 'لازم است' : 'لازم نیست']);
+        if (fields.course) rows.push(['درس', String(fields.course.title || fields.course.rawText || 'تعیین نشده')]);
+        if (fields.timing) rows.push(['زمان', String(fields.timing.rawText || 'تعیین نشده')]);
+        if (fields.audience) rows.push(['مخاطبان', String(fields.audience.rawText || 'تعیین نشده')]);
+        if (fields.delivery && Array.isArray(fields.delivery.initialDestinations)) {
+            rows.push(['مسیرهای ارسال', fields.delivery.initialDestinations.map((entry) => label('destination', entry, 'مسیر ارسال')).join('، ')]);
         }
-        if (fields.course) lines.push('course: ' + String(fields.course.title || fields.course.rawText || 'تعیین نشده'));
-        if (fields.timing) lines.push('timing clue: ' + String(fields.timing.rawText || 'تعیین نشده'));
-        if (fields.audience) lines.push('audience clue: ' + String(fields.audience.rawText || 'تعیین نشده'));
-        if (fields.delivery) lines.push('delivery: ' + JSON.stringify(fields.delivery));
-        if (Array.isArray(draft.unresolved) && draft.unresolved.length) lines.push('نیازمند تعیین مالک: ' + draft.unresolved.join('، '));
-        if (telemetry && telemetry.model) lines.push('model: ' + String(telemetry.model));
-        setText(output, lines.join('\n'));
-        setHidden(output, false);
+        const unresolved = Array.isArray(draft && draft.unresolved) ? draft.unresolved.length : 0;
+        if (unresolved) rows.push(['نیازمند تکمیل', fa(unresolved) + ' مورد']);
+        renderFacts(output, 'پیش‌نویس پیشنهادی', rows, 'این فقط پیش‌نویس است؛ تا پیش‌نمایش و تأیید نهایی چیزی ثبت یا ارسال نمی‌شود.', 'preview');
         setHidden(editWrap, false);
         if (apply) apply.disabled = false;
     }
@@ -301,7 +328,7 @@
             });
         }
         syncTypeControls();
-        setOperationState('ready', 'فیلدهای قطعی AI به فرم منتقل شد. زمان و audience حل‌نشده عمداً حدس زده نشدند.');
+        setOperationState('ready', 'فیلدهای قطعی به فرم منتقل شد. زمان و مخاطب نامشخص عمداً حدس زده نشدند.');
     }
 
     async function mountOperationsCenter(options) {
@@ -342,25 +369,25 @@
                     const title = document.createElement('strong');
                     title.textContent = item.title || 'بدون عنوان';
                     const meta = document.createElement('span');
-                    meta.textContent = [item.type || '', item.status || '', 'r' + String(item.revision || 0)].join(' · ');
+                    meta.textContent = [itemTypeLabel(item.type), stateLabel(item.status), 'ویرایش ' + fa(item.revision || 0)].filter(Boolean).join(' · ');
                     button.append(title, meta);
                     button.addEventListener('click', async () => {
                         try {
                             const detail = await client.get(item.id);
                             selectItem(detail.item || item);
                         } catch (error) {
-                            setOperationState('error', 'جزئیات آیتم دریافت نشد: ' + (error.code || error.message));
+                            setOperationState('error', safeError(error, 'جزئیات این مورد دریافت نشد.'));
                         }
                     });
                     if (listNode) listNode.appendChild(button);
                 }
-                setText(itemState, items.length ? String(items.length) + ' مورد' : 'فهرست خالی است.');
+                setText(itemState, items.length ? fa(items.length) + ' مورد' : 'فعلاً موردی ثبت نشده است.');
                 if (selectedItem) {
                     const fresh = items.find((item) => item.id === selectedItem.id);
                     if (!fresh) { selectedItem = null; setHidden(qs('classops-selected'), true); }
                 }
             } catch (error) {
-                setText(itemState, 'خطا: ' + (error.code || error.message));
+                setText(itemState, safeError(error, 'فهرست موارد دریافت نشد.'));
             }
         }
 
@@ -368,7 +395,7 @@
             selectedItem = item;
             setText(qs('classops-selected-title'), item.title || 'بدون عنوان');
             const bound = !!stage2Binding(item);
-            setText(qs('classops-selected-meta'), [item.type || '', item.status || '', 'revision ' + String(item.revision || 0), bound ? 'Stage2' : 'Foundation-only'].join(' · '));
+            setText(qs('classops-selected-meta'), [itemTypeLabel(item.type), stateLabel(item.status), 'ویرایش ' + fa(item.revision || 0), bound ? 'آماده انتشار' : 'نسخه قدیمی'].join(' · '));
             const editor = qs('classops-edit-description');
             if (editor) editor.value = item.description || '';
             setHidden(qs('classops-selected'), false);
@@ -391,7 +418,7 @@
 
         async function previewCreate() {
             try {
-                setOperationState('loading', 'در حال resolve مخاطب و محاسبه مقصدها...');
+                setOperationState('loading', 'در حال بررسی مخاطبان و مسیرهای ارسال…');
                 const item = buildComposerItem();
                 const audienceSpec = buildAudienceSpec();
                 const destinations = selectedDestinations();
@@ -408,11 +435,11 @@
                     patch:null
                 };
                 renderPreview(preview, currentPreview);
-                setOperationState('ready', 'پیش‌نمایش آماده است؛ هنوز چیزی commit یا ارسال نشده است.');
+                setOperationState('ready', 'پیش‌نمایش آماده است؛ هنوز چیزی ثبت یا ارسال نشده است.');
             } catch (error) {
                 currentPreview = null;
                 setHidden(qs('classops-stage2-preview-panel'), true);
-                setOperationState('error', 'پیش‌نمایش ناموفق: ' + (error.code || error.message));
+                setOperationState('error', safeError(error, 'پیش‌نمایش آماده نشد.'));
             }
         }
 
@@ -420,11 +447,11 @@
             if (!selectedItem) return;
             const binding = stage2Binding(selectedItem);
             if (!binding) {
-                setOperationState('error', 'این آیتم Foundation-only است و برای جلوگیری از انتشار ناخواسته، Stage2 آن را خودکار promote نمی‌کند.');
+                setOperationState('error', 'این مورد با نسخه قدیمی ثبت شده و برای جلوگیری از انتشار ناخواسته، باید دوباره ثبت شود.');
                 return;
             }
             try {
-                setOperationState('loading', 'در حال پیش‌نمایش revision جدید...');
+                setOperationState('loading', 'در حال آماده‌سازی پیش‌نمایش ویرایش…');
                 const config = configFromBinding(binding);
                 const fullItem = publicItemForPreview(selectedItem, patch);
                 const previewBody = {item:fullItem};
@@ -445,12 +472,12 @@
                     summary
                 };
                 renderPreview(preview, currentPreview);
-                setOperationState('ready', 'revision جدید preview شد؛ برای commit تأیید نهایی لازم است.');
+                setOperationState('ready', 'پیش‌نمایش ویرایش آماده است؛ برای ثبت، تأیید نهایی لازم است.');
             } catch (error) {
                 currentPreview = null;
                 setHidden(qs('classops-stage2-preview-panel'), true);
                 if (error.status === 409) await staleRefresh();
-                else setOperationState('error', 'پیش‌نمایش revision ناموفق: ' + (error.code || error.message));
+                else setOperationState('error', safeError(error, 'پیش‌نمایش ویرایش آماده نشد.'));
             }
         }
 
@@ -460,7 +487,7 @@
             if (button) button.disabled = true;
             const context = currentPreview;
             try {
-                setOperationState('loading', 'در حال بازبینی hash مخاطب و commit canonical...');
+                setOperationState('loading', 'در حال بازبینی مخاطبان و ثبت نهایی…');
                 const body = {
                     mode:context.mode,
                     item:context.mode === 'create' ? context.item : context.patch,
@@ -468,7 +495,7 @@
                     expectedAudienceHash:String(context.preview.confirmation && context.preview.confirmation.audienceHash || ''),
                     destinations:context.destinations,
                     idempotencyKey:context.idempotencyKey,
-                    reason:context.mode === 'create' ? 'owner confirmed Stage2 web preview' : 'owner confirmed Stage2 web revision'
+                    reason:context.mode === 'create' ? 'owner confirmed web preview' : 'owner confirmed web revision'
                 };
                 if (context.mode === 'update') {
                     body.id = context.id;
@@ -477,7 +504,7 @@
                 if (context.reminderPolicy !== undefined) body.reminderPolicy = context.reminderPolicy;
                 if (context.serviceRef !== undefined) body.serviceRef = context.serviceRef;
                 const result = await client.request('confirm', {method:'POST', body});
-                setOperationState('ready', 'commit انجام شد؛ اعلان‌ها: ' + String(result.notificationCount || 0) + '، intent مستقیم: ' + String(result.directDeliveryIntentCount || 0) + '.');
+                setOperationState('ready', 'ثبت انجام شد؛ اعلان‌ها: ' + String(result.notificationCount || 0) + '، ارسال مستقیم: ' + String(result.directDeliveryIntentCount || 0) + '.');
                 currentPreview = null;
                 setHidden(qs('classops-stage2-preview-panel'), true);
                 await refreshList();
@@ -486,9 +513,9 @@
                 if (error.status === 409 || error.code === 'CLASSOPS_AUDIENCE_DRIFT' || error.code === 'CLASSOPS_REVISION_CONFLICT') {
                     currentPreview = null;
                     setHidden(qs('classops-stage2-preview-panel'), true);
-                    await staleRefresh('پیش‌نمایش منقضی شد: audience یا revision تغییر کرده است؛ دوباره preview بگیر.');
+                    await staleRefresh('اطلاعات مخاطبان یا نسخه مورد تغییر کرده است؛ دوباره پیش‌نمایش بگیر.');
                 } else {
-                    setOperationState('error', 'commit انجام نشد: ' + (error.code || error.message));
+                    setOperationState('error', safeError(error, 'ثبت انجام نشد.'));
                     if (button) button.disabled = false;
                 }
             }
@@ -497,14 +524,14 @@
         async function staleRefresh(message) {
             await refreshList();
             setHidden(conflict, false);
-            setText(conflict, message || 'نسخه آیتم تغییر کرده؛ فهرست تازه دریافت شد. دوباره بررسی کن.');
+            setText(conflict, message || 'این مورد تغییر کرده است؛ فهرست تازه دریافت شد. دوباره بررسی کن.');
         }
 
         function openDestructive(action) {
             if (!selectedItem) return;
             destructiveAction = action;
             const label = action === 'cancel' ? 'لغو' : 'آرشیو';
-            setText(dialogText, label + ' آیتم «' + String(selectedItem.title || '') + '»؟\nrevision: ' + String(selectedItem.revision || 0));
+            setText(dialogText, label + ' مورد «' + String(selectedItem.title || '') + '»؟\nنسخه ' + fa(selectedItem.revision || 0));
             if (dialog && typeof dialog.showModal === 'function') dialog.showModal();
         }
 
@@ -518,26 +545,26 @@
                     id:selectedItem.id,
                     expectedRevision:Number(selectedItem.revision || 0),
                     idempotencyKey:randomIdempotency(),
-                    reason:'owner confirmed ' + action + ' from Stage2 web center'
+                    reason:'owner confirmed ' + action + ' from web center'
                 }});
-                setOperationState('ready', action === 'cancel' ? 'آیتم لغو شد و ارسال‌های آینده supersede شدند.' : 'آیتم آرشیو شد و ارسال‌های آینده supersede شدند.');
+                setOperationState('ready', action === 'cancel' ? 'مورد لغو شد و ارسال‌های آینده متوقف شدند.' : 'مورد بایگانی شد و ارسال‌های آینده متوقف شدند.');
                 await refreshList();
                 if (result.item) selectItem(result.item);
             } catch (error) {
                 if (error.status === 409) await staleRefresh();
-                else setOperationState('error', 'عملیات انجام نشد: ' + (error.code || error.message));
+                else setOperationState('error', safeError(error, 'عملیات انجام نشد.'));
             }
         }
 
         async function runAiCreate() {
             if (!surface || !surface.ai || surface.ai.state !== 'configured') {
-                setOperationState('error', 'AI ClassOps روی runtime تنظیم نشده است؛ فرم دستی فعال است.');
+                setOperationState('error', 'هوش مصنوعی این بخش فعال نیست؛ فرم دستی در دسترس است.');
                 return;
             }
             const ownerText = value('classops-ai-text');
-            if (!ownerText) { setOperationState('error', 'متن درخواست AI خالی است.'); return; }
+            if (!ownerText) { setOperationState('error', 'متن درخواست هوش مصنوعی خالی است.'); return; }
             try {
-                setOperationState('loading', 'در حال ساخت structured draft با AI...');
+                setOperationState('loading', 'در حال ساخت پیش‌نویس پیشنهادی…');
                 const result = await client.request('ai-draft-create', {method:'POST', body:{
                     ownerText,
                     forwardedText:value('classops-ai-forwarded') || null,
@@ -545,24 +572,24 @@
                 }});
                 lastAiDraft = result.draft || null;
                 renderAiDraft(lastAiDraft, result.telemetry || null);
-                setOperationState('ready', 'AI فقط draft تولید کرد؛ برای هر mutation هنوز preview و تأیید مالک لازم است.');
+                setOperationState('ready', 'پیش‌نویس آماده شد؛ برای ثبت یا ارسال هنوز پیش‌نمایش و تأیید نهایی لازم است.');
             } catch (error) {
-                setOperationState('error', 'AI draft ساخته نشد: ' + (error.code || error.message));
+                setOperationState('error', safeError(error, 'پیش‌نویس ساخته نشد.'));
             }
         }
 
         async function runAiEdit() {
             if (!lastAiDraft) return;
             const ownerEditText = value('classops-ai-edit-text');
-            if (!ownerEditText) { setOperationState('error', 'دستور اصلاح AI خالی است.'); return; }
+            if (!ownerEditText) { setOperationState('error', 'درخواست اصلاح خالی است.'); return; }
             try {
-                setOperationState('loading', 'در حال اصلاح structured draft...');
+                setOperationState('loading', 'در حال اصلاح پیش‌نویس…');
                 const result = await client.request('ai-draft-edit', {method:'POST', body:{priorDraft:lastAiDraft, ownerEditText}});
                 lastAiDraft = result.draft || null;
                 renderAiDraft(lastAiDraft, result.telemetry || null);
-                setOperationState('ready', 'نسخه draft AI اصلاح شد؛ هنوز mutation انجام نشده است.');
+                setOperationState('ready', 'پیش‌نویس اصلاح شد؛ هنوز چیزی ثبت نشده است.');
             } catch (error) {
-                setOperationState('error', 'اصلاح AI انجام نشد: ' + (error.code || error.message));
+                setOperationState('error', safeError(error, 'اصلاح پیش‌نویس انجام نشد.'));
             }
         }
 
@@ -572,11 +599,13 @@
                 const action = kind === 'weekly' ? 'weekly-digest' : 'tomorrow-summary';
                 const payload = await client.request(action);
                 const digest = payload.digest || {};
-                setText(output, digest.plainText || digest.text || JSON.stringify(digest, null, 2));
-                setHidden(output, false);
+                if (window.ClassOperationsProduct && typeof window.ClassOperationsProduct.renderDigest === 'function') {
+                    window.ClassOperationsProduct.renderDigest(output, digest, kind);
+                } else {
+                    renderFacts(output, kind === 'weekly' ? 'هفته پیش رو' : 'فردا', [], digest.empty ? 'موردی ثبت نشده است.' : 'خلاصه آماده است.');
+                }
             } catch (error) {
-                setText(output, 'خلاصه در دسترس نیست: ' + (error.code || error.message));
-                setHidden(output, false);
+                renderFacts(output, 'خلاصه در دسترس نیست', [], safeError(error, 'خلاصه این بازه دریافت نشد.'), 'error');
             }
         }
 
@@ -585,26 +614,33 @@
             const output = qs('classops-selected-output');
             try {
                 const payload = await client.request('ack-stats', {query:{id:selectedItem.id}});
-                setText(output, JSON.stringify(payload.stats || {}, null, 2));
-                setHidden(output, false);
+                const stats = payload.stats || {};
+                renderFacts(output, 'وضعیت مشاهده اطلاعیه', [
+                    ['کل مخاطبان', fa(stats.eligible || 0)],
+                    ['تأییدشده', fa(stats.acked || 0)],
+                    ['در انتظار', fa(stats.pending || 0)]
+                ], 'فقط تأیید صریح دانشجو در این آمار ثبت می‌شود.');
             } catch (error) {
-                setText(output, 'ACK stats: ' + (error.code || error.message));
-                setHidden(output, false);
+                renderFacts(output, 'آمار در دسترس نیست', [], safeError(error, 'آمار تأییدها دریافت نشد.'), 'error');
             }
         }
 
         async function loadTaskState() {
             if (!selectedItem) return;
             const studentNumber = latinDigits(value('classops-task-student'));
-            if (!/^\d{5,20}$/.test(studentNumber)) { setOperationState('error', 'شماره دانشجویی برای task state معتبر نیست.'); return; }
+            if (!/^\d{5,20}$/.test(studentNumber)) { setOperationState('error', 'شماره دانشجویی معتبر نیست.'); return; }
             const output = qs('classops-selected-output');
             try {
                 const payload = await client.request('task-state', {query:{id:selectedItem.id, studentNumber}});
-                setText(output, JSON.stringify(payload.state || {}, null, 2));
-                setHidden(output, false);
+                const task = payload.state || {};
+                renderFacts(output, 'وضعیت تکلیف دانشجو', [
+                    ['وضعیت', task.state ? stateLabel(task.state) : 'ثبت نشده'],
+                    ['پیشرفت', fa(task.progressCount || 0)],
+                    ['نسخه وضعیت', fa(task.stateRevision || 0)],
+                    ['آخرین تغییر', task.updatedAt && window.ClassOperationsProduct ? window.ClassOperationsProduct.persianDate(task.updatedAt) : '—']
+                ]);
             } catch (error) {
-                setText(output, 'Task state: ' + (error.code || error.message));
-                setHidden(output, false);
+                renderFacts(output, 'وضعیت در دسترس نیست', [], safeError(error, 'وضعیت تکلیف دریافت نشد.'), 'error');
             }
         }
 
@@ -664,26 +700,26 @@
         if (qs('classops-ai-cohort') && !qs('classops-ai-cohort').value) qs('classops-ai-cohort').value = PRIMARY_COHORT;
 
         try {
-            setAccess('loading', 'در حال بررسی دسترسی canonical مالک...');
+            setAccess('loading', 'در حال بررسی دسترسی مدیریت…');
             await client.status();
             const capabilities = await client.capabilities();
             surface = capabilities && capabilities.surface ? capabilities.surface : null;
-            if (!surface || !surface.foundation || surface.foundation.state !== 'available') throw new Error('Stage2 capability document unavailable');
+            if (!surface || !surface.foundation || surface.foundation.state !== 'available') throw new Error('وضعیت سرویس‌های امور کلاس در دسترس نیست');
             renderSurfaceCapabilities(surface);
             setHidden(ownerCenter, false);
-            setAccess('ready', 'دسترسی مالک و ClassOps Stage2 تأیید شد.');
+            setAccess('ready', 'دسترسی مدیریت امور کلاس تأیید شد.');
             const aiSubmit = qs('classops-ai-submit');
             if (aiSubmit) aiSubmit.disabled = !(surface.ai && surface.ai.state === 'configured');
             const aiState = qs('classops-ai-state');
             setText(aiState, surface.ai && surface.ai.state === 'configured'
-                ? 'AI ClassOps تنظیم شده است؛ خروجی فقط draft است.'
-                : 'AI ClassOps تنظیم نشده؛ مسیر دستی کاملاً فعال است.');
+                ? 'هوش مصنوعی فعال است؛ خروجی ابتدا به‌صورت پیش‌نویس نمایش داده می‌شود.'
+                : 'هوش مصنوعی فعال نیست؛ مسیر دستی کاملاً در دسترس است.');
             await refreshList();
             return {role:'owner', surface};
         } catch (error) {
             setHidden(ownerCenter, true);
-            if (error.status === 401 || error.status === 403) setAccess('forbidden', 'این صفحه فقط برای مالک canonical فعال است.');
-            else setAccess('error', 'Stage2 قابل تأیید نیست؛ هیچ کنترل مدیریتی فعال نشد.');
+            if (error.status === 401 || error.status === 403) setAccess('forbidden', 'این صفحه فقط برای مدیریت سامانه فعال است.');
+            else setAccess('error', 'وضعیت سرویس‌های مدیریتی قابل تأیید نیست؛ کنترل‌های مدیریت فعال نشدند.');
             return {role:'unknown', error};
         }
     }

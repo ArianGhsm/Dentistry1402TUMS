@@ -38,7 +38,7 @@
         <section class="grades-intro">
             <span class="grades-kicker">نمرات</span>
             <h2 class="grades-title">کارنامه‌ات با همان حساب سراسری باز می‌شود.</h2>
-            <p class="grades-desc">این صفحه دیگر login مستقل ندارد. اگر یک‌بار وارد حساب شوی، کارنامه‌ات با همان نشست مشترک روی همین دستگاه بازیابی می‌شود.</p>
+            <p class="grades-desc">این صفحه دیگر ورود جداگانه ندارد. اگر یک‌بار وارد حساب شوی، کارنامه‌ات با همان نشست مشترک روی همین دستگاه بازیابی می‌شود.</p>
         </section>
 
         <section class="grades-auth-stage" id="auth-stage" aria-labelledby="grades-auth-title" hidden>
@@ -93,7 +93,7 @@
                     <div>
                         <span class="grades-owner-panel__eyebrow">مالک سایت</span>
                         <h3 id="grades-owner-title">مدیریت گروهی کارنامه</h3>
-                        <p>Import نمرات، حذف کامل یک درس و ریست سراسری کارنامه از همین بخش نمرات انجام می‌شود.</p>
+                        <p>ثبت گروهی نمرات، حذف کامل یک درس و بازنشانی سراسری کارنامه از همین بخش انجام می‌شود.</p>
                     </div>
                     <button id="grades-owner-refresh" type="button" class="secondary-btn">تازه‌سازی مدیریت</button>
                 </div>
@@ -103,24 +103,24 @@
                 <div class="grades-owner-tools">
                     <form id="grades-owner-import-form" class="grades-owner-tool grades-owner-import-form" novalidate>
                         <div class="grades-owner-tool__head">
-                            <h4>Import دستی یا فایل</h4>
+                            <h4>ثبت دستی یا از فایل</h4>
                             <p>متن را با خط اول نام درس و سقف نمره وارد کن، یا فایل متنی/Excel بده.</p>
                         </div>
 
-                        <label for="grades-owner-import-text">Import متنی</label>
-                        <textarea id="grades-owner-import-text" rows="7" placeholder="پروتز کامل نظری, 10&#10;40211272003, 6.5&#10;40211272004, 7.4"></textarea>
+                        <label for="grades-owner-import-text">ورودی متنی</label>
+                        <textarea id="grades-owner-import-text" rows="7" placeholder="پروتز کامل نظری، ۱۰&#10;۴۰۲۱۱۲۷۲۰۰۳، ۶٫۵&#10;۴۰۲۱۱۲۷۲۰۰۴، ۷٫۴"></textarea>
 
                         <label for="grades-owner-import-file">فایل متنی یا Excel</label>
                         <input id="grades-owner-import-file" type="file" accept=".txt,.csv,.xlsx,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
 
                         <p class="grades-owner-hint">Excel: ردیف اول ستون اول نام درس، ستون سوم سقف نمره؛ از ردیف دوم ستون اول شماره دانشجویی و ستون دوم نمره.</p>
 
-                        <button id="grades-owner-import-submit" class="primary-btn" type="submit">Import نمرات</button>
+                        <button id="grades-owner-import-submit" class="primary-btn" type="submit">ثبت نمرات</button>
                     </form>
 
                     <div class="grades-owner-tool grades-owner-danger-zone">
                         <div class="grades-owner-tool__head">
-                            <h4>حذف و ریست سراسری</h4>
+                            <h4>حذف و بازنشانی سراسری</h4>
                             <p>این عملیات روی کارنامه همه کاربران اعمال می‌شود و بعد از پایان، همینجا وضعیت جدید را می‌بینی.</p>
                         </div>
 
@@ -131,7 +131,7 @@
 
                         <div class="grades-owner-danger-actions">
                             <button id="grades-owner-delete-course" class="secondary-btn secondary-btn-danger" type="button">حذف کامل درس از همه کارنامه‌ها</button>
-                            <button id="grades-owner-reset-all" class="secondary-btn secondary-btn-danger" type="button">ریست کامل کارنامه</button>
+                            <button id="grades-owner-reset-all" class="secondary-btn secondary-btn-danger" type="button">بازنشانی کامل کارنامه</button>
                         </div>
                     </div>
                 </div>

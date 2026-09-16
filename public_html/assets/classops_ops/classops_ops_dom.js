@@ -3,7 +3,7 @@
     root.ClassOpsOps.mountOperationsCenter = factory(root.ClassOpsOps);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (core) {
     'use strict';
-    const {ACTIONS, FOUNDATION_CAPABILITIES, ClassOpsClient, buildIntent, confirmIntent, diffItem, capabilityModel} = core;
+    const {ACTIONS, FOUNDATION_CAPABILITIES, ClassOpsClient, buildIntent, confirmIntent, diffItem, capabilityModel, uiLabel, toPersianDigits} = core;
     function nonce() {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
         return 'intent-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
@@ -12,6 +12,15 @@
     function qs(id) { return typeof document === 'undefined' ? null : document.getElementById(id); }
     function text(node, value) { if (node) node.textContent = value; }
     function hidden(node, value) { if (node) node.hidden = !!value; }
+    function label(group, value, fallback) { return typeof uiLabel === 'function' ? uiLabel(group, value, fallback) : String(fallback || ''); }
+    function fa(value) { return typeof toPersianDigits === 'function' ? toPersianDigits(value) : String(value == null ? '' : value); }
+    function safeError(error, fallback) {
+        const status = Number(error && error.status || 0);
+        if (status === 401 || status === 403) return 'دسترسی این عملیات برای حساب شما فعال نیست.';
+        if (status === 409) return 'اطلاعات تغییر کرده است؛ دوباره بررسی کن.';
+        if (status >= 500) return 'سرویس موقتاً در دسترس نیست.';
+        return fallback || 'عملیات انجام نشد.';
+    }
 
     async function mountOperationsCenter(options) {
         if (typeof document === 'undefined') return null;
@@ -44,7 +53,7 @@
                 const title = document.createElement('strong');
                 title.textContent = entry.label;
                 const status = document.createElement('span');
-                status.textContent = entry.enabled ? 'آماده در این branch' : 'در انتظار integration';
+                status.textContent = entry.enabled ? 'آماده' : 'در انتظار تکمیل';
                 card.append(title, status);
                 capabilityGrid.appendChild(card);
             });
@@ -59,7 +68,7 @@
                 button.className = 'classops-item-row';
                 button.innerHTML = '<strong></strong><span></span>';
                 button.querySelector('strong').textContent = item.title || 'بدون عنوان';
-                button.querySelector('span').textContent = (item.type || '') + ' · ' + (item.status || '') + ' · r' + String(item.revision || 0);
+                button.querySelector('span').textContent = [label('itemType', item.type, 'مورد کلاس'), label('state', item.status, 'نامشخص'), 'ویرایش ' + fa(item.revision || 0)].join(' · ');
                 button.addEventListener('click', () => selectItem(item));
                 listNode.appendChild(button);
             });
@@ -67,7 +76,7 @@
         function selectItem(item) {
             selectedItem = item;
             text(qs('classops-selected-title'), item.title || 'بدون عنوان');
-            text(qs('classops-selected-meta'), (item.type || '') + ' · ' + (item.status || '') + ' · revision ' + String(item.revision || 0));
+            text(qs('classops-selected-meta'), [label('itemType', item.type, 'مورد کلاس'), label('state', item.status, 'نامشخص'), 'ویرایش ' + fa(item.revision || 0)].join(' · '));
             const editor = qs('classops-edit-description');
             if (editor) editor.value = item.description || '';
             hidden(qs('classops-selected'), false);
@@ -94,14 +103,14 @@
                     if (freshSelected) selectItem(freshSelected);
                     else { selectedItem = null; hidden(qs('classops-selected'), true); }
                 }
-                text(itemState, items.length ? String(items.length) + ' مورد' : 'فهرست خالی است.');
+                text(itemState, items.length ? fa(items.length) + ' مورد' : 'فعلاً موردی ثبت نشده است.');
             } catch (error) {
-                text(itemState, 'خطا در دریافت فهرست: ' + (error.code || error.message));
+                text(itemState, safeError(error, 'فهرست موارد دریافت نشد.'));
             }
         }
         function confirmMutation(intent, summary, executor) {
             pendingMutation = {intent, executor};
-            text(dialogText, summary + '\n\nexpectedRevision: ' + (intent.expectedRevision == null ? '—' : intent.expectedRevision) + '\nidempotency: ' + (intent.idempotencyKey || '—'));
+            text(dialogText, summary + (intent.expectedRevision == null ? '' : '\nنسخه ' + fa(intent.expectedRevision)));
             if (dialog && typeof dialog.showModal === 'function') dialog.showModal();
         }
         async function executePending() {
@@ -116,9 +125,9 @@
                 if (error.status === 409 || error.code === 'CLASSOPS_REVISION_CONFLICT') {
                     await refresh();
                     hidden(conflict, false);
-                    text(conflict, 'نسخه آیتم تغییر کرده؛ داده تازه دریافت شد. تغییر را دوباره بررسی کن.');
+                    text(conflict, 'این مورد تغییر کرده است؛ داده تازه دریافت شد. تغییر را دوباره بررسی کن.');
                 } else {
-                    text(itemState, 'عملیات انجام نشد: ' + (error.code || error.message));
+                    text(itemState, safeError(error, 'عملیات انجام نشد.'));
                 }
             }
         }
@@ -147,7 +156,7 @@
             if (!selectedItem) return;
             const patch = {description:String((qs('classops-edit-description') || {}).value || '')};
             const changes = diffItem(selectedItem, patch);
-            text(qs('classops-diff'), changes.length ? changes.map((entry) => entry.field + ': تغییر می‌کند').join('\n') : 'تغییری وجود ندارد.');
+            text(qs('classops-diff'), changes.length ? changes.map((entry) => label('field', entry.field, 'فیلد') + ': تغییر می‌کند').join('\n') : 'تغییری وجود ندارد.');
             if (!changes.length) return;
             const intent = buildIntent('item.edit', 'owner', {itemId:selectedItem.id, expectedRevision:selectedItem.revision, payload:{changedFields:changes.map((entry) => entry.field)}, nonce:nonce()});
             confirmMutation(intent, 'ویرایش این آیتم ثبت شود؟', (confirmed) => client.update(confirmed, patch, 'owner edited item from cross-surface operations center'));
@@ -158,7 +167,7 @@
             button.addEventListener('click', () => {
                 if (!selectedItem) return;
                 const intent = buildIntent(action, 'owner', {itemId:selectedItem.id, expectedRevision:selectedItem.revision, payload:{status}, nonce:nonce()});
-                confirmMutation(intent, (status === 'scheduled' ? 'وضعیت به scheduled تغییر کند؟' : 'وضعیت به active تغییر کند؟') + ' این تغییر مجوز ارسال پیام نیست.', (confirmed) => client.update(confirmed, {status}, 'owner lifecycle intent from cross-surface operations center'));
+                confirmMutation(intent, (status === 'scheduled' ? 'این مورد زمان‌بندی شود؟' : 'این مورد فعال شود؟') + ' این تغییر مجوز ارسال پیام نیست.', (confirmed) => client.update(confirmed, {status}, 'owner lifecycle intent from cross-surface operations center'));
             });
         });
         [['classops-cancel','item.cancel'],['classops-archive','item.archive']].forEach(([id, action]) => {
@@ -178,7 +187,7 @@
             const value = String((qs('classops-ai-text') || {}).value || '').trim();
             const intent = buildIntent('ai.draft_request', 'owner', {payload:{text:value}});
             const preview = qs('classops-ai-preview');
-            text(preview, 'درخواست پیش‌نویس ساخته شد؛ هنوز به AI ارسال نشده و هیچ داده‌ای ذخیره نشده است.\n\n' + String(intent.payload.text || '').slice(0, 900));
+            text(preview, 'درخواست پیش‌نویس آماده شد؛ هنوز چیزی به هوش مصنوعی ارسال یا ذخیره نشده است.\n\n' + String(intent.payload.text || '').slice(0, 900));
             hidden(preview, false);
         });
 
@@ -193,14 +202,14 @@
                 'ai.provider': !!features.ai
             });
             hidden(ownerPanel, false);
-            setState('ready', 'دسترسی مالک تأیید شد.');
+            setState('ready', 'دسترسی مدیریت تأیید شد.');
             renderCapabilities(runtimeCaps);
             await refresh();
             return {role:'owner', capabilities:runtimeCaps};
         } catch (error) {
             hidden(ownerPanel, true);
-            if (error.status === 401 || error.status === 403) setState('forbidden', 'این صفحه فقط برای مالک فعال است. کنترل‌های مدیریتی نمایش داده نمی‌شوند.');
-            else setState('error', 'امکان بررسی دسترسی ClassOps وجود ندارد. هیچ عملیات مدیریتی فعال نشد.');
+            if (error.status === 401 || error.status === 403) setState('forbidden', 'این صفحه فقط برای مدیریت سامانه فعال است.');
+            else setState('error', 'امکان بررسی دسترسی امور کلاس وجود ندارد؛ کنترل‌های مدیریتی فعال نشدند.');
             return {role:'unknown', error};
         }
     }
