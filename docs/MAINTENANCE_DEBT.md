@@ -8,7 +8,7 @@ Current decomposition targets:
 
 - `public_html/assets/site/scripts/chat.js` — separate transport/state, message rendering, composer/media, and navigation concerns before adding substantial new chat behavior.
 - `public_html/assets/site/styles/chat.css` — split stable tokens/layout primitives from view-specific chat/list/composer rules without changing RTL behavior.
-- `public_html/chat/chat_api.php` — isolate request/auth validation, conversation queries, message mutation, and attachment paths behind tested functions/endpoints.
+- `public_html/chat/chat_api.php` — attachment/media storage, preview, access and upload primitives have been extracted into `chat_media.php`; continue isolating request/auth validation, conversation queries and message mutation behind tested modules/endpoints.
 - `public_html/assets/site/scripts/account.js` — separate authentication/OTP, profile, settings, payments, and account-linked product controllers.
 - `public_html/api/auth_store.php` — persistence primitives are in `auth_store_persistence.php`, SMS provider/configuration primitives are in `auth_store_sms.php`, and the provider-neutral OTP engine is in `auth_store_otp.php`; continue separating identity/session and account-domain operations while preserving the single canonical auth store.
 - `public_html/api/notes_api.php` — direct-upload/session orchestration has been extracted into `notes_direct_upload.php`; continue separating authorization/indexing from remaining file/delivery operations without weakening private-note access rules.

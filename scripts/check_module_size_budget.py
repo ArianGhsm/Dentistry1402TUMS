@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BUDGETS = {
     "public_html/assets/site/scripts/chat.js": 13600,
     "public_html/assets/site/styles/chat.css": 11900,
-    "public_html/chat/chat_api.php": 9800,
+    "public_html/chat/chat_api.php": 8520,
     "public_html/assets/site/scripts/account.js": 8950,
     "public_html/api/auth_store.php": 3984,
     "public_html/api/notes_api.php": 4180,
