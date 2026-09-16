@@ -61,11 +61,11 @@ for service in nginx php8.3-fpm integrated-dent-bot.service integrated-dent-bale
   systemctl is-active --quiet "$service"
 done
 
-for timer in dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-housekeeping.timer; do
+for timer in dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-housekeeping.timer; do
   systemctl is-active --quiet "$timer"
   systemctl is-enabled --quiet "$timer"
 done
-for executable in session-clean backup-runtime housekeeping; do
+for executable in session-clean backup-runtime restore-drill housekeeping; do
   test -x "/usr/local/lib/dentistry1402/$executable"
 done
 
