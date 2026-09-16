@@ -15,6 +15,14 @@ assert "http://185.239.0.235" not in return_source
 assert "Location: http://" not in return_source
 assert "Location: https://dentistry1402tums.ir/" in return_source
 
+relay_marker = "location = /api/voice_payment_return.php {"
+assert relay_marker in nginx_source
+relay_start = nginx_source.index(relay_marker)
+relay_end = nginx_source.index("\n    }", relay_start)
+relay_block = nginx_source[relay_start:relay_end]
+assert "access_log off;" in relay_block
+assert "fastcgi_pass unix:/run/php/php8.3-fpm-dentistry1402.sock;" in relay_block
+
 for path, port in (("voice-pay", "18081"), ("voice-bale-pay", "18082")):
     marker = f'^/{path}/callback/([A-Za-z0-9_-]{{20,80}})$'
     assert marker in nginx_source
