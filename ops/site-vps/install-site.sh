@@ -17,6 +17,7 @@ for required in \
   site-cert.pem site-key.pem nginx-dentistry1402.conf php-fpm-dentistry1402.conf \
   session-clean.sh dentistry1402-session-clean.service dentistry1402-session-clean.timer \
   backup-runtime.sh dentistry1402-backup.service dentistry1402-backup.timer \
+  restore-drill.sh dentistry1402-restore-drill.service dentistry1402-restore-drill.timer \
   housekeeping.sh dentistry1402-housekeeping.service dentistry1402-housekeeping.timer; do
   [[ -f "$bundle_dir/$required" ]] || { echo "missing bundle: $required" >&2; exit 66; }
 done
@@ -76,6 +77,9 @@ install -o root -g root -m 0644 "$bundle_dir/dentistry1402-session-clean.timer" 
 install -o root -g root -m 0755 "$bundle_dir/backup-runtime.sh" /usr/local/lib/dentistry1402/backup-runtime
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup.service" /etc/systemd/system/dentistry1402-backup.service
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup.timer" /etc/systemd/system/dentistry1402-backup.timer
+install -o root -g root -m 0755 "$bundle_dir/restore-drill.sh" /usr/local/lib/dentistry1402/restore-drill
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-restore-drill.service" /etc/systemd/system/dentistry1402-restore-drill.service
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-restore-drill.timer" /etc/systemd/system/dentistry1402-restore-drill.timer
 install -o root -g root -m 0755 "$bundle_dir/housekeeping.sh" /usr/local/lib/dentistry1402/housekeeping
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-housekeeping.service" /etc/systemd/system/dentistry1402-housekeeping.service
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-housekeeping.timer" /etc/systemd/system/dentistry1402-housekeeping.timer
@@ -85,7 +89,7 @@ nginx -t
 systemctl daemon-reload
 systemctl reload php8.3-fpm
 systemctl reload nginx
-systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-housekeeping.timer
+systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-housekeeping.timer
 systemctl start dentistry1402-session-clean.service
 
 printf 'SITE_INSTALL_OK release=%s\n' "$release_sha"
