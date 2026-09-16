@@ -115,6 +115,7 @@ section "Signed bot integration contracts"
 "$PYTHON_BIN" scripts/test_bot_snapshot_safety.py || fail "test_bot_snapshot_safety.py"
 
 section "Zibal first-party payment handoff"
+"$PYTHON_BIN" scripts/test_voice_payment_transport.py || fail "test_voice_payment_transport.py"
 "$PYTHON_BIN" scripts/test_payment_handoff_http.py || fail "test_payment_handoff_http.py"
 
 section "Result"
