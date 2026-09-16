@@ -16,7 +16,9 @@ BUDGETS = {
     "public_html/assets/site/scripts/account.js": 8950,
     "public_html/api/auth_store.php": 3984,
     "public_html/api/notes_api.php": 4180,
-    "bot_runtime/dent_bot/app.py": 3050,
+    "bot_runtime/dent_bot/app.py": 1286,
+    "bot_runtime/dent_bot/dialog_app_workflows.py": 881,
+    "bot_runtime/dent_bot/dynamic_screen_workflows.py": 1085,
 }
 
 failures = []
