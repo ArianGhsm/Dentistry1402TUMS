@@ -445,7 +445,7 @@ try {
         'Friday-night reminder is a personalized Saturday summary with Persian date'
     );
     term7_assert(
-        str_contains((string) ($studentBReminder['body'] ?? ''), 'پریو نظری ۱ — جلسه 1: آناتومی انساج پریودنتال ۱ · مجازی')
+        str_contains((string) ($studentBReminder['body'] ?? ''), 'پریو نظری ۱ — جلسه ۱: آناتومی انساج پریودنتال ۱ · مجازی')
             && str_contains((string) ($studentBReminder['body'] ?? ''), '۰۷:۳۰ تا ۰۸:۳۰'),
         'Friday-night reminder enriches Perio theory from the syllabus with its session title and virtual mode'
     );

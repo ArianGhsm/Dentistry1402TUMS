@@ -539,7 +539,7 @@ function dent_term7_summary_body(array $resolved): string
     $lines = [];
     $appendEvents = static function (array &$target, array $events): void {
         foreach ($events as $event) {
-            $target[] = '• ' . (string) ($event['title'] ?? '');
+            $target[] = '• ' . dent_to_fa_digits((string) ($event['title'] ?? ''));
             $start = trim((string) ($event['start'] ?? ''));
             $end = trim((string) ($event['end'] ?? ''));
             if ($start !== '') {
