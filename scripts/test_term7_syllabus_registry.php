@@ -34,6 +34,7 @@ $expectedKeys = [
     'endodontics-theory-1',
     'diagnostic-dentistry-3',
     'research-methods-2',
+    'endodontics-basics-2',
     'oral-health-practical-2',
     'oral-health-theory-2',
     'periodontology-theory-1',
@@ -48,6 +49,7 @@ $counts = [
     'endodontics-theory-1' => 10,
     'diagnostic-dentistry-3' => 33,
     'research-methods-2' => 17,
+    'endodontics-basics-2' => 14,
     'oral-health-practical-2' => 8,
     'oral-health-theory-2' => 16,
     'periodontology-theory-1' => 17,
@@ -166,6 +168,53 @@ syllabus_assert(
         && ($researchRotationB[0]['instructor'] ?? '') !== ''
         && ($researchRotationB[1]['sessionMode'] ?? '') === 'virtual',
     'Research Methodology repeats the same source-relative session sequence in Rotation B'
+);
+
+
+$endoBasics = $catalog['endodontics-basics-2']['sessions'] ?? [];
+syllabus_assert(
+    count($endoBasics) === 14
+        && ($endoBasics[0]['dates'] ?? []) === ['1405/06/29']
+        && str_contains((string) ($endoBasics[0]['sessionDetails'] ?? ''), 'گروه‌بندی')
+        && ($endoBasics[0]['instructor'] ?? 'x') === '',
+    'Endodontics Foundations 2 preserves all 14 Rotation A rows without fabricating an instructor'
+);
+$endoBasicsQuiz = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲'),
+], '1405/07/12', 'A');
+syllabus_assert(
+    count($endoBasicsQuiz) === 1
+        && ($endoBasicsQuiz[0]['sessionNumber'] ?? null) === 5
+        && str_contains((string) ($endoBasicsQuiz[0]['sessionTitle'] ?? ''), 'کوییز ۱')
+        && ($endoBasicsQuiz[0]['instructor'] ?? '') === 'دکتر ملک پور'
+        && ($endoBasicsQuiz[0]['start'] ?? '') === '07:30'
+        && ($endoBasicsQuiz[0]['end'] ?? '') === '08:30'
+        && empty($endoBasicsQuiz[0]['sourceTimeExplicit']),
+    'Endodontics Foundations 2 enriches Rotation A quiz/demo metadata without inventing a source clock'
+);
+$endoBasicsPractice = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲'),
+], '1405/07/14', 'A');
+syllabus_assert(
+    count($endoBasicsPractice) === 1
+        && ($endoBasicsPractice[0]['sessionNumber'] ?? null) === 6
+        && ($endoBasicsPractice[0]['instructor'] ?? 'x') === '',
+    'Endodontics Foundations 2 practice rows keep the source instructor blank'
+);
+$endoBasicsRotationB = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲'),
+], '1405/09/07', 'B');
+syllabus_assert(
+    count($endoBasicsRotationB) === 1 && !isset($endoBasicsRotationB[0]['sessionNumber']),
+    'Endodontics Foundations 2 does not infer Rotation B syllabus metadata from the Rotation A-only source'
+);
+$endoBasicsRubberDam = $endoBasics[10] ?? [];
+syllabus_assert(
+    ($endoBasicsRubberDam['sessionNumber'] ?? null) === 11
+        && str_contains((string) ($endoBasicsRubberDam['sessionTitle'] ?? ($endoBasicsRubberDam['title'] ?? '')), 'کوییز ۴')
+        && str_contains((string) ($endoBasicsRubberDam['sessionDetails'] ?? ''), 'رابردم')
+        && ($endoBasicsRubberDam['instructor'] ?? '') === 'دکتر اسدیان',
+    'Endodontics Foundations 2 keeps quiz 4, rubber-dam work and the named demonstrator together'
 );
 
 $healthTheory = classops_term7_syllabus_enrich_events([

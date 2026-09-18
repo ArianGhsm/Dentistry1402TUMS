@@ -81,6 +81,30 @@ classops_v3_assert(
     'Practical timeline no longer leaks ambiguous morning/afternoon labels'
 );
 
+$endoStudentNumber = '40211272993';
+$state['assignments'][$endoStudentNumber] = dent_term7_normalize_assignment($endoStudentNumber, [
+    'studentNumber' => $endoStudentNumber,
+    'group10' => 1,
+    'group8' => 11,
+    'updatedAt' => '',
+]);
+$endoStudent = ['studentNumber' => $endoStudentNumber, 'cohortKey' => DENT_TERM7_COHORT, 'role' => 'student'];
+$endoQuizDate = new DateTimeImmutable('2026-10-04 00:00:00', $timezone); // 1405/07/12
+$endoQuizRows = array_values(array_filter(
+    classops_bot_ui_term7_records($endoStudent, $endoQuizDate, $state),
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'مبانی اندودانتیکس ۲'
+));
+classops_v3_assert(
+    count($endoQuizRows) === 1
+        && ($endoQuizRows[0]['sessionNumber'] ?? null) === 5
+        && str_contains((string) ($endoQuizRows[0]['title'] ?? ''), 'کوییز ۱')
+        && ($endoQuizRows[0]['instructor'] ?? '') === 'دکتر ملک پور'
+        && str_contains((string) ($endoQuizRows[0]['startsAt'] ?? ''), 'T13:00:00')
+        && str_contains((string) ($endoQuizRows[0]['endsAt'] ?? ''), 'T15:00:00')
+        && ($endoQuizRows[0]['location'] ?? '') === 'پری‌کلینیک منفی ۲',
+    'Rotation A Endodontics Foundations 2 reaches the bot timeline with session, quiz, instructor, canonical clock and location'
+);
+
 $rotationBStart = new DateTimeImmutable('2026-11-14 00:00:00', $timezone); // 1405/08/23
 $rotationBRows = classops_bot_ui_term7_records($student, $rotationBStart, $state);
 $rotationBHealth = array_values(array_filter(
