@@ -518,6 +518,24 @@ function dent_term7_resolve_date(DateTimeImmutable $date, array $assignment = []
 
 function dent_term7_summary_body(array $resolved): string
 {
+    $jalaliDate = trim((string) ($resolved['date'] ?? ''));
+    $rotation = trim((string) ($resolved['rotation'] ?? ''));
+    $theory = classops_term7_syllabus_enrich_events(
+        is_array($resolved['theory'] ?? null) ? $resolved['theory'] : [],
+        $jalaliDate,
+        $rotation
+    );
+    $morning = classops_term7_syllabus_enrich_events(
+        is_array($resolved['practicalMorning'] ?? null) ? $resolved['practicalMorning'] : [],
+        $jalaliDate,
+        $rotation
+    );
+    $afternoon = classops_term7_syllabus_enrich_events(
+        is_array($resolved['practicalAfternoon'] ?? null) ? $resolved['practicalAfternoon'] : [],
+        $jalaliDate,
+        $rotation
+    );
+
     $lines = [];
     $appendEvents = static function (array &$target, array $events): void {
         foreach ($events as $event) {
@@ -534,24 +552,24 @@ function dent_term7_summary_body(array $resolved): string
         }
     };
     $lines[] = '📚 کلاس‌های نظری';
-    if (($resolved['theory'] ?? []) === []) {
+    if ($theory === []) {
         $lines[] = '• کلاس نظری ثبت‌شده‌ای ندارد.';
     } else {
-        $appendEvents($lines, $resolved['theory']);
+        $appendEvents($lines, $theory);
     }
     $lines[] = '';
     $lines[] = '🦷 کارآموزی صبح';
-    if (($resolved['practicalMorning'] ?? []) === []) {
+    if ($morning === []) {
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {
-        $appendEvents($lines, $resolved['practicalMorning']);
+        $appendEvents($lines, $morning);
     }
     $lines[] = '';
     $lines[] = '🌆 کارآموزی عصر';
-    if (($resolved['practicalAfternoon'] ?? []) === []) {
+    if ($afternoon === []) {
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {
-        $appendEvents($lines, $resolved['practicalAfternoon']);
+        $appendEvents($lines, $afternoon);
     }
     if (!empty($resolved['missingGroup10']) || !empty($resolved['missingGroup8'])) {
         $lines[] = '';
@@ -561,7 +579,7 @@ function dent_term7_summary_body(array $resolved): string
         $lines[] = '';
         $lines[] = 'ℹ️ روز سلامت دهان عملی ۲ شما برای این روتیشن هنوز ثبت نشده است؛ این بخش حدس زده نمی‌شود.';
     }
-    if (($resolved['theory'] ?? []) === [] && ($resolved['practicalMorning'] ?? []) === [] && ($resolved['practicalAfternoon'] ?? []) === []) {
+    if ($theory === [] && $morning === [] && $afternoon === []) {
         $lines[] = '';
         $lines[] = 'برای فردا برنامه ثبت‌شده‌ای ندارید.';
     }

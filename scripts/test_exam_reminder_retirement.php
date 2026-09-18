@@ -162,6 +162,24 @@ $retiredIds = array_fill_keys($normalized['retiredNotificationIds'] ?? [], true)
 $assert(isset($retiredIds['nt-exam-active']) && isset($retiredIds['nt-exam-scheduled']), 'retired IDs are retained for delivery cancellation');
 
 require_once __DIR__ . '/../public_html/api/bot_store.php';
+$routingFixture = [
+    'target' => 'user',
+    'targetStudentNumber' => $studentNumber,
+    'recipients' => [[
+        'studentNumber' => $studentNumber,
+        'name' => 'Test Student',
+        'role' => 'student',
+        'cohortKey' => $primaryCohort,
+    ]],
+];
+$assert(
+    dent_bot_notification_delivery_matches_student($routingFixture, $studentNumber),
+    'notification push routing accepts a student present in the immutable recipient snapshot'
+);
+$assert(
+    !dent_bot_notification_delivery_matches_student($routingFixture, $ownerNumber),
+    'owner management visibility cannot claim another user recipient snapshot'
+);
 $botStore = dent_bot_store_default();
 $botStore['notificationDeliveries']['legacy-exam-pending'] = [
     'deliveryId' => 'nd-11111111111111111111111111111111',

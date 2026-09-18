@@ -112,6 +112,7 @@ require("notifications_list_payload_for_user" in NOTIFICATIONS, "bot notificatio
 require("notifications_mark_read" in NOTIFICATIONS, "bot seen state must use the canonical website read state")
 require("notifications_audience_payload" in NOTIFICATIONS, "owner audience reporting must use the canonical website audience")
 require("dent_bot_notifications_require_owner" in NOTIFICATIONS, "delivery claiming and audience reporting must be owner-only")
+require("dent_bot_notification_delivery_matches_student" in NOTIFICATIONS and "notifications_record_recipients" in NOTIFICATIONS, "bot push delivery must follow the immutable recipient snapshot rather than management visibility")
 require("dent_bot_notification_delivery_store_with_lock" in DELIVERY_STORE and "leaseUntil" in NOTIFICATIONS, "notification delivery must use a durable independent lease")
 require("ctaUrl" in NOTIFICATIONS and "notifications_clean_cta_href" in NOTIFICATIONS, "notification CTA URLs must be website-validated")
 require("createDeployNotification" in STORE, "signed deployment notification action is missing")
