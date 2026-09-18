@@ -128,6 +128,23 @@ function dent_bot_notification_absolute_cta(string $href): string
     return $clean === '' ? '' : dent_bot_site_origin() . $clean;
 }
 
+function dent_bot_notification_delivery_matches_student(array $record, string $studentNumber): bool
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return false;
+    }
+    foreach (notifications_record_recipients($record) as $recipient) {
+        if (!is_array($recipient)) {
+            continue;
+        }
+        if (dent_normalize_student_number((string) ($recipient['studentNumber'] ?? '')) === $studentNumber) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function dent_bot_claim_notification_deliveries(string $platform, array $payload): array
 {
     [$platform] = dent_bot_identity($platform, (string) ($payload['platformUserId'] ?? ''));
@@ -226,6 +243,11 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
                 continue;
             }
             foreach (notifications_visible_records_for_user($notificationStore, $user) as $record) {
+                // Management visibility is broader than push-delivery eligibility.
+                // Push must follow the immutable recipient snapshot, regardless of target type.
+                if (!dent_bot_notification_delivery_matches_student($record, $studentNumber)) {
+                    continue;
+                }
                 if (notifications_record_is_retired_exam_reminder($record)) {
                     continue;
                 }
