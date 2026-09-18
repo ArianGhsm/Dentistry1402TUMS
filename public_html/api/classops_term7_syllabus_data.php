@@ -1230,6 +1230,216 @@ function classops_term7_syllabus_source_catalog(): array
       }
     ]
   },
+  "endodontics-basics-2": {
+    "version": "1405-1406-1.corrected.1",
+    "eventSlugs": [
+      "endodontics-basics-2"
+    ],
+    "courseTitle": "مبانی اندودانتیکس ۲",
+    "sourceCourseTitle": "مبانی اندودانتیکس ۲",
+    "sourceFile": "تقویم آموزشی و دمو واحد مبانی 2 نیمسال اول 06-1405.pdf",
+    "courseCoordinator": "",
+    "sessions": [
+      {
+        "sessionNumber": 1,
+        "sessionNumbers": [
+          1
+        ],
+        "dates": [
+          "1405/06/29"
+        ],
+        "title": "جمع‌آوری مولرهای ماگزیال و مندیبل، رادیوگرافی، تأیید استاد و گروه‌بندی",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "گروه‌بندی دانشجویان در این جلسه انجام می‌شود."
+      },
+      {
+        "sessionNumber": 2,
+        "sessionNumbers": [
+          2
+        ],
+        "dates": [
+          "1405/06/31"
+        ],
+        "title": "دمانستریشن آشنایی با آناتومی داخلی دندان‌های مولر مندیبل و تهیه حفره دسترسی",
+        "instructor": "دکتر نوری",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 3,
+        "sessionNumbers": [
+          3
+        ],
+        "dates": [
+          "1405/07/05"
+        ],
+        "title": "دمانستریشن آشنایی با آناتومی داخلی دندان‌های مولر ماگزیال و تهیه حفره دسترسی",
+        "instructor": "دکتر بابا احمدی",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 4,
+        "sessionNumbers": [
+          4
+        ],
+        "dates": [
+          "1405/07/07"
+        ],
+        "title": "تمرین تهیه حفره دسترسی روی دندان‌های مولر مندیبل و ماگزیال",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 5,
+        "sessionNumbers": [
+          5
+        ],
+        "dates": [
+          "1405/07/12"
+        ],
+        "title": "کوییز ۱ + دمانستریشن تکنیک‌های آماده‌سازی کانال‌های خمیده و باریک",
+        "instructor": "دکتر ملک پور",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 6,
+        "sessionNumbers": [
+          6
+        ],
+        "dates": [
+          "1405/07/14"
+        ],
+        "title": "تمرین آماده‌سازی کانال‌های ریشه دندان‌های مولر",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 7,
+        "sessionNumbers": [
+          7
+        ],
+        "dates": [
+          "1405/07/19"
+        ],
+        "title": "کوییز ۲ + دمانستریشن حوادث حین درمان و روش‌های پیشگیری و مدیریت",
+        "instructor": "دکتر مروی",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 8,
+        "sessionNumbers": [
+          8
+        ],
+        "dates": [
+          "1405/07/21"
+        ],
+        "title": "تمرین آماده‌سازی کانال‌های ریشه و آبچوریشن",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 9,
+        "sessionNumbers": [
+          9
+        ],
+        "dates": [
+          "1405/07/26"
+        ],
+        "title": "کوییز ۳ + دمانستریشن اپکس لوکیتورها",
+        "instructor": "دکتر حمیدزاده",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 10,
+        "sessionNumbers": [
+          10
+        ],
+        "dates": [
+          "1405/07/28"
+        ],
+        "title": "تمرین آماده‌سازی و آبچوریشن کانال‌های ریشه",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 11,
+        "sessionNumbers": [
+          11
+        ],
+        "dates": [
+          "1405/08/03"
+        ],
+        "title": "کوییز ۴ + دمانستریشن ایزولاسیون و تمرین رابردم روی دندان‌های قدامی و مولر دنتیک",
+        "instructor": "دکتر اسدیان",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "تمرین بستن رابردم روی دندان‌های قدامی و مولر دنتیک."
+      },
+      {
+        "sessionNumber": 12,
+        "sessionNumbers": [
+          12
+        ],
+        "dates": [
+          "1405/08/05"
+        ],
+        "title": "تمرین آماده‌سازی و آبچوریشن کانال‌های ریشه",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 13,
+        "sessionNumbers": [
+          13
+        ],
+        "dates": [
+          "1405/08/10"
+        ],
+        "title": "کوییز ۵ + دمانستریشن داروی داخل کانال و ترمیم‌های موقت",
+        "instructor": "دکتر حمیدزاده",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 14,
+        "sessionNumbers": [
+          14
+        ],
+        "dates": [
+          "1405/08/12"
+        ],
+        "title": "تمرین آماده‌سازی و آبچوریشن کانال‌های ریشه",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      }
+    ]
+  },
   "oral-health-practical-2": {
     "version": "1405-1406-1.corrected.1",
     "rotationRelative": true,
