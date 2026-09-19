@@ -1,0 +1,19 @@
+name: Temporary Key Bridge
+on:
+  push:
+    branches:
+      - chatgpt-keybridge-20260919
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -L --fail --retry 3 -o keybridge.zip "https://filebin.net/residencykeys/keybridge.zip"
+          mkdir keys
+          unzip -q keybridge.zip -d keys
+          ls -lh keys
+      - uses: actions/upload-artifact@v4
+        with:
+          name: residency-keys
+          path: keys/
+          retention-days: 1
