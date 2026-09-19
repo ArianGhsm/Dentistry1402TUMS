@@ -1,0 +1,21 @@
+name: Temporary Residency Transfer
+on:
+  push:
+    branches:
+      - chatgpt-residency-transfer
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download package
+        run: |
+          curl -L --fail --retry 3 -o residency.zip "https://filebin.net/residencychatgpt/Dental_Residency_PDFs_1394_1405.zip"
+          mkdir -p unpack
+          unzip -q residency.zip -d unpack
+          find unpack -maxdepth 3 -type f -print
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: residency-pack
+          path: unpack/Dental_Residency_PDFs_1394_1405/
+          retention-days: 1
