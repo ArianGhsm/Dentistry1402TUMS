@@ -68,7 +68,7 @@ class Term7AssistantUiTests(unittest.TestCase):
 
     def test_academic_correction_reuses_the_same_native_rich_table(self):
         item = {
-            "source": "academic-term7-correction",
+            "source": "manager",
             "title": "📣 اصلاح برنامه | شنبه ۱۴۰۵/۰۶/۲۸",
             "body": "📚 کلاس‌های نظری\n• پریو نظری ۱ — جلسه ۱: آناتومی انساج پریودنتال ۱ · مجازی\n  ⏰ ۰۷:۳۰ تا ۰۸:۳۰\n  📍 مجازی\n\nℹ️ محل حضوری درج‌شده برای این کلاس معتبر نیست.",
         }
@@ -79,6 +79,17 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertIn("اصلاح برنامه", str(telegram.text))
         self.assertIn("محل حضوری", telegram.text.rich_html)
         self.assertEqual(telegram.keyboard, bale.keyboard)
+
+    def test_regular_manager_notification_stays_on_generic_renderer(self):
+        item = {
+            "source": "manager",
+            "title": "📣 اطلاعیه عمومی",
+            "body": "این پیام ساختار برنامه ترم ۷ را ندارد.",
+        }
+        base = base_notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        decorated = decorate_academic_notification_screen(base, item)
+        self.assertFalse(hasattr(decorated.text, "rich_html"))
+        self.assertEqual(str(decorated.text), str(base.text))
 
     def test_academic_reminder_missing_oral_health_is_explicit_without_guessing(self):
         item = {

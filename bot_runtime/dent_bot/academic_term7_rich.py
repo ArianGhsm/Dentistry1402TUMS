@@ -7,9 +7,15 @@ from . import ui as ui_module
 
 
 def academic_notification_text(item: dict[str, Any]):
-    if str(item.get("source") or "") not in {"academic-term7", "academic-term7-correction"}:
-        return None
+    source = str(item.get("source") or "")
     raw_title = " ".join(str(item.get("title") or "").split())
+    structured_correction = (
+        source in {"manager", "manager-correction", "academic-term7-correction"}
+        and raw_title.startswith(("📣 اصلاح برنامه |", "📣 اصلاحیه برنامه |"))
+        and "📚 کلاس‌های نظری" in str(item.get("body") or "")
+    )
+    if source != "academic-term7" and not structured_correction:
+        return None
     if "|" not in raw_title:
         return None
     heading, date_label = [part.strip() for part in raw_title.split("|", 1)]
