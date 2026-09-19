@@ -38,6 +38,7 @@ $expectedKeys = [
     'oral-health-practical-2',
     'oral-health-theory-2',
     'periodontology-theory-1',
+    'ent',
     'partial-basics-theory',
 ];
 foreach ($expectedKeys as $key) {
@@ -53,6 +54,7 @@ $counts = [
     'oral-health-practical-2' => 8,
     'oral-health-theory-2' => 16,
     'periodontology-theory-1' => 17,
+    'ent' => 12,
     'partial-basics-theory' => 15,
 ];
 foreach ($counts as $key => $expected) {
@@ -227,6 +229,43 @@ syllabus_assert(
         && ($healthTheory[1]['start'] ?? '') === '07:30'
         && ($healthTheory[1]['end'] ?? '') === '08:30',
     'Oral Health Theory preserves offline session with the explicit syllabus clock and no physical room'
+);
+
+$entVirtual = classops_term7_syllabus_enrich_events([
+    syllabus_event('ent', 'گوش و حلق و بینی'),
+], '1405/07/06');
+syllabus_assert(
+    count($entVirtual) === 1
+        && ($entVirtual[0]['sessionNumber'] ?? null) === 1
+        && ($entVirtual[0]['sessionTitle'] ?? '') === 'اصول معاینه در گوش و حلق و بینی'
+        && ($entVirtual[0]['instructor'] ?? '') === 'دکتر سعید گل پروران'
+        && ($entVirtual[0]['sessionMode'] ?? '') === 'virtual'
+        && ($entVirtual[0]['location'] ?? 'x') === ''
+        && ($entVirtual[0]['start'] ?? 'x') === ''
+        && ($entVirtual[0]['end'] ?? 'x') === '',
+    'ENT first virtual session uses source metadata, omits a physical room, and does not invent a source clock'
+);
+$entInPerson = classops_term7_syllabus_enrich_events([
+    syllabus_event('ent', 'گوش و حلق و بینی'),
+], '1405/07/20');
+syllabus_assert(
+    count($entInPerson) === 1
+        && ($entInPerson[0]['sessionNumber'] ?? null) === 3
+        && ($entInPerson[0]['sessionTitle'] ?? '') === 'آنومالی‌های مادرزادی گردن'
+        && ($entInPerson[0]['instructor'] ?? '') === 'دکتر سارا رهاوی'
+        && ($entInPerson[0]['sessionMode'] ?? '') === 'in_person'
+        && ($entInPerson[0]['location'] ?? '') === 'آمفی‌تئاتر ۹۰'
+        && ($entInPerson[0]['start'] ?? '') === '07:30'
+        && ($entInPerson[0]['end'] ?? '') === '08:30',
+    'ENT shaded source row is in-person and keeps the canonical timetable clock and room'
+);
+$entRows = $catalog['ent']['sessions'] ?? [];
+syllabus_assert(
+    array_column($entRows, 'sessionNumber') === range(1, 12)
+        && count(array_filter($entRows, static fn(array $row): bool => ($row['sessionMode'] ?? '') === 'in_person')) === 5
+        && count(array_filter($entRows, static fn(array $row): bool => ($row['sessionMode'] ?? '') === 'virtual')) === 7
+        && ($entRows[11]['dates'] ?? []) === ['1405/09/23'],
+    'ENT preserves all 12 source rows and the five shaded in-person sessions'
 );
 
 $perio = classops_term7_syllabus_enrich_events([

@@ -11,7 +11,7 @@ require_once __DIR__ . '/classops_term7_syllabus.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.5';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.6';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -269,7 +269,7 @@ function dent_term7_schedule(): array
                 ['slug' => 'diagnostic-dentistry-3-sun', 'title' => 'دندانپزشکی تشخیصی ۳', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation],
             ],
             1 => [
-                ['slug' => 'ent', 'title' => 'گوش و حلق و بینی', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation],
+                ['slug' => 'ent', 'title' => 'گوش و حلق و بینی', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation, 'activeFrom' => '1405/07/06', 'activeThrough' => '1405/09/23'],
                 ['slug' => 'orthodontics-theory-1', 'title' => 'ارتودنسی نظری ۱', 'start' => '12:30', 'end' => '13:30', 'location' => $theoryLocation],
                 ['slug' => 'diagnostic-dentistry-3-mon', 'title' => 'دندانپزشکی تشخیصی ۳', 'start' => '13:45', 'end' => '14:45', 'location' => $theoryLocation],
             ],
@@ -434,13 +434,20 @@ function dent_term7_event_matches(array $event, array $assignment, string $rotat
     return true;
 }
 
-function dent_term7_theory_events(array $events): array
+function dent_term7_theory_events(array $events, string $jalaliDate = ''): array
 {
-    return array_map(static function (array $event): array {
+    $out = [];
+    foreach ($events as $event) {
+        if (!is_array($event)) continue;
+        $activeFrom = trim((string) ($event['activeFrom'] ?? ''));
+        $activeThrough = trim((string) ($event['activeThrough'] ?? ''));
+        if ($jalaliDate !== '' && $activeFrom !== '' && strcmp($jalaliDate, $activeFrom) < 0) continue;
+        if ($jalaliDate !== '' && $activeThrough !== '' && strcmp($jalaliDate, $activeThrough) > 0) continue;
         $event['eventType'] = 'theory';
         $event['source'] = 'official-theory-schedule';
-        return $event;
-    }, $events);
+        $out[] = $event;
+    }
+    return $out;
 }
 
 function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assignment = []): array
@@ -448,7 +455,7 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
     $schedule = dent_term7_schedule();
     $inTerm = strcmp($jalaliDate, (string) $schedule['activeFrom']) >= 0
         && strcmp($jalaliDate, (string) $schedule['activeThrough']) <= 0;
-    $theory = $inTerm ? dent_term7_theory_events(is_array($schedule['theory'][$weekday] ?? null) ? $schedule['theory'][$weekday] : []) : [];
+    $theory = $inTerm ? dent_term7_theory_events(is_array($schedule['theory'][$weekday] ?? null) ? $schedule['theory'][$weekday] : [], $jalaliDate) : [];
     $rotation = '';
     $matchRotation = '';
     $matchWeekday = $weekday;

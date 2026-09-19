@@ -1874,6 +1874,222 @@ function classops_term7_syllabus_source_catalog(): array
       }
     ]
   },
+  "ent": {
+    "version": "1405-1406-1.corrected.1",
+    "eventSlugs": [
+      "ent"
+    ],
+    "courseTitle": "گوش و حلق و بینی",
+    "sourceCourseTitle": "گوش و حلق و بینی",
+    "sourceFile": "امیرآباد طرح درس.pdf",
+    "courseCoordinator": "دکتر محمدرضا فیروزی فر",
+    "sessions": [
+      {
+        "sessionNumber": 1,
+        "sessionNumbers": [
+          1
+        ],
+        "dates": [
+          "1405/07/06"
+        ],
+        "title": "اصول معاینه در گوش و حلق و بینی",
+        "instructor": "دکتر سعید گل پروران",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "معاینه بینی، گوش، دهان و حلق، حنجره، گردن، راه هوایی و اندوسکوپی راه تنفسی فوقانی"
+      },
+      {
+        "sessionNumber": 2,
+        "sessionNumbers": [
+          2
+        ],
+        "dates": [
+          "1405/07/13"
+        ],
+        "title": "اپیستاکسی",
+        "instructor": "دکتر بنیامین موسوی",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "تظاهرات بالینی، تشخیص و درمان"
+      },
+      {
+        "sessionNumber": 3,
+        "sessionNumbers": [
+          3
+        ],
+        "dates": [
+          "1405/07/20"
+        ],
+        "title": "آنومالی‌های مادرزادی گردن",
+        "instructor": "دکتر سارا رهاوی",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "کیست، فیستول‌ها و مالفورماسیون‌های عروقی"
+      },
+      {
+        "sessionNumber": 4,
+        "sessionNumbers": [
+          4
+        ],
+        "dates": [
+          "1405/07/27"
+        ],
+        "title": "عفونت‌های عمقی سر و گردن",
+        "instructor": "دکتر ملیکا کریمی",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "تأکید بر آبسه‌های ادنتوژنیک، آشنایی با فضاهای گردنی"
+      },
+      {
+        "sessionNumber": 5,
+        "sessionNumbers": [
+          5
+        ],
+        "dates": [
+          "1405/08/04"
+        ],
+        "title": "بیماری‌های حفره دهان",
+        "instructor": "دکتر آرمین حسن زاده",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "بیماری‌های التهابی، تومورهای خوش‌خیم و بدخیم زبان، اوروفارنکس و حلق"
+      },
+      {
+        "sessionNumber": 6,
+        "sessionNumbers": [
+          6
+        ],
+        "dates": [
+          "1405/08/11"
+        ],
+        "title": "ترومای سر و صورت",
+        "instructor": "دکتر سمیرا علی پور",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "تشخیص و درمان"
+      },
+      {
+        "sessionNumber": 7,
+        "sessionNumbers": [
+          7
+        ],
+        "dates": [
+          "1405/08/18"
+        ],
+        "title": "اختلال تنفسی حین خواب",
+        "instructor": "دکتر علی عالی زاده",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "کودکان و بالغین"
+      },
+      {
+        "sessionNumber": 8,
+        "sessionNumbers": [
+          8
+        ],
+        "dates": [
+          "1405/08/25"
+        ],
+        "title": "بیماری‌های حنجره و راه هوایی",
+        "instructor": "دکتر مهدیه محبی",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "پاتولوژی‌های مسیر هوایی و اختلالات ساختاری، آشنایی با اورژانس‌های راه هوایی"
+      },
+      {
+        "sessionNumber": 9,
+        "sessionNumbers": [
+          9
+        ],
+        "dates": [
+          "1405/09/02"
+        ],
+        "title": "بیماری‌های تومورال گوش",
+        "instructor": "دکتر زهرا اسلامی پناه",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "تظاهرات بالینی، تشخیص و درمان"
+      },
+      {
+        "sessionNumber": 10,
+        "sessionNumbers": [
+          10
+        ],
+        "dates": [
+          "1405/09/09"
+        ],
+        "title": "برخورد با اتالژی",
+        "instructor": "دکتر فرید فرح بخش",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "in_person",
+        "sourcePage": 1,
+        "sessionDetails": "افتراق گوش‌درد با دردهای رفرال به گوش و بیماری‌های TMJ"
+      },
+      {
+        "sessionNumber": 11,
+        "sessionNumbers": [
+          11
+        ],
+        "dates": [
+          "1405/09/16"
+        ],
+        "title": "بیماری‌های التهابی سینوس",
+        "instructor": "دکتر محمدرضا فیروزی فر",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "تظاهرات بالینی، تشخیص و درمان"
+      },
+      {
+        "sessionNumber": 12,
+        "sessionNumbers": [
+          12
+        ],
+        "dates": [
+          "1405/09/23"
+        ],
+        "title": "تومورهای بینی و سینوس",
+        "instructor": "دکتر شیرین ایرانی",
+        "references": [
+          "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
+        ],
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionDetails": "تظاهرات بالینی، تشخیص و درمان با تأکید بر ضایعات ادنتوژنیک"
+      }
+    ]
+  },
   "periodontology-theory-1": {
     "version": "1405-1406-1.corrected.1",
     "sourceTiming": {

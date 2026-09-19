@@ -65,6 +65,33 @@ try {
     $mondayB = dent_term7_resolve_jalali('1405/09/03', 1, ['group10' => 6, 'group8' => 11]);
     term7_assert($mondayA['practicalAfternoon'] === [] && $mondayB['practicalAfternoon'] === [], 'Monday afternoon is disabled in both rotations');
 
+    $entBeforeStart = dent_term7_resolve_jalali('1405/06/30', 1, ['group10' => 1, 'group8' => 15]);
+    term7_assert(
+        !in_array('گوش و حلق و بینی', term7_titles($entBeforeStart['theory']), true),
+        'ENT is absent before the source-declared 1405/07/06 course start'
+    );
+    $entFirstSummary = dent_term7_summary_body($mondayA);
+    term7_assert(
+        str_contains($entFirstSummary, 'گوش و حلق و بینی — جلسه ۱: اصول معاینه در گوش و حلق و بینی · مجازی')
+            && str_contains($entFirstSummary, '📍 مجازی')
+            && !str_contains($entFirstSummary, 'گوش و حلق و بینی — جلسه ۱: اصول معاینه در گوش و حلق و بینی · مجازی' . PHP_EOL . '  ⏰')
+            && !str_contains($entFirstSummary, 'گوش و حلق و بینی — جلسه ۱: اصول معاینه در گوش و حلق و بینی · مجازی' . PHP_EOL . '  📍 آمفی‌تئاتر ۹۰'),
+        'ENT first session summary is virtual, source-titled, untimed, and has no classroom leakage'
+    );
+    $entInPersonDay = dent_term7_resolve_jalali('1405/07/20', 1, ['group10' => 1, 'group8' => 15]);
+    $entInPersonSummary = dent_term7_summary_body($entInPersonDay);
+    term7_assert(
+        str_contains($entInPersonSummary, 'گوش و حلق و بینی — جلسه ۳: آنومالی‌های مادرزادی گردن')
+            && str_contains($entInPersonSummary, '⏰ ۰۷:۳۰ تا ۰۸:۳۰')
+            && str_contains($entInPersonSummary, '📍 آمفی‌تئاتر ۹۰'),
+        'ENT shaded in-person session keeps the canonical timetable clock and room'
+    );
+    $entAfterEnd = dent_term7_resolve_jalali('1405/09/30', 1, ['group10' => 6, 'group8' => 11]);
+    term7_assert(
+        !in_array('گوش و حلق و بینی', term7_titles($entAfterEnd['theory']), true),
+        'ENT is absent after the source-declared 1405/09/23 course end'
+    );
+
     term7_assert(
         dent_term7_practical_time_range('morning') === ['09:00', '12:00']
             && dent_term7_practical_time_range('afternoon') === ['13:00', '15:00'],
