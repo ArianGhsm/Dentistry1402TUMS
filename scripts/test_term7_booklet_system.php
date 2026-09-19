@@ -34,6 +34,7 @@ try {
     $managerSn = '40211272992';
     $specialSn = '40211272993';
     $paidSn = '40211272994';
+    $podcastSn = '40211272995';
     dent_save_user_store([
         'cohorts' => dent_default_cohort_catalog(),
         'users' => [
@@ -42,6 +43,7 @@ try {
             $managerSn => ['studentNumber'=>$managerSn,'name'=>'مسئول جزوه','passwordHash'=>$password,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
             $specialSn => ['studentNumber'=>$specialSn,'name'=>'مسئول اینفوگرافیک','passwordHash'=>$password,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
             $paidSn => ['studentNumber'=>$paidSn,'name'=>'دانشجوی پرداختی','passwordHash'=>$password,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
+            $podcastSn => ['studentNumber'=>$podcastSn,'name'=>'مسئول پادکست','passwordHash'=>$password,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
         ],
     ]);
     $state = dent_term7_booklet_system_default();
@@ -52,6 +54,11 @@ try {
     $state['specialRoles'][$specialSn] = [[
         'key'=>DENT_TERM7_BOOKLET_INFOGRAPHIC_ROLE,
         'label'=>'مسئول اینفوگرافیک',
+        'grantsFreeSubscription'=>true,
+    ]];
+    $state['specialRoles'][$podcastSn] = [[
+        'key'=>DENT_TERM7_BOOKLET_PODCAST_ROLE,
+        'label'=>'مسئول پادکست',
         'grantsFreeSubscription'=>true,
     ]];
     dent_term7_booklet_system_with_lock(static function (array &$locked) use ($state): array {
@@ -71,17 +78,21 @@ try {
     booklet_system_assert(($special['group'] ?? null) === null && ($special['freeSubscriptionEligible'] ?? false) === true, 'Infographic owner is free without booklet group');
     booklet_system_assert(($special['specialRoles'][0]['label'] ?? '') === 'مسئول اینفوگرافیک', 'Infographic role is explicit in profile');
 
+    $podcast = dent_term7_booklet_public_profile($podcastSn);
+    booklet_system_assert(($podcast['freeSubscriptionEligible'] ?? false) === true, 'Podcast owner receives free subscription eligibility');
+    booklet_system_assert(($podcast['specialRoles'][0]['label'] ?? '') === 'مسئول پادکست', 'Podcast role is explicit in profile');
+
     $paid = dent_term7_booklet_public_profile($paidSn);
     booklet_system_assert(($paid['freeSubscriptionEligible'] ?? true) === false && ($paid['subscriptionPriceRials'] ?? 0) === 1500000, 'Non-member remains on paid subscription path');
 
     $owner = dent_get_user_record($ownerSn);
     $payload = dent_term7_booklet_owner_payload($owner);
-    booklet_system_assert(($payload['summary']['classCount'] ?? 0) === 5 && ($payload['summary']['classPaidMembers'] ?? -1) === 1, 'Owner summary separates class booklet members from paid path');
+    booklet_system_assert(($payload['summary']['classCount'] ?? 0) === 6 && ($payload['summary']['classPaidMembers'] ?? -1) === 1, 'Owner summary separates class booklet members from paid path');
 
     $free = dent_term7_booklet_free_subscription_roster($owner);
     $freeNumbers = array_map(static fn(array $row): string => (string) ($row['studentNumber'] ?? ''), $free['eligible'] ?? []);
     booklet_system_assert(in_array($ownerSn, $freeNumbers, true), 'Owner is always included in automatic free roster');
-    booklet_system_assert(in_array($memberSn, $freeNumbers, true) && in_array($managerSn, $freeNumbers, true) && in_array($specialSn, $freeNumbers, true), 'Group members and infographic owner are included in automatic free roster');
+    booklet_system_assert(in_array($memberSn, $freeNumbers, true) && in_array($managerSn, $freeNumbers, true) && in_array($specialSn, $freeNumbers, true) && in_array($podcastSn, $freeNumbers, true), 'Group members plus infographic and podcast owners are included in automatic free roster');
     booklet_system_assert(!in_array($paidSn, $freeNumbers, true), 'Paid-path student is excluded from free roster');
 
     dent_bot_persistence_initialize(dent_bot_store_path(), dent_bot_store_default(), 'dent_bot_store_normalize', 'term7-booklet-test-init');
@@ -110,7 +121,7 @@ try {
         'platform'=>'telegram',
         'platformUserId'=>'910001',
     ]);
-    booklet_system_assert(($serviceFree['count'] ?? 0) === 4, 'Signed owner service exposes exact automatic-free roster');
+    booklet_system_assert(($serviceFree['count'] ?? 0) === 5, 'Signed owner service exposes exact automatic-free roster');
 
     $account = dent_bot_service_dispatch([
         'action'=>'account',

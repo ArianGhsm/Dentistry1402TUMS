@@ -42,6 +42,22 @@ class BookletProfileUiTests(unittest.TestCase):
         self.assertIn("مسئول اینفوگرافیک", screen.text)
         self.assertIn("رایگان", screen.text)
 
+    def test_account_profile_shows_podcast_role_with_free_subscription(self):
+        screen = account_screen(
+            "https://example.test",
+            platform="telegram",
+            linked_user={"name": "علیرضا نصرتی", "roleLabel": "دانشجو"},
+            booklet_profile={
+                "group": None,
+                "statusLabel": "بدون گروه",
+                "managerCourses": [],
+                "specialRoles": [{"label": "مسئول پادکست"}],
+                "freeSubscriptionEligible": True,
+            },
+        )
+        self.assertIn("مسئول پادکست", screen.text)
+        self.assertIn("رایگان · فعال‌سازی خودکار ماهانه", screen.text)
+
     def test_account_profile_nonmember_is_explicitly_paid(self):
         screen = account_screen(
             "https://example.test",

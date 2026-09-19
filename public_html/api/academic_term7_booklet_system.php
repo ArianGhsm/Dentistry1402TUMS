@@ -6,10 +6,25 @@ require_once __DIR__ . '/academic_term7_management.php';
 const DENT_TERM7_BOOKLET_SYSTEM_SCHEMA = 1;
 const DENT_TERM7_BOOKLET_SYSTEM_VERSION = '1405-1406.1';
 const DENT_TERM7_BOOKLET_INFOGRAPHIC_ROLE = 'infographic';
+const DENT_TERM7_BOOKLET_PODCAST_ROLE = 'podcast';
 
 function dent_term7_booklet_system_path(): string
 {
     return dent_storage_path('academic/term7-1405-1406-booklet-system.json');
+}
+
+function dent_term7_booklet_special_role_catalog(): array
+{
+    return [
+        DENT_TERM7_BOOKLET_INFOGRAPHIC_ROLE => [
+            'label' => 'مسئول اینفوگرافیک',
+            'grantsFreeSubscription' => true,
+        ],
+        DENT_TERM7_BOOKLET_PODCAST_ROLE => [
+            'label' => 'مسئول پادکست',
+            'grantsFreeSubscription' => true,
+        ],
+    ];
 }
 
 function dent_term7_booklet_course_catalog(): array
@@ -128,18 +143,19 @@ function dent_term7_booklet_system_normalize(array $raw): array
             continue;
         }
         $roles = [];
+        $roleCatalog = dent_term7_booklet_special_role_catalog();
         foreach ($rolesRaw as $roleRaw) {
             if (!is_array($roleRaw)) {
                 continue;
             }
             $roleKey = trim((string) ($roleRaw['key'] ?? ''));
-            if ($roleKey !== DENT_TERM7_BOOKLET_INFOGRAPHIC_ROLE) {
+            if (!isset($roleCatalog[$roleKey])) {
                 continue;
             }
             $roles[$roleKey] = [
                 'key' => $roleKey,
-                'label' => 'مسئول اینفوگرافیک',
-                'grantsFreeSubscription' => true,
+                'label' => (string) ($roleCatalog[$roleKey]['label'] ?? ''),
+                'grantsFreeSubscription' => !empty($roleCatalog[$roleKey]['grantsFreeSubscription']),
             ];
         }
         if ($roles !== []) {
