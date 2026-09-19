@@ -1,8 +1,5 @@
 name: Temporary Drive Transfer
 on:
-  push:
-    branches:
-      - tmp-drive-transfer-20260919
   workflow_dispatch:
 jobs:
   package:
