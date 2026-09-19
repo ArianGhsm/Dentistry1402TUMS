@@ -217,6 +217,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
                 platform=self.platform,
                 identity_state=dict(account.get("identity") or {}),
                 onboarding_profile=profile,
+                booklet_profile=dict(account.get("bookletProfile") or {}) if isinstance(account.get("bookletProfile"), dict) else None,
             )
         return gateway_screen()
 

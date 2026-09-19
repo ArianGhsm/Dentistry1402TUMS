@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/academic_term7_management.php';
+require_once __DIR__ . '/academic_term7_booklet_system.php';
 
 function dent_term7_bot_service_action(string $action): bool
 {
@@ -10,6 +11,10 @@ function dent_term7_bot_service_action(string $action): bool
         'academicTerm7Roster',
         'academicTerm7AssignmentUpdate',
         'academicTerm7LeaderUpdate',
+        'academicTerm7BookletRoster',
+        'academicTerm7BookletAssignmentUpdate',
+        'academicTerm7BookletLeaderUpdate',
+        'academicTerm7BookletFreeRoster',
     ], true);
 }
 
@@ -36,13 +41,24 @@ function dent_term7_bot_service_has_assignment(string $studentNumber, ?array $st
 function dent_term7_bot_service_roster(array $owner): array
 {
     $state = dent_term7_state_read();
-    return array_values(array_filter(
+    $bookletState = dent_term7_booklet_system_read();
+    $directory = dent_term7_booklet_user_directory();
+    $rows = array_values(array_filter(
         dent_term7_owner_roster($owner),
         static fn(array $row): bool => dent_term7_bot_service_has_assignment(
             (string) ($row['studentNumber'] ?? ''),
             $state
         )
     ));
+    foreach ($rows as &$row) {
+        $row['bookletSystem'] = dent_term7_booklet_public_profile(
+            (string) ($row['studentNumber'] ?? ''),
+            $bookletState,
+            $directory
+        );
+    }
+    unset($row);
+    return $rows;
 }
 
 function dent_term7_bot_service_event_projection(array $event, string $period = ''): array
@@ -157,6 +173,7 @@ function dent_term7_bot_service_dispatch(array $request): array
             'assignment' => $assignment,
             'academicTerm' => dent_term7_academic_context(),
             'groups' => dent_term7_public_group_context_for_student($studentNumber, $academicState, $leaderState),
+            'bookletSystem' => dent_term7_booklet_public_context($studentNumber),
             'scheduleContext' => dent_term7_bot_service_schedule_context($assignment),
         ];
     }
@@ -165,6 +182,12 @@ function dent_term7_bot_service_dispatch(array $request): array
 
     if ($action === 'academicTerm7Roster') {
         return ['success' => true, 'roster' => dent_term7_bot_service_roster($user)];
+    }
+    if ($action === 'academicTerm7BookletRoster') {
+        return ['success' => true] + dent_term7_booklet_owner_payload($user);
+    }
+    if ($action === 'academicTerm7BookletFreeRoster') {
+        return ['success' => true] + dent_term7_booklet_free_subscription_roster($user);
     }
 
     $studentNumber = (string) ($request['studentNumber'] ?? '');
@@ -187,6 +210,24 @@ function dent_term7_bot_service_dispatch(array $request): array
         return [
             'success' => true,
             'assignment' => dent_term7_owner_set_leader($user, $studentNumber, $field, $leader),
+        ];
+    }
+    if ($action === 'academicTerm7BookletAssignmentUpdate') {
+        $rawGroup = $request['group'] ?? null;
+        $group = ($rawGroup === null || $rawGroup === '') ? null : (int) $rawGroup;
+        return [
+            'success' => true,
+            'bookletSystem' => dent_term7_booklet_owner_update_group($user, $studentNumber, $group),
+        ];
+    }
+    if ($action === 'academicTerm7BookletLeaderUpdate') {
+        $leader = filter_var($request['leader'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($leader === null) {
+            dent_error('وضعیت سرگروهی جزوه‌نویسی معتبر نیست.', 422, ['code' => 'BOOKLET_LEADER_VALUE_INVALID']);
+        }
+        return [
+            'success' => true,
+            'bookletSystem' => dent_term7_booklet_owner_set_leader($user, $studentNumber, $leader),
         ];
     }
 

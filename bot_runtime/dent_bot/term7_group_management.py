@@ -30,6 +30,25 @@ def _assignment(row: dict[str, Any]) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
 
 
+def _booklet_profile(row: dict[str, Any]) -> dict[str, Any]:
+    value = row.get("bookletSystem")
+    return dict(value) if isinstance(value, dict) else {}
+
+
+def _booklet_summary(profile: dict[str, Any]) -> str:
+    group = profile.get("group")
+    if isinstance(group, int):
+        return f"جزوه‌نویسی: گروه {to_persian_digits(group)} · {profile.get('statusLabel') or 'عضو'}"
+    roles = [
+        str(item.get("label") or "").strip()
+        for item in profile.get("specialRoles", [])
+        if isinstance(item, dict) and str(item.get("label") or "").strip()
+    ]
+    if roles:
+        return "جزوه‌نویسی: بدون گروه · " + "، ".join(roles)
+    return "جزوه‌نویسی: بدون گروه"
+
+
 def _assignment_summary(assignment: dict[str, Any]) -> str:
     parts: list[str] = []
     for field in ("group10", "group8"):
@@ -52,7 +71,7 @@ def _field_summary(assignment: dict[str, Any], field: str) -> str:
     return f"{label}: بدون گروه"
 
 
-def _roster_summary(roster: list[dict[str, Any]]) -> str:
+def _roster_summary(roster: list[dict[str, Any]], booklet_payload: dict[str, Any] | None = None) -> str:
     morning_missing = 0
     afternoon_missing = 0
     for row in roster:
@@ -61,23 +80,42 @@ def _roster_summary(roster: list[dict[str, Any]]) -> str:
             morning_missing += 1
         if not isinstance(assignment.get("group8"), int):
             afternoon_missing += 1
-    return (
-        f"{to_persian_digits(len(roster))} دانشجو · "
+    academic_line = (
+        f"گروه‌بندی آموزشی: {to_persian_digits(len(roster))} نفر · "
         f"بدون گروه صبح: {to_persian_digits(morning_missing)} · "
         f"بدون گروه عصر: {to_persian_digits(afternoon_missing)}"
     )
+    summary = dict((booklet_payload or {}).get("summary") or {})
+    class_count = summary.get("classCount")
+    members = summary.get("classBookletMembers")
+    outside = summary.get("classOutsideBookletGroups")
+    free = summary.get("classFreeEligible")
+    paid = summary.get("classPaidMembers")
+    booklet_bits = []
+    if isinstance(class_count, int):
+        booklet_bits.append(f"کل کلاس: {to_persian_digits(class_count)}")
+    if isinstance(members, int):
+        booklet_bits.append(f"عضو گروه جزوه‌نویسی: {to_persian_digits(members)}")
+    if isinstance(outside, int):
+        booklet_bits.append(f"خارج از گروه: {to_persian_digits(outside)}")
+    if isinstance(free, int):
+        booklet_bits.append(f"اشتراک رایگان: {to_persian_digits(free)}")
+    if isinstance(paid, int):
+        booklet_bits.append(f"نیازمند پرداخت: {to_persian_digits(paid)}")
+    return academic_line + ("\nجزوه‌نویسی: " + " · ".join(booklet_bits) if booklet_bits else "")
 
 
-def _home_screen(roster: list[dict[str, Any]]) -> Screen:
+def _home_screen(roster: list[dict[str, Any]], booklet_payload: dict[str, Any] | None = None) -> Screen:
     return Screen(
         frame(
             "گروه‌بندی ترم ۷",
-            "گروه صبح، گروه عصر و وضعیت سرگروهی هر دانشجو را از همین بخش مدیریت کن.",
-            _roster_summary(roster),
+            "گروه صبح، گروه عصر و گروه جزوه‌نویسی هر دانشجو را از همین بخش مدیریت کن.",
+            _roster_summary(roster, booklet_payload),
         ),
         keyboard(
             [button("گروه‌های صبح", action="t7:g:10", style="primary")],
             [button("گروه‌های عصر", action="t7:g:8")],
+            [button("📝 گروه‌های جزوه‌نویسی", action="t7:bg")],
             [button("↩️ مدیریت امور کلاس", action="class-operations:owner"), button("🏠 خانه", action="home")],
         ),
     )
@@ -167,17 +205,48 @@ def _student_screen(row: dict[str, Any]) -> Screen:
     name = str(row.get("name") or "دانشجو").strip() or "دانشجو"
     student_number = _student_number(row)
     assignment = _assignment(row)
-    fallback = [f"<b>{html.escape(name)}</b>", "", _assignment_summary(assignment)]
+    booklet = _booklet_profile(row)
+    fallback = [f"<b>{html.escape(name)}</b>", "", _assignment_summary(assignment), _booklet_summary(booklet)]
+    booklet_summary = _booklet_summary(booklet).removeprefix("جزوه‌نویسی: ")
     rich = [
         f"<h2>{html.escape(name)}</h2>",
         "<table bordered striped compact>",
         f"<tr><th>صبح</th><td>{html.escape(_field_summary(assignment, 'group10'))}</td></tr>",
         f"<tr><th>عصر</th><td>{html.escape(_field_summary(assignment, 'group8'))}</td></tr>",
+        f"<tr><th>جزوه‌نویسی</th><td>{html.escape(booklet_summary)}</td></tr>",
         "</table>",
     ]
+    manager_courses = [
+        str(item.get("title") or "").strip()
+        for item in booklet.get("managerCourses", [])
+        if isinstance(item, dict) and str(item.get("title") or "").strip()
+    ]
+    special_roles = [
+        str(item.get("label") or "").strip()
+        for item in booklet.get("specialRoles", [])
+        if isinstance(item, dict) and str(item.get("label") or "").strip()
+    ]
+    role_lines = []
+    if manager_courses:
+        role_lines.append("مسئول جزوه: " + "، ".join(manager_courses))
+    if special_roles:
+        role_lines.append("مسئولیت: " + "، ".join(special_roles))
+    if role_lines:
+        fallback.extend(("", "<b>🎯 مسئولیت‌ها</b>", "\n".join(html.escape(line) for line in role_lines)))
+        rich.append("<blockquote>" + "<br>".join(html.escape(line) for line in role_lines) + "</blockquote>")
+    subscription = (
+        "رایگان · فعال‌سازی خودکار ماهانه"
+        if booklet.get("freeSubscriptionEligible") is True
+        else "۱۵۰٬۰۰۰ تومان در ماه"
+    )
+    fallback.extend(("", f"<code>اشتراک جزوات</code>  <b>{subscription}</b>"))
+    rich.append(f"<p><b>اشتراک جزوات:</b> {subscription}</p>")
+
     rows: list[list[dict]] = [[
         button("تغییر گروه صبح", action=f"t7:c:10:{student_number}"),
         button("تغییر گروه عصر", action=f"t7:c:8:{student_number}"),
+    ], [
+        button("تغییر گروه جزوه‌نویسی", action=f"t7:bc:{student_number}")
     ]]
     for field, short in (("group10", 10), ("group8", 8)):
         label, _ = _field_meta(field)
@@ -190,6 +259,15 @@ def _student_screen(row: dict[str, Any]) -> Screen:
                     style="danger" if leader else "success",
                 )
             ])
+    if isinstance(booklet.get("group"), int):
+        booklet_leader = str(booklet.get("status") or "") == "leader"
+        rows.append([
+            button(
+                f"{'برداشتن' if booklet_leader else 'تعیین'} سرگروهی جزوه‌نویسی",
+                action=f"t7:bl:{student_number}:{0 if booklet_leader else 1}",
+                style="danger" if booklet_leader else "success",
+            )
+        ])
     rows.append([button("↩️ گروه‌بندی ترم ۷", action="t7"), button("🏠 خانه", action="home")])
     return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard(*rows))
 
@@ -215,6 +293,192 @@ def _choose_group_screen(row: dict[str, Any], field: str) -> Screen:
     return Screen(frame(f"تغییر گروه {label}", name, f"گروه فعلی: {current_text}"), keyboard(*rows))
 
 
+def _booklet_group_index(payload: dict[str, Any]) -> Screen:
+    groups = [dict(row) for row in payload.get("groups", []) if isinstance(row, dict)]
+    fallback = ["<b>📝 گروه‌های جزوه‌نویسی</b>", ""]
+    rich = [
+        "<h2>📝 گروه‌های جزوه‌نویسی</h2>",
+        "<table bordered striped compact><tr><th>گروه</th><th>تعداد</th><th>سرگروه</th><th>درس</th></tr>",
+    ]
+    rows: list[list[dict]] = []
+    for group in groups:
+        number = int(group.get("group") or 0)
+        if not 1 <= number <= 31:
+            continue
+        count = int(group.get("memberCount") or 0)
+        leader = str(group.get("leaderName") or "—")
+        course_titles = [
+            str(item.get("title") or "").strip()
+            for item in group.get("courses", [])
+            if isinstance(item, dict) and str(item.get("title") or "").strip()
+        ]
+        course_text = "، ".join(course_titles) if course_titles else "—"
+        fallback.append(
+            f"گروه {to_persian_digits(number)} · {to_persian_digits(count)} نفر"
+            + (f" · {html.escape(leader)}" if leader != "—" else "")
+        )
+        rich.append(
+            f"<tr><td>{to_persian_digits(number)}</td><td>{to_persian_digits(count)}</td>"
+            f"<td>{html.escape(leader)}</td><td>{html.escape(course_text)}</td></tr>"
+        )
+        rows.append([
+            button(
+                f"گروه {to_persian_digits(number)} · {to_persian_digits(count)} نفر",
+                action=f"t7:bv:{number}",
+            )
+        ])
+    rich.append("</table>")
+    summary = dict(payload.get("summary") or {})
+    outside = summary.get("classOutsideBookletGroups")
+    paid = summary.get("classPaidMembers")
+    footer_parts = []
+    if isinstance(outside, int):
+        footer_parts.append(f"خارج از گروه‌ها: {to_persian_digits(outside)} نفر")
+    if isinstance(paid, int):
+        footer_parts.append(f"نیازمند پرداخت: {to_persian_digits(paid)} نفر")
+    if footer_parts:
+        footer_text = " · ".join(footer_parts)
+        fallback.extend(("", footer_text))
+        rich.append(f"<footer>{html.escape(footer_text)}</footer>")
+    rows.append([button("↩️ گروه‌بندی ترم ۷", action="t7"), button("🏠 خانه", action="home")])
+    return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard(*rows))
+
+
+def _booklet_group_screen(payload: dict[str, Any], group_number: int) -> Screen:
+    group = next(
+        (
+            dict(row)
+            for row in payload.get("groups", [])
+            if isinstance(row, dict) and int(row.get("group") or 0) == group_number
+        ),
+        {},
+    )
+    title = f"گروه {to_persian_digits(group_number)} جزوه‌نویسی"
+    courses = [
+        str(item.get("title") or "").strip()
+        for item in group.get("courses", [])
+        if isinstance(item, dict) and str(item.get("title") or "").strip()
+    ]
+    fallback = [f"<b>📝 {title}</b>", ""]
+    if courses:
+        fallback.extend(("<b>درس‌های مسئولیت</b>", "، ".join(html.escape(item) for item in courses), ""))
+    rich = [f"<h2>📝 {html.escape(title)}</h2>"]
+    if courses:
+        rich.append(f"<blockquote><b>درس‌های مسئولیت:</b> {html.escape('، '.join(courses))}</blockquote>")
+    rich.append("<table bordered striped compact><tr><th>دانشجو</th><th>وضعیت</th></tr>")
+    rows: list[list[dict]] = []
+    members = [dict(item) for item in group.get("members", []) if isinstance(item, dict)]
+    if not members:
+        fallback.append("عضوی در این گروه ثبت نشده است.")
+        rich.append('<tr><td colspan="2">عضوی در این گروه ثبت نشده است.</td></tr>')
+    for member in members:
+        name = str(member.get("name") or "دانشجو").strip() or "دانشجو"
+        status = str(member.get("statusLabel") or "عضو")
+        fallback.append(f"• <b>{html.escape(name)}</b> · {html.escape(status)}")
+        rich.append(f"<tr><td>{html.escape(name)}</td><td>{html.escape(status)}</td></tr>")
+        student_number = str(member.get("studentNumber") or "")
+        if student_number.isdigit():
+            rows.append([button(name[:28], action=f"t7:bs:{student_number}")])
+    rich.append("</table>")
+    rows.append([button("↩️ گروه‌های جزوه‌نویسی", action="t7:bg"), button("🏠 خانه", action="home")])
+    return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard(*rows))
+
+
+def _find_booklet_member(payload: dict[str, Any], student_number: str) -> dict[str, Any] | None:
+    for row in payload.get("members", []):
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("studentNumber") or "") == student_number:
+            return dict(row)
+    for row in payload.get("classRoster", []):
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("studentNumber") or "") == student_number:
+            return dict(row)
+    return None
+
+
+def _booklet_member_screen(row: dict[str, Any]) -> Screen:
+    name = str(row.get("name") or "دانشجو").strip() or "دانشجو"
+    student_number = str(row.get("studentNumber") or "")
+    profile = _booklet_profile(row)
+    group = profile.get("group")
+    group_text = (
+        f"گروه {to_persian_digits(group)} · {profile.get('statusLabel') or 'عضو'}"
+        if isinstance(group, int)
+        else "بدون گروه"
+    )
+    manager_courses = [
+        str(item.get("title") or "").strip()
+        for item in profile.get("managerCourses", [])
+        if isinstance(item, dict) and str(item.get("title") or "").strip()
+    ]
+    special_roles = [
+        str(item.get("label") or "").strip()
+        for item in profile.get("specialRoles", [])
+        if isinstance(item, dict) and str(item.get("label") or "").strip()
+    ]
+    subscription = (
+        "رایگان · فعال‌سازی خودکار ماهانه"
+        if profile.get("freeSubscriptionEligible") is True
+        else "۱۵۰٬۰۰۰ تومان در ماه"
+    )
+    fallback = [
+        f"<b>📝 {html.escape(name)}</b>",
+        "",
+        f"<code>گروه جزوه‌نویسی</code>  <b>{html.escape(group_text)}</b>",
+    ]
+    rich = [
+        f"<h2>📝 {html.escape(name)}</h2>",
+        "<table bordered striped compact>",
+        f"<tr><th>گروه جزوه‌نویسی</th><td><b>{html.escape(group_text)}</b></td></tr>",
+        f"<tr><th>اشتراک جزوات</th><td><b>{subscription}</b></td></tr>",
+        "</table>",
+    ]
+    if manager_courses:
+        fallback.extend(("", f"<b>مسئول جزوه</b>\n{html.escape('، '.join(manager_courses))}"))
+        rich.append(f"<blockquote><b>مسئول جزوه:</b> {html.escape('، '.join(manager_courses))}</blockquote>")
+    if special_roles:
+        fallback.extend(("", f"<b>مسئولیت</b>\n{html.escape('، '.join(special_roles))}"))
+        rich.append(f"<blockquote><b>مسئولیت:</b> {html.escape('، '.join(special_roles))}</blockquote>")
+    fallback.extend(("", f"<code>اشتراک جزوات</code>  <b>{subscription}</b>"))
+    rows: list[list[dict]] = [[button("تغییر گروه جزوه‌نویسی", action=f"t7:bc:{student_number}")]]
+    if isinstance(group, int):
+        leader = str(profile.get("status") or "") == "leader"
+        rows.append([
+            button(
+                f"{'برداشتن' if leader else 'تعیین'} سرگروهی جزوه‌نویسی",
+                action=f"t7:bl:{student_number}:{0 if leader else 1}",
+                style="danger" if leader else "success",
+            )
+        ])
+        rows.append([button("↩️ گروه", action=f"t7:bv:{group}")])
+    else:
+        rows.append([button("↩️ گروه‌های جزوه‌نویسی", action="t7:bg")])
+    rows.append([button("🏠 خانه", action="home")])
+    return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard(*rows))
+
+
+def _choose_booklet_group_screen(row: dict[str, Any]) -> Screen:
+    name = str(row.get("name") or "دانشجو").strip() or "دانشجو"
+    student_number = str(row.get("studentNumber") or "")
+    profile = _booklet_profile(row)
+    current = profile.get("group")
+    current_text = f"گروه {to_persian_digits(current)}" if isinstance(current, int) else "بدون گروه"
+    rows: list[list[dict]] = []
+    pair: list[dict] = []
+    for group in range(1, 32):
+        pair.append(button(f"گروه {to_persian_digits(group)}", action=f"t7:bu:{student_number}:{group}"))
+        if len(pair) == 2:
+            rows.append(pair)
+            pair = []
+    if pair:
+        rows.append(pair)
+    rows.append([button("پاک‌کردن گروه", action=f"t7:bu:{student_number}:0", style="danger")])
+    rows.append([button("↩️ بازگشت", action=f"t7:bs:{student_number}")])
+    return Screen(frame("تغییر گروه جزوه‌نویسی", name, f"گروه فعلی: {current_text}"), keyboard(*rows))
+
+
 def _find_student(roster: list[dict[str, Any]], student_number: str) -> dict[str, Any] | None:
     return next((row for row in roster if _student_number(row) == student_number), None)
 
@@ -232,6 +496,11 @@ def _is_term7_callback(value: object) -> bool:
 def _roster(app: DentBotApp, user_id: int) -> list[dict[str, Any]]:
     response = app.site_api.request("academicTerm7Roster", user_id)
     return [row for row in response.get("roster", []) if isinstance(row, dict)]
+
+
+def _booklet_payload(app: DentBotApp, user_id: int) -> dict[str, Any]:
+    response = app.site_api.request("academicTerm7BookletRoster", user_id)
+    return dict(response)
 
 
 def _handle_term7(app: DentBotApp, callback: dict[str, Any]) -> None:
@@ -263,11 +532,65 @@ def _handle_term7(app: DentBotApp, callback: dict[str, Any]) -> None:
     action = _strip_callback(callback.get("data"))
     try:
         roster = _roster(app, user_id)
+        booklet_payload = _booklet_payload(app, user_id)
         if action == "t7":
-            show(_home_screen(roster))
+            show(_home_screen(roster, booklet_payload))
             return
         if action in {"t7:g:10", "t7:g:8"}:
             show(_group_index(roster, "group10" if action.endswith(":10") else "group8"))
+            return
+        if action == "t7:bg":
+            show(_booklet_group_index(booklet_payload))
+            return
+        if action.startswith("t7:bv:"):
+            group = int(action.rsplit(":", 1)[-1])
+            if not 1 <= group <= 31:
+                raise ValueError("booklet group")
+            show(_booklet_group_screen(booklet_payload, group))
+            return
+        if action.startswith("t7:bs:"):
+            student_number = action.rsplit(":", 1)[-1]
+            row = _find_booklet_member(booklet_payload, student_number)
+            show(
+                _booklet_member_screen(row)
+                if row
+                else Screen(
+                    frame("گروه‌بندی جزوه‌نویسی", "دانشجو پیدا نشد."),
+                    keyboard([button("↩️ گروه‌های جزوه‌نویسی", action="t7:bg")]),
+                )
+            )
+            return
+        if action.startswith("t7:bc:"):
+            student_number = action.rsplit(":", 1)[-1]
+            row = _find_booklet_member(booklet_payload, student_number)
+            if row is None:
+                raise ValueError("booklet student")
+            show(_choose_booklet_group_screen(row))
+            return
+        if action.startswith("t7:bu:"):
+            _, _, student_number, group_raw = action.split(":", 3)
+            group = int(group_raw)
+            app.site_api.request(
+                "academicTerm7BookletAssignmentUpdate",
+                user_id,
+                studentNumber=student_number,
+                group=None if group == 0 else group,
+            )
+            updated_payload = _booklet_payload(app, user_id)
+            updated = _find_booklet_member(updated_payload, student_number)
+            show(_booklet_member_screen(updated) if updated else _booklet_group_index(updated_payload))
+            return
+        if action.startswith("t7:bl:"):
+            _, _, student_number, leader_raw = action.split(":", 3)
+            app.site_api.request(
+                "academicTerm7BookletLeaderUpdate",
+                user_id,
+                studentNumber=student_number,
+                leader=leader_raw == "1",
+            )
+            updated_payload = _booklet_payload(app, user_id)
+            updated = _find_booklet_member(updated_payload, student_number)
+            show(_booklet_member_screen(updated) if updated else _booklet_group_index(updated_payload))
             return
         if action.startswith("t7:v:"):
             _, _, short, group_raw = action.split(":", 3)
@@ -311,7 +634,7 @@ def _handle_term7(app: DentBotApp, callback: dict[str, Any]) -> None:
                 group=None if group == 0 else group,
             )
             updated = _find_student(_roster(app, user_id), student_number)
-            show(_student_screen(updated) if updated else _home_screen(_roster(app, user_id)))
+            show(_student_screen(updated) if updated else _home_screen(_roster(app, user_id), _booklet_payload(app, user_id)))
             return
         if action.startswith("t7:l:"):
             _, _, short, student_number, leader_raw = action.split(":", 4)
@@ -324,9 +647,9 @@ def _handle_term7(app: DentBotApp, callback: dict[str, Any]) -> None:
                 leader=leader_raw == "1",
             )
             updated = _find_student(_roster(app, user_id), student_number)
-            show(_student_screen(updated) if updated else _home_screen(_roster(app, user_id)))
+            show(_student_screen(updated) if updated else _home_screen(_roster(app, user_id), _booklet_payload(app, user_id)))
             return
-        show(_home_screen(roster))
+        show(_home_screen(roster, booklet_payload))
     except (SiteApiError, ValueError):
         show(
             Screen(

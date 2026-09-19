@@ -798,6 +798,7 @@ class DynamicScreenWorkflows:
                     ),
                     identity_state=dict(account.get("identity") or {}),
                     onboarding_profile=dict(account.get("onboardingProfile") or {}) if isinstance(account.get("onboardingProfile"), dict) else None,
+                    booklet_profile=dict(account.get("bookletProfile") or {}) if isinstance(account.get("bookletProfile"), dict) else None,
                 )
             except SiteApiError as error:
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)

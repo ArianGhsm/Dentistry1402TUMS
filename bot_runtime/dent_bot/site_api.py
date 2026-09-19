@@ -97,6 +97,9 @@ class SiteApiClient:
             contractVersion="booklet-watermark-identity-v1",
         )
 
+    def booklet_free_roster(self, owner_id: int) -> dict:
+        return self.request("academicTerm7BookletFreeRoster", owner_id)
+
     def start_link(self, user_id: int, *, platform_profile: dict | None = None) -> dict:
         return self.request(
             "startLink",

@@ -15,6 +15,7 @@ from .subscriptions import (
     DEFAULT_MONTHLY_PRICE_RIALS,
     DEFAULT_TERM,
     SUBSCRIPTION_OFFER_REF_PREFIX,
+    SubscriptionIdentity,
     billing_period_for,
     billing_period_from_key,
     gregorian_to_jalali,
@@ -865,11 +866,13 @@ class BotState:
                 "AND billing_period=? AND status='active' AND expires_at>? LIMIT 1",
                 (str(subject_key), int(term), period.key, utc_iso(current)),
             ).fetchone() is not None
-            complimentary = self.payment_connection.execute(
-                "SELECT 1 FROM term_access_entitlements WHERE subject_key=? AND term=? AND access_type='complimentary' "
-                "AND status='active' AND (expires_at='' OR expires_at>?) LIMIT 1",
+            complimentary_row = self.payment_connection.execute(
+                "SELECT billing_period,note FROM term_access_entitlements WHERE subject_key=? AND term=? "
+                "AND access_type='complimentary' AND status='active' AND (expires_at='' OR expires_at>?) "
+                "ORDER BY CASE WHEN billing_period='' THEN 0 ELSE 1 END, updated_at DESC LIMIT 1",
                 (str(subject_key), int(term), utc_iso(current)),
-            ).fetchone() is not None
+            ).fetchone()
+            complimentary = complimentary_row is not None
             latest_payment_row = self.payment_connection.execute(
                 "SELECT billing_period,granted_at,expires_at,payment_order_ref FROM term_access_entitlements "
                 "WHERE subject_key=? AND term=? AND access_type='paid_subscription' "
@@ -885,11 +888,209 @@ class BotState:
                 "paymentOrderRef": str(latest_payment_row[3]),
             }
         access_path = "both" if paid and complimentary else "paid" if paid else "complimentary" if complimentary else "none"
+        complimentary_source = ""
+        if complimentary_row is not None:
+            note = str(complimentary_row[1] or "")
+            complimentary_source = "booklet-system" if note.startswith("booklet-system:auto-monthly") else "manual"
         return {
             "allowed": bool(paid or complimentary), "reason": "entitled" if paid or complimentary else "subscription-required",
             "accessPath": access_path, "paidValid": paid, "complimentaryValid": complimentary,
+            "complimentarySource": complimentary_source,
             "billingPeriod": period.key, "period": period, "policy": policy,
             "latestPayment": latest_payment,
+        }
+
+    def ensure_automatic_booklet_entitlement(
+        self,
+        *,
+        student_number: str,
+        display_name: str,
+        term: int = 7,
+        now: datetime | None = None,
+    ) -> dict | None:
+        identity = subscription_identity_from_directory(
+            {"studentNumber": student_number, "name": display_name}
+        )
+        if identity is None:
+            return None
+        current = now or datetime.now(timezone.utc)
+        policy = self.term_access_policy(term)
+        if policy is None or not policy_is_effective(policy, current):
+            return None
+        period = billing_period_for(term, current)
+        granted = utc_iso(current)
+        expires = utc_iso(period.expires_at)
+        marker = "booklet-system:auto-monthly"
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                previous = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE subject_key=? "
+                    "AND term=? AND access_type='complimentary' AND billing_period=?",
+                    (identity.subject_key, int(term), period.key),
+                ).fetchone()
+                before = self._term_entitlement_payload(previous)
+                self.payment_connection.execute(
+                    "INSERT INTO term_access_entitlements(subject_key,student_number,display_name,term,access_type,"
+                    "billing_period,status,granted_at,expires_at,granted_by,granted_by_platform,note) "
+                    "VALUES(?,?,?,?, 'complimentary',?, 'active',?,?,0,'system',?) "
+                    "ON CONFLICT(subject_key,term,access_type,billing_period) DO UPDATE SET "
+                    "student_number=excluded.student_number,display_name=excluded.display_name,status='active',"
+                    "expires_at=excluded.expires_at,granted_by=0,granted_by_platform='system',"
+                    "revoked_at='',revoked_by=0,revoked_by_platform='',note=excluded.note,updated_at=CURRENT_TIMESTAMP",
+                    (
+                        identity.subject_key,
+                        identity.student_number,
+                        identity.display_name,
+                        int(term),
+                        period.key,
+                        granted,
+                        expires,
+                        marker,
+                    ),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE subject_key=? "
+                    "AND term=? AND access_type='complimentary' AND billing_period=?",
+                    (identity.subject_key, int(term), period.key),
+                ).fetchone()
+                after = self._term_entitlement_payload(row)
+                assert after is not None
+                changed = (
+                    before is None
+                    or before.get("status") != "active"
+                    or before.get("expiresAt") != after.get("expiresAt")
+                    or before.get("studentNumber") != after.get("studentNumber")
+                    or before.get("displayName") != after.get("displayName")
+                    or before.get("note") != marker
+                )
+                if changed:
+                    self._term_access_audit(
+                        "booklet-system-auto-grant",
+                        term=int(term),
+                        subject_key=identity.subject_key,
+                        entitlement_id=int(after["id"]),
+                        before=before,
+                        after=after,
+                        note=marker,
+                    )
+                self.payment_connection.commit()
+                return after
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def revoke_automatic_booklet_entitlement(
+        self,
+        *,
+        student_number: str,
+        term: int = 7,
+        now: datetime | None = None,
+    ) -> bool:
+        identity = subscription_identity_from_directory(
+            {"studentNumber": student_number}
+        )
+        if identity is None:
+            return False
+        current = now or datetime.now(timezone.utc)
+        policy = self.term_access_policy(term)
+        if policy is None or not policy_is_effective(policy, current):
+            return False
+        period = billing_period_for(term, current)
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT id FROM term_access_entitlements WHERE subject_key=? AND term=? "
+                    "AND access_type='complimentary' AND billing_period=? AND status='active' "
+                    "AND note LIKE 'booklet-system:auto-monthly%' LIMIT 1",
+                    (identity.subject_key, int(term), period.key),
+                ).fetchone()
+                if row is None:
+                    self.payment_connection.rollback()
+                    return False
+                entitlement_id = int(row[0])
+                self.payment_connection.execute(
+                    "UPDATE term_access_entitlements SET status='revoked',revoked_at=CURRENT_TIMESTAMP,"
+                    "revoked_by=0,revoked_by_platform='system',updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    (entitlement_id,),
+                )
+                self._term_access_audit(
+                    "booklet-system-auto-revoke",
+                    term=int(term),
+                    subject_key=identity.subject_key,
+                    entitlement_id=entitlement_id,
+                    note="booklet-system:auto-monthly membership removed",
+                )
+                self.payment_connection.commit()
+                return True
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def sync_automatic_booklet_entitlements(
+        self,
+        eligible: list[dict],
+        *,
+        term: int = 7,
+        now: datetime | None = None,
+    ) -> dict:
+        current = now or datetime.now(timezone.utc)
+        policy = self.term_access_policy(term)
+        if policy is None or not policy_is_effective(policy, current):
+            return {"effective": False, "eligible": 0, "active": 0, "revoked": 0}
+        identities: dict[str, SubscriptionIdentity] = {}
+        for item in eligible:
+            identity = subscription_identity_from_directory(item)
+            if identity is not None:
+                identities[identity.subject_key] = identity
+        for identity in identities.values():
+            self.ensure_automatic_booklet_entitlement(
+                student_number=identity.student_number,
+                display_name=identity.display_name,
+                term=term,
+                now=current,
+            )
+        period = billing_period_for(term, current)
+        revoked = 0
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                rows = self.payment_connection.execute(
+                    "SELECT id,subject_key FROM term_access_entitlements WHERE term=? AND access_type='complimentary' "
+                    "AND billing_period=? AND status='active' AND note LIKE 'booklet-system:auto-monthly%'",
+                    (int(term), period.key),
+                ).fetchall()
+                for entitlement_id, subject_key in rows:
+                    if str(subject_key) in identities:
+                        continue
+                    self.payment_connection.execute(
+                        "UPDATE term_access_entitlements SET status='revoked',revoked_at=CURRENT_TIMESTAMP,"
+                        "revoked_by=0,revoked_by_platform='system',updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                        (int(entitlement_id),),
+                    )
+                    self._term_access_audit(
+                        "booklet-system-auto-revoke",
+                        term=int(term),
+                        subject_key=str(subject_key),
+                        entitlement_id=int(entitlement_id),
+                        note="booklet-system:auto-monthly membership removed",
+                    )
+                    revoked += 1
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        return {
+            "effective": True,
+            "billingPeriod": period.key,
+            "eligible": len(identities),
+            "active": len(identities),
+            "revoked": revoked,
         }
 
     def term_subject_entitlement_status(
@@ -985,7 +1186,7 @@ class BotState:
                 "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
                 "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
                 "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE term=? "
-                "AND access_type='complimentary'" + clause + " ORDER BY updated_at DESC",
+                "AND access_type='complimentary' AND billing_period=''" + clause + " ORDER BY updated_at DESC",
                 (int(term),),
             ).fetchall()
         return [dict(value) for row in rows if (value := self._term_entitlement_payload(row)) is not None]

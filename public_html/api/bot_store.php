@@ -1595,6 +1595,15 @@ function dent_bot_service_dispatch(array $payload): array
             dent_bot_ensure_linked_profile($platform, $platformUserId, $user);
         }
         $onboarding = dent_bot_onboarding_status($platform, $platformUserId);
+        $onboardingProfile = is_array($onboarding['profile'] ?? null) ? $onboarding['profile'] : null;
+        $bookletStudentNumber = dent_normalize_student_number((string) (
+            (is_array($user) ? ($user['studentNumber'] ?? '') : '')
+            ?: ($onboardingProfile['studentNumber'] ?? '')
+        ));
+        $bookletProfile = (
+            $bookletStudentNumber !== ''
+            && function_exists('dent_term7_booklet_public_profile')
+        ) ? dent_term7_booklet_public_profile($bookletStudentNumber) : null;
         return [
             'success' => true,
             'linked' => is_array($user),
@@ -1604,7 +1613,8 @@ function dent_bot_service_dispatch(array $payload): array
             'authCompletedAt' => $authComplete ? (string) ($link['authCompletedAt'] ?? '') : '',
             'user' => is_array($user) ? dent_bot_public_user($user) : null,
             'identity' => is_array($user) ? ['recognized' => true, 'claimStatus' => 'approved'] : dent_bot_public_identity_state($platform, $platformUserId),
-            'onboardingProfile' => $onboarding['profile'] ?? null,
+            'onboardingProfile' => $onboardingProfile,
+            'bookletProfile' => $bookletProfile,
         ];
     }
     $genericPaymentActions = ['createBotPayment', 'paymentStatus', 'paymentProductStatesV2'];

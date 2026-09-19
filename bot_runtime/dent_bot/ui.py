@@ -383,6 +383,7 @@ def account_screen(
     link_url: str = "",
     identity_state: dict | None = None,
     onboarding_profile: dict | None = None,
+    booklet_profile: dict | None = None,
 ) -> Screen:
     home_row = [button("🏠 منوی اصلی", action="home")]
     platform_label = "بله" if platform == "bale" else "تلگرام"
@@ -410,6 +411,39 @@ def account_screen(
             if edit_status:
                 profile_lines.append(f"آخرین درخواست ویرایش: <b>{edit_status}</b>")
         details = "\n".join(profile_lines)
+        booklet = dict(booklet_profile or {})
+        booklet_lines: list[str] = []
+        if booklet:
+            group = booklet.get("group")
+            if isinstance(group, int):
+                group_value = f"گروه {to_persian_digits(group)} · {html.escape(str(booklet.get('statusLabel') or 'عضو'))}"
+            else:
+                group_value = "عضو گروه جزوه‌نویسی نیست"
+            booklet_lines.append(f"گروه جزوه‌نویسی: <b>{group_value}</b>")
+            manager_courses = [
+                str(item.get("title") or "").strip()
+                for item in booklet.get("managerCourses", [])
+                if isinstance(item, dict) and str(item.get("title") or "").strip()
+            ]
+            if manager_courses:
+                booklet_lines.append("مسئول جزوه: <b>" + html.escape("، ".join(manager_courses)) + "</b>")
+            special_roles = [
+                str(item.get("label") or "").strip()
+                for item in booklet.get("specialRoles", [])
+                if isinstance(item, dict) and str(item.get("label") or "").strip()
+            ]
+            if special_roles:
+                booklet_lines.append("مسئولیت: <b>" + html.escape("، ".join(special_roles)) + "</b>")
+            subscription = (
+                "رایگان · فعال‌سازی خودکار ماهانه"
+                if booklet.get("freeSubscriptionEligible") is True
+                else "۱۵۰٬۰۰۰ تومان در ماه"
+            )
+            booklet_lines.append(f"اشتراک جزوات: <b>{subscription}</b>")
+        booklet_block = (
+            "\n\n<b>📝 جزوه‌نویسی</b>\n" + "\n".join(booklet_lines)
+            if booklet_lines else ""
+        )
         dis_lines = ["<b>🆔 کد DIS</b>"]
         if dis_number:
             dis_lines.extend([
@@ -423,6 +457,7 @@ def account_screen(
         return Screen(
             f"<b>👤 حساب من</b>\n\n{name}\n<blockquote>{role} · متصل به {platform_label}</blockquote>"
             + (f"\n\n{details}\n\n<blockquote>مشخصات فقط خواندنی است؛ هر تغییر پس از تأیید مالک اعمال می‌شود.</blockquote>" if details else "")
+            + booklet_block
             + f"\n\n{dis_block}",
             keyboard(
                 [button("📊 مشاهده نمرات", action="grades", style="primary")],
@@ -818,7 +853,7 @@ def format_rials(value: object) -> str:
         rials = max(0, int(value))
     except (TypeError, ValueError):
         rials = 0
-    return f"{rials // 10:,} تومان"
+    return f"{rials // 10:,}".replace(",", "٬") + " تومان"
 
 
 def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> Screen:
@@ -842,8 +877,10 @@ def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> 
         status = "✅ اشتراک پرداختی و 🎁 دسترسی رایگان هر دو فعال‌اند"
     elif mode == "paid":
         status = "✅ اشتراک این ماه پرداخت شده است"
+    elif mode == "complimentary" and str(decision.get("complimentarySource") or "") == "booklet-system":
+        status = "🎁 اشتراک رایگان سیستم جزوه‌نویسی فعال است"
     elif mode == "complimentary":
-        status = "🎁 دسترسی رایگان مالک فعال است"
+        status = "🎁 دسترسی رایگان ثبت‌شده فعال است"
     else:
         status = "🔒 برای این ماه دسترسی فعالی ثبت نشده است"
         if reason != "subscription-not-started":
@@ -861,13 +898,24 @@ def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> 
         latest_line = f"<b>آخرین پرداخت:</b> {html.escape(paid_at)} · <code>{html.escape(latest_period)}</code>\n"
     if reason == "subscription-not-started":
         start_label = "۱ مهر ۱۴۰۵" if str(policy.get("activeFromJalali") or "") == "1405-07-01" else start
+        free_system = decision.get("freeSubscriptionEligible") is True
+        payment_line = (
+            "🎁 هزینهٔ ماهانه: <code>۰ تومان</code> · فعال‌سازی خودکار برای عضو سیستم جزوه‌نویسی"
+            if free_system
+            else f"💳 هزینهٔ ماهانه: <code>{to_persian_digits(price)}</code>"
+        )
+        activation_line = (
+            "از تاریخ شروع، اشتراک رایگان همان ماه به‌صورت خودکار فعال می‌شود و ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده در دسترس خواهند بود."
+            if free_system
+            else "از تاریخ شروع، با پرداخت اشتراک همان ماه، ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده در دسترس خواهند بود."
+        )
         text = (
             f"<b>🔒 دسترسی جزوات ترم {to_persian_digits(term)}</b>\n\n"
             f"{status}\n\n"
             f"📅 شروع اشتراک: <b>{html.escape(start_label)}</b>\n"
-            f"💳 هزینهٔ ماهانه: <code>{to_persian_digits(price)}</code>\n\n"
+            f"{payment_line}\n\n"
             "تا قبل از تاریخ شروع، ویس یا فایل جزوه برای حساب‌های دانشجویی ارسال نمی‌شود. "
-            "از تاریخ شروع، با فعال‌سازی اشتراک همان ماه، ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده در دسترس خواهند بود.\n\n"
+            f"{activation_line}\n\n"
             "<blockquote>اشتراک هر ماه شمسی جداگانه محاسبه می‌شود و فایل‌ها فقط به‌صورت محافظت‌شده ارسال می‌شوند.</blockquote>"
         )
     else:
@@ -894,7 +942,8 @@ def term_subscription_info_screen(policy: dict, *, term: int = 7) -> Screen:
         "پیش از تاریخ شروع، برای حساب‌های دانشجویی ویس یا فایل جزوه ارسال نمی‌شود. "
         "پس از شروع دوره، هر پرداخت فقط همان ماه شمسی را پوشش می‌دهد و با تأیید درگاه، "
         "دسترسی به ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده فعال می‌شود.\n\n"
-        "خرید در میانهٔ ماه تا پایان همان ماه معتبر است؛ تمدید خودکار یا برداشت خودکار انجام نمی‌شود.\n\n"
+        "برای اعضای ثبت‌شدهٔ سیستم جزوه‌نویسی و مسئول اینفوگرافیک، هزینهٔ ماهانه صفر است و دسترسی هر ماه خودکار فعال می‌شود. "
+        "سایر دانشجویان باید اشتراک همان ماه را پرداخت کنند؛ تمدید یا برداشت خودکار برای پرداخت‌های عادی انجام نمی‌شود.\n\n"
         "<blockquote>همهٔ فایل‌ها با محافظت تلگرام ارسال می‌شوند؛ فایل‌های PDF علاوه بر آن نسخهٔ شخصی‌سازی‌شده و واترمارک‌دار دارند.</blockquote>",
         keyboard(
             [button("مشاهده وضعیت", action=f"term-subscription:{term}")],

@@ -418,6 +418,7 @@ def grouping_screen(payload: dict[str, Any]) -> Screen:
             keyboard([button("↩️ امور کلاس", action="class-operations"), button("🏠 خانه", action="home")]),
         )
     groups = dict(payload.get("groups") or {})
+    booklet = dict(payload.get("bookletSystem") or {})
     schedule = dict(payload.get("scheduleContext") or {})
     term = dict(payload.get("academicTerm") or {})
     fallback = ["<b><u>👥 گروه‌بندی من</u></b>", ""]
@@ -428,16 +429,63 @@ def grouping_screen(payload: dict[str, Any]) -> Screen:
         number = group.get("group")
         value = f"گروه {to_persian_digits(number)}" if isinstance(number, int) else "بدون گروه"
         leader = str(group.get("leaderName") or "").strip()
-        if leader: value += f" · سرگروه: {leader}"
+        if leader:
+            value += f" · سرگروه: {leader}"
         facts.append((label, value))
+    booklet_group = booklet.get("group")
+    booklet_value = (
+        f"گروه {to_persian_digits(booklet_group)} · {str(booklet.get('statusLabel') or 'عضو')}"
+        if isinstance(booklet_group, int)
+        else "عضو گروه نیست"
+    )
+    facts.append(("جزوه‌نویسی", booklet_value))
     for label, value in facts:
         fallback.append(f"<code>{html.escape(label)}</code>  <b>{_esc(value, 180)}</b>")
         rich.append(f"<tr><th>{html.escape(label)}</th><td><b>{_esc(value, 180)}</b></td></tr>")
     rich.append("</table>")
+
     for key, label in (("morning", "اعضای گروه صبح"), ("afternoon", "اعضای گروه عصر")):
         members = [_plain(name, 80) for name in dict(groups.get(key) or {}).get("members", []) if str(name).strip()]
         fallback.extend(("", f"<b>{label}</b>", "، ".join(html.escape(name) for name in members) if members else "عضوی ثبت نشده است."))
         rich.append(f"<details><summary>{label}</summary><p>{html.escape('، '.join(members) if members else 'عضوی ثبت نشده است.')}</p></details>")
+
+    booklet_members = [
+        _plain(item.get("name"), 80)
+        for item in booklet.get("members", [])
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    ]
+    if isinstance(booklet_group, int):
+        booklet_members_text = "، ".join(booklet_members) if booklet_members else "عضوی ثبت نشده است."
+        fallback.extend(("", "<b>📝 اعضای گروه جزوه‌نویسی</b>", html.escape(booklet_members_text)))
+        rich.append(f"<details><summary>📝 اعضای گروه جزوه‌نویسی</summary><p>{html.escape(booklet_members_text)}</p></details>")
+
+    manager_courses = [
+        _plain(item.get("title"), 90)
+        for item in booklet.get("managerCourses", [])
+        if isinstance(item, dict) and item.get("title")
+    ]
+    special_roles = [
+        _plain(item.get("label"), 80)
+        for item in booklet.get("specialRoles", [])
+        if isinstance(item, dict) and item.get("label")
+    ]
+    role_lines = []
+    if manager_courses:
+        role_lines.append("مسئول جزوه: " + "، ".join(manager_courses))
+    if special_roles:
+        role_lines.append("مسئولیت: " + "، ".join(special_roles))
+    if role_lines:
+        fallback.extend(("", "<b>🎯 مسئولیت‌ها</b>", "\n".join(html.escape(line) for line in role_lines)))
+        rich.append("<blockquote>" + "<br>".join(html.escape(line) for line in role_lines) + "</blockquote>")
+
+    subscription_text = (
+        "رایگان · فعال‌سازی خودکار ماهانه"
+        if booklet.get("freeSubscriptionEligible") is True
+        else "۱۵۰٬۰۰۰ تومان در ماه"
+    )
+    fallback.extend(("", f"<code>اشتراک جزوات</code>  <b>{subscription_text}</b>"))
+    rich.append(f"<p><b>اشتراک جزوات:</b> {subscription_text}</p>")
+
     practical = [_plain(item.get("title"), 90) for item in schedule.get("currentPractical", []) if isinstance(item, dict) and item.get("title")]
     if practical:
         current_text = "، ".join(practical)
@@ -454,7 +502,13 @@ def grouping_screen(payload: dict[str, Any]) -> Screen:
         next_text = f"{to_persian_digits(next_item['date'])} · {'، '.join(next_events)}"
         fallback.extend(("", f"<b>⏭ برنامه بعدی</b>\n{html.escape(next_text)}"))
         rich.append(f"<blockquote>⏭ برنامه بعدی: {html.escape(next_text)}</blockquote>")
-    return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard([button("📅 امروز", action="c3:d:today")], [button("↩️ امور کلاس", action="class-operations"), button("🏠 خانه", action="home")]))
+    return Screen(
+        native_rich_text("\n".join(fallback), "".join(rich)),
+        keyboard(
+            [button("📅 امروز", action="c3:d:today")],
+            [button("↩️ امور کلاس", action="class-operations"), button("🏠 خانه", action="home")],
+        ),
+    )
 
 
 def student_notifications_screen(response: dict[str, Any]) -> Screen:

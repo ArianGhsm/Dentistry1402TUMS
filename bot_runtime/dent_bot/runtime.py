@@ -551,6 +551,8 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
     next_notification_poll = 0.0
     next_payment_result_poll = 0.0
     next_term_renewal_poll = 0.0
+    next_booklet_free_sync = 0.0
+    booklet_free_sync_ready = False
     next_navid_check = 0.0
     next_navid_group_poll = 0.0
     while not stop_event.is_set():
@@ -617,16 +619,40 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
                 getattr(settings, "payment_result_poll_seconds", 30)
             )
         now = time.monotonic()
+        if now >= next_booklet_free_sync:
+            booklet_free_sync_ready = False
+            if getattr(settings, "platform", "") == "telegram":
+                try:
+                    roster = site_api.booklet_free_roster(settings.owner_id)
+                    eligible = [
+                        dict(item)
+                        for item in roster.get("eligible", [])
+                        if isinstance(item, dict)
+                    ]
+                    sync = state.sync_automatic_booklet_entitlements(eligible, term=7)
+                    booklet_free_sync_ready = True
+                    if sync.get("effective"):
+                        logging.info(
+                            "%s booklet free access synced eligible=%s revoked=%s",
+                            platform_name,
+                            sync.get("eligible", 0),
+                            sync.get("revoked", 0),
+                        )
+                except (SiteApiError, ValueError):
+                    logging.exception("%s booklet free access sync failed", platform_name)
+            next_booklet_free_sync = time.monotonic() + 3600
+        now = time.monotonic()
         if now >= next_term_renewal_poll:
-            try:
-                renewal_counts = dispatch_term_renewal_batch(settings=settings, api=api, state=state)
-                if renewal_counts["claimed"]:
-                    logging.info(
-                        "%s term renewal claimed=%s sent=%s failed=%s",
-                        platform_name, renewal_counts["claimed"], renewal_counts["sent"], renewal_counts["failed"],
-                    )
-            except Exception:
-                logging.exception("%s term renewal dispatch failed", platform_name)
+            if getattr(settings, "platform", "") == "telegram" and booklet_free_sync_ready:
+                try:
+                    renewal_counts = dispatch_term_renewal_batch(settings=settings, api=api, state=state)
+                    if renewal_counts["claimed"]:
+                        logging.info(
+                            "%s term renewal claimed=%s sent=%s failed=%s",
+                            platform_name, renewal_counts["claimed"], renewal_counts["sent"], renewal_counts["failed"],
+                        )
+                except Exception:
+                    logging.exception("%s term renewal dispatch failed", platform_name)
             next_term_renewal_poll = time.monotonic() + 3600
         now = time.monotonic()
         if now >= next_navid_check:
