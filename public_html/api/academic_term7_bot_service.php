@@ -54,7 +54,13 @@ function dent_term7_bot_service_event_projection(array $event, string $period = 
         'period' => $period !== '' ? $period : (string) ($event['period'] ?? ''),
         'start' => (string) ($event['start'] ?? ''),
         'end' => (string) ($event['end'] ?? ''),
-        'location' => (string) ($event['location'] ?? ''),
+        'location' => dent_term7_event_display_location($event),
+        'courseTitle' => (string) ($event['courseTitle'] ?? ''),
+        'sessionLabel' => (string) ($event['sessionLabel'] ?? ''),
+        'sessionTitle' => (string) ($event['sessionTitle'] ?? ''),
+        'sessionMode' => (string) ($event['sessionMode'] ?? ''),
+        'sessionModeLabel' => (string) ($event['sessionModeLabel'] ?? ''),
+        'instructor' => (string) ($event['instructor'] ?? ''),
     ];
 }
 
@@ -82,26 +88,28 @@ function dent_term7_bot_service_schedule_context(array $assignment, ?DateTimeImm
             'through' => (string) ($schedule['rotations'][$rotation]['through'] ?? ''),
         ];
     }
+    $currentGroups = dent_term7_enriched_event_groups($resolved);
     $current = [];
-    foreach (($resolved['practicalMorning'] ?? []) as $event) {
+    foreach ($currentGroups['practicalMorning'] as $event) {
         if (is_array($event)) $current[] = dent_term7_bot_service_event_projection($event, 'morning');
     }
-    foreach (($resolved['practicalAfternoon'] ?? []) as $event) {
+    foreach ($currentGroups['practicalAfternoon'] as $event) {
         if (is_array($event)) $current[] = dent_term7_bot_service_event_projection($event, 'afternoon');
     }
     $theory = [];
-    foreach (($resolved['theory'] ?? []) as $event) {
+    foreach ($currentGroups['theory'] as $event) {
         if (is_array($event)) $theory[] = dent_term7_bot_service_event_projection($event, 'theory');
     }
     $next = null;
     for ($offset = 1; $offset <= 90; $offset++) {
         $candidateDate = $local->setTime(0, 0)->modify('+' . $offset . ' days');
         $candidate = dent_term7_resolve_date($candidateDate, $assignment);
+        $candidateGroups = dent_term7_enriched_event_groups($candidate);
         $events = [];
-        foreach (($candidate['practicalMorning'] ?? []) as $event) {
+        foreach ($candidateGroups['practicalMorning'] as $event) {
             if (is_array($event)) $events[] = dent_term7_bot_service_event_projection($event, 'morning');
         }
-        foreach (($candidate['practicalAfternoon'] ?? []) as $event) {
+        foreach ($candidateGroups['practicalAfternoon'] as $event) {
             if (is_array($event)) $events[] = dent_term7_bot_service_event_projection($event, 'afternoon');
         }
         if ($events !== []) {

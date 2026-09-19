@@ -446,8 +446,9 @@ try {
     );
     term7_assert(
         str_contains((string) ($studentBReminder['body'] ?? ''), 'پریو نظری ۱ — جلسه ۱: آناتومی انساج پریودنتال ۱ · مجازی')
-            && str_contains((string) ($studentBReminder['body'] ?? ''), '۰۷:۳۰ تا ۰۸:۳۰'),
-        'Friday-night reminder enriches Perio theory from the syllabus with its session title and virtual mode'
+            && str_contains((string) ($studentBReminder['body'] ?? ''), '۰۷:۳۰ تا ۰۸:۳۰')
+            && str_contains((string) ($studentBReminder['body'] ?? ''), '📍 مجازی'),
+        'Friday-night reminder enriches Perio theory with session title, virtual mode and explicit virtual location/status'
     );
     $studentAReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentA)))[0] ?? [];
     term7_assert(

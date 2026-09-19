@@ -7,7 +7,7 @@ from . import ui as ui_module
 
 
 def academic_notification_text(item: dict[str, Any]):
-    if str(item.get("source") or "") != "academic-term7":
+    if str(item.get("source") or "") not in {"academic-term7", "academic-term7-correction"}:
         return None
     raw_title = " ".join(str(item.get("title") or "").split())
     if "|" not in raw_title:
@@ -54,7 +54,7 @@ def academic_notification_text(item: dict[str, Any]):
     fallback = [f"<b>{html.escape(heading)}</b>", "", f"<blockquote>{html.escape(date_label)}</blockquote>"]
     rich = [f"<h2>{html.escape(heading)}</h2>", f"<p><b>{html.escape(date_label)}</b></p>"]
     if rows:
-        rich.append("<table bordered striped compact><tr><th>زمان</th><th>برنامه</th><th>مکان</th></tr>")
+        rich.append("<table bordered striped compact><tr><th>زمان</th><th>برنامه</th><th>وضعیت / مکان</th></tr>")
         for row in rows[:16]:
             icon = "📚" if row.get("kind") == "theory" else "🦷"
             title = " ".join(str(row.get("title") or "").split())[:160] or "برنامه"
