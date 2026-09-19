@@ -78,6 +78,32 @@ try {
         ];
         return [];
     });
+    $saturdayContext = dent_term7_bot_service_schedule_context(
+        ['group10' => 5, 'group8' => 14, 'oralHealthRotationAWeekday' => 6],
+        new DateTimeImmutable('2026-09-19 08:00:00', new DateTimeZone(DENT_TERM7_TIMEZONE))
+    );
+    $perioRows = array_values(array_filter(
+        $saturdayContext['currentTheory'] ?? [],
+        static fn(array $row): bool => ($row['slug'] ?? '') === 'periodontology-theory-1'
+    ));
+    term7_group_assert(
+        count($perioRows) === 1
+            && str_contains((string) ($perioRows[0]['title'] ?? ''), 'جلسه 1: آناتومی انساج پریودنتال ۱ · مجازی')
+            && ($perioRows[0]['sessionMode'] ?? '') === 'virtual'
+            && ($perioRows[0]['location'] ?? '') === 'مجازی',
+        'Term 7 bot schedule context uses syllabus-enriched Perio title and explicit virtual location'
+    );
+    $researchRows = array_values(array_filter(
+        $saturdayContext['currentPractical'] ?? [],
+        static fn(array $row): bool => ($row['slug'] ?? '') === 'research-methods-2-practical'
+    ));
+    term7_group_assert(
+        count($researchRows) === 1
+            && ($researchRows[0]['sessionMode'] ?? '') === 'in_person'
+            && ($researchRows[0]['location'] ?? '') === 'آمفی‌تئاتر ۹۰',
+        'In-person Research Methods keeps its own amphitheater location on the same day'
+    );
+
     $self = dent_term7_bot_service_dispatch(['action'=>'academicTerm7Self','platform'=>'telegram','platformUserId'=>'900001']);
     term7_group_assert(!empty($self['eligible']) && isset($self['assignment']['group10Status']), 'Signed Term 7 self response carries status-aware assignment');
     $serviceRoster = dent_term7_bot_service_dispatch(['action'=>'academicTerm7Roster','platform'=>'telegram','platformUserId'=>'900001']);

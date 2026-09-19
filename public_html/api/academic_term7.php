@@ -493,6 +493,7 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
         'weekdayLabel' => dent_term7_weekday_label($weekday),
         'inTerm' => $inTerm,
         'rotation' => $rotation,
+        'syllabusRotation' => $timingRotation,
         'practicalClosed' => $closed,
         'theory' => $theory,
         'practicalMorning' => $morning,
@@ -516,25 +517,45 @@ function dent_term7_resolve_date(DateTimeImmutable $date, array $assignment = []
     return dent_term7_resolve_jalali(dent_term7_jalali_key($local), (int) $local->format('N'), $assignment);
 }
 
-function dent_term7_summary_body(array $resolved): string
+function dent_term7_enriched_event_groups(array $resolved): array
 {
     $jalaliDate = trim((string) ($resolved['date'] ?? ''));
-    $rotation = trim((string) ($resolved['rotation'] ?? ''));
-    $theory = classops_term7_syllabus_enrich_events(
-        is_array($resolved['theory'] ?? null) ? $resolved['theory'] : [],
-        $jalaliDate,
-        $rotation
-    );
-    $morning = classops_term7_syllabus_enrich_events(
-        is_array($resolved['practicalMorning'] ?? null) ? $resolved['practicalMorning'] : [],
-        $jalaliDate,
-        $rotation
-    );
-    $afternoon = classops_term7_syllabus_enrich_events(
-        is_array($resolved['practicalAfternoon'] ?? null) ? $resolved['practicalAfternoon'] : [],
-        $jalaliDate,
-        $rotation
-    );
+    $rotation = trim((string) ($resolved['syllabusRotation'] ?? $resolved['rotation'] ?? ''));
+    return [
+        'theory' => classops_term7_syllabus_enrich_events(
+            is_array($resolved['theory'] ?? null) ? $resolved['theory'] : [],
+            $jalaliDate,
+            $rotation
+        ),
+        'practicalMorning' => classops_term7_syllabus_enrich_events(
+            is_array($resolved['practicalMorning'] ?? null) ? $resolved['practicalMorning'] : [],
+            $jalaliDate,
+            $rotation
+        ),
+        'practicalAfternoon' => classops_term7_syllabus_enrich_events(
+            is_array($resolved['practicalAfternoon'] ?? null) ? $resolved['practicalAfternoon'] : [],
+            $jalaliDate,
+            $rotation
+        ),
+    ];
+}
+
+function dent_term7_event_display_location(array $event): string
+{
+    $mode = trim((string) ($event['sessionMode'] ?? ''));
+    if (in_array($mode, ['virtual', 'offline'], true)) {
+        $label = trim((string) ($event['sessionModeLabel'] ?? ''));
+        return $label !== '' ? $label : classops_term7_syllabus_mode_label($mode);
+    }
+    return trim((string) ($event['location'] ?? ''));
+}
+
+function dent_term7_summary_body(array $resolved): string
+{
+    $groups = dent_term7_enriched_event_groups($resolved);
+    $theory = $groups['theory'];
+    $morning = $groups['practicalMorning'];
+    $afternoon = $groups['practicalAfternoon'];
 
     $lines = [];
     $appendEvents = static function (array &$target, array $events): void {
@@ -546,8 +567,9 @@ function dent_term7_summary_body(array $resolved): string
                 $time = $end !== '' ? $start . ' تا ' . $end : $start;
                 $target[] = '  ⏰ ' . dent_to_fa_digits($time);
             }
-            if ((string) ($event['location'] ?? '') !== '') {
-                $target[] = '  📍 ' . (string) $event['location'];
+            $displayLocation = dent_term7_event_display_location($event);
+            if ($displayLocation !== '') {
+                $target[] = '  📍 ' . $displayLocation;
             }
         }
     };
