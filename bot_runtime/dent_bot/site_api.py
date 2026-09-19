@@ -186,6 +186,9 @@ class SiteApiClient:
     def grades(self, user_id: int) -> dict:
         return self.request("grades", user_id)
 
+    def booklet_catalog(self, user_id: int) -> dict:
+        return self.request("classopsBookletCatalog", user_id)
+
     def notifications(self, user_id: int, *, limit: int = 20) -> dict:
         return self.request("notifications", user_id, limit=limit)
 

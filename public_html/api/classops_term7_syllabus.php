@@ -299,3 +299,79 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
     }
     return $out;
 }
+
+
+function classops_term7_syllabus_booklet_tag(string $courseKey, array $course): string
+{
+    $aliases = [
+        'orthodontics-theory-1' => 'ارتو_نظری۱',
+        'endodontics-theory-1' => 'اندو_نظری۱',
+        'diagnostic-dentistry-3' => 'تشخیصی۳',
+        'research-methods-2' => 'روش_تحقیق۲',
+        'endodontics-basics-2' => 'مبانی_اندودانتیکس۲',
+        'oral-health-practical-2' => 'سلامت_دهان_عملی۲',
+        'oral-health-theory-2' => 'سلامت_دهان_نظری۲',
+        'ent' => 'گوش_حلق_بینی',
+        'periodontology-theory-1' => 'پریو_نظری۱',
+        'partial-basics-theory' => 'مبانی_پروتز_پارسیل',
+    ];
+    if (isset($aliases[$courseKey])) return $aliases[$courseKey];
+
+    $title = trim((string) ($course['sourceCourseTitle'] ?? $course['courseTitle'] ?? $courseKey));
+    $title = strtr($title, ['ي' => 'ی', 'ى' => 'ی', 'ك' => 'ک', "‌" => '_']);
+    $tag = preg_replace('/[^\p{L}\p{N}]+/u', '_', $title);
+    return trim((string) $tag, '_');
+}
+
+/**
+ * Canonical booklet projection of the same Term 7 syllabus registry used by
+ * the daily schedule and ClassOps. Numbered sessions are expanded one-by-one
+ * so the bot never maintains a second syllabus copy.
+ */
+function classops_term7_syllabus_booklet_catalog(): array
+{
+    $courses = [];
+    foreach (classops_term7_syllabus_catalog() as $courseKey => $course) {
+        if (!is_array($course)) continue;
+        $sessions = [];
+        foreach (is_array($course['sessions'] ?? null) ? $course['sessions'] : [] as $session) {
+            if (!is_array($session)) continue;
+            $numbers = array_values(array_filter(array_map(
+                'intval',
+                is_array($session['sessionNumbers'] ?? null) ? $session['sessionNumbers'] : []
+            ), static fn(int $number): bool => $number > 0 && $number <= 40));
+            if ($numbers === [] && isset($session['sessionNumber']) && (int) $session['sessionNumber'] > 0) {
+                $numbers = [(int) $session['sessionNumber']];
+            }
+            foreach ($numbers as $number) {
+                if (isset($sessions[$number])) continue;
+                $mode = trim((string) ($session['sessionMode'] ?? 'in_person')) ?: 'in_person';
+                $sessions[$number] = [
+                    'sessionNumber' => $number,
+                    'title' => trim((string) ($session['title'] ?? '')),
+                    'instructor' => trim((string) ($session['instructor'] ?? '')),
+                    'sessionMode' => $mode,
+                    'sessionModeLabel' => classops_term7_syllabus_mode_label($mode),
+                    'sourcePage' => max(0, (int) ($session['sourcePage'] ?? 0)),
+                ];
+            }
+        }
+        if ($sessions === []) continue;
+        ksort($sessions, SORT_NUMERIC);
+        $courses[] = [
+            'courseKey' => (string) $courseKey,
+            'courseTitle' => trim((string) ($course['courseTitle'] ?? $course['sourceCourseTitle'] ?? $courseKey)),
+            'sourceCourseTitle' => trim((string) ($course['sourceCourseTitle'] ?? $course['courseTitle'] ?? '')),
+            'bookletTag' => classops_term7_syllabus_booklet_tag((string) $courseKey, $course),
+            'term' => 7,
+            'sourceFile' => trim((string) ($course['sourceFile'] ?? '')),
+            'sessions' => array_values($sessions),
+        ];
+    }
+    return [
+        'contractVersion' => 'term7-booklet-catalog-v1',
+        'syllabusVersion' => CLASSOPS_TERM7_SYLLABUS_VERSION,
+        'term' => 7,
+        'courses' => $courses,
+    ];
+}

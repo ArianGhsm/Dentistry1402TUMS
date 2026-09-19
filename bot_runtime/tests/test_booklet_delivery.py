@@ -10,14 +10,10 @@ from pathlib import Path
 from dent_bot.api import BaleBotApi, BotApiError, TelegramBotApi
 from dent_bot.app import DentBotApp
 from dent_bot.booklets import (
-    COURSES,
-    ENT_SESSIONS,
     RESOURCE_LABELS,
-    course_button,
     ordinal,
     parse_session_number,
     parse_source_caption,
-    session_button,
     source_records_from_channel_post,
 )
 from dent_bot.state import BotState
@@ -30,6 +26,33 @@ SOURCE_CAPTION = (
     "📚 گوش و حلق و بینی\n👨‍🏫 استاد ایرانی\n\n"
     "#گوش_حلق_بینی #ایرانی #ترم۷ #ورودی_۱۳۹۹"
 )
+
+
+BOOKLET_CATALOG = {
+    "contractVersion": "term7-booklet-catalog-v1",
+    "term": 7,
+    "courses": [
+        {
+            "courseKey": "ent",
+            "courseTitle": "گوش و حلق و بینی",
+            "bookletTag": "گوش_حلق_بینی",
+            "term": 7,
+            "sessions": [
+                {"sessionNumber": 4, "title": "تومورهای سینوس", "instructor": "دکتر ایرانی", "sessionModeLabel": "حضوری"},
+            ],
+        },
+        {
+            "courseKey": "research-methods-2",
+            "courseTitle": "روش تحقیق ۲",
+            "bookletTag": "روش_تحقیق۲",
+            "term": 7,
+            "sessions": [
+                {"sessionNumber": 1, "title": "مقدمه و معرفی دوره و منابع", "instructor": "دکتر یونس‌پور", "sessionModeLabel": "حضوری"},
+                {"sessionNumber": 2, "title": "جست‌وجوی منابع", "instructor": "دکتر یونس‌پور", "sessionModeLabel": "حضوری"},
+            ],
+        },
+    ],
+}
 
 
 class FakeApi:
@@ -62,9 +85,12 @@ class LinkedSite:
             "success": True,
             "linked": True,
             "authComplete": True,
-            "user": {},
+            "user": {"studentNumber": "40211272010", "name": "دانشجوی تست"},
             "onboardingProfile": {},
         }
+
+    def booklet_catalog(self, _user_id):
+        return BOOKLET_CATALOG
 
 
 class Dispatcher:
@@ -96,10 +122,10 @@ class BookletDeliveryTests(unittest.TestCase):
         self.assertIsNone(parse_session_number("جزوه جلسه چهل و یکم"))
 
     def test_caption_routes_booklet_reference_to_both_sections(self) -> None:
-        parsed = parse_source_caption(SOURCE_CAPTION)
+        parsed = parse_source_caption(SOURCE_CAPTION, BOOKLET_CATALOG)
         self.assertIsNotNone(parsed)
         assert parsed is not None
-        self.assertEqual(parsed.course_code, "ENT")
+        self.assertEqual(parsed.course_code, "ent")
         self.assertEqual(parsed.term, 7)
         self.assertEqual(parsed.session_no, 4)
         self.assertEqual(parsed.kinds, ("booklet", "reference"))
@@ -111,9 +137,23 @@ class BookletDeliveryTests(unittest.TestCase):
                 "file_name": "tumors-ent.pdf",
                 "mime_type": "application/pdf",
             },
-        })
+        }, BOOKLET_CATALOG)
         self.assertEqual({item["contentKind"] for item in records}, {"booklet", "reference"})
         self.assertTrue(all(item["telegramMethod"] == "sendDocument" for item in records))
+
+    def test_persian_voice_caption_routes_against_shared_research_syllabus(self) -> None:
+        caption = "🎤 ویس جلسه اول\n#روش_تحقیق۲ #ترم۷"
+        parsed = parse_source_caption(caption, BOOKLET_CATALOG)
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed.course_code, "research-methods-2")
+        self.assertEqual(parsed.session_no, 1)
+        self.assertEqual(parsed.kinds, ("voice",))
+        records = source_records_from_channel_post({
+            "caption": caption,
+            "audio": {"file_id": "research-audio", "file_unique_id": "research-1"},
+        }, BOOKLET_CATALOG)
+        self.assertEqual(records[0]["telegramMethod"], "sendAudio")
 
     def test_source_catalog_stores_only_metadata_and_edit_can_deactivate_routes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -122,19 +162,19 @@ class BookletDeliveryTests(unittest.TestCase):
                 records = source_records_from_channel_post({
                     "caption": SOURCE_CAPTION,
                     "document": {"file_id": "file-id", "file_name": "test.pdf"},
-                })
+                }, BOOKLET_CATALOG)
                 self.assertEqual(state.replace_protected_media_message(SOURCE_CHAT_ID, 4, records), 2)
-                booklet = state.protected_media_for(
-                    course_code="ENT", term=7, session_no=4, content_kind="booklet"
+                booklet = state.protected_media_for_tag(
+                    course_tag="گوش_حلق_بینی", term=7, session_no=4, content_kind="booklet"
                 )
                 self.assertEqual(len(booklet), 1)
                 metadata_only = source_records_from_channel_post({
                     "caption": SOURCE_CAPTION,
                     "document": {"file_name": "test.pdf", "mime_type": "application/pdf"},
-                })
+                }, BOOKLET_CATALOG)
                 state.replace_protected_media_message(SOURCE_CHAT_ID, 4, metadata_only)
-                preserved = state.protected_media_for(
-                    course_code="ENT", term=7, session_no=4, content_kind="booklet"
+                preserved = state.protected_media_for_tag(
+                    course_tag="گوش_حلق_بینی", term=7, session_no=4, content_kind="booklet"
                 )
                 self.assertEqual(preserved[0]["fileId"], "file-id")
                 self.assertEqual(
@@ -143,8 +183,8 @@ class BookletDeliveryTests(unittest.TestCase):
                     ),
                     2,
                 )
-                hydrated = state.protected_media_for(
-                    course_code="ENT", term=7, session_no=4, content_kind="booklet"
+                hydrated = state.protected_media_for_tag(
+                    course_tag="گوش_حلق_بینی", term=7, session_no=4, content_kind="booklet"
                 )
                 self.assertEqual(hydrated[0]["fileId"], "hydrated-id")
                 columns = {
@@ -152,8 +192,8 @@ class BookletDeliveryTests(unittest.TestCase):
                 }
                 self.assertFalse({"bytes", "blob", "local_path", "temporary_path"} & columns)
                 state.replace_protected_media_message(SOURCE_CHAT_ID, 4, [])
-                self.assertEqual(state.protected_media_for(
-                    course_code="ENT", term=7, session_no=4, content_kind="booklet"
+                self.assertEqual(state.protected_media_for_tag(
+                    course_tag="گوش_حلق_بینی", term=7, session_no=4, content_kind="booklet"
                 ), [])
             finally:
                 state.close()
@@ -184,8 +224,8 @@ class BookletDeliveryTests(unittest.TestCase):
                     "document": {"file_id": "file-id", "file_name": "test.pdf"},
                 }
                 app.handle({"channel_post": dict(post)})
-                self.assertEqual(len(state.protected_media_for(
-                    course_code="ENT", term=7, session_no=4, content_kind="booklet"
+                self.assertEqual(len(state.protected_media_for_tag(
+                    course_tag="گوش_حلق_بینی", term=7, session_no=4, content_kind="booklet"
                 )), 1)
                 post["message_id"] = 5
                 post["chat"] = {"id": -1009999999999, "type": "channel"}
@@ -195,7 +235,7 @@ class BookletDeliveryTests(unittest.TestCase):
             finally:
                 state.close()
 
-    def test_notes_flow_uses_reply_keyboards_and_enqueues_registered_source(self) -> None:
+    def test_notes_flow_uses_inline_shared_syllabus_and_enqueues_registered_source(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")
             api = FakeApi()
@@ -204,30 +244,79 @@ class BookletDeliveryTests(unittest.TestCase):
                 records = source_records_from_channel_post({
                     "caption": SOURCE_CAPTION.replace("جزوه رفرنس", "جزوه"),
                     "document": {"file_id": "file-id", "file_name": "test.pdf"},
-                })
+                }, BOOKLET_CATALOG)
                 state.replace_protected_media_message(SOURCE_CHAT_ID, 4, records)
                 app = DentBotApp(
                     api, state, owner_id=10, site_url="https://example.test",
                     site_api=LinkedSite(), media_dispatcher=dispatcher,
                 )
-                app.handle({"callback_query": {
-                    "id": "notes", "from": {"id": 20}, "data": "v1:notes",
-                    "message": {"message_id": 7, "chat": {"id": 20, "type": "private"}},
-                }})
-                self.assertEqual(state.dialog(20)["kind"], "booklets-v1")
-                self.assertNotIn("inline_keyboard", api.sent[-1][2])
-                ent = next(course for course in COURSES if course["code"] == "ENT")
-                app.handle(message(20, course_button(ent)))
-                fourth = next(session for session in ENT_SESSIONS if session[0] == 4)
-                app.handle(message(20, session_button(fourth)))
-                self.assertEqual(
-                    {button["text"] for row in api.sent[-1][2]["keyboard"] for button in row}
-                    & set(RESOURCE_LABELS.values()),
-                    set(RESOURCE_LABELS.values()),
-                )
-                app.handle(message(20, RESOURCE_LABELS["booklet"]))
+
+                def callback(data: str) -> dict:
+                    return {"callback_query": {
+                        "id": data, "from": {"id": 10}, "data": f"v1:{data}",
+                        "message": {"message_id": 7, "chat": {"id": 10, "type": "private"}},
+                    }}
+
+                app.handle(callback("notes"))
+                self.assertIsNone(state.dialog(10))
+                self.assertIn("inline_keyboard", api.edited[-1][3])
+                course_labels = {
+                    item["text"] for row in api.edited[-1][3]["inline_keyboard"] for item in row
+                }
+                self.assertTrue(any("روش تحقیق" in label for label in course_labels))
+                self.assertTrue(any("گوش و حلق و بینی" in label for label in course_labels))
+
+                app.handle(callback("booklet-course:research-methods-2"))
+                session_labels = {
+                    item["text"] for row in api.edited[-1][3]["inline_keyboard"] for item in row
+                }
+                self.assertTrue(any("۱ · مقدمه و معرفی دوره" in label for label in session_labels))
+
+                app.handle(callback("booklet-course:ent"))
+                app.handle(callback("booklet-session:ent:4"))
+                resource_labels = {
+                    item["text"] for row in api.edited[-1][3]["inline_keyboard"] for item in row
+                }
+                self.assertTrue(set(RESOURCE_LABELS.values()).issubset(resource_labels))
+
+                app.handle(callback("booklet-resource:ent:4:booklet"))
                 self.assertEqual(len(dispatcher.jobs), 1)
-                self.assertIn("فایل در صف امن", api.sent[-1][1])
+                self.assertIn("فایل در صف امن", api.edited[-1][2])
+                self.assertIn("inline_keyboard", api.edited[-1][3])
+                self.assertNotIn("keyboard", api.edited[-1][3])
+            finally:
+                state.close()
+
+    def test_owner_booklet_callbacks_bypass_membership_and_account_gates(self) -> None:
+        class OwnerApi(FakeApi):
+            @staticmethod
+            def is_chat_member(_channel, _user_id):
+                raise AssertionError("Booklets owner callback must bypass membership gate")
+
+        class CatalogOnlySite:
+            @staticmethod
+            def account(_user_id):
+                raise AssertionError("Booklets owner callback must bypass account gate")
+
+            @staticmethod
+            def booklet_catalog(_user_id):
+                return BOOKLET_CATALOG
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            api = OwnerApi()
+            try:
+                app = DentBotApp(
+                    api, state, owner_id=10, site_url="https://example.test",
+                    site_api=CatalogOnlySite(), required_channel_username="Dent1402Booklets",
+                )
+                app.handle({"callback_query": {
+                    "id": "owner-notes", "from": {"id": 10}, "data": "v1:notes",
+                    "message": {"message_id": 7, "chat": {"id": 10, "type": "private"}},
+                }})
+                self.assertTrue(api.edited)
+                self.assertIn("آرشیو امن جزوات", api.edited[-1][2])
+                self.assertIn("inline_keyboard", api.edited[-1][3])
             finally:
                 state.close()
 
@@ -250,10 +339,17 @@ class BookletDeliveryTests(unittest.TestCase):
         self.assertEqual(api.calls[-1][0], "copyMessage")
         self.assertIs(api.calls[-1][1]["protect_content"], True)
         self.assertNotIn("file", str(api.calls[-1][1]).lower())
-        api.send_protected_media(20, source, personalized_file_id="personal-file-id")
-        self.assertEqual(api.calls[-1][0], "sendDocument")
-        self.assertEqual(api.calls[-1][1]["document"], "personal-file-id")
-        self.assertIs(api.calls[-1][1]["protect_content"], True)
+        for method, field in (
+            ("sendDocument", "document"),
+            ("sendAudio", "audio"),
+            ("sendVoice", "voice"),
+        ):
+            routed = dict(source)
+            routed["telegramMethod"] = method
+            api.send_protected_media(20, routed, personalized_file_id=f"personal-{field}-id")
+            self.assertEqual(api.calls[-1][0], method)
+            self.assertEqual(api.calls[-1][1][field], f"personal-{field}-id")
+            self.assertIs(api.calls[-1][1]["protect_content"], True)
 
         bale = object.__new__(BaleBotApi)
         with self.assertRaises(BotApiError):
@@ -277,7 +373,7 @@ class BookletDeliveryTests(unittest.TestCase):
             self.assertEqual(api._transport.kwargs["fields"]["protect_content"], "true")
             self.assertEqual(api._transport.kwargs["content_type"], "application/pdf")
 
-    def test_leaving_booklet_flow_removes_each_actually_active_reply_keyboard_once(self) -> None:
+    def test_legacy_booklet_reply_dialog_is_migrated_to_inline_ui(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")
             api = FakeApi()
@@ -286,16 +382,14 @@ class BookletDeliveryTests(unittest.TestCase):
                     api, state, owner_id=10, site_url="https://example.test",
                     site_api=LinkedSite(),
                 )
-                state.start_dialog(20, "booklets-v1", "course", {})
-                app.handle(message(20, "/menu"))
-                self.assertIsNone(state.dialog(20))
-                self.assertEqual(api.reply_keyboards_removed, [20])
-
-                state.start_dialog(20, "booklets-v1", "session", {"courseCode": "ENT"})
-                state.mark_reply_keyboard_active(20)
-                app.handle(message(20, "/start"))
-                self.assertIsNone(state.dialog(20))
-                self.assertEqual(api.reply_keyboards_removed, [20, 20])
+                state.start_dialog(10, "booklets-v1", "session", {"courseCode": "ENT"})
+                state.mark_reply_keyboard_active(10)
+                app.handle(message(10, "دکمهٔ قدیمی"))
+                self.assertIsNone(state.dialog(10))
+                self.assertEqual(api.reply_keyboards_removed, [10])
+                self.assertIn("inline_keyboard", api.sent[-1][2])
+                self.assertNotIn("keyboard", api.sent[-1][2])
+                self.assertIn("آرشیو امن جزوات", api.sent[-1][1])
             finally:
                 state.close()
 
@@ -375,7 +469,7 @@ class BookletDeliveryTests(unittest.TestCase):
                     fingerprint_key=b"k" * 32,
                     watermark_font=font,
                     temp_root=temp_root,
-                    qpdf_binary="",
+                    qpdf_binary="/usr/bin/qpdf",
                     workers=1,
                     max_queue=24,
                     same_document_cooldown_seconds=1,

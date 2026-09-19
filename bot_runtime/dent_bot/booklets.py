@@ -5,12 +5,8 @@ import re
 from dataclasses import dataclass
 
 from .persian_datetime import to_persian_digits
-from .ui import Screen
+from .ui import Screen, button, keyboard
 
-
-BOOKLET_BACK = "↩️ مرحله قبل"
-BOOKLET_CANCEL = "انصراف"
-BOOKLET_HOME = "🏠 منوی اصلی"
 
 RESOURCE_LABELS = {
     "voice": "🎤 ویس",
@@ -18,44 +14,6 @@ RESOURCE_LABELS = {
     "booklet": "📓 جزوه",
     "reference": "📘 رفرنس",
 }
-
-COURSES = (
-    {"code": "PeriodontologyTheory1", "name": "پریودنتولوژی نظری ۱", "tag": "پریو_نظری۱", "term": 7},
-    {"code": "DiagnosticDentistry3", "name": "دندانپزشکی تشخیصی ۳", "tag": "تشخیصی۳", "term": 7},
-    {"code": "ENT", "name": "گوش و حلق و بینی", "tag": "گوش_حلق_بینی", "term": 7},
-    {"code": "OrthodonticsTheory1", "name": "ارتودانتیکس نظری ۱", "tag": "ارتو_نظری۱", "term": 7},
-    {"code": "PartialProsthodonticsFoundations", "name": "مبانی پروتز پارسیل نظری", "tag": "مبانی_پروتز_پارسیل", "term": 7},
-    {"code": "EndodonticsTheory1", "name": "اندودانتیکس نظری ۱", "tag": "اندو_نظری۱", "term": 7},
-    {"code": "OralHealthTheory2", "name": "سلامت دهان نظری ۲", "tag": "سلامت_دهان_نظری۲", "term": 7},
-    {"code": "EndodonticsFoundations2", "name": "مبانی اندودانتیکس ۲", "tag": "مبانی_اندودانتیکس۲", "term": 7},
-    {"code": "OralMedicinePractical1", "name": "بیماری‌های دهان عملی ۱", "tag": "بیماری_دهان_عملی۱", "term": 7},
-    {"code": "OperativeDentistryPractical2", "name": "ترمیمی عملی ۲", "tag": "ترمیمی_عملی۲", "term": 7},
-    {"code": "OralHealthPractical2", "name": "سلامت دهان عملی ۲", "tag": "سلامت_دهان_عملی۲", "term": 7},
-    {"code": "PartialProsthodonticsPractical1", "name": "پروتز پارسیل عملی ۱", "tag": "پروتز_پارسیل_عملی۱", "term": 7},
-    {"code": "PathologyPractical1", "name": "آسیب‌شناسی عملی ۱", "tag": "آسیب_شناسی_عملی۱", "term": 7},
-    {"code": "SurgeryPractical2", "name": "جراحی عملی ۲", "tag": "جراحی_عملی۲", "term": 7},
-    {"code": "ResearchMethodology2", "name": "روش‌شناسی تحقیق ۲", "tag": "روش_تحقیق۲", "term": 7},
-)
-
-ENT_SESSIONS = (
-    (1, "سینوزیت", "طبری"),
-    (2, "معاینه و اصول", "گل‌پروران"),
-    (3, "آنومالی‌های گوش و حلق و بینی", "میراشرفی"),
-    (4, "تومورهای سینوس", "ایرانی"),
-    (5, "اپیستاکسی", "موسوی"),
-    (6, "آبسه‌های گردنی و عمقی صورت", "عرفانیان"),
-    (7, "حنجره و تراکوستومی", "امیرزرگر"),
-    (8, "درد صورت", "فیروزی‌فر"),
-    (9, "بیماری‌های التهابی سینوس و بینی", "حیدری"),
-    (10, "بیماری‌های حفرهٔ دهان", "محبی"),
-    (12, "حنجره و راه‌های هوایی", "سعیدی"),
-    (13, "تروماهای سر و گردن", "علیپور"),
-)
-
-COURSE_BY_CODE = {str(item["code"]): item for item in COURSES}
-COURSE_BY_NAME = {str(item["name"]): item for item in COURSES}
-COURSE_BY_TAG = {str(item["tag"]): item for item in COURSES}
-SESSIONS_BY_COURSE = {"ENT": ENT_SESSIONS}
 
 _ORDINALS = {
     1: "اول", 2: "دوم", 3: "سوم", 4: "چهارم", 5: "پنجم", 6: "ششم", 7: "هفتم",
@@ -94,7 +52,10 @@ def ordinal(number: int) -> str:
 
 def parse_session_number(caption: str) -> int | None:
     normalized = _normalized(caption).translate(_DIGIT_TRANSLATION)
-    match = re.search(rf"(?:^|\s)جلسه\s+(?P<value>{_ORDINAL_PATTERN}|[0-9]{{1,2}})(?:\s|$|[-–—:])", normalized)
+    match = re.search(
+        rf"(?:^|\s)جلسه\s+(?P<value>{_ORDINAL_PATTERN}|[0-9]{{1,2}})(?:\s|$|[-–—:])",
+        normalized,
+    )
     if not match:
         return None
     value = match.group("value")
@@ -120,6 +81,36 @@ def _content_kinds(caption: str) -> tuple[str, ...]:
     return tuple(kinds)
 
 
+def catalog_courses(catalog: dict) -> list[dict]:
+    courses = catalog.get("courses", []) if isinstance(catalog, dict) else []
+    return [
+        dict(course)
+        for course in courses
+        if isinstance(course, dict)
+        and re.fullmatch(r"[a-z0-9-]{1,48}", str(course.get("courseKey") or ""))
+        and str(course.get("bookletTag") or "").strip()
+        and isinstance(course.get("sessions"), list)
+    ]
+
+
+def course_by_key(catalog: dict, course_key: str) -> dict | None:
+    return next(
+        (course for course in catalog_courses(catalog) if str(course.get("courseKey") or "") == course_key),
+        None,
+    )
+
+
+def session_by_number(course: dict, session_no: int) -> dict | None:
+    return next(
+        (
+            dict(session)
+            for session in course.get("sessions", [])
+            if isinstance(session, dict) and int(session.get("sessionNumber") or 0) == int(session_no)
+        ),
+        None,
+    )
+
+
 @dataclass(frozen=True)
 class ParsedSource:
     course_code: str
@@ -130,9 +121,16 @@ class ParsedSource:
     kinds: tuple[str, ...]
 
 
-def parse_source_caption(caption: str) -> ParsedSource | None:
+def parse_source_caption(caption: str, catalog: dict) -> ParsedSource | None:
     tags = _hashtags(caption)
-    course = next((COURSE_BY_TAG[tag] for tag in tags if tag in COURSE_BY_TAG), None)
+    course = next(
+        (
+            item
+            for item in catalog_courses(catalog)
+            if str(item.get("bookletTag") or "") in tags
+        ),
+        None,
+    )
     term = 0
     for tag in tags:
         match = re.fullmatch(r"ترم([0-9۰-۹٠-٩]{1,2})", tag)
@@ -141,21 +139,29 @@ def parse_source_caption(caption: str) -> ParsedSource | None:
             break
     session_no = parse_session_number(caption) or 0
     kinds = _content_kinds(caption)
-    if not course or not 1 <= term <= 12 or not 1 <= session_no <= 40 or not kinds:
+    course_term = int(course.get("term") or 0) if course else 0
+    if (
+        course is None
+        or not 1 <= term <= 12
+        or term != course_term
+        or not 1 <= session_no <= 40
+        or session_by_number(course, session_no) is None
+        or not kinds
+    ):
         return None
     return ParsedSource(
-        course_code=str(course["code"]),
-        course_name=str(course["name"]),
-        course_tag=str(course["tag"]),
+        course_code=str(course["courseKey"]),
+        course_name=str(course.get("courseTitle") or "درس"),
+        course_tag=str(course["bookletTag"]),
         term=term,
         session_no=session_no,
         kinds=kinds,
     )
 
 
-def source_records_from_channel_post(message: dict) -> list[dict]:
+def source_records_from_channel_post(message: dict, catalog: dict) -> list[dict]:
     caption = str(message.get("caption") or message.get("text") or "")
-    parsed = parse_source_caption(caption)
+    parsed = parse_source_caption(caption, catalog)
     if parsed is None:
         return []
     media_type = ""
@@ -184,74 +190,105 @@ def source_records_from_channel_post(message: dict) -> list[dict]:
     } for kind in parsed.kinds]
 
 
-def _reply_keyboard(*rows: list[str]) -> dict:
-    return {
-        "keyboard": [[{"text": item} for item in row] for row in rows],
-        "resize_keyboard": True,
-        "one_time_keyboard": False,
-    }
+def _short(value: object, limit: int = 52) -> str:
+    text = " ".join(str(value or "").split())
+    return text if len(text) <= limit else text[: max(1, limit - 1)].rstrip() + "…"
 
 
-def course_button(course: dict) -> str:
-    return f"📚 {course['name']}"
-
-
-def course_from_button(text: str) -> dict | None:
-    name = text.removeprefix("📚 ").strip()
-    return COURSE_BY_NAME.get(name)
-
-
-def courses_screen() -> Screen:
-    rows = [[course_button(course)] for course in COURSES]
-    rows.append([BOOKLET_HOME, BOOKLET_CANCEL])
-    return Screen(
-        "<b><u>📚 آرشیو امن جزوات</u></b>\n\n"
-        "درس را انتخاب کن تا جلسات همان طرح درس نمایش داده شود.\n"
-        "<blockquote>فایل‌ها فقط برای کاربر احرازهویت‌شده و با محافظت تلگرام ارسال می‌شوند.</blockquote>",
-        _reply_keyboard(*rows),
-    )
-
-
-def session_button(session: tuple[int, str, str]) -> str:
-    number, topic, _teacher = session
-    return f"جلسه {ordinal(number)} — {topic}"
-
-
-def session_from_button(course_code: str, text: str) -> tuple[int, str, str] | None:
-    return next(
-        (session for session in SESSIONS_BY_COURSE.get(course_code, ()) if session_button(session) == text),
-        None,
-    )
-
-
-def sessions_screen(course_code: str) -> Screen:
-    course = COURSE_BY_CODE[course_code]
-    sessions = SESSIONS_BY_COURSE.get(course_code, ())
-    rows = [[session_button(session)] for session in sessions]
-    rows.append([BOOKLET_BACK, BOOKLET_CANCEL])
-    if not sessions:
-        body = "طرح درس این واحد هنوز وارد نشده است؛ جلسه‌ای حدس زده یا ساخته نمی‌شود."
+def courses_screen(catalog: dict) -> Screen:
+    courses = catalog_courses(catalog)
+    rows = [
+        [button(f"📚 {_short(course.get('courseTitle') or 'درس', 46)}", action=f"booklet-course:{course['courseKey']}")]
+        for course in courses
+        if course.get("sessions")
+    ]
+    rows.append([button("🏠 منوی اصلی", action="home")])
+    if courses:
+        body = (
+            f"طرح درس <b>{to_persian_digits(len(courses))}</b> واحد از منبع مشترک برنامهٔ آموزشی خوانده شده است.\n"
+            "<blockquote>درس را انتخاب کن؛ فهرست جلسات دقیقاً از همان طرح درسی نمایش داده می‌شود که برنامهٔ روزانه و امور کلاس استفاده می‌کنند.</blockquote>"
+        )
     else:
-        body = "جلسه را از فهرست طرح درس انتخاب کن."
+        body = (
+            "در حال حاضر طرح درس قابل استفاده‌ای از منبع آموزشی دریافت نشد.\n"
+            "<blockquote>جلسه‌ای حدس زده یا به‌صورت محلی ساخته نمی‌شود.</blockquote>"
+        )
     return Screen(
-        f"<b><u>📚 {html.escape(str(course['name']))}</u></b>\n\n{body}",
-        _reply_keyboard(*rows),
+        "<b><u>📚 آرشیو امن جزوات</u></b>\n\n" + body,
+        keyboard(*rows),
     )
 
 
-def resources_screen(course_code: str, session_no: int) -> Screen:
-    course = COURSE_BY_CODE[course_code]
-    session = next(item for item in SESSIONS_BY_COURSE[course_code] if item[0] == session_no)
-    _number, topic, teacher = session
+def sessions_screen(catalog: dict, course_key: str) -> Screen:
+    course = course_by_key(catalog, course_key)
+    if course is None:
+        return Screen(
+            "<b>⚠️ درس پیدا نشد</b>\n\nاین درس دیگر در طرح درس مرجع وجود ندارد.",
+            keyboard([button("↩️ فهرست درس‌ها", action="notes")], [button("🏠 منوی اصلی", action="home")]),
+        )
+    sessions = [
+        dict(item)
+        for item in course.get("sessions", [])
+        if isinstance(item, dict) and 1 <= int(item.get("sessionNumber") or 0) <= 40
+    ]
+    sessions.sort(key=lambda item: int(item.get("sessionNumber") or 0))
+    rows = [
+        [button(
+            f"{to_persian_digits(item['sessionNumber'])} · {_short(item.get('title') or 'بدون عنوان', 46)}",
+            action=f"booklet-session:{course_key}:{int(item['sessionNumber'])}",
+        )]
+        for item in sessions
+    ]
+    rows.extend((
+        [button("↩️ فهرست درس‌ها", action="notes")],
+        [button("🏠 منوی اصلی", action="home")],
+    ))
+    body = (
+        f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n"
+        f"<blockquote>تعداد جلسات: <b>{to_persian_digits(len(sessions))}</b> · منبع: طرح درس مشترک امور کلاس</blockquote>"
+        if sessions
+        else (
+            f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n"
+            "<blockquote>برای این واحد هنوز جلسهٔ شماره‌دار قابل استفاده‌ای در طرح درس مرجع ثبت نشده است.</blockquote>"
+        )
+    )
+    return Screen("<b><u>📚 جلسات درس</u></b>\n\n" + body, keyboard(*rows))
+
+
+def resources_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
+    course = course_by_key(catalog, course_key)
+    session = session_by_number(course or {}, session_no) if course is not None else None
+    if course is None or session is None:
+        return Screen(
+            "<b>⚠️ جلسه پیدا نشد</b>\n\nاین جلسه دیگر در طرح درس مرجع وجود ندارد.",
+            keyboard([button("↩️ فهرست درس‌ها", action="notes")], [button("🏠 منوی اصلی", action="home")]),
+        )
+    instructor = " ".join(str(session.get("instructor") or "").split())
+    mode = " ".join(str(session.get("sessionModeLabel") or "").split())
+    metadata = []
+    if instructor:
+        metadata.append(f"👨‍🏫 {html.escape(instructor)}")
+    if mode:
+        metadata.append(f"📍 {html.escape(mode)}")
+    meta_text = "\n".join(metadata)
+    if meta_text:
+        meta_text += "\n\n"
     return Screen(
-        f"<b><u>جلسه {ordinal(session_no)} — {html.escape(topic)}</u></b>\n\n"
-        f"📚 {html.escape(str(course['name']))}\n"
-        f"👨‍🏫 استاد {html.escape(teacher)}\n\n"
-        "نوع فایل را انتخاب کن:",
-        _reply_keyboard(
-            [RESOURCE_LABELS["voice"], RESOURCE_LABELS["power"]],
-            [RESOURCE_LABELS["booklet"], RESOURCE_LABELS["reference"]],
-            [BOOKLET_BACK, BOOKLET_CANCEL],
+        f"<b><u>جلسه {to_persian_digits(session_no)} · {html.escape(str(session.get('title') or 'بدون عنوان'))}</u></b>\n\n"
+        f"📚 {html.escape(str(course.get('courseTitle') or 'درس'))}\n"
+        f"{meta_text}"
+        "نوع محتوای موردنظر را انتخاب کن:",
+        keyboard(
+            [
+                button(RESOURCE_LABELS["voice"], action=f"booklet-resource:{course_key}:{session_no}:voice"),
+                button(RESOURCE_LABELS["power"], action=f"booklet-resource:{course_key}:{session_no}:power"),
+            ],
+            [
+                button(RESOURCE_LABELS["booklet"], action=f"booklet-resource:{course_key}:{session_no}:booklet"),
+                button(RESOURCE_LABELS["reference"], action=f"booklet-resource:{course_key}:{session_no}:reference"),
+            ],
+            [button("↩️ جلسات", action=f"booklet-course:{course_key}")],
+            [button("🏠 منوی اصلی", action="home")],
         ),
     )
 
@@ -261,5 +298,5 @@ def bale_unavailable_screen() -> Screen:
         "<b><u>📚 آرشیو امن جزوات</u></b>\n\n"
         "منبع فایل‌ها کانال خصوصی تلگرام است و شناسهٔ فایل آن در بله قابل استفاده نیست.\n"
         "<blockquote>این تفاوت فنی فقط در انتقال فایل است؛ احراز هویت و مجوزها مشترک می‌مانند.</blockquote>",
-        {"inline_keyboard": [[{"text": "🏠 منوی اصلی", "callback_data": "v1:home"}]]},
+        keyboard([button("🏠 منوی اصلی", action="home")]),
     )

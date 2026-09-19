@@ -833,7 +833,10 @@ def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> 
     else:
         period_label = "—"
         end_label = "—"
-    if not effective:
+    reason = str(decision.get("reason") or "")
+    if reason == "subscription-not-started":
+        status = "⏳ دسترسی عمومی جزوات تا شروع دوره بسته است"
+    elif not effective:
         status = "🟢 دسترسی فعلی طبق سیاست باز فعال است"
     elif mode == "both":
         status = "✅ اشتراک پرداختی و 🎁 دسترسی رایگان هر دو فعال‌اند"
@@ -843,7 +846,8 @@ def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> 
         status = "🎁 دسترسی رایگان مالک فعال است"
     else:
         status = "🔒 برای این ماه دسترسی فعالی ثبت نشده است"
-        rows.append([button("💳 خرید اشتراک", action=f"term-subscription-buy:{term}", style="success")])
+        if reason != "subscription-not-started":
+            rows.append([button("💳 خرید اشتراک", action=f"term-subscription-buy:{term}", style="success")])
     rows.extend((
         [button("ℹ️ توضیحات", action=f"term-subscription-info:{term}")],
         [button("🏠 منوی اصلی", action="home")],
@@ -855,25 +859,43 @@ def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> 
         paid_at = format_jalali_datetime(latest.get("paidAt")) or "—"
         latest_period = to_persian_digits(str(latest.get("billingPeriod") or "").replace("term", "ترم "))
         latest_line = f"<b>آخرین پرداخت:</b> {html.escape(paid_at)} · <code>{html.escape(latest_period)}</code>\n"
-    text = (
-        f"<b>🔒 دسترسی جزوات ترم {to_persian_digits(term)}</b>\n\n"
-        f"{status}\n\n"
-        f"<b>دوره:</b> {html.escape(period_label)}\n"
-        f"<b>اعتبار پرداخت:</b> تا پایان {html.escape(end_label)}\n"
-        f"<b>هزینهٔ کامل ماه:</b> <code>{to_persian_digits(price)}</code>\n"
-        f"{latest_line}"
-        f"<blockquote>شروع سیاست: {start} · خرید وسط ماه با مبلغ کامل فقط تا پایان همان ماه شمسی معتبر است.</blockquote>"
-    )
+    if reason == "subscription-not-started":
+        start_label = "۱ مهر ۱۴۰۵" if str(policy.get("activeFromJalali") or "") == "1405-07-01" else start
+        text = (
+            f"<b>🔒 دسترسی جزوات ترم {to_persian_digits(term)}</b>\n\n"
+            f"{status}\n\n"
+            f"📅 شروع اشتراک: <b>{html.escape(start_label)}</b>\n"
+            f"💳 هزینهٔ ماهانه: <code>{to_persian_digits(price)}</code>\n\n"
+            "تا قبل از تاریخ شروع، ویس یا فایل جزوه برای حساب‌های دانشجویی ارسال نمی‌شود. "
+            "از تاریخ شروع، با فعال‌سازی اشتراک همان ماه، ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده در دسترس خواهند بود.\n\n"
+            "<blockquote>اشتراک هر ماه شمسی جداگانه محاسبه می‌شود و فایل‌ها فقط به‌صورت محافظت‌شده ارسال می‌شوند.</blockquote>"
+        )
+    else:
+        text = (
+            f"<b>🔒 دسترسی جزوات ترم {to_persian_digits(term)}</b>\n\n"
+            f"{status}\n\n"
+            f"<b>دوره:</b> {html.escape(period_label)}\n"
+            f"<b>اعتبار پرداخت:</b> تا پایان {html.escape(end_label)}\n"
+            f"<b>هزینهٔ کامل ماه:</b> <code>{to_persian_digits(price)}</code>\n"
+            f"{latest_line}"
+            f"<blockquote>شروع سیاست: {start} · خرید وسط ماه با مبلغ کامل فقط تا پایان همان ماه شمسی معتبر است.</blockquote>"
+        )
     return Screen(text, keyboard(*rows))
 
 
 def term_subscription_info_screen(policy: dict, *, term: int = 7) -> Screen:
+    price = to_persian_digits(format_rials(policy.get("monthlyPriceRials")))
+    start_raw = str(policy.get("activeFromJalali") or "")
+    start = "۱ مهر ۱۴۰۵" if start_raw == "1405-07-01" else to_persian_digits(start_raw.replace("-", "/"))
     return Screen(
         f"<b>ℹ️ اشتراک جزوات ترم {to_persian_digits(term)}</b>\n\n"
-        "اشتراک rolling سی‌روزه نیست؛ هر پرداخت فقط ماه شمسی جاری را پوشش می‌دهد. "
-        "خرید در میانهٔ ماه تخفیف یا انتقال اعتبار به ماه بعد ندارد.\n\n"
-        "پس از تأیید واقعی درگاه، دسترسی همان لحظه فعال می‌شود. تمدید خودکار یا برداشت خودکار انجام نمی‌شود.\n\n"
-        "<blockquote>همهٔ فایل‌ها حتی برای دسترسی رایگان، فقط به‌صورت نسخهٔ شخصی‌سازی‌شده، واترمارک‌دار و محافظت‌شده ارسال می‌شوند.</blockquote>",
+        f"📅 شروع دسترسی اشتراکی: <b>{html.escape(start)}</b>\n"
+        f"💳 هزینهٔ هر ماه: <code>{html.escape(price)}</code>\n\n"
+        "پیش از تاریخ شروع، برای حساب‌های دانشجویی ویس یا فایل جزوه ارسال نمی‌شود. "
+        "پس از شروع دوره، هر پرداخت فقط همان ماه شمسی را پوشش می‌دهد و با تأیید درگاه، "
+        "دسترسی به ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده فعال می‌شود.\n\n"
+        "خرید در میانهٔ ماه تا پایان همان ماه معتبر است؛ تمدید خودکار یا برداشت خودکار انجام نمی‌شود.\n\n"
+        "<blockquote>همهٔ فایل‌ها با محافظت تلگرام ارسال می‌شوند؛ فایل‌های PDF علاوه بر آن نسخهٔ شخصی‌سازی‌شده و واترمارک‌دار دارند.</blockquote>",
         keyboard(
             [button("مشاهده وضعیت", action=f"term-subscription:{term}")],
             [button("🏠 منوی اصلی", action="home")],

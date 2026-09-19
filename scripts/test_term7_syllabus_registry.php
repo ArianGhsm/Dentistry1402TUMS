@@ -61,6 +61,35 @@ foreach ($counts as $key => $expected) {
     syllabus_assert(count($catalog[$key]['sessions'] ?? []) === $expected, "{$key} preserves {$expected} source rows/sessions");
 }
 
+$bookletCatalog = classops_term7_syllabus_booklet_catalog();
+syllabus_assert(
+    ($bookletCatalog['contractVersion'] ?? '') === 'term7-booklet-catalog-v1'
+        && ($bookletCatalog['term'] ?? 0) === 7,
+    'Booklet projection publishes the versioned Term 7 contract'
+);
+$bookletByKey = [];
+foreach (($bookletCatalog['courses'] ?? []) as $course) {
+    if (is_array($course)) $bookletByKey[(string) ($course['courseKey'] ?? '')] = $course;
+}
+$researchBooklet = $bookletByKey['research-methods-2'] ?? [];
+$researchNumbers = array_column($researchBooklet['sessions'] ?? [], 'sessionNumber');
+syllabus_assert(
+    $researchNumbers === range(1, 16)
+        && ($researchBooklet['bookletTag'] ?? '') === 'روش_تحقیق۲',
+    'Booklet projection exposes exactly the 16 numbered Research Methodology sessions and canonical hashtag'
+);
+$entBooklet = $bookletByKey['ent'] ?? [];
+syllabus_assert(
+    array_column($entBooklet['sessions'] ?? [], 'sessionNumber') === range(1, 12)
+        && ($entBooklet['bookletTag'] ?? '') === 'گوش_حلق_بینی',
+    'Booklet projection follows the canonical 12-session ENT syllabus instead of the old local sample'
+);
+$endoBooklet = $bookletByKey['endodontics-theory-1'] ?? [];
+syllabus_assert(
+    array_column($endoBooklet['sessions'] ?? [], 'sessionNumber') === range(1, 15),
+    'Booklet projection expands multi-session Endodontics rows into individual session buttons'
+);
+
 $partialAmbiguous = $catalog['partial-basics-theory']['sessions'][2] ?? [];
 syllabus_assert(
     ($partialAmbiguous['sessionNumber'] ?? null) === 3 && ($partialAmbiguous['dates'] ?? []) === [],

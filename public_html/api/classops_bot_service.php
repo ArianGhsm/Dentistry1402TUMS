@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/classops_stage2/digests.php';
 require_once __DIR__ . '/classops_stage2_scheduler.php';
+require_once __DIR__ . '/classops_term7_syllabus.php';
 
 const CLASSOPS_BOT_SERVICE_MAX_LIST = 50;
 const CLASSOPS_BOT_SERVICE_MAX_CALLBACK_PAYLOAD_BYTES = 24000;
@@ -392,6 +393,9 @@ function classops_bot_service_dispatch(array $request): array
 {
     $action = trim((string) ($request['action'] ?? ''));
     try {
+        if ($action === 'classopsBookletCatalog') {
+            return ['success' => true] + classops_term7_syllabus_booklet_catalog();
+        }
         if ($action === 'classopsCapabilities') {
             $user = classops_bot_service_linked_user($request);
             return ['success'=>true,'role'=>classops_stage2_is_owner($user)?'owner':'student','capabilities'=>classops_stage2_capabilities()];

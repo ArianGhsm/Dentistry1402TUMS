@@ -845,8 +845,16 @@ class BotState:
     def term_access_decision(self, subject_key: str, term: int, *, now: datetime | None = None) -> dict:
         policy = self.term_access_policy(term)
         current = now or datetime.now(timezone.utc)
-        if policy is None or not policy_is_effective(policy, current):
+        if policy is None or not bool(policy.get("enabled")) or str(policy.get("mode") or "open") != "subscription":
             return {"allowed": True, "reason": "open-policy", "accessPath": "open", "policy": policy}
+        if not policy_is_effective(policy, current):
+            return {
+                "allowed": False,
+                "reason": "subscription-not-started",
+                "accessPath": "none",
+                "policy": policy,
+                "period": None,
+            }
         if not subject_key:
             return {"allowed": False, "reason": "canonical-identity-required", "accessPath": "none", "policy": policy}
         self.expire_term_entitlements(now=current)
@@ -1736,6 +1744,24 @@ class BotState:
                 "FROM protected_media_sources WHERE course_code=? AND term=? AND session_no=? "
                 "AND content_kind=? AND active=1 ORDER BY source_message_id",
                 (course_code, term, session_no, content_kind),
+            ).fetchall()
+        return [dict(payload) for row in rows if (payload := self._protected_media_payload(row)) is not None]
+
+    def protected_media_for_tag(
+        self,
+        *,
+        course_tag: str,
+        term: int,
+        session_no: int,
+        content_kind: str,
+    ) -> list[dict]:
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT id,source_chat_id,source_message_id,course_code,course_name,course_tag,term,"
+                "session_no,content_kind,telegram_method,file_id,file_unique_id,file_name,mime_type,caption "
+                "FROM protected_media_sources WHERE course_tag=? AND term=? AND session_no=? "
+                "AND content_kind=? AND active=1 ORDER BY source_message_id",
+                (str(course_tag), int(term), int(session_no), str(content_kind)),
             ).fetchall()
         return [dict(payload) for row in rows if (payload := self._protected_media_payload(row)) is not None]
 

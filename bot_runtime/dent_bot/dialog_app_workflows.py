@@ -7,12 +7,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 from .api import BotApiError
-from .booklets import (
-    BOOKLET_BACK, BOOKLET_CANCEL, BOOKLET_HOME, COURSE_BY_CODE, RESOURCE_LABELS,
-    course_from_button, courses_screen as booklet_courses_screen,
-    resources_screen as booklet_resources_screen, session_from_button,
-    sessions_screen as booklet_sessions_screen,
-)
+from .booklets import courses_screen as booklet_courses_screen
 from .message_frames import frame_error
 from .navid import local_now
 from .onboarding import (
@@ -726,96 +721,24 @@ class DialogAppWorkflows:
         return True
 
     def _handle_booklet_dialog(self, chat_id: int, user_id: int, text: str, dialog: dict) -> bool:
-        step = str(dialog.get("step") or "course")
-        payload = dict(dialog.get("payload") or {})
-        if text in {BOOKLET_CANCEL, BOOKLET_HOME}:
-            self.state.clear_dialog(user_id)
-            self._remove_reply_keyboard(chat_id)
+        """Migrate a stale pre-inline Booklets dialog on the user's next message."""
+        self.state.clear_dialog(user_id)
+        self._remove_reply_keyboard(chat_id)
+        if self.platform != "telegram":
             screen = self._screen("home", user_id)
             self.api.send(chat_id, screen.text, screen.keyboard)
             return True
-        if text == BOOKLET_BACK:
-            if step == "course":
-                self.state.clear_dialog(user_id)
-                self._remove_reply_keyboard(chat_id)
-                screen = self._screen("home", user_id)
-            elif step == "session":
-                self.state.update_dialog(user_id, step="course", payload={})
-                screen = booklet_courses_screen()
+        try:
+            allowed, blocked_screen = self._booklet_access_screen(user_id)
+            if not allowed:
+                assert blocked_screen is not None
+                screen = blocked_screen
             else:
-                course_code = str(payload.get("courseCode") or "")
-                self.state.update_dialog(user_id, step="session", payload={"courseCode": course_code})
-                screen = booklet_sessions_screen(course_code)
-            self.api.send(chat_id, screen.text, screen.keyboard)
-            return True
-        if step == "course":
-            course = course_from_button(text)
-            if course is None:
-                self.api.send(chat_id, frame_error("درس را فقط از دکمه‌های فهرست انتخاب کن."), booklet_courses_screen().keyboard)
-                return True
-            course_code = str(course["code"])
-            self.state.update_dialog(user_id, step="session", payload={"courseCode": course_code})
-            self.api.send(chat_id, booklet_sessions_screen(course_code).text, booklet_sessions_screen(course_code).keyboard)
-            return True
-        course_code = str(payload.get("courseCode") or "")
-        if course_code not in COURSE_BY_CODE:
-            self.state.update_dialog(user_id, step="course", payload={})
-            screen = booklet_courses_screen()
-            self.api.send(chat_id, frame_error("درس قبلی معتبر نبود؛ دوباره انتخاب کن.") + "\n\n" + screen.text, screen.keyboard)
-            return True
-        if step == "session":
-            session = session_from_button(course_code, text)
-            if session is None:
-                screen = booklet_sessions_screen(course_code)
-                self.api.send(chat_id, frame_error("جلسه را فقط از دکمه‌های طرح درس انتخاب کن."), screen.keyboard)
-                return True
-            session_no = int(session[0])
-            payload = {"courseCode": course_code, "sessionNo": session_no}
-            self.state.update_dialog(user_id, step="resource", payload=payload)
-            screen = booklet_resources_screen(course_code, session_no)
-            self.api.send(chat_id, screen.text, screen.keyboard)
-            return True
-        if step == "resource":
-            content_kind = next((kind for kind, label in RESOURCE_LABELS.items() if label == text), "")
-            session_no = int(payload.get("sessionNo") or 0)
-            screen = booklet_resources_screen(course_code, session_no)
-            if not content_kind:
-                self.api.send(chat_id, frame_error("نوع فایل را از چهار دکمه انتخاب کن."), screen.keyboard)
-                return True
-            sources = self.state.protected_media_for(
-                course_code=course_code,
-                term=int(COURSE_BY_CODE[course_code]["term"]),
-                session_no=session_no,
-                content_kind=content_kind,
+                screen = booklet_courses_screen(self._booklet_catalog(user_id))
+        except SiteApiError as error:
+            screen = Screen(
+                frame_error(str(error)),
+                keyboard([button("🏠 منوی اصلی", action="home")]),
             )
-            if not sources:
-                self.api.send(chat_id, frame_error("برای این جلسه و این نوع، هنوز فایل معتبری ثبت نشده است."), screen.keyboard)
-                return True
-            if self.media_dispatcher is None:
-                self.api.send(chat_id, frame_error("صف ارسال امن فعلاً در دسترس نیست."), screen.keyboard)
-                return True
-            statuses = [self.media_dispatcher.enqueue(user_id, int(source["id"])) for source in sources]
-            if all(status == "full" for status in statuses):
-                message = "صف ارسال پر است؛ چند لحظه بعد دوباره تلاش کن."
-            elif all(status in {"rate-limited", "cooldown"} for status in statuses):
-                message = "⏳ درخواست‌ها خیلی سریع تکرار شدند؛ چند لحظه بعد دوباره امتحان کن."
-            elif all(status in {"denied", "missing"} for status in statuses):
-                message = "⚠️ مجوز یا فایل معتبر این بخش پیدا نشد؛ دوباره از فهرست جزوات وارد شو."
-            elif all(status == "duplicate" for status in statuses):
-                message = "همین فایل هم‌اکنون در صف ارسال توست."
-            else:
-                queued = sum(status == "queued" for status in statuses)
-                if queued:
-                    message = f"✅ {queued} فایل در صف امن قرار گرفت و پس از بررسی دوبارهٔ مجوز ارسال می‌شود."
-                elif any(status == "duplicate" for status in statuses):
-                    message = "همین فایل هم‌اکنون در صف ارسال توست."
-                elif any(status in {"rate-limited", "cooldown"} for status in statuses):
-                    message = "⏳ درخواست‌ها خیلی سریع تکرار شدند؛ چند لحظه بعد دوباره امتحان کن."
-                else:
-                    message = "⚠️ فایل قابل ارسال پیدا نشد؛ دوباره از فهرست جزوات وارد شو."
-            self.api.send(chat_id, message, screen.keyboard)
-            return True
-        self.state.update_dialog(user_id, step="course", payload={})
-        screen = booklet_courses_screen()
-        self.api.send(chat_id, frame_error("مرحلهٔ جزوات معتبر نبود؛ از فهرست درس‌ها ادامه بده."), screen.keyboard)
+        self.api.send(chat_id, screen.text, screen.keyboard)
         return True

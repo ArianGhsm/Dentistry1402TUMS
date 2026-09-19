@@ -62,8 +62,8 @@ def main() -> int:
         state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
         dispatcher = None
         try:
-            sources = state.protected_media_for(
-                course_code="ENT", term=7, session_no=4, content_kind="booklet"
+            sources = state.protected_media_for_tag(
+                course_tag="گوش_حلق_بینی", term=7, session_no=4, content_kind="booklet"
             )
             sources = [
                 item for item in sources
@@ -181,13 +181,21 @@ def main() -> int:
             api.close()
 
     caption = _decode_caption(args.caption_base64)
+    site_api = SiteApiClient(
+        settings.site_api_url,
+        settings.site_service_secret,
+        platform="telegram",
+        timeout=settings.site_timeout_seconds,
+        relay_secret=settings.site_relay_secret,
+    )
+    catalog = site_api.booklet_catalog(settings.owner_id)
     records = source_records_from_channel_post({
         "caption": caption,
         "document": {
             "file_name": str(args.file_name),
             "mime_type": str(args.mime_type),
         },
-    })
+    }, catalog)
     if not records:
         raise ValueError("Existing source caption did not produce a valid route")
     state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)

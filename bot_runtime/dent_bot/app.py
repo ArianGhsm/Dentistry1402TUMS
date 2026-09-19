@@ -15,18 +15,12 @@ from .state import BotState
 from .payments import identity_from_account
 from .payment_app_workflows import PaymentAppWorkflows
 from .app_shell_screens import home, section
+from .booklet_app_workflows import BookletAppWorkflows
 from .dialog_app_workflows import DialogAppWorkflows
 from .dynamic_screen_workflows import DynamicScreenWorkflows
 from .message_frames import frame_error
 from .site_api import SiteApiClient, SiteApiError
 from .persian_datetime import format_jalali_datetime, to_persian_digits
-from .subscriptions import (
-    billing_period_for,
-    parse_jalali_date,
-    policy_is_effective,
-    subscription_identity_from_account,
-    utc_iso,
-)
 from .ui import (
     Screen,
     bot_start_url,
@@ -66,8 +60,6 @@ from .ui import (
     complimentary_search_results_screen,
     term_subscription_admin_screen,
     term_access_policies_screen,
-    term_subscription_info_screen,
-    term_subscription_screen,
     term_subscription_settings_screen,
     format_rials,
     required_channel_membership_screen,
@@ -77,20 +69,6 @@ from .ui import (
 )
 from .navid import local_now, send_daily_challenge
 from .student_assistant import challenge_expired, clean_captcha_answer, send_private_challenge
-from .booklets import (
-    BOOKLET_BACK,
-    BOOKLET_CANCEL,
-    BOOKLET_HOME,
-    COURSE_BY_CODE,
-    RESOURCE_LABELS,
-    bale_unavailable_screen,
-    course_from_button,
-    courses_screen as booklet_courses_screen,
-    resources_screen as booklet_resources_screen,
-    session_from_button,
-    sessions_screen as booklet_sessions_screen,
-    source_records_from_channel_post,
-)
 from .academic_term7_rich import decorate_academic_notification_screen
 from .classops_shell import canonical_home_screen, owner_management_screen
 from .feature_router import decorate_feature_screen, route_feature_callback, route_feature_message
@@ -121,7 +99,7 @@ from .onboarding import (
 
 
 
-class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows):
+class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows):
     def __init__(
         self,
         api: TelegramBotApi,
@@ -390,23 +368,6 @@ class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows
             })
         self.api.answer_inline_query(query_id, results, cache_time=3)
 
-    def _handle_booklet_source_post(self, message: dict) -> None:
-        if self.platform != "telegram" or self.booklet_source_channel_id >= 0:
-            return
-        chat = dict(message.get("chat") or {})
-        if int(chat.get("id") or 0) != self.booklet_source_channel_id:
-            return
-        message_id = int(message.get("message_id") or 0)
-        if message_id <= 0:
-            return
-        records = source_records_from_channel_post(message)
-        count = self.state.replace_protected_media_message(
-            self.booklet_source_channel_id,
-            message_id,
-            records,
-        )
-        logging.info("booklet source catalog updated routes=%s", count)
-
     def _handle_serialized(self, update: dict, *, interaction_version: int | None = None) -> None:
         started = time.monotonic()
         kind = "callback" if isinstance(update.get("callback_query"), dict) else "message"
@@ -431,6 +392,15 @@ class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows
         if chat.get("type") != "private" or not isinstance(sender.get("id"), int):
             return False
         user_id = int(sender["id"])
+        callback_name = str(callback.get("data") or "")
+        if callback_name.startswith("v1:"):
+            callback_name = callback_name[3:]
+        if user_id == self.owner_id:
+            if callback and self._is_booklet_action(callback_name):
+                return False
+            owner_dialog = self.state.dialog(user_id)
+            if not callback and owner_dialog is not None and str(owner_dialog.get("kind") or "") == "booklets-v1":
+                return False
         check_unavailable = False
         try:
             member = bool(self.api.is_chat_member(f"@{self.required_channel_username}", user_id))
@@ -574,9 +544,15 @@ class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows
                 return
             self.api.send(int(chat["id"]), auth_dialog.text, auth_dialog.keyboard)
             return
-        blocked = self._bot_entry_gate(user_id)
+        entry_dialog = self.state.dialog(user_id)
+        owner_legacy_booklet = (
+            user_id == self.owner_id
+            and entry_dialog is not None
+            and str(entry_dialog.get("kind") or "") == "booklets-v1"
+        )
+        blocked = None if owner_legacy_booklet else self._bot_entry_gate(user_id)
         if blocked is not None:
-            dialog = self.state.dialog(user_id)
+            dialog = entry_dialog
             if dialog is not None and str(dialog.get("kind") or "") == "booklets-v1":
                 self.state.clear_dialog(user_id)
                 self._remove_reply_keyboard(int(chat["id"]))
@@ -1000,35 +976,6 @@ class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows
 
 
 
-    def booklet_access_allowed(self, user_id: int, source: dict) -> bool:
-        """Fresh identity, membership and term-entitlement check for every delivery path."""
-        if self.platform != "telegram" or self.site_api is None:
-            return False
-        course = COURSE_BY_CODE.get(str(source.get("courseCode") or ""))
-        if not course or int(source.get("term") or 0) != int(course["term"]):
-            return False
-        try:
-            account = self.site_api.account(user_id)
-            authorized = bool(
-                account.get("linked") is True and account.get("authComplete") is True
-            ) or bool(
-                isinstance(account.get("onboardingProfile"), dict)
-                and str(account["onboardingProfile"].get("verifiedAt") or "").strip()
-                and not account["onboardingProfile"].get("isClassMember")
-            )
-            if not authorized:
-                return False
-            if self.required_channel_username:
-                if not bool(self.api.is_chat_member(f"@{self.required_channel_username}", user_id)):
-                    return False
-            identity = subscription_identity_from_account(account)
-            decision = self.state.term_access_decision(
-                identity.subject_key if identity else "", int(source.get("term") or 0)
-            )
-            return bool(decision.get("allowed"))
-        except (SiteApiError, BotApiError, AttributeError, TypeError, ValueError):
-            return False
-
     def _claim_interaction(self, user_id: int) -> int:
         with self._interaction_lock:
             version = self._interaction_versions.get(user_id, 0) + 1
@@ -1095,11 +1042,14 @@ class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows
         time.sleep(0.08)
         if not self._interaction_is_current(user_id, interaction_version):
             return
-        auth_dialog = self._active_auth_dialog_screen(user_id)
-        blocked = auth_dialog or (
-            self._private_access_gate(user_id)
-            if self._requires_canonical_link(name)
-            else self._bot_entry_gate(user_id)
+        booklet_owner_bypass = user_id == self.owner_id and self._is_booklet_action(name)
+        auth_dialog = None if booklet_owner_bypass else self._active_auth_dialog_screen(user_id)
+        blocked = None if booklet_owner_bypass else (
+            auth_dialog or (
+                self._private_access_gate(user_id)
+                if self._requires_canonical_link(name)
+                else self._bot_entry_gate(user_id)
+            )
         )
         if blocked is not None:
             dialog = self.state.dialog(user_id)
@@ -1153,22 +1103,13 @@ class DentBotApp(DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows
         if name == "navid-check" and user_id == self.owner_id:
             self._send_navid_challenge(int(chat["id"]), refresh=True)
             return
-        if name == "notes":
-            if self.platform != "telegram":
-                screen = bale_unavailable_screen()
-            else:
-                policy = self.state.term_access_policy(7) or {}
-                account = self.site_api.account(user_id) if self.site_api is not None else {}
-                identity = subscription_identity_from_account(account)
-                decision = self.state.term_access_decision(identity.subject_key if identity else "", 7)
-                if policy_is_effective(policy) and identity is None:
-                    screen = self._unlinked_access_screen(user_id, account)
-                elif decision.get("allowed"):
-                    self.state.start_dialog(user_id, "booklets-v1", "course", {})
-                    screen = booklet_courses_screen()
-                else:
-                    screen = term_subscription_screen(policy, decision, term=7)
-            self.api.send(int(chat["id"]), screen.text, screen.keyboard)
+        if self._is_booklet_action(name):
+            self._handle_booklet_action(
+                chat_id=int(chat["id"]),
+                user_id=user_id,
+                name=name,
+                message_id=int(message.get("message_id") or 0),
+            )
             return
         dialog = self.state.dialog(user_id)
         if dialog is not None and str(dialog.get("kind") or "") == "booklets-v1":

@@ -80,8 +80,9 @@ class TermSubscriptionTests(unittest.TestCase):
         self.assertEqual(jalali_to_gregorian(1405, 8, 1).isoformat(), "2026-10-23")
         self.assertEqual(self.state.complimentary_term_access(7), [])
         before = self.state.term_access_decision(self.identity.subject_key, 7, now=datetime(2026, 9, 22, 12, tzinfo=timezone.utc))
-        self.assertTrue(before["allowed"])
-        self.assertEqual(before["accessPath"], "open")
+        self.assertFalse(before["allowed"])
+        self.assertEqual(before["reason"], "subscription-not-started")
+        self.assertEqual(before["accessPath"], "none")
 
     def test_paid_mid_month_expires_at_next_jalali_month_and_duplicate_is_idempotent(self) -> None:
         denied = self.state.term_access_decision(self.identity.subject_key, 7, now=MEHR_MIDDLE)
@@ -353,7 +354,8 @@ class TermSubscriptionTests(unittest.TestCase):
             AccessApi(), self.state, owner_id=10, site_url="https://example.test",
             site_api=AccessSite(), platform="telegram", required_channel_username="Dent1402Booklets",
         )
-        source = {"courseCode": "ENT", "term": 7}
+        source = {"courseTag": "گوش_حلق_بینی", "term": 7}
+        self.assertTrue(app.booklet_access_allowed(10, source))
         self.assertFalse(app.booklet_access_allowed(20, source))
         grant = self.state.grant_complimentary_term_access(
             term=7, student_number=self.identity.student_number, display_name=self.identity.display_name,
@@ -366,6 +368,21 @@ class TermSubscriptionTests(unittest.TestCase):
         self.assertFalse(app.booklet_access_allowed(20, source))
         self._paid(billing_period_for(7).key, token="c" * 20, delivery="current-period-delivery")
         self.assertTrue(app.booklet_access_allowed(20, source))
+
+    def test_owner_booklet_delivery_bypasses_identity_membership_and_subscription(self) -> None:
+        class OwnerApi:
+            @staticmethod
+            def is_chat_member(_channel, _user_id):
+                raise AssertionError("owner access must not depend on membership lookup")
+
+        app = DentBotApp(
+            OwnerApi(), self.state, owner_id=10, site_url="https://example.test",
+            site_api=None, platform="telegram", required_channel_username="Dent1402Booklets",
+        )
+        source = {"courseTag": "روش_تحقیق۲", "term": 7}
+        self.assertTrue(app.booklet_access_allowed(10, source))
+        self.assertFalse(app.booklet_access_allowed(11, source))
+
 
 
 if __name__ == "__main__":
