@@ -195,6 +195,9 @@ class SiteApiClient:
     def notifications(self, user_id: int, *, limit: int = 20) -> dict:
         return self.request("notifications", user_id, limit=limit)
 
+    def notification_detail(self, user_id: int, notification_id: str) -> dict:
+        return self.request("notificationDetail", user_id, notificationId=notification_id)
+
     def mark_notification_read(self, user_id: int, notification_id: str) -> dict:
         return self.request("markNotificationRead", user_id, notificationId=notification_id)
 

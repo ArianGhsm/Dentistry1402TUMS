@@ -339,6 +339,23 @@ class DentBotTests(unittest.TestCase):
         self.assertIn("v1:navid", owner_callbacks)
         self.assertIn("v1:admin", owner_callbacks)
 
+    def test_site_api_notification_detail_uses_canonical_signed_action(self) -> None:
+        class CapturingClient(SiteApiClient):
+            def __init__(self):
+                self.calls = []
+
+            def request(self, action, platform_user_id, **fields):
+                self.calls.append((action, platform_user_id, fields))
+                return {"success": True, "notification": {"id": fields.get("notificationId")}}
+
+        client = CapturingClient()
+        result = client.notification_detail(20, "nt-example123")
+        self.assertEqual(
+            client.calls,
+            [("notificationDetail", 20, {"notificationId": "nt-example123"})],
+        )
+        self.assertEqual(result["notification"]["id"], "nt-example123")
+
     def test_notification_feed_marks_seen_only_after_explicit_open(self) -> None:
         class NotificationApi(LinkedSiteStub):
             def __init__(self):
