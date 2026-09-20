@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.5';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.6';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -310,6 +310,7 @@ function classops_term7_syllabus_booklet_tag(string $courseKey, array $course): 
         'research-methods-2' => 'روش_تحقیق۲',
         'endodontics-basics-2' => 'مبانی_اندودانتیکس۲',
         'oral-health-practical-2' => 'سلامت_دهان_عملی۲',
+        'pathology-practical-1' => 'آسیب_شناسی_عملی۱',
         'oral-health-theory-2' => 'سلامت_دهان_نظری۲',
         'ent' => 'گوش_حلق_بینی',
         'periodontology-theory-1' => 'پریو_نظری۱',

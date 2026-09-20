@@ -1440,6 +1440,188 @@ function classops_term7_syllabus_source_catalog(): array
       }
     ]
   },
+  "pathology-practical-1": {
+    "version": "1405-1406-1.rotation-a.1",
+    "eventSlugs": [
+      "pathology-practical-1"
+    ],
+    "courseTitle": "آسیب‌شناسی عملی ۱",
+    "sourceCourseTitle": "برنامه کلاس‌های عملی (۱) آسیب‌شناسی دهان دوره دکتری",
+    "sourceFile": "برنامه کلاس‌های عملی (۱) آسیب‌شناسی دهان — روت اول گروه‌های ۱–۵",
+    "courseCoordinator": "",
+    "sessions": [
+      {
+        "sessionNumber": 1,
+        "sessionNumbers": [
+          1
+        ],
+        "dates": [
+          "1405/07/05"
+        ],
+        "title": "گرانول فوردایس – لکوادما – هیپرکراتوز",
+        "instructor": "دکتر درخشان",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 2,
+        "sessionNumbers": [
+          2
+        ],
+        "dates": [
+          "1405/07/07"
+        ],
+        "title": "گرانولوم نوک ریشه – کیست رادیکولار",
+        "instructor": "دکتر مرادزاده",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 3,
+        "sessionNumbers": [
+          3
+        ],
+        "dates": [
+          "1405/07/12"
+        ],
+        "title": "ادنتوژنیک کراتوسیست – کیست گورلین",
+        "instructor": "دکتر شکیب",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 4,
+        "sessionNumbers": [
+          4
+        ],
+        "dates": [
+          "1405/07/14"
+        ],
+        "title": "آملوبلاستوما",
+        "instructor": "دکتر عارفی",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 5,
+        "sessionNumbers": [
+          5
+        ],
+        "dates": [
+          "1405/07/19"
+        ],
+        "title": "یونی‌سیستیک آملوبلاستوما – آملوبلاستیک فیبروما",
+        "instructor": "دکتر مهدوی",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 6,
+        "sessionNumbers": [
+          6
+        ],
+        "dates": [
+          "1405/07/21"
+        ],
+        "title": "مرور",
+        "sourceTitle": "review",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 7,
+        "sessionNumbers": [
+          7
+        ],
+        "dates": [
+          "1405/07/26"
+        ],
+        "title": "آدنوماتوئید ادنتوژنیک تومور – تومور پیندبورگ",
+        "instructor": "دکتر مهدوی",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 8,
+        "sessionNumbers": [
+          8
+        ],
+        "dates": [
+          "1405/07/28"
+        ],
+        "title": "ادنتوم – میگزوما",
+        "instructor": "دکتر شکیب",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 9,
+        "sessionNumbers": [
+          9
+        ],
+        "dates": [
+          "1405/08/03"
+        ],
+        "title": "استئومیلیت – لیکن پلان",
+        "instructor": "دکتر درخشان",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 10,
+        "sessionNumbers": [
+          10
+        ],
+        "dates": [
+          "1405/08/05"
+        ],
+        "title": "پمفیگوس – پمفیگوئید",
+        "instructor": "دکتر عارفی",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 11,
+        "sessionNumbers": [
+          11
+        ],
+        "dates": [
+          "1405/08/10"
+        ],
+        "title": "مرور",
+        "sourceTitle": "review",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      },
+      {
+        "sessionNumber": 13,
+        "sessionNumbers": [
+          13
+        ],
+        "dates": [
+          "1405/08/12"
+        ],
+        "title": "امتحان",
+        "instructor": "",
+        "references": [],
+        "sessionMode": "in_person",
+        "sourcePage": 1
+      }
+    ]
+  },
   "oral-health-practical-2": {
     "version": "1405-1406-1.corrected.1",
     "rotationRelative": true,

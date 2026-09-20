@@ -36,6 +36,7 @@ $expectedKeys = [
     'research-methods-2',
     'endodontics-basics-2',
     'oral-health-practical-2',
+    'pathology-practical-1',
     'oral-health-theory-2',
     'periodontology-theory-1',
     'ent',
@@ -52,6 +53,7 @@ $counts = [
     'research-methods-2' => 17,
     'endodontics-basics-2' => 14,
     'oral-health-practical-2' => 8,
+    'pathology-practical-1' => 12,
     'oral-health-theory-2' => 16,
     'periodontology-theory-1' => 17,
     'ent' => 12,
@@ -246,6 +248,77 @@ syllabus_assert(
         && str_contains((string) ($endoBasicsRubberDam['sessionDetails'] ?? ''), 'رابردم')
         && ($endoBasicsRubberDam['instructor'] ?? '') === 'دکتر اسدیان',
     'Endodontics Foundations 2 keeps quiz 4, rubber-dam work and the named demonstrator together'
+);
+
+$pathologyRows = $catalog['pathology-practical-1']['sessions'] ?? [];
+syllabus_assert(
+    array_column($pathologyRows, 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,13]
+        && ($pathologyRows[0]['dates'] ?? []) === ['1405/07/05']
+        && ($pathologyRows[11]['dates'] ?? []) === ['1405/08/12'],
+    'Pathology Practical 1 preserves all 12 Rotation A source rows and the source 11-to-13 numbering gap'
+);
+$pathologyFirst = classops_term7_syllabus_enrich_events([[
+    'slug' => 'pathology-practical-1',
+    'title' => 'آسیب‌شناسی عملی ۱',
+    'start' => '09:00',
+    'end' => '12:00',
+    'location' => '',
+]], '1405/07/05', 'A');
+syllabus_assert(
+    count($pathologyFirst) === 1
+        && ($pathologyFirst[0]['sessionNumber'] ?? null) === 1
+        && ($pathologyFirst[0]['sessionTitle'] ?? '') === 'گرانول فوردایس – لکوادما – هیپرکراتوز'
+        && ($pathologyFirst[0]['instructor'] ?? '') === 'دکتر درخشان'
+        && ($pathologyFirst[0]['start'] ?? '') === '09:00'
+        && ($pathologyFirst[0]['end'] ?? '') === '12:00'
+        && empty($pathologyFirst[0]['sourceTimeExplicit']),
+    'Pathology Practical 1 enriches Rotation A metadata while preserving the canonical practical clock'
+);
+$pathologyReview = classops_term7_syllabus_enrich_events([[
+    'slug' => 'pathology-practical-1',
+    'title' => 'آسیب‌شناسی عملی ۱',
+    'start' => '09:00',
+    'end' => '12:00',
+    'location' => '',
+]], '1405/07/21', 'A');
+syllabus_assert(
+    count($pathologyReview) === 1
+        && ($pathologyReview[0]['sessionNumber'] ?? null) === 6
+        && ($pathologyReview[0]['sessionTitle'] ?? '') === 'مرور'
+        && ($pathologyReview[0]['sourceTitle'] ?? '') === 'review'
+        && ($pathologyReview[0]['instructor'] ?? 'x') === '',
+    'Pathology review row is Persian in the UI while preserving the source review label and blank instructor'
+);
+$pathologyExam = classops_term7_syllabus_enrich_events([[
+    'slug' => 'pathology-practical-1',
+    'title' => 'آسیب‌شناسی عملی ۱',
+    'start' => '09:00',
+    'end' => '12:00',
+    'location' => '',
+]], '1405/08/12', 'A');
+syllabus_assert(
+    count($pathologyExam) === 1
+        && ($pathologyExam[0]['sessionNumber'] ?? null) === 13
+        && ($pathologyExam[0]['sessionTitle'] ?? '') === 'امتحان',
+    'Pathology source exam remains row/session 13 on 1405/08/12 without inventing row 12'
+);
+$pathologyRotationB = classops_term7_syllabus_enrich_events([[
+    'slug' => 'pathology-practical-1',
+    'title' => 'آسیب‌شناسی عملی ۱',
+    'start' => '09:00',
+    'end' => '12:00',
+    'location' => '',
+]], '1405/09/01', 'B');
+syllabus_assert(
+    count($pathologyRotationB) === 1
+        && !isset($pathologyRotationB[0]['sessionNumber']),
+    'Pathology Practical 1 does not infer Rotation B metadata from the Rotation A-only source'
+);
+$pathologyBooklet = $bookletByKey['pathology-practical-1'] ?? [];
+syllabus_assert(
+    array_column($pathologyBooklet['sessions'] ?? [], 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,13]
+        && ($pathologyBooklet['bookletTag'] ?? '') === 'آسیب_شناسی_عملی۱',
+    'Booklet projection exposes Pathology Practical 1 with canonical Persian tag and the source numbering gap'
 );
 
 $healthTheory = classops_term7_syllabus_enrich_events([
