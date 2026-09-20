@@ -54,10 +54,10 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertTrue(hasattr(telegram.text, "rich_html"))
         self.assertIn("<table bordered striped compact>", telegram.text.rich_html)
         self.assertIn("<th>زمان</th>", telegram.text.rich_html)
-        self.assertIn("<th>وضعیت / مکان</th>", telegram.text.rich_html)
+        self.assertIn("<th>استاد</th>", telegram.text.rich_html)
         self.assertIn("آناتومی انساج پریودنتال ۱ · مجازی", telegram.text.rich_html)
-        self.assertIn("<td>مجازی</td>", telegram.text.rich_html)
-        self.assertIn("<td>آمفی‌تئاتر ۹۰</td>", telegram.text.rich_html)
+        self.assertIn("📍 مجازی", telegram.text.rich_html)
+        self.assertIn("📍 آمفی‌تئاتر ۹۰", telegram.text.rich_html)
         self.assertIn("۰۹:۰۰–۱۲:۰۰", telegram.text.rich_html)
         self.assertIn("۱۳:۰۰–۱۵:۳۰", telegram.text.rich_html)
         self.assertIn("۰۹:۰۰–۱۲:۰۰", str(telegram.text))
@@ -65,6 +65,67 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertNotIn("کارآموزی صبح", str(telegram.text))
         self.assertNotIn("کارآموزی عصر", str(telegram.text))
         self.assertEqual(telegram.keyboard, bale.keyboard)
+
+    def test_monday_notification_uses_structured_rows_for_time_order_and_instructor(self):
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | دوشنبه ۱۴۰۵/۰۶/۳۰",
+            "body": "📚 کلاس‌های نظری\n• ارتودنسی نظری ۱\n  ⏰ ۱۲:۳۰ تا ۱۳:۳۰\n\n🦷 کارآموزی صبح\n• سلامت دهان عملی ۲\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰",
+            "meta": {
+                "academicScheduleRows": [
+                    {
+                        "kind": "theory",
+                        "period": "theory",
+                        "title": "ارتودنسی نظری ۱",
+                        "start": "12:30",
+                        "end": "13:30",
+                        "location": "مجازی",
+                        "instructor": "دکتر عرب",
+                    },
+                    {
+                        "kind": "theory",
+                        "period": "theory",
+                        "title": "دندانپزشکی تشخیصی ۳",
+                        "start": "13:15",
+                        "end": "14:15",
+                        "location": "آمفی‌تئاتر ۹۰",
+                        "instructor": "دکتر پورشهیدی",
+                    },
+                    {
+                        "kind": "practical",
+                        "period": "morning",
+                        "title": "سلامت دهان عملی ۲",
+                        "start": "09:00",
+                        "end": "12:00",
+                        "location": "",
+                        "instructor": "دکتر سرگران / دکتر پاکدامن",
+                    },
+                ],
+            },
+        }
+        screen = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        rich = screen.text.rich_html
+        self.assertIn("<th>استاد</th>", rich)
+        self.assertIn("دکتر سرگران / دکتر پاکدامن", rich)
+        self.assertIn("دکتر عرب", rich)
+        self.assertIn("دکتر پورشهیدی", rich)
+        self.assertLess(rich.find("۰۹:۰۰–۱۲:۰۰"), rich.find("۱۲:۳۰–۱۳:۳۰"))
+        self.assertLess(rich.find("۱۲:۳۰–۱۳:۳۰"), rich.find("۱۳:۱۵–۱۴:۱۵"))
+        self.assertLess(rich.find("سلامت دهان عملی ۲"), rich.find("ارتودنسی نظری ۱"))
+        self.assertNotIn("جلسه 1", rich)
+        self.assertNotIn("جلسه 2", rich)
+
+    def test_legacy_academic_body_is_also_sorted_and_reads_instructor_line(self):
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | دوشنبه ۱۴۰۵/۰۶/۳۰",
+            "body": "📚 کلاس‌های نظری\n• ارتودنسی نظری ۱\n  ⏰ ۱۲:۳۰ تا ۱۳:۳۰\n  👤 دکتر عرب\n  📍 مجازی\n\n🦷 کارآموزی صبح\n• سلامت دهان عملی ۲\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰\n  👤 دکتر سرگران / دکتر پاکدامن",
+        }
+        screen = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        rich = screen.text.rich_html
+        self.assertLess(rich.find("۰۹:۰۰–۱۲:۰۰"), rich.find("۱۲:۳۰–۱۳:۳۰"))
+        self.assertIn("دکتر سرگران / دکتر پاکدامن", rich)
+        self.assertIn("دکتر عرب", rich)
 
     def test_academic_correction_reuses_the_same_native_rich_table(self):
         item = {
@@ -75,7 +136,7 @@ class Term7AssistantUiTests(unittest.TestCase):
         telegram = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
         bale = notification_detail_screen(item, "ref123", platform="bale", is_owner=False)
         self.assertIn("<table bordered striped compact>", telegram.text.rich_html)
-        self.assertIn("<td>مجازی</td>", telegram.text.rich_html)
+        self.assertIn("📍 مجازی", telegram.text.rich_html)
         self.assertIn("اصلاح برنامه", str(telegram.text))
         self.assertIn("محل حضوری", telegram.text.rich_html)
         self.assertEqual(telegram.keyboard, bale.keyboard)

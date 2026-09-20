@@ -56,6 +56,25 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertLess(str(screen.text).find("امتحان"), str(screen.text).find("ددلاین"))
         self.assertIn("<table bordered striped compact>", screen.text.rich_html)
 
+    def test_daily_term7_row_keeps_instructor_visible_in_fallback_and_rich_table(self):
+        day = {
+            "localDate": "2026-09-21",
+            "items": [
+                sample_item(
+                    source="term7",
+                    type="practical",
+                    title="سلامت دهان عملی ۲",
+                    instructor="دکتر سرگران / دکتر پاکدامن",
+                    startsAt="2026-09-21T09:00:00+03:30",
+                    endsAt="2026-09-21T12:00:00+03:30",
+                ),
+            ],
+        }
+        screen = daily_screen(day)
+        self.assertIn("👤 دکتر سرگران / دکتر پاکدامن", str(screen.text))
+        self.assertIn("<th>استاد</th>", screen.text.rich_html)
+        self.assertIn("دکتر سرگران / دکتر پاکدامن", screen.text.rich_html)
+
     def test_same_clock_keeps_numeric_session_order_before_title_order(self):
         start = "2026-11-25T07:30:00+03:30"
         end = "2026-11-25T08:30:00+03:30"

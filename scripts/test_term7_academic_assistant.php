@@ -160,6 +160,28 @@ try {
         'oralHealthRotationAWeekday' => 1,
     ]);
     term7_assert(term7_titles($oralHealthMonday['practicalMorning']) === ['سلامت دهان عملی ۲'], 'Rotation A Monday subgroup sees oral health on Monday');
+    $mondayOrdered = dent_term7_resolve_jalali('1405/06/30', 1, [
+        'group10' => 5,
+        'group8' => 14,
+        'oralHealthRotationAWeekday' => 1,
+    ]);
+    $mondayRows = dent_term7_ordered_schedule_rows($mondayOrdered);
+    term7_assert(
+        array_column($mondayRows, 'start') === ['09:00', '12:30', '13:15']
+            && array_column($mondayRows, 'instructor') === [
+                'دکتر سرگران / دکتر پاکدامن',
+                'دکتر عرب',
+                'دکتر پورشهیدی',
+            ],
+        'Monday schedule rows are globally chronological across practical/theory sections and retain instructors'
+    );
+    $mondaySummary = dent_term7_summary_body($mondayOrdered);
+    term7_assert(
+        str_contains($mondaySummary, '👤 دکتر سرگران / دکتر پاکدامن')
+            && str_contains($mondaySummary, '👤 دکتر عرب')
+            && str_contains($mondaySummary, '👤 دکتر پورشهیدی'),
+        'User-facing Monday summary carries instructor names from the syllabus source'
+    );
     foreach ([6, 1, 3] as $assignedWeekday) {
         $weeklyHealthCount = 0;
         foreach ([
@@ -500,6 +522,15 @@ try {
             && str_contains((string) ($studentBReminder['body'] ?? ''), '۰۷:۳۰ تا ۰۸:۳۰')
             && str_contains((string) ($studentBReminder['body'] ?? ''), '📍 مجازی'),
         'Friday-night reminder enriches Perio theory with session title, virtual mode and explicit virtual location/status'
+    );
+    $studentBMetaRows = is_array($studentBReminder['meta']['academicScheduleRows'] ?? null)
+        ? $studentBReminder['meta']['academicScheduleRows']
+        : [];
+    term7_assert(
+        $studentBMetaRows !== []
+            && ($studentBMetaRows[0]['start'] ?? '') === '07:30'
+            && trim((string) ($studentBMetaRows[0]['instructor'] ?? '')) !== '',
+        'Academic notification persists structured chronological schedule rows with instructor metadata'
     );
     $studentAReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentA)))[0] ?? [];
     term7_assert(

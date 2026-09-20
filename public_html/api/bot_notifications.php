@@ -350,6 +350,7 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
                     'tone' => (string) ($record['tone'] ?? 'accent'),
                     'important' => notifications_record_is_important($record),
                     'effectiveAt' => notifications_record_effective_at($record),
+                    'meta' => $recordMeta,
                     'ctaLabel' => (string) (($recordMeta['externalUrl'] ?? '') !== '' ? '🍽 رزرو غذا' : ($record['ctaLabel'] ?? '')),
                     'ctaUrl' => (string) (($recordMeta['externalUrl'] ?? '') !== ''
                         ? $recordMeta['externalUrl']

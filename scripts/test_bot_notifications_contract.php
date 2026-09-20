@@ -81,6 +81,30 @@ try {
         'Mark-read returns the same notification as read'
     );
 
+    $cleanMeta = notifications_clean_meta([
+        'academicScheduleRows' => [
+            [
+                'kind' => 'practical',
+                'period' => 'morning',
+                'title' => 'سلامت دهان عملی ۲',
+                'start' => '09:00',
+                'end' => '12:00',
+                'location' => '',
+                'instructor' => 'دکتر سرگران / دکتر پاکدامن',
+            ],
+        ],
+    ]);
+    notification_contract_assert(
+        ($cleanMeta['academicScheduleRows'][0]['start'] ?? '') === '09:00'
+            && ($cleanMeta['academicScheduleRows'][0]['instructor'] ?? '') === 'دکتر سرگران / دکتر پاکدامن',
+        'Notification metadata preserves sanitized academic schedule instructor rows'
+    );
+    $deliverySource = file_get_contents(__DIR__ . '/../public_html/api/bot_notifications.php') ?: '';
+    notification_contract_assert(
+        str_contains($deliverySource, "'meta' => \$recordMeta"),
+        'Push-delivery payload carries sanitized notification metadata'
+    );
+
     $dispatchSource = file_get_contents(__DIR__ . '/../public_html/api/bot_store.php') ?: '';
     notification_contract_assert(
         str_contains($dispatchSource, "if (\$action === 'notificationDetail')")

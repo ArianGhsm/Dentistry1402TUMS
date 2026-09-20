@@ -425,6 +425,45 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['scheduleVersion'] = $scheduleVersion;
     }
 
+    $academicRows = [];
+    foreach (array_slice(is_array($meta['academicScheduleRows'] ?? null) ? $meta['academicScheduleRows'] : [], 0, 24) as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $kind = trim((string) ($row['kind'] ?? ''));
+        if (!in_array($kind, ['theory', 'practical'], true)) {
+            continue;
+        }
+        $period = trim((string) ($row['period'] ?? ''));
+        if (!in_array($period, ['theory', 'morning', 'afternoon'], true)) {
+            $period = $kind === 'theory' ? 'theory' : '';
+        }
+        $title = dent_clean_text((string) ($row['title'] ?? ''), 240);
+        if ($title === '') {
+            continue;
+        }
+        $start = trim((string) ($row['start'] ?? ''));
+        $end = trim((string) ($row['end'] ?? ''));
+        if ($start !== '' && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', $start) !== 1) {
+            $start = '';
+        }
+        if ($end !== '' && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', $end) !== 1) {
+            $end = '';
+        }
+        $academicRows[] = [
+            'kind' => $kind,
+            'period' => $period,
+            'title' => $title,
+            'start' => $start,
+            'end' => $end,
+            'location' => dent_clean_text((string) ($row['location'] ?? ''), 180),
+            'instructor' => dent_clean_text((string) ($row['instructor'] ?? ''), 180),
+        ];
+    }
+    if ($academicRows !== []) {
+        $clean['academicScheduleRows'] = $academicRows;
+    }
+
     $foodWeekKey = trim((string) ($meta['foodWeekKey'] ?? ''));
     if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $foodWeekKey) === 1) {
         $clean['foodWeekKey'] = $foodWeekKey;

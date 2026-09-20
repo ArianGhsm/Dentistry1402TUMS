@@ -555,6 +555,66 @@ function dent_term7_enriched_event_groups(array $resolved): array
     ];
 }
 
+function dent_term7_clock_sort_value(string $clock): int
+{
+    $clock = trim($clock);
+    if (preg_match('/^([01][0-9]|2[0-3]):([0-5][0-9])$/D', $clock, $match) !== 1) {
+        return PHP_INT_MAX;
+    }
+    return ((int) $match[1] * 60) + (int) $match[2];
+}
+
+function dent_term7_ordered_schedule_rows(array $resolved): array
+{
+    $groups = dent_term7_enriched_event_groups($resolved);
+    $rows = [];
+    $ordinal = 0;
+    $append = static function (array $events, string $kind, string $period) use (&$rows, &$ordinal): void {
+        foreach ($events as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $rows[] = [
+                'kind' => $kind,
+                'period' => $period,
+                'title' => (string) ($event['title'] ?? ''),
+                'start' => trim((string) ($event['start'] ?? '')),
+                'end' => trim((string) ($event['end'] ?? '')),
+                'location' => dent_term7_event_display_location($event),
+                'instructor' => trim((string) ($event['instructor'] ?? '')),
+                '_ordinal' => $ordinal++,
+            ];
+        }
+    };
+    $append(is_array($groups['theory'] ?? null) ? $groups['theory'] : [], 'theory', 'theory');
+    $append(is_array($groups['practicalMorning'] ?? null) ? $groups['practicalMorning'] : [], 'practical', 'morning');
+    $append(is_array($groups['practicalAfternoon'] ?? null) ? $groups['practicalAfternoon'] : [], 'practical', 'afternoon');
+
+    usort($rows, static function (array $left, array $right): int {
+        $leftStart = dent_term7_clock_sort_value((string) ($left['start'] ?? ''));
+        $rightStart = dent_term7_clock_sort_value((string) ($right['start'] ?? ''));
+        if ($leftStart !== $rightStart) {
+            return $leftStart <=> $rightStart;
+        }
+        $leftEnd = dent_term7_clock_sort_value((string) ($left['end'] ?? ''));
+        $rightEnd = dent_term7_clock_sort_value((string) ($right['end'] ?? ''));
+        if ($leftEnd !== $rightEnd) {
+            return $leftEnd <=> $rightEnd;
+        }
+        $titleCompare = strcmp((string) ($left['title'] ?? ''), (string) ($right['title'] ?? ''));
+        if ($titleCompare !== 0) {
+            return $titleCompare;
+        }
+        return (int) ($left['_ordinal'] ?? 0) <=> (int) ($right['_ordinal'] ?? 0);
+    });
+
+    foreach ($rows as &$row) {
+        unset($row['_ordinal']);
+    }
+    unset($row);
+    return $rows;
+}
+
 function dent_term7_event_display_location(array $event): string
 {
     $mode = trim((string) ($event['sessionMode'] ?? ''));
@@ -581,6 +641,10 @@ function dent_term7_summary_body(array $resolved): string
             if ($start !== '') {
                 $time = $end !== '' ? $start . ' تا ' . $end : $start;
                 $target[] = '  ⏰ ' . dent_to_fa_digits($time);
+            }
+            $instructor = trim((string) ($event['instructor'] ?? ''));
+            if ($instructor !== '') {
+                $target[] = '  👤 ' . $instructor;
             }
             $displayLocation = dent_term7_event_display_location($event);
             if ($displayLocation !== '') {
@@ -855,7 +919,11 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
                     'title' => '📅 برنامه فردا | ' . $resolved['weekdayLabel'] . ' ' . dent_to_fa_digits((string) $resolved['date']),
                     'body' => dent_term7_summary_body($resolved),
                     'tone' => 'accent',
-                    'meta' => ['important' => true, 'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION],
+                    'meta' => [
+                        'important' => true,
+                        'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION,
+                        'academicScheduleRows' => dent_term7_ordered_schedule_rows($resolved),
+                    ],
                 ];
                 $result = notifications_ensure_user_candidate($user, $candidate);
                 !empty($result['created']) ? $created++ : $existing++;
