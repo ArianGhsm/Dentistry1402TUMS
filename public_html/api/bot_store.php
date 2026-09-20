@@ -1703,6 +1703,9 @@ function dent_bot_service_dispatch(array $payload): array
     if ($action === 'createDeployNotification') {
         return dent_bot_create_deploy_notification($user, $payload);
     }
+    if ($action === 'notificationDetail') {
+        return dent_bot_notification_detail($user, $payload);
+    }
     if ($action === 'markNotificationRead') {
         return dent_bot_mark_notification_read($user, $payload);
     }

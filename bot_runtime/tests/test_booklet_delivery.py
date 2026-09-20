@@ -93,6 +93,48 @@ class LinkedSite:
         return BOOKLET_CATALOG
 
 
+class FreeBookletMemberSite:
+    def account(self, _user_id):
+        return {
+            "success": True,
+            "linked": True,
+            "authComplete": True,
+            "user": {"studentNumber": "40211272011", "name": "عضو جزوه‌نویسی"},
+            "onboardingProfile": {},
+            "bookletProfile": {
+                "group": 15,
+                "status": "member",
+                "statusLabel": "عضو",
+                "freeSubscriptionEligible": True,
+                "specialRoles": [],
+            },
+        }
+
+    def booklet_catalog(self, _user_id):
+        return BOOKLET_CATALOG
+
+
+class PaidBookletMemberSite:
+    def account(self, _user_id):
+        return {
+            "success": True,
+            "linked": True,
+            "authComplete": True,
+            "user": {"studentNumber": "40211272012", "name": "دانشجوی پرداختی"},
+            "onboardingProfile": {},
+            "bookletProfile": {
+                "group": None,
+                "status": "unassigned",
+                "statusLabel": "بدون گروه",
+                "freeSubscriptionEligible": False,
+                "specialRoles": [],
+            },
+        }
+
+    def booklet_catalog(self, _user_id):
+        return BOOKLET_CATALOG
+
+
 class Dispatcher:
     def __init__(self) -> None:
         self.jobs = []
@@ -284,6 +326,75 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertIn("فایل در صف امن", api.edited[-1][2])
                 self.assertIn("inline_keyboard", api.edited[-1][3])
                 self.assertNotIn("keyboard", api.edited[-1][3])
+            finally:
+                state.close()
+
+    def test_free_booklet_member_can_open_catalog_before_public_subscription_start(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            api = FakeApi()
+            try:
+                app = DentBotApp(
+                    api,
+                    state,
+                    owner_id=99,
+                    site_url="https://example.test",
+                    site_api=FreeBookletMemberSite(),
+                )
+                app.handle({"callback_query": {
+                    "id": "member-notes",
+                    "from": {"id": 20},
+                    "data": "v1:notes",
+                    "message": {
+                        "message_id": 7,
+                        "chat": {"id": 20, "type": "private"},
+                    },
+                }})
+                self.assertTrue(api.edited)
+                self.assertIn("آرشیو امن جزوات", api.edited[-1][2])
+                self.assertNotIn("دسترسی عمومی جزوات تا شروع دوره بسته است", api.edited[-1][2])
+                labels = {
+                    item["text"]
+                    for row in api.edited[-1][3]["inline_keyboard"]
+                    for item in row
+                }
+                self.assertTrue(any("روش تحقیق" in label for label in labels))
+
+                source = {
+                    "term": 7,
+                    "courseTag": "روش_تحقیق۲",
+                }
+                self.assertTrue(app.booklet_access_allowed(20, source))
+            finally:
+                state.close()
+
+    def test_paid_student_remains_blocked_before_public_subscription_start(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            api = FakeApi()
+            try:
+                app = DentBotApp(
+                    api,
+                    state,
+                    owner_id=99,
+                    site_url="https://example.test",
+                    site_api=PaidBookletMemberSite(),
+                )
+                app.handle({"callback_query": {
+                    "id": "paid-notes",
+                    "from": {"id": 21},
+                    "data": "v1:notes",
+                    "message": {
+                        "message_id": 7,
+                        "chat": {"id": 21, "type": "private"},
+                    },
+                }})
+                self.assertTrue(api.edited)
+                self.assertIn("دسترسی عمومی جزوات تا شروع دوره بسته است", api.edited[-1][2])
+                self.assertFalse(app.booklet_access_allowed(
+                    21,
+                    {"term": 7, "courseTag": "روش_تحقیق۲"},
+                ))
             finally:
                 state.close()
 

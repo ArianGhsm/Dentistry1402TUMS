@@ -52,18 +52,19 @@ class BookletAppWorkflows:
             if isinstance(account.get("bookletProfile"), dict)
             else {}
         )
+        free_system_access = identity is not None and booklet_profile.get("freeSubscriptionEligible") is True
+        if free_system_access:
+            self.state.ensure_automatic_booklet_entitlement(
+                student_number=identity.student_number,
+                display_name=identity.display_name,
+                term=7,
+            )
+            return True, None
         if identity is not None:
-            if booklet_profile.get("freeSubscriptionEligible") is True:
-                self.state.ensure_automatic_booklet_entitlement(
-                    student_number=identity.student_number,
-                    display_name=identity.display_name,
-                    term=7,
-                )
-            else:
-                self.state.revoke_automatic_booklet_entitlement(
-                    student_number=identity.student_number,
-                    term=7,
-                )
+            self.state.revoke_automatic_booklet_entitlement(
+                student_number=identity.student_number,
+                term=7,
+            )
         decision = self.state.term_access_decision(identity.subject_key if identity else "", 7)
         decision["freeSubscriptionEligible"] = booklet_profile.get("freeSubscriptionEligible") is True
         if policy_is_effective(policy) and identity is None:
@@ -146,18 +147,18 @@ class BookletAppWorkflows:
                 if isinstance(account.get("bookletProfile"), dict)
                 else {}
             )
+            if identity is not None and booklet_profile.get("freeSubscriptionEligible") is True:
+                self.state.ensure_automatic_booklet_entitlement(
+                    student_number=identity.student_number,
+                    display_name=identity.display_name,
+                    term=term,
+                )
+                return True
             if identity is not None:
-                if booklet_profile.get("freeSubscriptionEligible") is True:
-                    self.state.ensure_automatic_booklet_entitlement(
-                        student_number=identity.student_number,
-                        display_name=identity.display_name,
-                        term=term,
-                    )
-                else:
-                    self.state.revoke_automatic_booklet_entitlement(
-                        student_number=identity.student_number,
-                        term=term,
-                    )
+                self.state.revoke_automatic_booklet_entitlement(
+                    student_number=identity.student_number,
+                    term=term,
+                )
             decision = self.state.term_access_decision(identity.subject_key if identity else "", term)
             return bool(decision.get("allowed"))
         except (SiteApiError, BotApiError, AttributeError, TypeError, ValueError):

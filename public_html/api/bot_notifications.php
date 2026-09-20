@@ -66,14 +66,70 @@ function dent_bot_term7_status(array $user): array
     ];
 }
 
-function dent_bot_mark_notification_read(array $user, array $payload): array
+function dent_bot_notification_lookup(array $user, string $notificationId): array
 {
-    $notificationId = trim((string) ($payload['notificationId'] ?? ''));
+    $notificationId = trim($notificationId);
     if (preg_match('/^nt-[A-Za-z0-9._-]{6,80}$/', $notificationId) !== 1) {
         dent_error('اعلان پیدا نشد.', 404, ['code' => 'NOTIFICATION_NOT_FOUND']);
     }
+
+    $store = notifications_read_store();
+    $record = is_array($store['notifications'][$notificationId] ?? null)
+        ? $store['notifications'][$notificationId]
+        : null;
+    $userState = notifications_user_state($store, $user);
+    $visible = is_array($record)
+        && (
+            notifications_record_visible_to_user($record, $user, $userState)
+            || (
+                notifications_record_is_scheduled($record)
+                && notifications_user_can_manage_record($user, $record)
+            )
+        );
+    if (!$visible) {
+        dent_error('اعلان پیدا نشد.', 404, ['code' => 'NOTIFICATION_NOT_FOUND']);
+    }
+
+    return [
+        'store' => $store,
+        'record' => $record,
+    ];
+}
+
+function dent_bot_notification_detail(array $user, array $payload): array
+{
+    $lookup = dent_bot_notification_lookup(
+        $user,
+        (string) ($payload['notificationId'] ?? '')
+    );
+
+    return [
+        'success' => true,
+        'notification' => notifications_public_payload(
+            $lookup['record'],
+            $user,
+            $lookup['store']
+        ),
+    ];
+}
+
+function dent_bot_mark_notification_read(array $user, array $payload): array
+{
+    $notificationId = trim((string) ($payload['notificationId'] ?? ''));
+    dent_bot_notification_lookup($user, $notificationId);
     $summary = notifications_mark_read($user, [$notificationId]);
-    return ['success' => true, 'notificationId' => $notificationId, 'summary' => $summary];
+    $lookup = dent_bot_notification_lookup($user, $notificationId);
+
+    return [
+        'success' => true,
+        'notificationId' => $notificationId,
+        'summary' => $summary,
+        'notification' => notifications_public_payload(
+            $lookup['record'],
+            $user,
+            $lookup['store']
+        ),
+    ];
 }
 
 function dent_bot_perform_notification_action(array $user, string $platform, array $payload): array

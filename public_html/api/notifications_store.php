@@ -1018,7 +1018,11 @@ function notifications_record_matches_user(array $record, array $user): bool
 
         if (
             notifications_user_is_owner($user)
-            && !in_array((string) ($record['source'] ?? ''), ['forms', 'payments', 'digest'], true)
+            && !in_array(
+                (string) ($record['source'] ?? ''),
+                ['forms', 'payments', 'digest', 'academic-term7'],
+                true
+            )
         ) {
             return true;
         }
