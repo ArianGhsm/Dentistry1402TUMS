@@ -136,6 +136,29 @@ function classops_term7_syllabus_sessions_for_date(array $course, string $jalali
     return $sessions;
 }
 
+function classops_term7_syllabus_source_occurrence_decision(
+    string $eventSlug,
+    string $jalaliDate,
+    string $rotation = ''
+): ?bool {
+    $mapping = classops_term7_syllabus_course_for_slug($eventSlug);
+    if ($mapping === null) return null;
+    $course = $mapping['course'];
+    if (empty($course['sourceDatesAuthoritative'])) return null;
+
+    $rotation = strtoupper(trim($rotation));
+    $scopedRotations = array_values(array_filter(array_map(
+        static fn($value): string => strtoupper(trim((string) $value)),
+        is_array($course['sourceOccurrenceRotations'] ?? null) ? $course['sourceOccurrenceRotations'] : []
+    )));
+    if ($scopedRotations !== [] && !in_array($rotation, $scopedRotations, true)) {
+        return null;
+    }
+
+    return classops_term7_syllabus_sessions_for_date($course, $jalaliDate, $rotation) !== [];
+}
+
+
 function classops_term7_syllabus_valid_clock(string $value): bool
 {
     return preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', trim($value)) === 1;

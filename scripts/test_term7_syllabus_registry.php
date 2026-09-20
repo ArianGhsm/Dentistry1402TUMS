@@ -250,6 +250,14 @@ syllabus_assert(
     'Endodontics Foundations 2 keeps quiz 4, rubber-dam work and the named demonstrator together'
 );
 
+syllabus_assert(
+    classops_term7_syllabus_source_occurrence_decision('pathology-practical-1', '1405/06/29', 'A') === false
+        && classops_term7_syllabus_source_occurrence_decision('pathology-practical-1', '1405/07/05', 'A') === true
+        && classops_term7_syllabus_source_occurrence_decision('pathology-practical-1', '1405/08/17', 'A') === false
+        && classops_term7_syllabus_source_occurrence_decision('pathology-practical-1', '1405/09/02', 'B') === null,
+    'Pathology source dates authoritatively gate Rotation A only and do not invent Rotation B occurrence rules'
+);
+
 $pathologyRows = $catalog['pathology-practical-1']['sessions'] ?? [];
 syllabus_assert(
     array_column($pathologyRows, 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,13]

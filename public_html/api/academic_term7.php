@@ -484,6 +484,14 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
         if (!is_array($event) || !dent_term7_event_matches($event, $assignment, $matchRotation, $matchWeekday)) {
             continue;
         }
+        $sourceOccurrence = classops_term7_syllabus_source_occurrence_decision(
+            trim((string) ($event['slug'] ?? '')),
+            $jalaliDate,
+            $matchRotation
+        );
+        if ($sourceOccurrence === false) {
+            continue;
+        }
         if ((string) ($event['period'] ?? '') === 'afternoon') {
             $afternoon[] = $event;
         } else {

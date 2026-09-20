@@ -65,6 +65,30 @@ try {
     $mondayB = dent_term7_resolve_jalali('1405/09/03', 1, ['group10' => 6, 'group8' => 11]);
     term7_assert($mondayA['practicalAfternoon'] === [] && $mondayB['practicalAfternoon'] === [], 'Monday afternoon is disabled in both rotations');
 
+    $pathologyToday = dent_term7_resolve_jalali('1405/06/29', 7, ['group10' => 5, 'group8' => 14]);
+    term7_assert(
+        !in_array('آسیب‌شناسی عملی ۱', term7_titles($pathologyToday['practicalMorning']), true)
+            && !str_contains(dent_term7_summary_body($pathologyToday), 'آسیب‌شناسی عملی ۱'),
+        'Pathology Practical 1 is absent for group 5 on 1405/06/29 before its source-declared first session'
+    );
+    $pathologyFirstDay = dent_term7_resolve_jalali('1405/07/05', 7, ['group10' => 5, 'group8' => 14]);
+    $pathologyFirstSummary = dent_term7_summary_body($pathologyFirstDay);
+    term7_assert(
+        in_array('آسیب‌شناسی عملی ۱', term7_titles($pathologyFirstDay['practicalMorning']), true)
+            && str_contains($pathologyFirstSummary, 'آسیب‌شناسی عملی ۱ — جلسه ۱: گرانول فوردایس – لکوادما – هیپرکراتوز'),
+        'Pathology Practical 1 starts for group 5 exactly on 1405/07/05 with the source session title'
+    );
+    $pathologyAfterSource = dent_term7_resolve_jalali('1405/08/17', 7, ['group10' => 5, 'group8' => 14]);
+    term7_assert(
+        !in_array('آسیب‌شناسی عملی ۱', term7_titles($pathologyAfterSource['practicalMorning']), true),
+        'Pathology Practical 1 is absent after the final Rotation A source date'
+    );
+    $pathologyRotationBGeneric = dent_term7_resolve_jalali('1405/09/02', 7, ['group10' => 6, 'group8' => 11]);
+    term7_assert(
+        in_array('آسیب‌شناسی عملی ۱', term7_titles($pathologyRotationBGeneric['practicalMorning']), true),
+        'Rotation B keeps the canonical practical timetable because the provided pathology source is Rotation A only'
+    );
+
     $entBeforeStart = dent_term7_resolve_jalali('1405/06/30', 1, ['group10' => 1, 'group8' => 15]);
     term7_assert(
         !in_array('گوش و حلق و بینی', term7_titles($entBeforeStart['theory']), true),

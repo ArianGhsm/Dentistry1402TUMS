@@ -1441,7 +1441,11 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "pathology-practical-1": {
-    "version": "1405-1406-1.rotation-a.1",
+    "version": "1405-1406-1.rotation-a.2",
+    "sourceDatesAuthoritative": true,
+    "sourceOccurrenceRotations": [
+      "A"
+    ],
     "eventSlugs": [
       "pathology-practical-1"
     ],
