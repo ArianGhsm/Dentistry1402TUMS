@@ -363,7 +363,18 @@ class DentBotTests(unittest.TestCase):
 
             def mark_notification_read(self, user_id, notification_id):
                 self.marked.append((user_id, notification_id))
-                return {"success": True}
+                return {
+                    "success": True,
+                    "notification": {
+                        "id": notification_id,
+                        "title": "اعلان آزمون",
+                        "body": "زمان آزمون تغییر کرد.",
+                        "effectiveAt": "2026-08-13T12:30:00+00:00",
+                        "unread": False,
+                        "ctaLabel": "مشاهده آزمون",
+                        "ctaHref": "/exams/",
+                    },
+                }
 
         with tempfile.TemporaryDirectory() as directory:
             site = NotificationApi()
@@ -377,6 +388,62 @@ class DentBotTests(unittest.TestCase):
                 self.assertEqual(site.marked, [(20, "nt-example123")])
                 self.assertIn("https://example.test/exams/", str(detail.keyboard))
                 self.assertIn("۱۴۰۵/۵/۲۲", detail.text)
+            finally:
+                state.close()
+
+    def test_stale_notification_callbacks_refresh_current_feed_instead_of_error(self) -> None:
+        class StaleNotificationApi(LinkedSiteStub):
+            def notifications(self, _user_id, *, limit=20):
+                return {
+                    "success": True,
+                    "data": {
+                        "summary": {"unreadCount": 1},
+                        "items": [{
+                            "id": "nt-fresh123",
+                            "title": "اعلان تازه",
+                            "body": "نسخهٔ تازهٔ اعلان‌ها",
+                            "effectiveAt": "2026-09-20T06:00:00+00:00",
+                            "unread": True,
+                        }],
+                    },
+                }
+
+            @staticmethod
+            def mark_notification_read(_user_id, _notification_id):
+                raise SiteApiError("اعلان پیدا نشد.", code="NOTIFICATION_NOT_FOUND", status=404)
+
+            @staticmethod
+            def perform_notification_action(_user_id, _notification_id, _action_ref):
+                raise SiteApiError("اعلان پیدا نشد.", code="NOTIFICATION_NOT_FOUND", status=404)
+
+            @staticmethod
+            def notification_audience(_user_id, _notification_id):
+                raise SiteApiError("اعلان پیدا نشد.", code="NOTIFICATION_NOT_FOUND", status=404)
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                old_ref = state.remember_notification("nt-old123")
+                app = DentBotApp(
+                    FakeApi(),
+                    state,
+                    owner_id=10,
+                    site_url="https://example.test",
+                    site_api=StaleNotificationApi(),
+                )
+                callbacks = (
+                    f"notification:{old_ref}",
+                    f"notification-action:{old_ref}:submitted",
+                    f"notification-audience:{old_ref}",
+                    "notification:missing-local-ref",
+                )
+                for callback in callbacks:
+                    with self.subTest(callback=callback):
+                        screen = app._dynamic_screen(callback, 10)
+                        self.assertIn("مرکز اعلان", screen.text)
+                        self.assertIn("اعلان تازه", str(screen.keyboard))
+                        self.assertNotIn("اعلان پیدا نشد", screen.text)
+                        self.assertNotIn("دیگر در دسترس نیست", screen.text)
             finally:
                 state.close()
 
@@ -611,6 +678,17 @@ class DentBotTests(unittest.TestCase):
             def notifications(self, _user_id, *, limit):
                 self.limit = limit
                 return {"data": {"items": [{"id": "nt-1", "title": "تکلیف", "body": "ثبت شد"}]}}
+
+            def notification_detail(self, _user_id, notification_id):
+                return {
+                    "success": True,
+                    "notification": {
+                        "id": notification_id,
+                        "title": "تکلیف",
+                        "body": "ثبت شد",
+                        "unread": False,
+                    },
+                }
 
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")

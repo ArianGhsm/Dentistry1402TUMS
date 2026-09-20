@@ -909,13 +909,14 @@ class DynamicScreenWorkflows:
                 return Screen(frame_error("عملیات اعلان معتبر نیست."), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
             ref, action_ref = parts[1], parts[2]
             notification_id = self.state.notification_id(ref)
-            if not notification_id or not re.fullmatch(r"[A-Za-z0-9_-]{1,20}", action_ref):
-                return Screen(frame_error("این عملیات دیگر در دسترس نیست."), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
+            if not re.fullmatch(r"[A-Za-z0-9_-]{1,20}", action_ref):
+                return Screen(frame_error("عملیات اعلان معتبر نیست."), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
+            if not notification_id:
+                return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
             try:
                 result = self.site_api.perform_notification_action(user_id, notification_id, action_ref)
-                payload = self.site_api.notifications(user_id, limit=40)
-                items = [item for item in dict(payload.get("data") or {}).get("items", []) if isinstance(item, dict)]
-                item = next((entry for entry in items if str(entry.get("id") or "") == notification_id), None)
+                detail = self.site_api.notification_detail(user_id, notification_id)
+                item = detail.get("notification")
                 if not isinstance(item, dict):
                     raise SiteApiError("اعلان پیدا نشد.", code="NOTIFICATION_NOT_FOUND", status=404)
                 screen = notification_detail_screen(
@@ -932,17 +933,20 @@ class DynamicScreenWorkflows:
             except SiteApiError as error:
                 if error.code == "ACCOUNT_LINK_REQUIRED":
                     return account_screen(self.site_url, platform=self.platform)
+                if error.code == "NOTIFICATION_NOT_FOUND":
+                    return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
         if name.startswith("notification-read:") or name.startswith("notification:"):
             ref = name.rsplit(":", 1)[1]
             notification_id = self.state.notification_id(ref)
             if not notification_id:
-                return Screen(frame_error("این اعلان دیگر در دسترس نیست."), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
+                return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
             try:
-                self.site_api.mark_notification_read(user_id, notification_id)
-                payload = self.site_api.notifications(user_id, limit=40)
-                items = [item for item in dict(payload.get("data") or {}).get("items", []) if isinstance(item, dict)]
-                item = next((entry for entry in items if str(entry.get("id") or "") == notification_id), None)
+                marked = self.site_api.mark_notification_read(user_id, notification_id)
+                item = marked.get("notification")
+                if not isinstance(item, dict):
+                    detail = self.site_api.notification_detail(user_id, notification_id)
+                    item = detail.get("notification")
                 if not isinstance(item, dict):
                     raise SiteApiError("اعلان پیدا نشد.", code="NOTIFICATION_NOT_FOUND", status=404)
                 screen = notification_detail_screen(
@@ -957,6 +961,8 @@ class DynamicScreenWorkflows:
             except SiteApiError as error:
                 if error.code == "ACCOUNT_LINK_REQUIRED":
                     return account_screen(self.site_url, platform=self.platform)
+                if error.code == "NOTIFICATION_NOT_FOUND":
+                    return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
         if name.startswith("notification-audience:"):
             if user_id != self.owner_id:
@@ -964,7 +970,7 @@ class DynamicScreenWorkflows:
             ref = name.rsplit(":", 1)[1]
             notification_id = self.state.notification_id(ref)
             if not notification_id:
-                return Screen(frame_error("این اعلان دیگر در دسترس نیست."), home(self.site_url, is_owner=True).keyboard)
+                return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
             try:
                 return notification_audience_screen(
                     self.site_api.notification_audience(user_id, notification_id),
@@ -972,6 +978,8 @@ class DynamicScreenWorkflows:
                     platform=self.platform,
                 )
             except SiteApiError as error:
+                if error.code == "NOTIFICATION_NOT_FOUND":
+                    return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=True).keyboard)
         if name.startswith(("payment-create:", "payment-create-link:")):
             via_link = name.startswith("payment-create-link:")
