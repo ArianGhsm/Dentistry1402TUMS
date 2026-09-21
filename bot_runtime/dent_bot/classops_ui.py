@@ -212,6 +212,39 @@ def _instructor(item: dict[str, Any]) -> str:
     return _plain(item.get("instructor"), 80)
 
 
+def _presentation(item: dict[str, Any]) -> dict[str, str] | None:
+    raw = item.get("presentation")
+    if not isinstance(raw, dict):
+        return None
+    topic = _plain(raw.get("topic"), 180)
+    if not topic:
+        return None
+    partner_label = _plain(raw.get("partnerLabel"), 160)
+    if not partner_label:
+        partners = raw.get("partners")
+        if isinstance(partners, list):
+            partner_names = [_plain(name, 80) for name in partners if _plain(name, 80)]
+            partner_label = "، ".join(partner_names)
+    return {
+        "label": _plain(raw.get("label"), 40) or "شما ارائه دارید",
+        "topic": topic,
+        "partnerLabel": partner_label or "انفرادی",
+    }
+
+
+def _presentation_html(item: dict[str, Any]) -> str:
+    presentation = _presentation(item)
+    if presentation is None:
+        return ""
+    partner = presentation["partnerLabel"]
+    partner_text = "ارائه انفرادی" if partner == "انفرادی" else f"همراه با: {partner}"
+    return (
+        f"<br/><b>🎤 {html.escape(presentation['label'])}</b>"
+        f"<br/>موضوع: {html.escape(presentation['topic'])}"
+        f"<br/>{html.escape(partner_text)}"
+    )
+
+
 def _rich_day_table(day: dict[str, Any], *, limit: int | None = None) -> str:
     items = [item for item in day.get("items", []) if isinstance(item, dict)]
     visible = items if limit is None else items[: max(0, limit)]
@@ -224,7 +257,12 @@ def _rich_day_table(day: dict[str, Any], *, limit: int | None = None) -> str:
         instructor = _instructor(item)
         status_key = str(item.get("status") or "unknown")
         status_suffix = f" · {marker} {html.escape(state)}" if status_key not in {"active", "unknown"} else ""
-        parts.append(f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td><td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}{status_suffix}</td><td>{html.escape(instructor)}</td></tr>")
+        presentation_html = _presentation_html(item)
+        parts.append(
+            f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td>"
+            f"<td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}{status_suffix}{presentation_html}</td>"
+            f"<td>{html.escape(instructor)}</td></tr>"
+        )
     parts.append("</table>")
     omitted = len(items) - len(visible)
     if omitted > 0:
@@ -285,6 +323,18 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
         if instructor: meta.append("👤 " + instructor)
         if item.get("location"): meta.append("📍 " + _plain(item.get("location"), 70))
         fallback.append("   " + html.escape(" · ".join(meta)))
+        presentation = _presentation(item)
+        if presentation is not None:
+            partner = presentation["partnerLabel"]
+            partner_text = "ارائه انفرادی" if partner == "انفرادی" else f"همراه با: {partner}"
+            fallback.append(
+                "   🎤 <b>"
+                + html.escape(presentation["label"])
+                + "</b> · "
+                + html.escape(presentation["topic"])
+                + " · "
+                + html.escape(partner_text)
+            )
         prefix = "od" if owner else "d"
         item_button = _item_button(item, f"{prefix}{back_date}p{page}")
         if item_button is not None: rows.append([item_button])
@@ -330,6 +380,8 @@ def weekly_screen(days: list[dict[str, Any]], week_offset: int, *, owner: bool =
             icon, label = _meta(item)
             instructor = _instructor(item)
             suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
+            if _presentation(item) is not None:
+                suffix += " · 🎤 ارائه دارید"
             fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 90)}</b>{suffix}")
         if len(items) > _WEEKLY_DAY_PREVIEW:
             fallback.append(f"+{to_persian_digits(len(items) - _WEEKLY_DAY_PREVIEW)} مورد دیگر؛ جزئیات در نمای روزانه")
@@ -365,6 +417,8 @@ def month_screen(days: list[dict[str, Any]], page: int, *, owner: bool = False) 
                 icon, label = _meta(item)
                 instructor = _instructor(item)
                 suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
+                if _presentation(item) is not None:
+                    suffix += " · 🎤 ارائه دارید"
                 fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_esc(item.get('title') or label, 76)}{suffix}")
             if len(items) > 4: fallback.append(f"   +{to_persian_digits(len(items) - 4)} مورد دیگر")
             rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>")

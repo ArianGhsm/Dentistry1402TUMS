@@ -156,19 +156,47 @@ function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?ar
     $assignment = dent_term7_assignment_for_student($student, $state);
     $resolved = dent_term7_resolve_date($date, $assignment);
     $rotation = (string) ($resolved['rotation'] ?? '');
+    $presentationState = dent_term7_oral_disease_presentation_state_read();
+    $personalPresentation = dent_term7_oral_disease_public_presentation_on_date(
+        $student,
+        (string) ($resolved['date'] ?? ''),
+        $presentationState
+    );
     $out = [];
     $groups = dent_term7_enriched_event_groups($resolved);
     $theory = $groups['theory'];
     $morning = $groups['practicalMorning'];
     $afternoon = $groups['practicalAfternoon'];
     foreach ($theory as $event) {
-        if (is_array($event)) $out[] = classops_bot_ui_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
+        if (!is_array($event)) continue;
+        $record = classops_bot_ui_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
+        $out[] = $record;
     }
     foreach ($morning as $event) {
-        if (is_array($event)) $out[] = classops_bot_ui_term7_record($event, $date, 'practical', 'morning', $rotation, $assignment);
+        if (!is_array($event)) continue;
+        $record = classops_bot_ui_term7_record($event, $date, 'practical', 'morning', $rotation, $assignment);
+        if ((string) ($event['slug'] ?? '') === 'oral-disease-practical-1' && is_array($personalPresentation)) {
+            $record['presentation'] = [
+                'label' => 'شما ارائه دارید',
+                'topic' => (string) ($personalPresentation['topic'] ?? ''),
+                'partners' => is_array($personalPresentation['partners'] ?? null) ? $personalPresentation['partners'] : [],
+                'partnerLabel' => (string) ($personalPresentation['partnerLabel'] ?? 'انفرادی'),
+            ];
+        }
+        $out[] = $record;
     }
     foreach ($afternoon as $event) {
-        if (is_array($event)) $out[] = classops_bot_ui_term7_record($event, $date, 'practical', 'afternoon', $rotation, $assignment);
+        if (!is_array($event)) continue;
+        $record = classops_bot_ui_term7_record($event, $date, 'practical', 'afternoon', $rotation, $assignment);
+        if ((string) ($event['slug'] ?? '') === 'oral-disease-practical-1' && is_array($personalPresentation)) {
+            $record['presentation'] = [
+                'label' => 'شما ارائه دارید',
+                'topic' => (string) ($personalPresentation['topic'] ?? ''),
+                'partners' => is_array($personalPresentation['partners'] ?? null) ? $personalPresentation['partners'] : [],
+                'partnerLabel' => (string) ($personalPresentation['partnerLabel'] ?? 'انفرادی'),
+            ];
+        }
+        $out[] = $record;
     }
     return $out;
 }

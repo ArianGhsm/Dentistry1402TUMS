@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/classops_term7_syllabus.php';
+require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
 
 /**
  * Canonical Term 7 academic timetable and food-reminder state.
@@ -11,7 +12,7 @@ require_once __DIR__ . '/classops_term7_syllabus.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.6';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.7';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -564,17 +565,21 @@ function dent_term7_clock_sort_value(string $clock): int
     return ((int) $match[1] * 60) + (int) $match[2];
 }
 
-function dent_term7_ordered_schedule_rows(array $resolved): array
+function dent_term7_ordered_schedule_rows(array $resolved, string $studentNumber = ''): array
 {
     $groups = dent_term7_enriched_event_groups($resolved);
     $rows = [];
     $ordinal = 0;
-    $append = static function (array $events, string $kind, string $period) use (&$rows, &$ordinal): void {
+    $jalaliDate = trim((string) ($resolved['date'] ?? ''));
+    $personalPresentation = $studentNumber !== '' && $jalaliDate !== ''
+        ? dent_term7_oral_disease_public_presentation_on_date($studentNumber, $jalaliDate)
+        : null;
+    $append = static function (array $events, string $kind, string $period) use (&$rows, &$ordinal, $personalPresentation): void {
         foreach ($events as $event) {
             if (!is_array($event)) {
                 continue;
             }
-            $rows[] = [
+            $row = [
                 'kind' => $kind,
                 'period' => $period,
                 'title' => (string) ($event['title'] ?? ''),
@@ -584,6 +589,16 @@ function dent_term7_ordered_schedule_rows(array $resolved): array
                 'instructor' => trim((string) ($event['instructor'] ?? '')),
                 '_ordinal' => $ordinal++,
             ];
+            if (
+                (string) ($event['slug'] ?? '') === 'oral-disease-practical-1'
+                && is_array($personalPresentation)
+            ) {
+                $row['presentationTopic'] = (string) ($personalPresentation['topic'] ?? '');
+                $row['presentationPartners'] = is_array($personalPresentation['partners'] ?? null)
+                    ? $personalPresentation['partners']
+                    : [];
+            }
+            $rows[] = $row;
         }
     };
     $append(is_array($groups['theory'] ?? null) ? $groups['theory'] : [], 'theory', 'theory');
@@ -625,7 +640,7 @@ function dent_term7_event_display_location(array $event): string
     return trim((string) ($event['location'] ?? ''));
 }
 
-function dent_term7_summary_body(array $resolved): string
+function dent_term7_summary_body(array $resolved, string $studentNumber = ''): string
 {
     $groups = dent_term7_enriched_event_groups($resolved);
     $theory = $groups['theory'];
@@ -633,7 +648,11 @@ function dent_term7_summary_body(array $resolved): string
     $afternoon = $groups['practicalAfternoon'];
 
     $lines = [];
-    $appendEvents = static function (array &$target, array $events): void {
+    $jalaliDate = trim((string) ($resolved['date'] ?? ''));
+    $personalPresentation = $studentNumber !== '' && $jalaliDate !== ''
+        ? dent_term7_oral_disease_public_presentation_on_date($studentNumber, $jalaliDate)
+        : null;
+    $appendEvents = static function (array &$target, array $events) use ($personalPresentation): void {
         foreach ($events as $event) {
             $target[] = '• ' . dent_to_fa_digits((string) ($event['title'] ?? ''));
             $start = trim((string) ($event['start'] ?? ''));
@@ -641,6 +660,16 @@ function dent_term7_summary_body(array $resolved): string
             if ($start !== '') {
                 $time = $end !== '' ? $start . ' تا ' . $end : $start;
                 $target[] = '  ⏰ ' . dent_to_fa_digits($time);
+            }
+            if (
+                (string) ($event['slug'] ?? '') === 'oral-disease-practical-1'
+                && is_array($personalPresentation)
+            ) {
+                $target[] = '  🎤 شما ارائه دارید: ' . (string) ($personalPresentation['topic'] ?? '');
+                $partners = is_array($personalPresentation['partners'] ?? null)
+                    ? $personalPresentation['partners']
+                    : [];
+                $target[] = '  👥 همراه: ' . ($partners === [] ? 'انفرادی' : implode('، ', $partners));
             }
             $instructor = trim((string) ($event['instructor'] ?? ''));
             if ($instructor !== '') {
@@ -917,12 +946,12 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
                     'source' => 'academic-term7',
                     'sourceKey' => 'term7:' . DENT_TERM7_SCHEDULE_VERSION . ':tomorrow:' . $tomorrow->format('Y-m-d') . ':' . $studentNumber,
                     'title' => '📅 برنامه فردا | ' . $resolved['weekdayLabel'] . ' ' . dent_to_fa_digits((string) $resolved['date']),
-                    'body' => dent_term7_summary_body($resolved),
+                    'body' => dent_term7_summary_body($resolved, (string) $studentNumber),
                     'tone' => 'accent',
                     'meta' => [
                         'important' => true,
                         'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION,
-                        'academicScheduleRows' => dent_term7_ordered_schedule_rows($resolved),
+                        'academicScheduleRows' => dent_term7_ordered_schedule_rows($resolved, (string) $studentNumber),
                     ],
                 ];
                 $result = notifications_ensure_user_candidate($user, $candidate);

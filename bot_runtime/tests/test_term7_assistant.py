@@ -127,6 +127,60 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertIn("دکتر سرگران / دکتر پاکدامن", rich)
         self.assertIn("دکتر عرب", rich)
 
+    def test_oral_disease_presentation_announcement_uses_personal_table(self):
+        item = {
+            "source": "oral-disease-presentation-schedule",
+            "title": "🎤 برنامه ارائه‌های بیماری‌های دهان عملی ۱",
+            "body": "برنامه ارائه‌های روتیشن دوم به برنامه شخصی شما اضافه شد.",
+            "meta": {
+                "oralDiseasePresentationRows": [
+                    {
+                        "group": 8,
+                        "jalaliDate": "1405/07/13",
+                        "weekdayLabel": "دوشنبه",
+                        "topic": "زخم‌های متعدد و مزمن",
+                        "partners": ["رضوانه کاظمی مقدم"],
+                        "partnerLabel": "رضوانه کاظمی مقدم",
+                    },
+                ],
+            },
+        }
+        screen = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        rich = screen.text.rich_html
+        self.assertIn("<th>تاریخ</th>", rich)
+        self.assertIn("<th>موضوع ارائه</th>", rich)
+        self.assertIn("<th>همراه</th>", rich)
+        self.assertIn("دوشنبه ۱۴۰۵/۰۷/۱۳", rich)
+        self.assertIn("رضوانه کاظمی مقدم", rich)
+        self.assertIn("برنامه روزانه", str(screen.text))
+
+    def test_academic_schedule_row_highlights_personal_presentation(self):
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | دوشنبه ۱۴۰۵/۰۷/۱۳",
+            "body": "🦷 کارآموزی صبح\n• بیماری‌های دهان عملی ۱\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰",
+            "meta": {
+                "academicScheduleRows": [
+                    {
+                        "kind": "practical",
+                        "period": "morning",
+                        "title": "بیماری‌های دهان عملی ۱",
+                        "start": "09:00",
+                        "end": "12:00",
+                        "location": "بخش بیماری‌های دهان",
+                        "instructor": "دکتر نمونه",
+                        "presentationTopic": "زخم‌های متعدد و مزمن",
+                        "presentationPartners": ["رضوانه کاظمی مقدم"],
+                    },
+                ],
+            },
+        }
+        screen = notification_detail_screen(item, "ref123", platform="telegram", is_owner=False)
+        rich = screen.text.rich_html
+        self.assertIn("🎤 شما ارائه دارید", rich)
+        self.assertIn("زخم‌های متعدد و مزمن", rich)
+        self.assertIn("همراه با: رضوانه کاظمی مقدم", rich)
+
     def test_academic_correction_reuses_the_same_native_rich_table(self):
         item = {
             "source": "manager",

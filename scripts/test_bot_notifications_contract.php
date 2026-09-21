@@ -99,6 +99,21 @@ try {
             && ($cleanMeta['academicScheduleRows'][0]['instructor'] ?? '') === 'دکتر سرگران / دکتر پاکدامن',
         'Notification metadata preserves sanitized academic schedule instructor rows'
     );
+    $presentationMeta = notifications_clean_meta([
+        'oralDiseasePresentationRows' => [[
+            'group' => 8,
+            'jalaliDate' => '1405/07/13',
+            'weekdayLabel' => 'دوشنبه',
+            'topic' => 'زخم‌های متعدد و مزمن',
+            'partners' => ['رضوانه کاظمی مقدم'],
+            'partnerLabel' => 'رضوانه کاظمی مقدم',
+        ]],
+    ]);
+    notification_contract_assert(
+        ($presentationMeta['oralDiseasePresentationRows'][0]['jalaliDate'] ?? '') === '1405/07/13'
+            && ($presentationMeta['oralDiseasePresentationRows'][0]['partners'] ?? []) === ['رضوانه کاظمی مقدم'],
+        'Notification metadata preserves personalized Oral Disease presentation table rows'
+    );
     $deliverySource = file_get_contents(__DIR__ . '/../public_html/api/bot_notifications.php') ?: '';
     notification_contract_assert(
         str_contains($deliverySource, "'meta' => \$recordMeta"),

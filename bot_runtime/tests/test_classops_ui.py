@@ -75,6 +75,35 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertIn("<th>استاد</th>", screen.text.rich_html)
         self.assertIn("دکتر سرگران / دکتر پاکدامن", screen.text.rich_html)
 
+    def test_daily_oral_disease_presentation_reuses_schedule_row_hierarchy(self):
+        day = {
+            "localDate": "2026-10-05",
+            "items": [
+                sample_item(
+                    source="term7",
+                    type="practical",
+                    title="بیماری‌های دهان عملی ۱",
+                    instructor="دکتر نمونه",
+                    startsAt="2026-10-05T09:00:00+03:30",
+                    endsAt="2026-10-05T12:00:00+03:30",
+                    presentation={
+                        "label": "شما ارائه دارید",
+                        "topic": "زخم‌های متعدد و مزمن",
+                        "partners": ["رضوانه کاظمی مقدم"],
+                        "partnerLabel": "رضوانه کاظمی مقدم",
+                    },
+                ),
+            ],
+        }
+        screen = daily_screen(day)
+        rendered = str(screen.text)
+        self.assertIn("🎤", rendered)
+        self.assertIn("شما ارائه دارید", rendered)
+        self.assertIn("زخم‌های متعدد و مزمن", rendered)
+        self.assertIn("همراه با: رضوانه کاظمی مقدم", rendered)
+        self.assertIn("شما ارائه دارید", screen.text.rich_html)
+        self.assertIn("رضوانه کاظمی مقدم", screen.text.rich_html)
+
     def test_same_clock_keeps_numeric_session_order_before_title_order(self):
         start = "2026-11-25T07:30:00+03:30"
         end = "2026-11-25T08:30:00+03:30"

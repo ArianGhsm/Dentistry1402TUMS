@@ -448,6 +448,31 @@ try {
         $state['assignments'][$studentE] = ['studentNumber' => $studentE, 'group10' => 3, 'group8' => 12, 'updatedAt' => dent_iso_now()];
         return [];
     });
+    dent_term7_oral_disease_presentation_state_with_lock(static function (array &$state) use ($studentA, $studentB): array {
+        $state['presentations'][$studentA] = [[
+            'group' => 6,
+            'date' => '1405/07/05',
+            'weekdayLabel' => 'یکشنبه',
+            'topic' => 'Basic lesion',
+            'partnerStudentNumbers' => [$studentB],
+            'sourcePresenterLabel' => 'دانشجوی الف',
+        ]];
+        return [];
+    });
+    $presentationDay = dent_term7_resolve_jalali('1405/07/05', 7, dent_term7_assignment_for_student($studentA));
+    $presentationSummary = dent_term7_summary_body($presentationDay, $studentA);
+    $presentationRows = dent_term7_ordered_schedule_rows($presentationDay, $studentA);
+    $personalPresentationRows = array_values(array_filter(
+        $presentationRows,
+        static fn(array $row): bool => trim((string) ($row['presentationTopic'] ?? '')) !== ''
+    ));
+    term7_assert(
+        str_contains($presentationSummary, '🎤 شما ارائه دارید: Basic lesion')
+            && str_contains($presentationSummary, '👥 همراه: دانشجوی ب')
+            && count($personalPresentationRows) === 1
+            && ($personalPresentationRows[0]['presentationPartners'] ?? []) === ['دانشجوی ب'],
+        'Personal Oral Disease presentation is embedded in both reminder fallback and structured schedule row'
+    );
     $oralHealthAliasImport = dent_term7_import_oral_health_rotation_a([
         ['name' => 'بردیا باطبی', 'weekday' => 3],
     ], true);
@@ -460,6 +485,16 @@ try {
     );
     $mobinaAlias = dent_term7_import_person_name_key('مبینا روحانی');
     term7_assert(($mobinaAlias['key'] ?? '') === dent_term7_normalize_person_name('فاطمه روحانی') && ($mobinaAlias['matchedBy'] ?? '') === 'explicitAlias', 'Owner-confirmed Mobina Rouhani alias remains explicit import metadata');
+    $presentationMatch = dent_term7_oral_disease_presentation_match_source_name(
+        'موسی زاده فاطمه',
+        10,
+        ['fixture-fatemeh'],
+        ['fixture-fatemeh' => ['name' => 'فاطمه سادات موسی زاده']]
+    );
+    term7_assert(
+        ($presentationMatch['candidates'] ?? []) === ['fixture-fatemeh'],
+        'Oral Disease presentation importer resolves reversed source-name order inside the assigned group'
+    );
     $incompleteImport = dent_term7_import_assignments([
         ['studentNumber' => $studentA, 'name' => 'دانشجوی الف', 'group' => 6],
         ['studentNumber' => $studentB, 'name' => 'دانشجوی ب', 'group' => 1],

@@ -450,6 +450,11 @@ function notifications_clean_meta(array $meta, array $record = []): array
         if ($end !== '' && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', $end) !== 1) {
             $end = '';
         }
+        $presentationPartners = [];
+        foreach (array_slice(is_array($row['presentationPartners'] ?? null) ? $row['presentationPartners'] : [], 0, 4) as $partnerRaw) {
+            $partner = dent_clean_text((string) $partnerRaw, 120);
+            if ($partner !== '') $presentationPartners[] = $partner;
+        }
         $academicRows[] = [
             'kind' => $kind,
             'period' => $period,
@@ -458,10 +463,39 @@ function notifications_clean_meta(array $meta, array $record = []): array
             'end' => $end,
             'location' => dent_clean_text((string) ($row['location'] ?? ''), 180),
             'instructor' => dent_clean_text((string) ($row['instructor'] ?? ''), 180),
+            'presentationTopic' => dent_clean_text((string) ($row['presentationTopic'] ?? ''), 260),
+            'presentationPartners' => $presentationPartners,
         ];
     }
     if ($academicRows !== []) {
         $clean['academicScheduleRows'] = $academicRows;
+    }
+
+    $oralDiseaseRows = [];
+    foreach (array_slice(is_array($meta['oralDiseasePresentationRows'] ?? null) ? $meta['oralDiseasePresentationRows'] : [], 0, 12) as $row) {
+        if (!is_array($row)) continue;
+        $jalaliDate = trim((string) ($row['jalaliDate'] ?? ''));
+        if (preg_match('/^\d{4}\/\d{2}\/\d{2}$/D', $jalaliDate) !== 1) continue;
+        $topic = dent_clean_text((string) ($row['topic'] ?? ''), 260);
+        if ($topic === '') continue;
+        $partners = [];
+        foreach (array_slice(is_array($row['partners'] ?? null) ? $row['partners'] : [], 0, 4) as $partnerRaw) {
+            $partner = dent_clean_text((string) $partnerRaw, 120);
+            if ($partner !== '') $partners[] = $partner;
+        }
+        $oralDiseaseRows[] = [
+            'group' => max(0, min(10, (int) ($row['group'] ?? 0))),
+            'jalaliDate' => $jalaliDate,
+            'weekdayLabel' => dent_clean_text((string) ($row['weekdayLabel'] ?? ''), 40),
+            'topic' => $topic,
+            'partners' => $partners,
+            'partnerLabel' => $partners === []
+                ? 'انفرادی'
+                : dent_clean_text((string) ($row['partnerLabel'] ?? implode('، ', $partners)), 200),
+        ];
+    }
+    if ($oralDiseaseRows !== []) {
+        $clean['oralDiseasePresentationRows'] = $oralDiseaseRows;
     }
 
     $foodWeekKey = trim((string) ($meta['foodWeekKey'] ?? ''));

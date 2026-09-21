@@ -46,6 +46,14 @@ def _structured_rows(item: dict[str, Any]) -> list[dict[str, str]]:
         time_text = "—"
         if start:
             time_text = f"{start}–{end}" if end else start
+        presentation_partners = raw.get("presentationPartners")
+        partner_names = []
+        if isinstance(presentation_partners, list):
+            partner_names = [
+                " ".join(str(name or "").split())[:120]
+                for name in presentation_partners[:4]
+                if " ".join(str(name or "").split())
+            ]
         rows.append({
             "kind": kind,
             "title": title,
@@ -54,6 +62,8 @@ def _structured_rows(item: dict[str, Any]) -> list[dict[str, str]]:
             "time": time_text,
             "location": " ".join(str(raw.get("location") or "").split())[:180] or "—",
             "instructor": " ".join(str(raw.get("instructor") or "").split())[:180] or "—",
+            "presentationTopic": " ".join(str(raw.get("presentationTopic") or "").split())[:260],
+            "presentationPartners": "، ".join(partner_names),
         })
     return sorted(rows, key=_row_sort_key)
 
@@ -93,6 +103,8 @@ def _legacy_rows(item: dict[str, Any]) -> tuple[list[dict[str, str]], list[str]]
                 "time": "—",
                 "location": "—",
                 "instructor": "—",
+                "presentationTopic": "",
+                "presentationPartners": "",
             }
             rows.append(current)
             continue
@@ -103,6 +115,18 @@ def _legacy_rows(item: dict[str, Any]) -> tuple[list[dict[str, str]], list[str]]
             current["start"] = parts[0] if parts else ""
             current["end"] = parts[1] if len(parts) > 1 else ""
             continue
+        if current is not None and line.startswith("🎤"):
+            presentation = line.removeprefix("🎤").strip()
+            if presentation.startswith("شما ارائه دارید:"):
+                presentation = presentation.removeprefix("شما ارائه دارید:").strip()
+            current["presentationTopic"] = presentation
+            continue
+        if current is not None and line.startswith("👥"):
+            partner_text = line.removeprefix("👥").strip()
+            if partner_text.startswith("همراه:"):
+                partner_text = partner_text.removeprefix("همراه:").strip()
+            current["presentationPartners"] = "" if partner_text == "انفرادی" else partner_text
+            continue
         if current is not None and line.startswith("👤"):
             current["instructor"] = line.removeprefix("👤").strip() or "—"
             continue
@@ -111,7 +135,79 @@ def _legacy_rows(item: dict[str, Any]) -> tuple[list[dict[str, str]], list[str]]
     return sorted(rows, key=_row_sort_key), notices
 
 
+def oral_disease_presentation_notification_text(item: dict[str, Any]):
+    if str(item.get("source") or "") != "oral-disease-presentation-schedule":
+        return None
+    raw_title = " ".join(str(item.get("title") or "").split()) or "🎤 برنامه ارائه‌های بیماری‌های دهان عملی ۱"
+    meta = item.get("meta")
+    raw_rows = meta.get("oralDiseasePresentationRows") if isinstance(meta, dict) else None
+    rows = []
+    if isinstance(raw_rows, list):
+        for raw in raw_rows[:12]:
+            if not isinstance(raw, dict):
+                continue
+            date_label = " ".join(
+                part for part in (
+                    str(raw.get("weekdayLabel") or "").strip(),
+                    ui_module.to_persian_digits(str(raw.get("jalaliDate") or "").strip()),
+                ) if part
+            )
+            topic = " ".join(str(raw.get("topic") or "").split())[:260]
+            partners = raw.get("partners")
+            partner_names = []
+            if isinstance(partners, list):
+                partner_names = [
+                    " ".join(str(name or "").split())[:120]
+                    for name in partners[:4]
+                    if " ".join(str(name or "").split())
+                ]
+            partner_label = "، ".join(partner_names) if partner_names else "انفرادی"
+            if date_label and topic:
+                rows.append({
+                    "date": date_label,
+                    "topic": topic,
+                    "partner": partner_label,
+                })
+
+    fallback = [
+        f"<b>{html.escape(raw_title)}</b>",
+        "",
+        "<blockquote>برنامه ارائه‌های روتیشن دوم به برنامه شخصی شما اضافه شد.</blockquote>",
+    ]
+    rich = [
+        f"<h2>{html.escape(raw_title)}</h2>",
+        "<blockquote>برنامه ارائه‌های روتیشن دوم به برنامه شخصی شما اضافه شد.</blockquote>",
+    ]
+    if rows:
+        rich.append("<table bordered striped compact><tr><th>تاریخ</th><th>موضوع ارائه</th><th>همراه</th></tr>")
+        for row in rows:
+            partner = row["partner"]
+            partner_text = "ارائه انفرادی" if partner == "انفرادی" else partner
+            fallback.extend((
+                "",
+                f"📅 <b>{html.escape(row['date'])}</b>",
+                f"🎤 {html.escape(row['topic'])}",
+                f"👥 {html.escape(partner_text)}",
+            ))
+            rich.append(
+                f"<tr><td><code>{html.escape(row['date'])}</code></td>"
+                f"<td>🎤 <b>{html.escape(row['topic'])}</b></td>"
+                f"<td>{html.escape(partner_text)}</td></tr>"
+            )
+        rich.append("</table>")
+    else:
+        fallback.extend(("", "برنامه ارائه‌ای برای این حساب ثبت نشده است."))
+        rich.append("<blockquote>برنامه ارائه‌ای برای این حساب ثبت نشده است.</blockquote>")
+    footer = "این مورد در برنامه روزانه و یادآوری همان روز نیز نمایش داده می‌شود."
+    fallback.extend(("", f"<blockquote>✅ {html.escape(footer)}</blockquote>"))
+    rich.append(f"<footer>✅ {html.escape(footer)}</footer>")
+    return ui_module.native_rich_text("\n".join(fallback), "".join(rich))
+
+
 def academic_notification_text(item: dict[str, Any]):
+    presentation = oral_disease_presentation_notification_text(item)
+    if presentation is not None:
+        return presentation
     source = str(item.get("source") or "")
     raw_title = " ".join(str(item.get("title") or "").split())
     structured_correction = (
@@ -147,15 +243,28 @@ def academic_notification_text(item: dict[str, Any]):
             meta_bits = [f"👤 {instructor}"]
             if location != "—":
                 meta_bits.append(f"📍 {location}")
+            presentation_topic = " ".join(str(row.get("presentationTopic") or "").split())[:260]
+            presentation_partners = " ".join(str(row.get("presentationPartners") or "").split())[:180]
             fallback.extend((
                 "",
                 f"{icon} <b>{html.escape(title)}</b>",
                 f"<code>{html.escape(time_text)}</code> · {html.escape(' · '.join(meta_bits))}",
             ))
+            presentation_html = ""
+            if presentation_topic:
+                partner_text = f"همراه با: {presentation_partners}" if presentation_partners else "ارائه انفرادی"
+                fallback.append(
+                    f"🎤 <b>شما ارائه دارید</b> · {html.escape(presentation_topic)} · {html.escape(partner_text)}"
+                )
+                presentation_html = (
+                    f"<br/><b>🎤 شما ارائه دارید</b>"
+                    f"<br/>موضوع: {html.escape(presentation_topic)}"
+                    f"<br/>{html.escape(partner_text)}"
+                )
             location_html = "" if location == "—" else f"<br/>📍 {html.escape(location)}"
             rich.append(
                 f"<tr><td><code>{html.escape(time_text)}</code></td>"
-                f"<td>{icon} <b>{html.escape(title)}</b>{location_html}</td>"
+                f"<td>{icon} <b>{html.escape(title)}</b>{location_html}{presentation_html}</td>"
                 f"<td>{html.escape(instructor)}</td></tr>"
             )
         rich.append("</table>")
