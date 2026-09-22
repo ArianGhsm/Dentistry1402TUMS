@@ -20,11 +20,58 @@ def _decode_caption(value: str) -> str:
         raise ValueError("Caption must be strict UTF-8 Base64") from error
 
 
+def sync_existing_source_message(
+    *,
+    api: TelegramBotApi,
+    state: BotState,
+    source_channel_id: int,
+    owner_id: int,
+    message_id: int,
+    catalog: dict,
+) -> int:
+    """Re-read one source post exactly as Telegram exposes it now.
+
+    This recovers posts that were uploaded before their final caption was
+    applied. User-session caption edits are not guaranteed to arrive through
+    the Bot API edited-channel-post stream, so the current message must be
+    explicitly re-indexable without re-uploading its media.
+    """
+    temporary_message_id = 0
+    try:
+        forwarded = dict(api.call("forwardMessage", {
+            "chat_id": int(owner_id),
+            "from_chat_id": int(source_channel_id),
+            "message_id": int(message_id),
+            "protect_content": True,
+            "disable_notification": True,
+        }) or {})
+        temporary_message_id = int(forwarded.get("message_id") or 0)
+        if temporary_message_id <= 0:
+            raise RuntimeError("Source synchronization did not return a temporary message")
+        records = source_records_from_channel_post(forwarded, catalog)
+        return state.replace_protected_media_message(
+            int(source_channel_id),
+            int(message_id),
+            records,
+        )
+    finally:
+        if temporary_message_id > 0:
+            try:
+                api.call("deleteMessage", {
+                    "chat_id": int(owner_id),
+                    "message_id": temporary_message_id,
+                })
+            except Exception:
+                pass
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Administer caption-derived protected booklet sources.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("probe")
     subparsers.add_parser("send-owner-test")
+    sync = subparsers.add_parser("sync-existing")
+    sync.add_argument("--message-id", required=True, type=int)
     hydrate = subparsers.add_parser("hydrate-existing")
     hydrate.add_argument("--message-id", required=True, type=int)
     register = subparsers.add_parser("register-existing")
@@ -124,6 +171,36 @@ def main() -> int:
         finally:
             if dispatcher is not None:
                 dispatcher.close()
+            state.close()
+            api.close()
+
+    if args.command == "sync-existing":
+        api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)
+        state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
+        site_api = SiteApiClient(
+            settings.site_api_url,
+            settings.site_service_secret,
+            platform="telegram",
+            timeout=settings.site_timeout_seconds,
+            relay_secret=settings.site_relay_secret,
+        )
+        try:
+            catalog = site_api.booklet_catalog(settings.owner_id)
+            count = sync_existing_source_message(
+                api=api,
+                state=state,
+                source_channel_id=settings.booklet_source_channel_id,
+                owner_id=settings.owner_id,
+                message_id=int(args.message_id),
+                catalog=catalog,
+            )
+            print(json.dumps({
+                "success": count > 0,
+                "messageId": int(args.message_id),
+                "routes": count,
+            }, separators=(",", ":")))
+            return 0 if count > 0 else 2
+        finally:
             state.close()
             api.close()
 

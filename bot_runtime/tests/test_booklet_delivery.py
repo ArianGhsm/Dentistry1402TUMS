@@ -16,6 +16,7 @@ from dent_bot.booklets import (
     parse_source_caption,
     source_records_from_channel_post,
 )
+from dent_bot.booklet_source_admin import sync_existing_source_message
 from dent_bot.state import BotState
 from dent_bot.protected_media import ProtectedMediaDispatcher
 
@@ -49,6 +50,16 @@ BOOKLET_CATALOG = {
             "sessions": [
                 {"sessionNumber": 1, "title": "مقدمه و معرفی دوره و منابع", "instructor": "دکتر یونس‌پور", "sessionModeLabel": "حضوری"},
                 {"sessionNumber": 2, "title": "جست‌وجوی منابع", "instructor": "دکتر یونس‌پور", "sessionModeLabel": "حضوری"},
+            ],
+        },
+        {
+            "courseKey": "oral-health-theory-2",
+            "courseTitle": "سلامت دهان نظری ۲",
+            "bookletTag": "سلامت_دهان_نظری۲",
+            "term": 7,
+            "sessions": [
+                {"sessionNumber": 1, "title": "اپیدمیولوژی", "instructor": "دکتر سمانه رازقی", "sessionModeLabel": "حضوری"},
+                {"sessionNumber": 2, "title": "دندانپزشکی مبتنی بر شواهد", "instructor": "دکتر رضا یزدانی", "sessionModeLabel": "حضوری"},
             ],
         },
     ],
@@ -196,6 +207,72 @@ class BookletDeliveryTests(unittest.TestCase):
             "audio": {"file_id": "research-audio", "file_unique_id": "research-1"},
         }, BOOKLET_CATALOG)
         self.assertEqual(records[0]["telegramMethod"], "sendAudio")
+
+    def test_sync_existing_recovers_caption_added_after_initial_channel_post(self) -> None:
+        caption = (
+            "🎤 ویس جلسه اول سلامت دهان نظری ۲ - اپیدمیولوژی (نسخه اول)\n\n"
+            "📚 سلامت دهان نظری ۲\n👨‍🏫 استاد رازقی\n\n"
+            "#سلامت_دهان_نظری۲ #ترم۷ #رازقی"
+        )
+
+        class SyncApi:
+            def __init__(self) -> None:
+                self.calls = []
+
+            def call(self, method, payload=None, *, timeout=8):
+                data = dict(payload or {})
+                self.calls.append((method, data))
+                if method == "forwardMessage":
+                    return {
+                        "message_id": 900,
+                        "caption": caption,
+                        "audio": {
+                            "file_id": "oral-health-audio",
+                            "file_unique_id": "oral-health-unique",
+                            "file_name": "سلامت دهان نظری ۲ جلسه ۱.m4a",
+                            "mime_type": "audio/m4a",
+                        },
+                    }
+                if method == "deleteMessage":
+                    return True
+                raise AssertionError(f"Unexpected method: {method}")
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            api = SyncApi()
+            try:
+                # The original channel_post had no final caption, so ingestion
+                # produced zero routes. Re-reading the same message after its
+                # caption edit must create the route without re-uploading it.
+                self.assertEqual(
+                    state.replace_protected_media_message(SOURCE_CHAT_ID, 18, []),
+                    0,
+                )
+                count = sync_existing_source_message(
+                    api=api,
+                    state=state,
+                    source_channel_id=SOURCE_CHAT_ID,
+                    owner_id=10,
+                    message_id=18,
+                    catalog=BOOKLET_CATALOG,
+                )
+                self.assertEqual(count, 1)
+                rows = state.protected_media_for_tag(
+                    course_tag="سلامت_دهان_نظری۲",
+                    term=7,
+                    session_no=1,
+                    content_kind="voice",
+                )
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["sourceMessageId"], 18)
+                self.assertEqual(rows[0]["fileId"], "oral-health-audio")
+                self.assertEqual(rows[0]["telegramMethod"], "sendAudio")
+                self.assertEqual(
+                    [method for method, _payload in api.calls],
+                    ["forwardMessage", "deleteMessage"],
+                )
+            finally:
+                state.close()
 
     def test_source_catalog_stores_only_metadata_and_edit_can_deactivate_routes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
