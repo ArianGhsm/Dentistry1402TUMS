@@ -63,8 +63,32 @@ def parse_session_number(caption: str) -> int | None:
     return number if 1 <= number <= 40 else None
 
 
+def _tag_key(value: str) -> str:
+    normalized = (
+        str(value)
+        .replace("ي", "ی")
+        .replace("ى", "ی")
+        .replace("ك", "ک")
+        .replace("‌", "_")
+        .translate(_DIGIT_TRANSLATION)
+    )
+    return re.sub(r"[^A-Za-z0-9\u0600-\u06FF]+", "", normalized).casefold()
+
+
 def _hashtags(caption: str) -> set[str]:
-    return {match.group(1).replace("‌", "_") for match in re.finditer(r"#([^\s#]+)", caption)}
+    return {
+        _tag_key(match.group(1))
+        for match in re.finditer(r"#([^\s#]+)", caption)
+        if _tag_key(match.group(1))
+    }
+
+
+def _course_tag_keys(course: dict) -> set[str]:
+    values = [str(course.get("bookletTag") or "")]
+    aliases = course.get("bookletTagAliases")
+    if isinstance(aliases, list):
+        values.extend(str(alias or "") for alias in aliases)
+    return {key for value in values if (key := _tag_key(value))}
 
 
 def _content_kinds(caption: str) -> tuple[str, ...]:
@@ -123,19 +147,17 @@ class ParsedSource:
 
 def parse_source_caption(caption: str, catalog: dict) -> ParsedSource | None:
     tags = _hashtags(caption)
-    course = next(
-        (
-            item
-            for item in catalog_courses(catalog)
-            if str(item.get("bookletTag") or "") in tags
-        ),
-        None,
-    )
+    matched_courses = [
+        item
+        for item in catalog_courses(catalog)
+        if _course_tag_keys(item) & tags
+    ]
+    course = matched_courses[0] if len(matched_courses) == 1 else None
     term = 0
     for tag in tags:
-        match = re.fullmatch(r"ترم([0-9۰-۹٠-٩]{1,2})", tag)
+        match = re.fullmatch(r"ترم([0-9]{1,2})", tag)
         if match:
-            term = int(match.group(1).translate(_DIGIT_TRANSLATION))
+            term = int(match.group(1))
             break
     session_no = parse_session_number(caption) or 0
     kinds = _content_kinds(caption)

@@ -347,6 +347,68 @@ function classops_term7_syllabus_booklet_tag(string $courseKey, array $course): 
     return trim((string) $tag, '_');
 }
 
+function classops_term7_syllabus_booklet_tag_aliases(string $courseKey, string $canonical): array
+{
+    $aliases = [
+        'orthodontics-theory-1' => [
+            'ارتو_نظری۱',
+            'ارتودنسی_نظری۱',
+            'ارتودانتیکس_نظری۱',
+        ],
+        'endodontics-theory-1' => [
+            'اندو_نظری۱',
+            'اندودانتیکس_نظری۱',
+        ],
+        'diagnostic-dentistry-3' => [
+            'تشخیصی۳',
+            'دندانپزشکی_تشخیصی۳',
+        ],
+        'research-methods-2' => [
+            'روش_تحقیق۲',
+            'روش_شناسی_تحقیق۲',
+            'روششناسی_تحقیق۲',
+        ],
+        'endodontics-basics-2' => [
+            'مبانی_اندودانتیکس۲',
+            'مبانی_اندو۲',
+        ],
+        'oral-health-practical-2' => [
+            'سلامت_دهان_عملی۲',
+            'سلامت_عملی۲',
+        ],
+        'pathology-practical-1' => [
+            'آسیب_شناسی_عملی۱',
+            'آسیب_شناسی۱',
+            'پاتولوژی_عملی۱',
+        ],
+        'oral-health-theory-2' => [
+            'سلامت_دهان_نظری۲',
+            'سلامت_نظری۲',
+        ],
+        'ent' => [
+            'گوش_حلق_بینی',
+            'گوش_حلق_و_بینی',
+        ],
+        'periodontology-theory-1' => [
+            'پریو_نظری۱',
+            'پریودنتولوژی_نظری۱',
+        ],
+        'partial-basics-theory' => [
+            'مبانی_پروتز_پارسیل',
+            'مبانی_پروتز_پارسیل_نظری',
+            'مبانی_پارسیل_نظری',
+            'پروتز_پارسیل_نظری',
+        ],
+    ];
+
+    $values = array_merge([$canonical], $aliases[$courseKey] ?? []);
+    $values = array_values(array_unique(array_filter(array_map(
+        static fn($value): string => trim((string) $value),
+        $values
+    ))));
+    return $values;
+}
+
 /**
  * Canonical booklet projection of the same Term 7 syllabus registry used by
  * the daily schedule and ClassOps. Numbered sessions are expanded one-by-one
@@ -387,6 +449,10 @@ function classops_term7_syllabus_booklet_catalog(): array
             'courseTitle' => trim((string) ($course['courseTitle'] ?? $course['sourceCourseTitle'] ?? $courseKey)),
             'sourceCourseTitle' => trim((string) ($course['sourceCourseTitle'] ?? $course['courseTitle'] ?? '')),
             'bookletTag' => classops_term7_syllabus_booklet_tag((string) $courseKey, $course),
+            'bookletTagAliases' => classops_term7_syllabus_booklet_tag_aliases(
+                (string) $courseKey,
+                classops_term7_syllabus_booklet_tag((string) $courseKey, $course)
+            ),
             'term' => 7,
             'sourceFile' => trim((string) ($course['sourceFile'] ?? '')),
             'sessions' => array_values($sessions),

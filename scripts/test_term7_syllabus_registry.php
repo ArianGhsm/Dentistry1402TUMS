@@ -73,6 +73,27 @@ $bookletByKey = [];
 foreach (($bookletCatalog['courses'] ?? []) as $course) {
     if (is_array($course)) $bookletByKey[(string) ($course['courseKey'] ?? '')] = $course;
 }
+$expectedBookletAliases = [
+    'orthodontics-theory-1' => 'ارتودانتیکس_نظری۱',
+    'endodontics-theory-1' => 'اندودانتیکس_نظری۱',
+    'diagnostic-dentistry-3' => 'دندانپزشکی_تشخیصی۳',
+    'research-methods-2' => 'روش_شناسی_تحقیق۲',
+    'endodontics-basics-2' => 'مبانی_اندو۲',
+    'oral-health-practical-2' => 'سلامت_عملی۲',
+    'pathology-practical-1' => 'پاتولوژی_عملی۱',
+    'oral-health-theory-2' => 'سلامت_نظری۲',
+    'ent' => 'گوش_حلق_و_بینی',
+    'periodontology-theory-1' => 'پریودنتولوژی_نظری۱',
+    'partial-basics-theory' => 'پروتز_پارسیل_نظری',
+];
+foreach ($expectedBookletAliases as $courseKey => $alias) {
+    $course = $bookletByKey[$courseKey] ?? [];
+    syllabus_assert(
+        in_array($alias, $course['bookletTagAliases'] ?? [], true)
+            && in_array($course['bookletTag'] ?? '', $course['bookletTagAliases'] ?? [], true),
+        "Booklet catalog exposes canonical plus global alias for {$courseKey}"
+    );
+}
 $researchBooklet = $bookletByKey['research-methods-2'] ?? [];
 $researchNumbers = array_column($researchBooklet['sessions'] ?? [], 'sessionNumber');
 syllabus_assert(

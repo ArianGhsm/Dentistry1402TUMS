@@ -37,6 +37,7 @@ BOOKLET_CATALOG = {
             "courseKey": "ent",
             "courseTitle": "گوش و حلق و بینی",
             "bookletTag": "گوش_حلق_بینی",
+            "bookletTagAliases": ["گوش_حلق_بینی", "گوش_حلق_و_بینی"],
             "term": 7,
             "sessions": [
                 {"sessionNumber": 4, "title": "تومورهای سینوس", "instructor": "دکتر ایرانی", "sessionModeLabel": "حضوری"},
@@ -46,6 +47,7 @@ BOOKLET_CATALOG = {
             "courseKey": "research-methods-2",
             "courseTitle": "روش تحقیق ۲",
             "bookletTag": "روش_تحقیق۲",
+            "bookletTagAliases": ["روش_تحقیق۲", "روش_شناسی_تحقیق۲"],
             "term": 7,
             "sessions": [
                 {"sessionNumber": 1, "title": "مقدمه و معرفی دوره و منابع", "instructor": "دکتر یونس‌پور", "sessionModeLabel": "حضوری"},
@@ -56,6 +58,7 @@ BOOKLET_CATALOG = {
             "courseKey": "oral-health-theory-2",
             "courseTitle": "سلامت دهان نظری ۲",
             "bookletTag": "سلامت_دهان_نظری۲",
+            "bookletTagAliases": ["سلامت_دهان_نظری۲", "سلامت_نظری۲"],
             "term": 7,
             "sessions": [
                 {"sessionNumber": 1, "title": "اپیدمیولوژی", "instructor": "دکتر سمانه رازقی", "sessionModeLabel": "حضوری"},
@@ -193,6 +196,44 @@ class BookletDeliveryTests(unittest.TestCase):
         }, BOOKLET_CATALOG)
         self.assertEqual({item["contentKind"] for item in records}, {"booklet", "reference"})
         self.assertTrue(all(item["telegramMethod"] == "sendDocument" for item in records))
+
+    def test_global_booklet_tag_aliases_route_to_canonical_course(self) -> None:
+        cases = (
+            ("#گوش_حلق_و_بینی #ترم۷ ویس جلسه چهارم", "ent", "گوش_حلق_بینی", 4),
+            ("#روش_شناسی_تحقیق۲ #ترم_۷ ویس جلسه اول", "research-methods-2", "روش_تحقیق۲", 1),
+            ("#سلامت_نظری_۲ #ترم۷ ویس جلسه اول", "oral-health-theory-2", "سلامت_دهان_نظری۲", 1),
+        )
+        for caption, expected_code, expected_tag, expected_session in cases:
+            with self.subTest(caption=caption):
+                parsed = parse_source_caption(caption, BOOKLET_CATALOG)
+                self.assertIsNotNone(parsed)
+                assert parsed is not None
+                self.assertEqual(parsed.course_code, expected_code)
+                self.assertEqual(parsed.course_tag, expected_tag)
+                self.assertEqual(parsed.session_no, expected_session)
+
+    def test_booklet_tag_alias_collision_fails_closed(self) -> None:
+        catalog = {
+            "courses": [
+                {
+                    "courseKey": "course-a",
+                    "courseTitle": "الف",
+                    "bookletTag": "الف",
+                    "bookletTagAliases": ["مشترک"],
+                    "term": 7,
+                    "sessions": [{"sessionNumber": 1}],
+                },
+                {
+                    "courseKey": "course-b",
+                    "courseTitle": "ب",
+                    "bookletTag": "ب",
+                    "bookletTagAliases": ["مشترک"],
+                    "term": 7,
+                    "sessions": [{"sessionNumber": 1}],
+                },
+            ]
+        }
+        self.assertIsNone(parse_source_caption("#مشترک #ترم۷ ویس جلسه اول", catalog))
 
     def test_persian_voice_caption_routes_against_shared_research_syllabus(self) -> None:
         caption = "🎤 ویس جلسه اول\n#روش_تحقیق۲ #ترم۷"
