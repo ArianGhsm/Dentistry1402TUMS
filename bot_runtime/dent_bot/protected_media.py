@@ -32,6 +32,29 @@ def _error(message: str) -> str:
     return f"<b>⚠️ انجام نشد</b>\n\n{html.escape(message)}"
 
 
+_BOOKLET_CAPTION_KINDS = frozenset({"booklet", "ai_booklet"})
+_TELEGRAM_CAPTION_SOURCE_BUDGET = 900
+
+
+def _protected_delivery_caption(source: dict, trace_code: str = "") -> str:
+    kind = str(source.get("contentKind") or "").strip()
+    if trace_code:
+        protected = (
+            "🔐 نسخهٔ شخصی‌سازی‌شده\n"
+            f"کد رهگیری: <code>{html.escape(str(trace_code))}</code>"
+        )
+    else:
+        protected = "🔐 فایل محافظت‌شده"
+    if kind not in _BOOKLET_CAPTION_KINDS:
+        return protected
+    source_caption = str(source.get("caption") or "").strip()
+    if not source_caption:
+        return protected
+    if len(source_caption) > _TELEGRAM_CAPTION_SOURCE_BUDGET:
+        source_caption = source_caption[: _TELEGRAM_CAPTION_SOURCE_BUDGET - 1].rstrip() + "…"
+    return f"{html.escape(source_caption)}\n\n{protected}"
+
+
 @dataclass(frozen=True)
 class DeliveryJob:
     user_id: int
@@ -232,7 +255,10 @@ class ProtectedMediaDispatcher:
                 if not self.authorize(job.user_id, source):
                     raise PermissionError("Booklet entitlement was revoked before cached delivery")
                 result = self.api.send_protected_media(
-                    job.user_id, source, personalized_file_id=str(cached.get("telegramFileId") or "")
+                    job.user_id,
+                    source,
+                    personalized_file_id=str(cached.get("telegramFileId") or ""),
+                    caption=_protected_delivery_caption(source, str(cached.get("traceCode") or "")),
                 )
                 logging.info(
                     "booklet cache hit queue_ms=%s",
@@ -273,7 +299,10 @@ class ProtectedMediaDispatcher:
                 if not self.authorize(job.user_id, source):
                     raise PermissionError("Booklet entitlement was revoked before cached delivery")
                 return self.api.send_protected_media(
-                    job.user_id, source, personalized_file_id=str(existing["telegramFileId"])
+                    job.user_id,
+                    source,
+                    personalized_file_id=str(existing["telegramFileId"]),
+                    caption=_protected_delivery_caption(source, str(existing.get("traceCode") or "")),
                 )
             if existing is None:
                 issuance_id = "iss_" + secrets.token_urlsafe(24)
@@ -326,7 +355,7 @@ class ProtectedMediaDispatcher:
             result = self.api.send_protected_document_path(
                 job.user_id,
                 output_path,
-                caption=f"🔐 نسخهٔ شخصی‌سازی‌شده\nTrace Code: <code>{material.trace_code}</code>",
+                caption=_protected_delivery_caption(source, material.trace_code),
                 filename="dent1402-personalized.pdf",
             )
             file_id, file_unique_id = self._telegram_document_ids(result)
@@ -380,7 +409,14 @@ class ProtectedMediaDispatcher:
                 else:
                     if not self.authorize(job.user_id, source):
                         raise PermissionError("Booklet entitlement was revoked before media delivery")
-                    result = self.api.send_protected_media(job.user_id, source)
+                    if str(source.get("contentKind") or "") in _BOOKLET_CAPTION_KINDS:
+                        result = self.api.send_protected_media(
+                            job.user_id,
+                            source,
+                            caption=_protected_delivery_caption(source),
+                        )
+                    else:
+                        result = self.api.send_protected_media(job.user_id, source)
                 message_id = int(result.get("message_id") or 0)
                 if message_id <= 0:
                     raise BotApiError("Protected media delivery returned no message identifier")
