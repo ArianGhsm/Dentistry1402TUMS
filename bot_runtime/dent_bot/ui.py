@@ -1418,7 +1418,10 @@ def payment_status_screen(
     fulfillment = dict(payload.get("fulfillment") or {})
     fulfillment_text = html.escape(str(fulfillment.get("text") or "").strip()[:600])
     fulfillment_url = _safe_exam_url(fulfillment.get("url"))
-    if status == "success" and fulfillment_url:
+    fulfillment_action = str(fulfillment.get("action") or "").strip()
+    if status == "success" and fulfillment_action:
+        rows.insert(0, [button("📥 دریافت جزوه هوش مصنوعی", action=fulfillment_action, style="success")])
+    elif status == "success" and fulfillment_url:
         rows.insert(0, [button("🎁 دریافت محصول", url=fulfillment_url, style="success")])
     return Screen(
         f"<b>{title}</b>\n\n<b>{item_title}</b>\n{html.escape(description)}\n<blockquote>{amount}</blockquote>\n"
@@ -1443,7 +1446,10 @@ def payment_success_push_screen(payload: dict, *, platform: str = "telegram") ->
     fulfillment = dict(payload.get("fulfillment") or {})
     fulfillment_url = _safe_exam_url(fulfillment.get("url"))
     fulfillment_text = html.escape(str(fulfillment.get("text") or "").strip()[:600])
-    if fulfillment_url:
+    fulfillment_action = str(fulfillment.get("action") or "").strip()
+    if fulfillment_action:
+        rows.append([button("📥 دریافت جزوه هوش مصنوعی", action=fulfillment_action, style="success")])
+    elif fulfillment_url:
         rows.append([button("🎁 دریافت محصول", url=fulfillment_url, style="success")])
     rows.extend((
         [button("🛍 محصولات", action="payments")],
