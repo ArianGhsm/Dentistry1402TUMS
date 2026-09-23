@@ -6,11 +6,20 @@ import threading
 import time
 from collections import deque
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from .api import BotApiError
 from .academic_term7_rich import decorate_academic_notification_screen
 from .classops_runtime import run_classops_background_loop
+from .daily_content_digest import (
+    DIGEST_HOUR,
+    DIGEST_TIMEZONE,
+    build_digest_payload,
+    digest_window,
+    eligible_digest_recipients,
+    render_daily_content_digest,
+)
 from .app import DentBotApp
 from .state import BotState
 from .site_api import SiteApiClient, SiteApiError
@@ -448,6 +457,81 @@ def dispatch_navid_group_batch(*, settings, api, state: BotState, site_api: Site
     return counts
 
 
+def dispatch_daily_content_digest(
+    *,
+    settings,
+    api,
+    state: BotState,
+    site_api: SiteApiClient,
+    now: datetime | None = None,
+    force: bool = False,
+) -> dict[str, int | str]:
+    """Prepare the Telegram-backed daily snapshot once and deliver it idempotently per platform."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    local = current.astimezone(ZoneInfo(DIGEST_TIMEZONE))
+    result: dict[str, int | str] = {
+        "status": "not-due",
+        "recipients": 0,
+        "sent": 0,
+        "skipped": 0,
+        "failed": 0,
+    }
+    if not force and local.hour < DIGEST_HOUR:
+        return result
+
+    digest_date = local.strftime("%Y-%m-%d")
+    payload = state.daily_content_digest(digest_date)
+    if payload is None:
+        if str(settings.platform) != "telegram":
+            result["status"] = "waiting-source"
+            return result
+        previous_cutoff = state.latest_daily_content_digest_cutoff()
+        window_start, window_end = digest_window(now=current, previous_cutoff=previous_cutoff)
+        catalog = site_api.booklet_catalog(settings.owner_id)
+        rows = state.protected_media_created_between(window_start, window_end)
+        payload = build_digest_payload(
+            rows=rows,
+            catalog=catalog,
+            digest_date=digest_date,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        payload = state.create_daily_content_digest(
+            digest_date,
+            payload=payload,
+            window_start=window_start,
+            window_end=window_end,
+        )
+
+    directory = site_api.payment_directory(settings.owner_id, limit=500)
+    recipients = eligible_digest_recipients(directory)
+    result["recipients"] = len(recipients)
+    screen = render_daily_content_digest(payload)
+    for user_id in recipients:
+        if state.daily_content_digest_delivery_sent(digest_date, str(settings.platform), user_id):
+            result["skipped"] = int(result["skipped"]) + 1
+            continue
+        try:
+            api.send(user_id, screen.text, screen.keyboard)
+            state.record_daily_content_digest_delivery(
+                digest_date, str(settings.platform), user_id, sent=True
+            )
+            result["sent"] = int(result["sent"]) + 1
+        except BotApiError as error:
+            state.record_daily_content_digest_delivery(
+                digest_date,
+                str(settings.platform),
+                user_id,
+                sent=False,
+                error=type(error).__name__,
+            )
+            result["failed"] = int(result["failed"]) + 1
+    result["status"] = "completed" if not result["failed"] else "partial"
+    return result
+
+
 def run_service(*, settings, api, platform_name: str) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     state = BotState(settings.state_db, payment_offers_path=getattr(settings, "payment_offers_db", None))
@@ -603,6 +687,7 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
     booklet_free_sync_ready = False
     next_navid_check = 0.0
     next_navid_group_poll = 0.0
+    next_daily_content_digest_poll = 0.0
     while not stop_event.is_set():
         now = time.monotonic()
         if now >= next_account_disconnect_poll:
@@ -702,6 +787,32 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
                 except Exception:
                     logging.exception("%s term renewal dispatch failed", platform_name)
             next_term_renewal_poll = time.monotonic() + 3600
+        now = time.monotonic()
+        if now >= next_daily_content_digest_poll:
+            try:
+                digest_counts = dispatch_daily_content_digest(
+                    settings=settings,
+                    api=api,
+                    state=state,
+                    site_api=site_api,
+                )
+                if digest_counts.get("status") in {"completed", "partial"} and (
+                    int(digest_counts.get("sent") or 0) or int(digest_counts.get("failed") or 0)
+                ):
+                    logging.info(
+                        "%s daily content digest recipients=%s sent=%s skipped=%s failed=%s status=%s",
+                        platform_name,
+                        digest_counts.get("recipients", 0),
+                        digest_counts.get("sent", 0),
+                        digest_counts.get("skipped", 0),
+                        digest_counts.get("failed", 0),
+                        digest_counts.get("status", ""),
+                    )
+            except SiteApiError as error:
+                logging.warning("%s daily content digest unavailable code=%s", platform_name, error.code)
+            except Exception:
+                logging.exception("%s daily content digest failed", platform_name)
+            next_daily_content_digest_poll = time.monotonic() + 60
         now = time.monotonic()
         if now >= next_navid_check:
             try:

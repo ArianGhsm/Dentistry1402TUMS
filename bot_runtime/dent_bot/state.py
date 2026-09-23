@@ -226,6 +226,27 @@ CREATE TABLE IF NOT EXISTS term_subscription_renewal_notices (
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(term, billing_period, platform, platform_user_id)
 );
+CREATE TABLE IF NOT EXISTS daily_content_digests (
+    digest_date TEXT PRIMARY KEY,
+    payload_json TEXT NOT NULL,
+    window_start TEXT NOT NULL,
+    window_end TEXT NOT NULL,
+    source_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS daily_content_digest_deliveries (
+    digest_date TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    platform_user_id INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','sent','failed')),
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT NOT NULL DEFAULT '',
+    sent_at TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(digest_date, platform, platform_user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_daily_content_digest_delivery_status
+    ON daily_content_digest_deliveries(digest_date, platform, status);
 """
 
 PAYMENT_OFFER_COLUMNS = (
@@ -2280,6 +2301,114 @@ class BotState:
                 (key, value),
             )
             self.connection.commit()
+
+    def protected_media_created_between(self, start_utc: str, end_utc: str) -> list[dict]:
+        """Return active canonical source records first registered in the requested UTC window."""
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT source_message_id,course_code,course_name,term,session_no,content_kind,created_at "
+                "FROM protected_media_sources WHERE active=1 AND created_at>=? AND created_at<=? "
+                "ORDER BY created_at,source_message_id,content_kind",
+                (str(start_utc), str(end_utc)),
+            ).fetchall()
+        return [
+            {
+                "sourceMessageId": int(row[0]),
+                "courseCode": str(row[1]),
+                "courseName": str(row[2]),
+                "term": int(row[3]),
+                "sessionNo": int(row[4]),
+                "contentKind": str(row[5]),
+                "createdAt": str(row[6]),
+            }
+            for row in rows
+        ]
+
+    def latest_daily_content_digest_cutoff(self) -> str:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT window_end FROM daily_content_digests ORDER BY window_end DESC LIMIT 1"
+            ).fetchone()
+        return str(row[0]) if row else ""
+
+    def daily_content_digest(self, digest_date: str) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT payload_json,window_start,window_end,source_count FROM daily_content_digests "
+                "WHERE digest_date=?",
+                (str(digest_date),),
+            ).fetchone()
+        if row is None:
+            return None
+        try:
+            payload = json.loads(str(row[0]))
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(payload, dict):
+            return None
+        payload.setdefault("windowStart", str(row[1]))
+        payload.setdefault("windowEnd", str(row[2]))
+        payload.setdefault("sourceCount", int(row[3]))
+        return payload
+
+    def create_daily_content_digest(
+        self,
+        digest_date: str,
+        *,
+        payload: dict,
+        window_start: str,
+        window_end: str,
+    ) -> dict:
+        encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        with self._lock:
+            self.payment_connection.execute(
+                "INSERT OR IGNORE INTO daily_content_digests("
+                "digest_date,payload_json,window_start,window_end,source_count"
+                ") VALUES(?,?,?,?,?)",
+                (str(digest_date), encoded, str(window_start), str(window_end), len(payload.get("items", []))),
+            )
+            self.payment_connection.commit()
+        current = self.daily_content_digest(digest_date)
+        if current is None:
+            raise RuntimeError("Daily content digest could not be persisted")
+        return current
+
+    def daily_content_digest_delivery_sent(self, digest_date: str, platform: str, platform_user_id: int) -> bool:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT status FROM daily_content_digest_deliveries "
+                "WHERE digest_date=? AND platform=? AND platform_user_id=?",
+                (str(digest_date), str(platform), int(platform_user_id)),
+            ).fetchone()
+        return bool(row and str(row[0]) == "sent")
+
+    def record_daily_content_digest_delivery(
+        self,
+        digest_date: str,
+        platform: str,
+        platform_user_id: int,
+        *,
+        sent: bool,
+        error: str = "",
+    ) -> None:
+        status = "sent" if sent else "failed"
+        with self._lock:
+            self.payment_connection.execute(
+                "INSERT INTO daily_content_digest_deliveries("
+                "digest_date,platform,platform_user_id,status,attempts,last_error,sent_at"
+                ") VALUES(?,?,?,?,1,?,CASE WHEN ?='sent' THEN CURRENT_TIMESTAMP ELSE '' END) "
+                "ON CONFLICT(digest_date,platform,platform_user_id) DO UPDATE SET "
+                "status=excluded.status,attempts=daily_content_digest_deliveries.attempts+1,"
+                "last_error=excluded.last_error,"
+                "sent_at=CASE WHEN excluded.status='sent' THEN CURRENT_TIMESTAMP "
+                "ELSE daily_content_digest_deliveries.sent_at END,"
+                "updated_at=CURRENT_TIMESTAMP",
+                (
+                    str(digest_date), str(platform), int(platform_user_id), status,
+                    str(error)[:160], status,
+                ),
+            )
+            self.payment_connection.commit()
 
     @staticmethod
     def _protected_media_payload(row: tuple | None) -> dict | None:
