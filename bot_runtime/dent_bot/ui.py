@@ -952,6 +952,141 @@ def term_subscription_info_screen(policy: dict, *, term: int = 7) -> Screen:
     )
 
 
+def _booklet_sales_course_label(
+    catalog: dict | None,
+    course_code: str,
+    course_tag: str,
+    session_no: int,
+) -> tuple[str, str]:
+    course = next(
+        (
+            item for item in dict(catalog or {}).get("courses", [])
+            if isinstance(item, dict) and str(item.get("courseKey") or "") == str(course_code)
+        ),
+        None,
+    )
+    if isinstance(course, dict):
+        course_title = str(course.get("courseTitle") or "").strip()
+        session = next(
+            (
+                item for item in course.get("sessions", [])
+                if isinstance(item, dict) and int(item.get("sessionNumber") or 0) == int(session_no)
+            ),
+            None,
+        )
+        session_title = str(dict(session or {}).get("title") or "").strip()
+        return course_title or "درس", session_title
+    fallback = str(course_tag or "").replace("_", " ").strip() or "درس"
+    return fallback, ""
+
+
+def booklet_sales_overview_screen(report: dict, catalog: dict | None = None) -> Screen:
+    term = int(report.get("term") or 7)
+    current_label = html.escape(to_persian_digits(str(report.get("currentPeriodLabel") or "دورهٔ جاری")))
+    ai = dict(report.get("aiBooklets") or {})
+    subscriptions = dict(report.get("subscriptions") or {})
+    return Screen(
+        f"<b><u>📈 آمار فروش جزوات · ترم {to_persian_digits(term)}</u></b>\n\n"
+        "<blockquote>🤖 <b>جزوه‌های هوش مصنوعی</b>\n"
+        f"کل فروش: <b>{to_persian_digits(ai.get('totalSales', 0))}</b> · "
+        f"خریدار یکتا: <b>{to_persian_digits(ai.get('uniqueBuyers', 0))}</b>\n"
+        f"درآمد کل: <code>{to_persian_digits(format_rials(ai.get('revenueRials', 0)))}</code>\n"
+        f"{current_label}: <b>{to_persian_digits(ai.get('currentSales', 0))}</b> فروش · "
+        f"<code>{to_persian_digits(format_rials(ai.get('currentRevenueRials', 0)))}</code></blockquote>\n\n"
+        "<blockquote>📚 <b>اشتراک جزوات</b>\n"
+        f"کل فروش: <b>{to_persian_digits(subscriptions.get('totalSales', 0))}</b> · "
+        f"مشترک یکتا: <b>{to_persian_digits(subscriptions.get('uniqueBuyers', 0))}</b>\n"
+        f"درآمد کل: <code>{to_persian_digits(format_rials(subscriptions.get('revenueRials', 0)))}</code>\n"
+        f"{current_label}: <b>{to_persian_digits(subscriptions.get('currentSales', 0))}</b> فروش · "
+        f"<code>{to_persian_digits(format_rials(subscriptions.get('currentRevenueRials', 0)))}</code></blockquote>",
+        keyboard(
+            [button("🤖 فروش جزوه‌های هوش مصنوعی", action="booklet-sales-ai", style="primary")],
+            [button("📚 فروش اشتراک جزوات", action="booklet-sales-subscriptions")],
+            [button("↻ تازه‌سازی", action="booklet-sales"), button("↩️ مدیریت ربات", action="admin")],
+        ),
+    )
+
+
+def ai_booklet_sales_screen(report: dict, catalog: dict | None = None) -> Screen:
+    ai = dict(report.get("aiBooklets") or {})
+    lines = [
+        "<b><u>🤖 فروش جزوه‌های هوش مصنوعی</u></b>",
+        "",
+        f"فروش قطعی: <b>{to_persian_digits(ai.get('totalSales', 0))}</b>",
+        f"خریدار یکتا: <b>{to_persian_digits(ai.get('uniqueBuyers', 0))}</b>",
+        f"جلسهٔ فروخته‌شده: <b>{to_persian_digits(ai.get('soldItems', 0))}</b>",
+        f"درآمد کل: <code>{to_persian_digits(format_rials(ai.get('revenueRials', 0)))}</code>",
+    ]
+    items = [item for item in ai.get("items", []) if isinstance(item, dict)]
+    if items:
+        lines.extend(("", "<b>پرفروش‌ترین جلسه‌ها</b>"))
+        for index, item in enumerate(items[:10], start=1):
+            course_title, session_title = _booklet_sales_course_label(
+                catalog,
+                str(item.get("courseCode") or ""),
+                str(item.get("courseTag") or ""),
+                int(item.get("sessionNo") or 0),
+            )
+            title = (
+                f"{html.escape(course_title)} · جلسه {to_persian_digits(item.get('sessionNo', 0))}"
+            )
+            lines.extend(("", f"<b>{to_persian_digits(index)}. {title}</b>"))
+            if session_title:
+                lines.append(html.escape(session_title))
+            lines.append(
+                f"فروش: <b>{to_persian_digits(item.get('salesCount', 0))}</b> · "
+                f"خریدار: <b>{to_persian_digits(item.get('uniqueBuyers', 0))}</b> · "
+                f"<code>{to_persian_digits(format_rials(item.get('revenueRials', 0)))}</code>"
+            )
+    else:
+        lines.extend(("", "هنوز فروش قطعی برای جزوه‌های هوش مصنوعی ثبت نشده است."))
+    return Screen(
+        "\n".join(lines),
+        keyboard(
+            [button("↻ تازه‌سازی", action="booklet-sales-ai", style="primary")],
+            [button("↩️ آمار فروش جزوات", action="booklet-sales"), button("🏠 خانه", action="home")],
+        ),
+    )
+
+
+def booklet_subscription_sales_screen(report: dict) -> Screen:
+    subscriptions = dict(report.get("subscriptions") or {})
+    current_label = html.escape(to_persian_digits(str(report.get("currentPeriodLabel") or "دورهٔ جاری")))
+    lines = [
+        "<b><u>📚 فروش اشتراک جزوات</u></b>",
+        "",
+        f"<b>{current_label}</b>",
+        f"فروش: <b>{to_persian_digits(subscriptions.get('currentSales', 0))}</b> · "
+        f"مشترک یکتا: <b>{to_persian_digits(subscriptions.get('currentUniqueBuyers', 0))}</b>",
+        f"درآمد: <code>{to_persian_digits(format_rials(subscriptions.get('currentRevenueRials', 0)))}</code>",
+        "",
+        "<b>کل دوره</b>",
+        f"فروش قطعی: <b>{to_persian_digits(subscriptions.get('totalSales', 0))}</b> · "
+        f"مشترک یکتا: <b>{to_persian_digits(subscriptions.get('uniqueBuyers', 0))}</b>",
+        f"ماه‌های دارای فروش: <b>{to_persian_digits(subscriptions.get('periodsSold', 0))}</b>",
+        f"درآمد کل: <code>{to_persian_digits(format_rials(subscriptions.get('revenueRials', 0)))}</code>",
+    ]
+    periods = [item for item in subscriptions.get("periods", []) if isinstance(item, dict)]
+    if periods:
+        lines.extend(("", "<b>ماه‌های اخیر</b>"))
+        for item in periods:
+            label = html.escape(to_persian_digits(str(item.get("periodLabel") or "ماه")))
+            lines.append(
+                f"• <b>{label}</b> · {to_persian_digits(item.get('salesCount', 0))} فروش · "
+                f"<code>{to_persian_digits(format_rials(item.get('revenueRials', 0)))}</code>"
+            )
+    else:
+        lines.extend(("", "هنوز فروش قطعی اشتراک ثبت نشده است."))
+    return Screen(
+        "\n".join(lines),
+        keyboard(
+            [button("📚 مدیریت اشتراک ترم ۷", action="term-subscription-admin:7")],
+            [button("↻ تازه‌سازی", action="booklet-sales-subscriptions", style="primary")],
+            [button("↩️ آمار فروش جزوات", action="booklet-sales"), button("🏠 خانه", action="home")],
+        ),
+    )
+
+
 def term_subscription_admin_screen(policy: dict, report: dict) -> Screen:
     term = int(policy.get("term") or 7)
     period = report.get("period")
@@ -981,7 +1116,7 @@ def term_subscription_admin_screen(policy: dict, report: dict) -> Screen:
         keyboard(
             [button("💰 مبلغ ماهانه", action=f"term-subscription-price:{term}"), button("⚙️ تنظیمات", action=f"term-subscription-settings:{term}")],
             [button("🎁 اعطای رایگان", action=f"term-subscription-grant:{term}", style="success"), button("📋 دسترسی‌های رایگان", action=f"term-subscription-free:{term}")],
-            [button("🔎 جستجوی دانشجو", action=f"term-subscription-grant:{term}"), button("📊 آمار", action=f"term-subscription-admin:{term}")],
+            [button("🔎 جستجوی دانشجو", action=f"term-subscription-grant:{term}"), button("📈 آمار فروش", action="booklet-sales-subscriptions")],
             [button("📤 CSV", action=f"term-subscription-export:{term}:csv"), button("📝 TXT", action=f"term-subscription-export:{term}:txt")],
             [button("↻ تازه‌سازی", action=f"term-subscription-admin:{term}"), button("مرکز پرداخت‌ها", action="admin-payments")],
         ),
