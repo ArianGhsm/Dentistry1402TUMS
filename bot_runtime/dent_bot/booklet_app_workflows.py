@@ -2,9 +2,16 @@ from __future__ import annotations
 
 import logging
 
+from .ai_booklets import (
+    AI_BOOKLET_CONTENT_KIND,
+    AI_BOOKLET_PRICE_RIALS,
+    ai_booklet_offer_ref,
+    ai_booklet_request_id,
+)
 from .api import BotApiError
 from .booklets import (
     RESOURCE_LABELS,
+    ai_booklet_purchase_screen,
     bale_unavailable_screen,
     course_by_key,
     courses_screen as booklet_courses_screen,
@@ -17,7 +24,7 @@ from .message_frames import frame_error
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
 from .subscriptions import policy_is_effective, subscription_identity_from_account
-from .ui import Screen, button, keyboard, term_subscription_screen
+from .ui import Screen, button, keyboard, payment_created_screen, term_subscription_screen
 
 
 class BookletAppWorkflows:
@@ -26,7 +33,13 @@ class BookletAppWorkflows:
     @staticmethod
     def _is_booklet_action(name: str) -> bool:
         return name == "notes" or name.startswith(
-            ("booklet-course:", "booklet-session:", "booklet-resource:")
+            (
+                "booklet-course:",
+                "booklet-session:",
+                "booklet-resource:",
+                "booklet-ai-buy:",
+                "booklet-ai-get:",
+            )
         )
 
     def _booklet_catalog(self, user_id: int) -> dict:
@@ -121,8 +134,31 @@ class BookletAppWorkflows:
             return False
         term = int(source.get("term") or 0)
         course_tag = str(source.get("courseTag") or "").strip()
+        course_code = str(source.get("courseCode") or "").strip()
+        content_kind = str(source.get("contentKind") or "").strip()
         if term != 7 or not course_tag:
             return False
+
+        if content_kind == AI_BOOKLET_CONTENT_KIND:
+            if not course_code or self.site_api is None:
+                return False
+            try:
+                account = self.site_api.account(user_id)
+                identity = subscription_identity_from_account(account)
+                if identity is None:
+                    return False
+                if self.required_channel_username:
+                    if not bool(self.api.is_chat_member(f"@{self.required_channel_username}", user_id)):
+                        return False
+                return self.state.has_ai_booklet_access(
+                    identity.subject_key,
+                    term=term,
+                    course_code=course_code,
+                    session_no=int(source.get("sessionNo") or 0),
+                )
+            except (SiteApiError, BotApiError, AttributeError, TypeError, ValueError):
+                return False
+
         if user_id == self.owner_id:
             return True
         if self.site_api is None:
@@ -182,12 +218,17 @@ class BookletAppWorkflows:
             return
 
         try:
-            allowed, blocked_screen = self._booklet_access_screen(user_id)
-            if not allowed:
-                assert blocked_screen is not None
-                self._render_booklet_screen(chat_id, message_id, blocked_screen)
-                return
             catalog = self._booklet_catalog(user_id)
+            regular_resource = (
+                name.startswith("booklet-resource:")
+                and not name.endswith(f":{AI_BOOKLET_CONTENT_KIND}")
+            )
+            if regular_resource:
+                allowed, blocked_screen = self._booklet_access_screen(user_id)
+                if not allowed:
+                    assert blocked_screen is not None
+                    self._render_booklet_screen(chat_id, message_id, blocked_screen)
+                    return
             screen = self._booklet_screen_for_action(name, user_id, catalog)
         except SiteApiError as error:
             screen = Screen(
@@ -233,7 +274,118 @@ class BookletAppWorkflows:
                 )
             return booklet_resources_screen(catalog, course_key, session_no)
 
+        if name.startswith("booklet-ai-buy:"):
+            return self._buy_ai_booklet_screen(name, user_id, catalog)
+
+        if name.startswith("booklet-ai-get:"):
+            parts = name.split(":")
+            if len(parts) != 3 or not parts[2].isdigit():
+                return Screen(
+                    frame_error("مسیر دریافت جزوه هوش مصنوعی معتبر نیست."),
+                    keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+                )
+            return self._booklet_resource_screen(
+                f"booklet-resource:{parts[1]}:{int(parts[2])}:{AI_BOOKLET_CONTENT_KIND}",
+                user_id,
+                catalog,
+            )
+
         return self._booklet_resource_screen(name, user_id, catalog)
+
+    def _buy_ai_booklet_screen(self, name: str, user_id: int, catalog: dict) -> Screen:
+        parts = name.split(":")
+        if len(parts) != 3 or not parts[2].isdigit() or self.site_api is None:
+            return Screen(
+                frame_error("مسیر خرید جزوه هوش مصنوعی معتبر نیست."),
+                keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+            )
+        course_key = parts[1]
+        session_no = int(parts[2])
+        course = course_by_key(catalog, course_key)
+        session = session_by_number(course or {}, session_no) if course is not None else None
+        if course is None or session is None:
+            return Screen(
+                frame_error("این جلسه در طرح درس مرجع پیدا نشد."),
+                keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+            )
+
+        term = int(catalog.get("term") or 7)
+        course_code = str(course.get("courseKey") or "").strip()
+        course_tag = str(course.get("bookletTag") or "").strip()
+        sources = self.state.protected_media_for_tag(
+            course_tag=course_tag,
+            term=term,
+            session_no=session_no,
+            content_kind=AI_BOOKLET_CONTENT_KIND,
+        )
+        if not sources:
+            base_screen = booklet_resources_screen(catalog, course_key, session_no)
+            return Screen(
+                "🤖 جزوه هوش مصنوعی این جلسه هنوز منتشر نشده است.\n\n" + base_screen.text,
+                base_screen.keyboard,
+            )
+
+        account = self.site_api.account(user_id)
+        identity = subscription_identity_from_account(account)
+        if identity is None:
+            return self._unlinked_access_screen(user_id, account)
+
+        if self.state.has_ai_booklet_access(
+            identity.subject_key,
+            term=term,
+            course_code=course_code,
+            session_no=session_no,
+        ):
+            return self._booklet_resource_screen(
+                f"booklet-resource:{course_key}:{session_no}:{AI_BOOKLET_CONTENT_KIND}",
+                user_id,
+                catalog,
+            )
+
+        offer_ref = ai_booklet_offer_ref(term, course_code, session_no)
+        request_id = ai_booklet_request_id(
+            platform=self.platform,
+            platform_user_id=user_id,
+            subject_key=identity.subject_key,
+            term=term,
+            course_code=course_code,
+            session_no=session_no,
+        )
+        self.state.begin_ai_booklet_checkout(
+            request_id=request_id,
+            platform=self.platform,
+            platform_user_id=user_id,
+            subject_key=identity.subject_key,
+            student_number=identity.student_number,
+            display_name=identity.display_name,
+            term=term,
+            course_code=course_code,
+            course_tag=course_tag,
+            session_no=session_no,
+            amount_rials=AI_BOOKLET_PRICE_RIALS,
+            offer_ref=offer_ref,
+            offer_version=1,
+        )
+        result = self.site_api.create_bot_payment(
+            user_id,
+            offer_ref=offer_ref,
+            title=f"جزوه هوش مصنوعی {str(course.get('courseTitle') or 'درس')} · جلسه {to_persian_digits(session_no)}",
+            description=f"{str(session.get('title') or 'جلسه')} · دسترسی مستقل به جزوه هوش مصنوعی همین جلسه",
+            amount_rials=AI_BOOKLET_PRICE_RIALS,
+            request_id=request_id,
+            product_version=1,
+            available_from="",
+            expires_at="",
+            capacity=0,
+            max_per_user=1,
+            fulfillment={"text": "پس از تأیید درگاه، جزوه هوش مصنوعی همین جلسه در ربات فعال می‌شود."},
+        )
+        self.state.bind_ai_booklet_order(request_id, str(result.get("orderToken") or ""))
+        return payment_created_screen(
+            result,
+            platform=self.platform,
+            return_to_bot_enabled=self.payment_return_v1_enabled,
+        )
 
     def _booklet_resource_screen(self, name: str, user_id: int, catalog: dict) -> Screen:
         parts = name.split(":")
@@ -253,6 +405,36 @@ class BookletAppWorkflows:
                 frame_error("این جلسه در طرح درس مرجع پیدا نشد."),
                 keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
             )
+
+        if content_kind == AI_BOOKLET_CONTENT_KIND:
+            base_screen = booklet_resources_screen(catalog, course_key, session_no)
+            ai_sources = self.state.protected_media_for_tag(
+                course_tag=str(course.get("bookletTag") or ""),
+                term=int(catalog.get("term") or 7),
+                session_no=session_no,
+                content_kind=AI_BOOKLET_CONTENT_KIND,
+            )
+            if not ai_sources:
+                return Screen(
+                    "🤖 جزوه هوش مصنوعی این جلسه هنوز منتشر نشده است.\n\n" + base_screen.text,
+                    base_screen.keyboard,
+                )
+            if self.site_api is None:
+                return Screen(
+                    frame_error("بررسی دسترسی جزوه هوش مصنوعی فعلاً در دسترس نیست."),
+                    base_screen.keyboard,
+                )
+            account = self.site_api.account(user_id)
+            identity = subscription_identity_from_account(account)
+            if identity is None:
+                return self._unlinked_access_screen(user_id, account)
+            if not self.state.has_ai_booklet_access(
+                identity.subject_key,
+                term=int(catalog.get("term") or 7),
+                course_code=str(course.get("courseKey") or ""),
+                session_no=session_no,
+            ):
+                return ai_booklet_purchase_screen(catalog, course_key, session_no)
 
         base_screen = booklet_resources_screen(catalog, course_key, session_no)
         sources = self.state.protected_media_for_tag(

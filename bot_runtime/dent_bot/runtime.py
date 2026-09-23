@@ -199,47 +199,95 @@ def dispatch_payment_result_batch(*, settings, api, state: BotState, site_api: S
             if delivery_id:
                 acknowledgements.append({"deliveryId": delivery_id, "delivered": False, "reasonCode": "INVALID_DELIVERY"})
             continue
-        checkout = state.term_subscription_checkout_by_order(order_token)
-        if checkout is not None:
-            delivery_kind = str(delivery.get("deliveryKind") or "user")
-            # The website may fan the owner's audit receipt out to every linked
-            # owner platform.  It is not the payer delivery and therefore must
-            # not be validated against (or activate) the originating checkout.
-            # The strict platform/chat/amount proof applies only to the user's
-            # same-platform fulfillment delivery.
-            if delivery_kind == "owner":
-                checkout = None
-        if checkout is not None:
-            delivery_kind = str(delivery.get("deliveryKind") or "user")
-            subscription_valid = (
-                str(checkout.get("platform") or "") == str(settings.platform)
+        delivery_kind = str(delivery.get("deliveryKind") or "user")
+        ai_checkout = state.ai_booklet_checkout_by_order(order_token)
+        if ai_checkout is not None and delivery_kind == "owner":
+            ai_checkout = None
+        if ai_checkout is not None:
+            ai_valid = (
+                str(ai_checkout.get("platform") or "") == str(settings.platform)
                 and str(order.get("verifiedAt") or "").strip() != ""
-                and int(order.get("amountRials") or 0) == int(checkout.get("amountRials") or -1)
-                and int(checkout.get("platformUserId") or 0) == chat_id
+                and int(order.get("amountRials") or 0) == int(ai_checkout.get("amountRials") or -1)
+                and int(ai_checkout.get("platformUserId") or 0) == chat_id
             )
-            if not subscription_valid:
+            if not ai_valid:
                 counts["failed"] += 1
-                acknowledgements.append({"deliveryId": delivery_id, "delivered": False, "reasonCode": "INVALID_DELIVERY"})
+                acknowledgements.append({
+                    "deliveryId": delivery_id,
+                    "delivered": False,
+                    "reasonCode": "INVALID_DELIVERY",
+                })
                 continue
             try:
-                entitlement = state.activate_paid_term_subscription(
-                    order_token=order_token, delivery_id=delivery_id,
-                    platform=str(checkout["platform"]),
-                    platform_user_id=int(checkout["platformUserId"]),
-                    amount_rials=int(order["amountRials"]), verified_at=str(order["verifiedAt"]),
+                entitlement = state.activate_paid_ai_booklet(
+                    order_token=order_token,
+                    delivery_id=delivery_id,
+                    platform=str(ai_checkout["platform"]),
+                    platform_user_id=int(ai_checkout["platformUserId"]),
+                    amount_rials=int(order["amountRials"]),
+                    verified_at=str(order["verifiedAt"]),
                     payment_order_ref=str(order.get("orderId") or order.get("trackingRef") or ""),
                 )
                 counts["activated"] += 1
                 order["fulfillment"] = {
-                    "text": (
-                        f"اشتراک {entitlement.get('billingPeriod') or ''} فعال شد؛ "
-                        "اکنون می‌توانی از بخش جزوات ادامه بدهی."
-                    )
+                    "text": "دسترسی جزوه هوش مصنوعی همین جلسه فعال شد.",
+                    "action": (
+                        f"booklet-ai-get:{entitlement.get('courseCode')}:"
+                        f"{int(entitlement.get('sessionNo') or 0)}"
+                    ),
                 }
             except (TypeError, ValueError, RuntimeError):
                 counts["failed"] += 1
-                acknowledgements.append({"deliveryId": delivery_id, "delivered": False, "reasonCode": "INVALID_DELIVERY"})
+                acknowledgements.append({
+                    "deliveryId": delivery_id,
+                    "delivered": False,
+                    "reasonCode": "INVALID_DELIVERY",
+                })
                 continue
+        else:
+            checkout = state.term_subscription_checkout_by_order(order_token)
+            if checkout is not None and delivery_kind == "owner":
+                checkout = None
+            if checkout is not None:
+                subscription_valid = (
+                    str(checkout.get("platform") or "") == str(settings.platform)
+                    and str(order.get("verifiedAt") or "").strip() != ""
+                    and int(order.get("amountRials") or 0) == int(checkout.get("amountRials") or -1)
+                    and int(checkout.get("platformUserId") or 0) == chat_id
+                )
+                if not subscription_valid:
+                    counts["failed"] += 1
+                    acknowledgements.append({
+                        "deliveryId": delivery_id,
+                        "delivered": False,
+                        "reasonCode": "INVALID_DELIVERY",
+                    })
+                    continue
+                try:
+                    entitlement = state.activate_paid_term_subscription(
+                        order_token=order_token,
+                        delivery_id=delivery_id,
+                        platform=str(checkout["platform"]),
+                        platform_user_id=int(checkout["platformUserId"]),
+                        amount_rials=int(order["amountRials"]),
+                        verified_at=str(order["verifiedAt"]),
+                        payment_order_ref=str(order.get("orderId") or order.get("trackingRef") or ""),
+                    )
+                    counts["activated"] += 1
+                    order["fulfillment"] = {
+                        "text": (
+                            f"اشتراک {entitlement.get('billingPeriod') or ''} فعال شد؛ "
+                            "اکنون می‌توانی از بخش جزوات ادامه بدهی."
+                        )
+                    }
+                except (TypeError, ValueError, RuntimeError):
+                    counts["failed"] += 1
+                    acknowledgements.append({
+                        "deliveryId": delivery_id,
+                        "delivered": False,
+                        "reasonCode": "INVALID_DELIVERY",
+                    })
+                    continue
         if state.has_notification_delivery(receipt_id):
             acknowledgements.append({"deliveryId": delivery_id, "delivered": True, "reasonCode": ""})
             continue

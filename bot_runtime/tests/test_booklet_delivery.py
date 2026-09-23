@@ -589,7 +589,18 @@ class BookletDeliveryTests(unittest.TestCase):
                     },
                 }})
                 self.assertTrue(api.edited)
-                self.assertIn("دسترسی عمومی جزوات تا شروع دوره بسته است", api.edited[-1][2])
+                self.assertIn("آرشیو امن جزوات", api.edited[-1][2])
+
+                app.handle({"callback_query": {
+                    "id": "paid-regular-booklet",
+                    "from": {"id": 21},
+                    "data": "v1:booklet-resource:ent:4:booklet",
+                    "message": {
+                        "message_id": 7,
+                        "chat": {"id": 21, "type": "private"},
+                    },
+                }})
+                self.assertIn("دسترسی جزوات ترم ۷", api.edited[-1][2])
                 self.assertFalse(app.booklet_access_allowed(
                     21,
                     {"term": 7, "courseTag": "روش_تحقیق۲"},

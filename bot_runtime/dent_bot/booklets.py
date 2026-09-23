@@ -4,8 +4,13 @@ import html
 import re
 from dataclasses import dataclass
 
+from .ai_booklets import (
+    AI_BOOKLET_CONTENT_KIND,
+    AI_BOOKLET_PRICE_RIALS,
+    AI_BOOKLET_SOURCE_TAG_KEY,
+)
 from .persian_datetime import to_persian_digits
-from .ui import Screen, button, keyboard
+from .ui import Screen, button, format_rials, keyboard
 
 
 RESOURCE_LABELS = {
@@ -13,6 +18,7 @@ RESOURCE_LABELS = {
     "power": "📒 پاور",
     "booklet": "📓 جزوه",
     "reference": "📘 رفرنس",
+    AI_BOOKLET_CONTENT_KIND: "🤖 جزوه هوش مصنوعی",
 }
 
 _ORDINALS = {
@@ -93,6 +99,13 @@ def _course_tag_keys(course: dict) -> set[str]:
 
 def _content_kinds(caption: str) -> tuple[str, ...]:
     normalized = _normalized(caption)
+    tags = _hashtags(caption)
+    if AI_BOOKLET_SOURCE_TAG_KEY in tags:
+        return (AI_BOOKLET_CONTENT_KIND,)
+    # AI booklets are marker-only. A human-readable mention without the
+    # explicit source hashtag must never fall through into ordinary booklets.
+    if re.search(r"(?<!\w)جزوه\s+هوش\s+مصنوعی(?!\w)", normalized):
+        return ()
     kinds: list[str] = []
     for kind, tokens in (
         ("voice", ("ویس",)),
@@ -196,6 +209,16 @@ def source_records_from_channel_post(message: dict, catalog: dict) -> list[dict]
     if not media_type:
         return []
     method = {"document": "sendDocument", "audio": "sendAudio", "voice": "sendVoice"}[media_type]
+    if AI_BOOKLET_CONTENT_KIND in parsed.kinds:
+        is_pdf = (
+            media_type == "document"
+            and (
+                str(media.get("mime_type") or "").lower() == "application/pdf"
+                or str(media.get("file_name") or "").lower().endswith(".pdf")
+            )
+        )
+        if not is_pdf:
+            return []
     return [{
         "courseCode": parsed.course_code,
         "courseName": parsed.course_name,
@@ -309,7 +332,47 @@ def resources_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
                 button(RESOURCE_LABELS["booklet"], action=f"booklet-resource:{course_key}:{session_no}:booklet"),
                 button(RESOURCE_LABELS["reference"], action=f"booklet-resource:{course_key}:{session_no}:reference"),
             ],
+            [
+                button(
+                    RESOURCE_LABELS[AI_BOOKLET_CONTENT_KIND],
+                    action=f"booklet-resource:{course_key}:{session_no}:{AI_BOOKLET_CONTENT_KIND}",
+                    style="primary",
+                )
+            ],
             [button("↩️ جلسات", action=f"booklet-course:{course_key}")],
+            [button("🏠 منوی اصلی", action="home")],
+        ),
+    )
+
+
+def ai_booklet_purchase_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
+    course = course_by_key(catalog, course_key)
+    session = session_by_number(course or {}, session_no) if course is not None else None
+    if course is None or session is None:
+        return Screen(
+            "<b>⚠️ جلسه پیدا نشد</b>\n\nاین جلسه دیگر در طرح درس مرجع وجود ندارد.",
+            keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+        )
+    course_title = html.escape(str(course.get("courseTitle") or "درس"))
+    session_title = html.escape(str(session.get("title") or "بدون عنوان"))
+    price = html.escape(to_persian_digits(format_rials(AI_BOOKLET_PRICE_RIALS)))
+    return Screen(
+        "<b><u>🤖 جزوه هوش مصنوعی</u></b>\n\n"
+        f"<b>{course_title}</b>\n"
+        f"جلسه {to_persian_digits(session_no)} · {session_title}\n\n"
+        f"<blockquote>💳 هزینهٔ این جزوه: <code>{price}</code>\n"
+        "🔐 تحویل: نسخهٔ محافظت‌شده و شخصی‌سازی‌شده</blockquote>\n\n"
+        "این خرید فقط جزوه هوش مصنوعی همین جلسه را فعال می‌کند و از اشتراک "
+        "جزوات و سیستم جزوه‌نویسی مستقل است.",
+        keyboard(
+            [
+                button(
+                    f"💳 پرداخت {price}",
+                    action=f"booklet-ai-buy:{course_key}:{session_no}",
+                    style="success",
+                )
+            ],
+            [button("↩️ محتوای جلسه", action=f"booklet-session:{course_key}:{session_no}")],
             [button("🏠 منوی اصلی", action="home")],
         ),
     )
