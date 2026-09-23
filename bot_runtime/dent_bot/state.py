@@ -1647,6 +1647,102 @@ class BotState:
             "newSubscribers": first_time, "revokedComplimentary": revoked,
         }
 
+    def booklet_sales_report(self, term: int = 7, *, now: datetime | None = None) -> dict:
+        current = now or datetime.now(timezone.utc)
+        period = billing_period_for(int(term), current)
+        start = utc_iso(period.starts_at)
+        end = utc_iso(period.expires_at)
+        with self._lock:
+            ai_total = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "COUNT(DISTINCT course_code || ':' || session_no) "
+                "FROM ai_booklet_entitlements WHERE term=?",
+                (int(term),),
+            ).fetchone()
+            ai_current = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM ai_booklet_entitlements WHERE term=? AND granted_at>=? AND granted_at<?",
+                (int(term), start, end),
+            ).fetchone()
+            ai_items = self.payment_connection.execute(
+                "SELECT course_code,course_tag,session_no,COUNT(*),COUNT(DISTINCT subject_key),"
+                "COALESCE(SUM(amount_rials),0),MAX(granted_at) "
+                "FROM ai_booklet_entitlements WHERE term=? "
+                "GROUP BY course_code,course_tag,session_no "
+                "ORDER BY COUNT(*) DESC,SUM(amount_rials) DESC,MAX(granted_at) DESC LIMIT 20",
+                (int(term),),
+            ).fetchall()
+
+            subscription_total = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "COUNT(DISTINCT billing_period) "
+                "FROM term_subscription_checkouts WHERE term=? AND status='activated'",
+                (int(term),),
+            ).fetchone()
+            subscription_current = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM term_subscription_checkouts WHERE term=? AND billing_period=? AND status='activated'",
+                (int(term), period.key),
+            ).fetchone()
+            period_rows = self.payment_connection.execute(
+                "SELECT billing_period,COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM term_subscription_checkouts WHERE term=? AND status='activated' "
+                "GROUP BY billing_period ORDER BY billing_period DESC LIMIT 6",
+                (int(term),),
+            ).fetchall()
+
+        ai_breakdown = [
+            {
+                "courseCode": str(row[0]),
+                "courseTag": str(row[1]),
+                "sessionNo": int(row[2]),
+                "salesCount": int(row[3]),
+                "uniqueBuyers": int(row[4]),
+                "revenueRials": int(row[5]),
+                "lastSaleAt": str(row[6] or ""),
+            }
+            for row in ai_items
+        ]
+        periods = []
+        for row in period_rows:
+            key = str(row[0])
+            try:
+                label = billing_period_from_key(key).month_label
+            except ValueError:
+                label = key
+            periods.append({
+                "billingPeriod": key,
+                "periodLabel": label,
+                "salesCount": int(row[1]),
+                "uniqueBuyers": int(row[2]),
+                "revenueRials": int(row[3]),
+            })
+        return {
+            "term": int(term),
+            "currentPeriod": period.key,
+            "currentPeriodLabel": period.month_label,
+            "aiBooklets": {
+                "totalSales": int(ai_total[0]),
+                "uniqueBuyers": int(ai_total[1]),
+                "revenueRials": int(ai_total[2]),
+                "soldItems": int(ai_total[3]),
+                "currentSales": int(ai_current[0]),
+                "currentUniqueBuyers": int(ai_current[1]),
+                "currentRevenueRials": int(ai_current[2]),
+                "items": ai_breakdown,
+            },
+            "subscriptions": {
+                "totalSales": int(subscription_total[0]),
+                "uniqueBuyers": int(subscription_total[1]),
+                "revenueRials": int(subscription_total[2]),
+                "periodsSold": int(subscription_total[3]),
+                "currentSales": int(subscription_current[0]),
+                "currentUniqueBuyers": int(subscription_current[1]),
+                "currentRevenueRials": int(subscription_current[2]),
+                "periods": periods,
+            },
+        }
+
     def claim_term_renewal_notices(
         self, *, platform: str, now: datetime | None = None, limit: int = 20
     ) -> list[dict]:
