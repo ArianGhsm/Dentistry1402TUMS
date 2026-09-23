@@ -1,0 +1,13 @@
+[Unit]
+Description=Reconcile Dent1402Bot protected booklet source every minute
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=60s
+RandomizedDelaySec=5s
+AccuracySec=5s
+Persistent=true
+Unit=integrated-dent-booklet-source-reconcile.service
+
+[Install]
+WantedBy=timers.target

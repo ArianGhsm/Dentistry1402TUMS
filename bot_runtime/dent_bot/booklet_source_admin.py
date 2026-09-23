@@ -28,6 +28,7 @@ def sync_existing_source_message(
     owner_id: int,
     message_id: int,
     catalog: dict,
+    caption_override: str | None = None,
 ) -> int:
     """Re-read one source post exactly as Telegram exposes it now.
 
@@ -48,6 +49,8 @@ def sync_existing_source_message(
         temporary_message_id = int(forwarded.get("message_id") or 0)
         if temporary_message_id <= 0:
             raise RuntimeError("Source synchronization did not return a temporary message")
+        if caption_override is not None:
+            forwarded["caption"] = str(caption_override)
         records = source_records_from_channel_post(forwarded, catalog)
         return state.replace_protected_media_message(
             int(source_channel_id),
@@ -72,6 +75,7 @@ def main() -> int:
     subparsers.add_parser("send-owner-test")
     sync = subparsers.add_parser("sync-existing")
     sync.add_argument("--message-id", required=True, type=int)
+    sync.add_argument("--caption-base64", default="")
     hydrate = subparsers.add_parser("hydrate-existing")
     hydrate.add_argument("--message-id", required=True, type=int)
     register = subparsers.add_parser("register-existing")
@@ -193,6 +197,11 @@ def main() -> int:
                 owner_id=settings.owner_id,
                 message_id=int(args.message_id),
                 catalog=catalog,
+                caption_override=(
+                    _decode_caption(args.caption_base64)
+                    if str(args.caption_base64 or "").strip()
+                    else None
+                ),
             )
             print(json.dumps({
                 "success": count > 0,

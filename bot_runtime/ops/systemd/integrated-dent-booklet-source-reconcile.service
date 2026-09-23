@@ -1,0 +1,23 @@
+[Unit]
+Description=Dent1402Bot protected booklet source reconciliation
+After=network-online.target integrated-dent-telegram-egress.service integrated-dent-bot.service
+Wants=network-online.target integrated-dent-telegram-egress.service
+Requires=integrated-dent-bot.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/srv/telegram/runtime/reauth/venv/bin/python /usr/local/lib/integrated-dent/reconcile-booklet-source-channel.py
+TimeoutStartSec=3m
+Nice=10
+IOSchedulingClass=idle
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+ReadWritePaths=/var/lib/integrated-dent/booklet-source-reconcile /var/lib/integrated-dent/dent-bot /var/lib/integrated-dent/shared
+ReadOnlyPaths=/srv/telegram /opt/integrated-dent /etc/telegram /etc/integrated-dent /usr/local/lib/integrated-dent

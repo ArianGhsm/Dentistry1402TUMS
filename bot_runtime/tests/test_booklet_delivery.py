@@ -274,6 +274,54 @@ class BookletDeliveryTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_sync_existing_can_route_captionless_album_member_with_shared_caption(self) -> None:
+        shared_caption = "🎤 ویس جلسه اول\n#روش_تحقیق۲ #ترم۷"
+
+        class AlbumApi:
+            def __init__(self) -> None:
+                self.calls = []
+
+            def call(self, method, payload=None, *, timeout=8):
+                self.calls.append((method, dict(payload or {})))
+                if method == "forwardMessage":
+                    return {
+                        "message_id": 901,
+                        "audio": {
+                            "file_id": "album-part-one",
+                            "file_unique_id": "album-part-one-unique",
+                            "file_name": "روش تحقیق جلسه ۱ بخش اول.m4a",
+                            "mime_type": "audio/m4a",
+                        },
+                    }
+                if method == "deleteMessage":
+                    return True
+                raise AssertionError(f"Unexpected method: {method}")
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                count = sync_existing_source_message(
+                    api=AlbumApi(),
+                    state=state,
+                    source_channel_id=SOURCE_CHAT_ID,
+                    owner_id=10,
+                    message_id=6,
+                    catalog=BOOKLET_CATALOG,
+                    caption_override=shared_caption,
+                )
+                self.assertEqual(count, 1)
+                rows = state.protected_media_for_tag(
+                    course_tag="روش_تحقیق۲",
+                    term=7,
+                    session_no=1,
+                    content_kind="voice",
+                )
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["sourceMessageId"], 6)
+                self.assertEqual(rows[0]["fileId"], "album-part-one")
+            finally:
+                state.close()
+
     def test_source_catalog_stores_only_metadata_and_edit_can_deactivate_routes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")
