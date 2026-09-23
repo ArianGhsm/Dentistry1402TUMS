@@ -127,7 +127,10 @@ def _html_rich_text_to_bale_markdown(value: str) -> str:
 
 
 _HTML_TAG_SPLIT = re.compile(r"(<[^>]+>)")
-_VISIBLE_URL = re.compile(r"(https?://[^\s<]+|(?:t|ble)\.me/[^\s<]+)", re.IGNORECASE)
+_VISIBLE_URL = re.compile(
+    r"(https?://[^\s<]+|(?:t|ble)\.me/[^\s<]+|@[A-Za-z0-9_]{5,32})",
+    re.IGNORECASE,
+)
 _VISIBLE_TEXT_FIELDS = {"text", "input_field_placeholder"}
 
 
@@ -521,6 +524,7 @@ class TelegramBotApi:
         source: dict,
         *,
         personalized_file_id: str = "",
+        caption: str = "",
     ) -> dict:
         """Deliver Telegram media with forwarding/saving protection enabled."""
         if personalized_file_id:
@@ -533,21 +537,26 @@ class TelegramBotApi:
                 field: personalized_file_id,
                 "protect_content": True,
             }
+            if caption:
+                payload["caption"] = self._prepare_rich_text(caption)
+                if self._parse_mode() is not None:
+                    payload["parse_mode"] = str(self._parse_mode())
             return dict(self.call(method, payload, timeout=30) or {})
         source_chat_id = int(source.get("sourceChatId") or 0)
         source_message_id = int(source.get("sourceMessageId") or 0)
         if source_chat_id >= 0 or source_message_id <= 0:
             raise BotApiError("Protected media source is invalid")
-        return dict(self.call(
-            "copyMessage",
-            {
-                "chat_id": chat_id,
-                "from_chat_id": source_chat_id,
-                "message_id": source_message_id,
-                "protect_content": True,
-            },
-            timeout=30,
-        ) or {})
+        payload = {
+            "chat_id": chat_id,
+            "from_chat_id": source_chat_id,
+            "message_id": source_message_id,
+            "protect_content": True,
+        }
+        if caption:
+            payload["caption"] = self._prepare_rich_text(caption)
+            if self._parse_mode() is not None:
+                payload["parse_mode"] = str(self._parse_mode())
+        return dict(self.call("copyMessage", payload, timeout=30) or {})
 
     def download_file(self, file_id: str, destination: Path, *, max_bytes: int = 20 * 1024 * 1024) -> dict:
         info = dict(self.call("getFile", {"file_id": str(file_id)}, timeout=15) or {})
@@ -835,6 +844,7 @@ class BaleBotApi(TelegramBotApi):
         source: dict,
         *,
         personalized_file_id: str = "",
+        caption: str = "",
     ) -> dict:
         raise BotApiError("Telegram protected media identifiers are unavailable in Bale")
 

@@ -18,7 +18,7 @@ from dent_bot.booklets import (
 )
 from dent_bot.booklet_source_admin import register_source_metadata, sync_existing_source_message
 from dent_bot.state import BotState
-from dent_bot.protected_media import ProtectedMediaDispatcher
+from dent_bot.protected_media import ProtectedMediaDispatcher, _protected_delivery_caption
 
 
 SOURCE_CHAT_ID = -1003706539157
@@ -641,6 +641,36 @@ class BookletDeliveryTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_booklet_delivery_caption_preserves_private_channel_caption(self) -> None:
+        for kind in ("booklet", "ai_booklet"):
+            caption = _protected_delivery_caption(
+                {"contentKind": kind, "caption": SOURCE_CAPTION},
+                "TRC-ABCDE-FGHIJ",
+            )
+            self.assertIn(SOURCE_CAPTION, caption)
+            self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", caption)
+            self.assertIn("TRC-ABCDE-FGHIJ", caption)
+
+        reference_caption = _protected_delivery_caption(
+            {"contentKind": "reference", "caption": SOURCE_CAPTION},
+            "TRC-ABCDE-FGHIJ",
+        )
+        self.assertNotIn(SOURCE_CAPTION, reference_caption)
+        self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", reference_caption)
+
+        escaped_caption = _protected_delivery_caption(
+            {"contentKind": "booklet", "caption": "جلسه <۱> & نکته"},
+            "TRC-ABCDE-FGHIJ",
+        )
+        self.assertIn("جلسه &lt;۱&gt; &amp; نکته", escaped_caption)
+
+        long_caption = _protected_delivery_caption(
+            {"contentKind": "booklet", "caption": "الف" * 1400},
+            "TRC-ABCDE-FGHIJ",
+        )
+        self.assertLess(len(long_caption), 1024)
+        self.assertIn("…\n\n🔐 نسخهٔ شخصی‌سازی‌شده", long_caption)
+
     def test_transport_always_protects_source_copy_and_personalized_file_id(self) -> None:
         class CapturingApi(TelegramBotApi):
             def __init__(self) -> None:
@@ -660,6 +690,17 @@ class BookletDeliveryTests(unittest.TestCase):
         self.assertEqual(api.calls[-1][0], "copyMessage")
         self.assertIs(api.calls[-1][1]["protect_content"], True)
         self.assertNotIn("file", str(api.calls[-1][1]).lower())
+
+        api.send_protected_media(
+            20,
+            source,
+            caption="کپشن منبع\n@Dent1402Booklets\n\n🔐 فایل محافظت‌شده",
+        )
+        self.assertEqual(api.calls[-1][0], "copyMessage")
+        self.assertIn("کپشن منبع", api.calls[-1][1]["caption"])
+        self.assertIn("@Dent1402Booklets", api.calls[-1][1]["caption"])
+        self.assertNotIn("@Dent۱۴۰۲Booklets", api.calls[-1][1]["caption"])
+        self.assertIs(api.calls[-1][1]["protect_content"], True)
         for method, field in (
             ("sendDocument", "document"),
             ("sendAudio", "audio"),
@@ -737,13 +778,14 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assert_path = document_path
                 self.assert_bytes = document_path.stat().st_size
                 self.assert_filename = filename
+                self.upload_caption = caption
                 return {
                     "message_id": 700 + self.uploads,
                     "document": {"file_id": "personalized-file", "file_unique_id": "personalized-unique"},
                 }
 
-            def send_protected_media(self, chat_id, source, *, personalized_file_id=""):
-                self.cached_sends.append(personalized_file_id)
+            def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption=""):
+                self.cached_sends.append((personalized_file_id, caption))
                 return {"message_id": 800 + len(self.cached_sends)}
 
             def send(self, chat_id, text, keyboard):
@@ -801,6 +843,9 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(api.uploads, 1)
                 self.assertGreater(api.assert_bytes, source_pdf.stat().st_size)
                 self.assertEqual(api.assert_filename, "dent1402-personalized.pdf")
+                self.assertIn(SOURCE_CAPTION, api.upload_caption)
+                self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", api.upload_caption)
+                self.assertIn("کد رهگیری:", api.upload_caption)
                 self.assertEqual(list(temp_root.glob("job-*")), [])
                 candidates = state.forensic_booklet_candidates()
                 self.assertEqual(len(candidates), 1)
@@ -810,7 +855,10 @@ class BookletDeliveryTests(unittest.TestCase):
                 dispatcher.queue.join()
                 self.assertEqual(api.downloads, 1)
                 self.assertEqual(api.uploads, 1)
-                self.assertEqual(api.cached_sends, ["personalized-file"])
+                self.assertEqual(api.cached_sends[0][0], "personalized-file")
+                self.assertIn(SOURCE_CAPTION, api.cached_sends[0][1])
+                self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", api.cached_sends[0][1])
+                self.assertIn("کد رهگیری:", api.cached_sends[0][1])
             finally:
                 if dispatcher is not None:
                     dispatcher.close()
