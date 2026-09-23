@@ -13,12 +13,12 @@ DIGEST_HOUR = 22
 DIGEST_TIMEZONE = "Asia/Tehran"
 COHORT_KEY = "dentistry-1402"
 CONTENT_KIND_ORDER = ("voice", "booklet", "ai_booklet", "power", "reference")
-CONTENT_KIND_TITLES = {
-    "voice": "ویس",
-    "booklet": "جزوه",
-    "ai_booklet": "جزوه هوش مصنوعی",
-    "power": "پاورپوینت",
-    "reference": "رفرنس",
+CONTENT_KIND_LABELS = {
+    "voice": "🎤 ویس",
+    "booklet": "📓 جزوه",
+    "ai_booklet": "🤖 جزوه هوش مصنوعی",
+    "power": "📒 پاور",
+    "reference": "📘 رفرنس",
 }
 
 
@@ -73,7 +73,7 @@ def build_digest_payload(*, rows: list[dict], catalog: dict, digest_date: str, w
 
 
 def _kind_label(kind: str) -> str:
-    return RESOURCE_LABELS.get(kind) or CONTENT_KIND_TITLES.get(kind) or "📎 محتوا"
+    return CONTENT_KIND_LABELS.get(kind) or RESOURCE_LABELS.get(kind) or "📎 محتوا"
 
 
 def render_daily_content_digest(payload: dict) -> Screen:
