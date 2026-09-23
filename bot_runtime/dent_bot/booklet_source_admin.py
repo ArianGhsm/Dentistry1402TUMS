@@ -68,6 +68,38 @@ def sync_existing_source_message(
                 pass
 
 
+def register_source_metadata(
+    *,
+    state: BotState,
+    source_channel_id: int,
+    message_id: int,
+    catalog: dict,
+    caption: str,
+    media_field: str,
+    file_id: str,
+    file_unique_id: str = "",
+    file_name: str = "",
+    mime_type: str = "",
+) -> int:
+    if media_field not in {"document", "audio", "voice"}:
+        raise ValueError("Unsupported Telegram media field")
+    message = {
+        "caption": str(caption),
+        media_field: {
+            "file_id": str(file_id),
+            "file_unique_id": str(file_unique_id),
+            "file_name": str(file_name),
+            "mime_type": str(mime_type),
+        },
+    }
+    records = source_records_from_channel_post(message, catalog)
+    return state.replace_protected_media_message(
+        int(source_channel_id),
+        int(message_id),
+        records,
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Administer caption-derived protected booklet sources.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -76,6 +108,14 @@ def main() -> int:
     sync = subparsers.add_parser("sync-existing")
     sync.add_argument("--message-id", required=True, type=int)
     sync.add_argument("--caption-base64", default="")
+    metadata = subparsers.add_parser("register-metadata")
+    metadata.add_argument("--message-id", required=True, type=int)
+    metadata.add_argument("--caption-base64", required=True)
+    metadata.add_argument("--media-field", required=True, choices=("document", "audio", "voice"))
+    metadata.add_argument("--file-id", required=True)
+    metadata.add_argument("--file-unique-id", default="")
+    metadata.add_argument("--file-name", default="")
+    metadata.add_argument("--mime-type", default="")
     hydrate = subparsers.add_parser("hydrate-existing")
     hydrate.add_argument("--message-id", required=True, type=int)
     register = subparsers.add_parser("register-existing")
@@ -177,6 +217,39 @@ def main() -> int:
                 dispatcher.close()
             state.close()
             api.close()
+
+    if args.command == "register-metadata":
+        caption = _decode_caption(args.caption_base64)
+        site_api = SiteApiClient(
+            settings.site_api_url,
+            settings.site_service_secret,
+            platform="telegram",
+            timeout=settings.site_timeout_seconds,
+            relay_secret=settings.site_relay_secret,
+        )
+        state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
+        try:
+            catalog = site_api.booklet_catalog(settings.owner_id)
+            count = register_source_metadata(
+                state=state,
+                source_channel_id=settings.booklet_source_channel_id,
+                message_id=int(args.message_id),
+                catalog=catalog,
+                caption=caption,
+                media_field=str(args.media_field),
+                file_id=str(args.file_id),
+                file_unique_id=str(args.file_unique_id),
+                file_name=str(args.file_name),
+                mime_type=str(args.mime_type),
+            )
+            print(json.dumps({
+                "success": count > 0,
+                "messageId": int(args.message_id),
+                "routes": count,
+            }, separators=(",", ":")))
+            return 0 if count > 0 else 2
+        finally:
+            state.close()
 
     if args.command == "sync-existing":
         api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)

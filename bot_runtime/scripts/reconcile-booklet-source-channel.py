@@ -30,6 +30,7 @@ from dent_bot.booklet_reconcile import (  # noqa: E402
     source_fingerprint,
 )
 import telegram_cli  # noqa: E402
+from telethon import utils as telethon_utils  # noqa: E402
 
 
 def read_env(path: Path) -> dict[str, str]:
@@ -83,6 +84,16 @@ async def current_media_messages(source_chat_id: int) -> list[dict[str, object]]
                 file = getattr(message, "file", None)
                 if file is None:
                     continue
+                if getattr(message, "voice", None) is not None:
+                    media_field = "voice"
+                elif getattr(message, "audio", None) is not None:
+                    media_field = "audio"
+                else:
+                    media_field = "document"
+                try:
+                    bot_file_id = str(telethon_utils.pack_bot_file_id(message.media) or "")
+                except Exception:
+                    bot_file_id = ""
                 rows.append({
                     "messageId": int(message.id),
                     "groupedId": str(message.grouped_id or ""),
@@ -92,6 +103,8 @@ async def current_media_messages(source_chat_id: int) -> list[dict[str, object]]
                     "fileName": str(getattr(file, "name", "") or ""),
                     "fileSize": int(getattr(file, "size", 0) or 0),
                     "mimeType": str(getattr(file, "mime_type", "") or ""),
+                    "mediaField": media_field,
+                    "fileId": bot_file_id,
                 })
             rows.sort(key=lambda item: int(item["messageId"]))
             return rows
@@ -99,31 +112,30 @@ async def current_media_messages(source_chat_id: int) -> list[dict[str, object]]
             await client.disconnect()
 
 
-def sync_message(
+def register_message(
     bot_env: dict[str, str],
-    message_id: int,
+    row: dict[str, object],
     *,
-    caption_override: str = "",
+    caption: str,
 ) -> tuple[str, str]:
+    file_id = str(row.get("fileId") or "")
+    if not file_id:
+        return "failed", "MTProto media did not expose a Bot API-compatible file_id"
     env = os.environ.copy()
     env.update(bot_env)
     completed = subprocess.run(
-        (
-            [
-                "runuser", "-u", "dentbot", "--preserve-environment", "--",
-                "/opt/integrated-dent/telegram-venv/bin/python",
-                "-m", "dent_bot.booklet_source_admin",
-                "sync-existing", "--message-id", str(int(message_id)),
-            ]
-            + (
-                [
-                    "--caption-base64",
-                    base64.b64encode(caption_override.encode("utf-8")).decode("ascii"),
-                ]
-                if caption_override
-                else []
-            )
-        ),
+        [
+            "runuser", "-u", "dentbot", "--preserve-environment", "--",
+            "/opt/integrated-dent/telegram-venv/bin/python",
+            "-m", "dent_bot.booklet_source_admin",
+            "register-metadata",
+            "--message-id", str(int(row["messageId"])),
+            "--caption-base64", base64.b64encode(caption.encode("utf-8")).decode("ascii"),
+            "--media-field", str(row["mediaField"]),
+            "--file-id", file_id,
+            "--file-name", str(row["fileName"]),
+            "--mime-type", str(row["mimeType"]),
+        ],
         cwd=str(CURRENT_RELEASE),
         env=env,
         check=False,
@@ -183,10 +195,10 @@ async def main() -> int:
             continue
 
         summary["changed"] += 1
-        status, detail = sync_message(
+        status, detail = register_message(
             bot_env,
-            message_id,
-            caption_override=caption_override,
+            row,
+            caption=effective_text,
         )
         summary[status] += 1
         messages[str(message_id)] = reconciliation_record(

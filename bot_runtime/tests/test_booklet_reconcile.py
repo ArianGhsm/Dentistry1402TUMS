@@ -55,6 +55,17 @@ class BookletReconcileTests(unittest.TestCase):
         ]
         self.assertEqual(album_caption_overrides(ambiguous), {})
 
+
+    def test_reconciler_never_uses_user_facing_sync_forward(self) -> None:
+        root = __import__("pathlib").Path(__file__).resolve().parents[1]
+        worker = (root / "scripts" / "reconcile-booklet-source-channel.py").read_text(encoding="utf-8")
+        hook = (root / "scripts" / "dent1402-booklet-post-write-hook.sh").read_text(encoding="utf-8")
+        self.assertIn("register-metadata", worker)
+        self.assertNotIn("sync-existing", worker)
+        self.assertNotIn("forwardMessage", worker)
+        self.assertIn("integrated-dent-booklet-source-reconcile.service", hook)
+        self.assertNotIn("sync-existing", hook)
+
     def test_routed_media_is_stable_until_source_changes(self) -> None:
         fingerprint = source_fingerprint(
             message_id=20,

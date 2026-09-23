@@ -16,7 +16,7 @@ from dent_bot.booklets import (
     parse_source_caption,
     source_records_from_channel_post,
 )
-from dent_bot.booklet_source_admin import sync_existing_source_message
+from dent_bot.booklet_source_admin import register_source_metadata, sync_existing_source_message
 from dent_bot.state import BotState
 from dent_bot.protected_media import ProtectedMediaDispatcher
 
@@ -207,6 +207,39 @@ class BookletDeliveryTests(unittest.TestCase):
             "audio": {"file_id": "research-audio", "file_unique_id": "research-1"},
         }, BOOKLET_CATALOG)
         self.assertEqual(records[0]["telegramMethod"], "sendAudio")
+
+    def test_register_source_metadata_routes_without_any_telegram_send(self) -> None:
+        caption = (
+            "🎤 ویس جلسه اول سلامت دهان نظری ۲ - اپیدمیولوژی\n"
+            "#سلامت_دهان_نظری۲ #ترم۷"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                count = register_source_metadata(
+                    state=state,
+                    source_channel_id=SOURCE_CHAT_ID,
+                    message_id=20,
+                    catalog=BOOKLET_CATALOG,
+                    caption=caption,
+                    media_field="audio",
+                    file_id="mtproto-packed-bot-file-id",
+                    file_name="سلامت دهان نظری۲ ج۱.m4a",
+                    mime_type="audio/m4a",
+                )
+                self.assertEqual(count, 1)
+                rows = state.protected_media_for_tag(
+                    course_tag="سلامت_دهان_نظری۲",
+                    term=7,
+                    session_no=1,
+                    content_kind="voice",
+                )
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["sourceMessageId"], 20)
+                self.assertEqual(rows[0]["fileId"], "mtproto-packed-bot-file-id")
+                self.assertEqual(rows[0]["telegramMethod"], "sendAudio")
+            finally:
+                state.close()
 
     def test_sync_existing_recovers_caption_added_after_initial_channel_post(self) -> None:
         caption = (
