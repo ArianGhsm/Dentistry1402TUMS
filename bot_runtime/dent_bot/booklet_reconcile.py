@@ -105,3 +105,14 @@ def reconciliation_record(
         "checkedAt": int(now),
         "nextRetryAt": retry,
     }
+
+
+def source_media_field(message: object) -> str:
+    """Return only media kinds the protected source pipeline can deliver."""
+    if getattr(message, "voice", None) is not None:
+        return "voice"
+    if getattr(message, "audio", None) is not None:
+        return "audio"
+    if getattr(message, "document", None) is not None:
+        return "document"
+    return ""

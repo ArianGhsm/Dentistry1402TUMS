@@ -29,6 +29,7 @@ from dent_bot.booklet_reconcile import (  # noqa: E402
     reconciliation_record,
     should_reconcile,
     source_fingerprint,
+    source_media_field,
 )
 import telegram_cli  # noqa: E402
 from telethon import utils as telethon_utils  # noqa: E402
@@ -89,12 +90,9 @@ async def current_media_messages(
                 file = getattr(message, "file", None)
                 if file is None:
                     continue
-                if getattr(message, "voice", None) is not None:
-                    media_field = "voice"
-                elif getattr(message, "audio", None) is not None:
-                    media_field = "audio"
-                else:
-                    media_field = "document"
+                media_field = source_media_field(message)
+                if not media_field:
+                    continue
                 try:
                     bot_file_id = str(telethon_utils.pack_bot_file_id(message.media) or "")
                 except Exception:
