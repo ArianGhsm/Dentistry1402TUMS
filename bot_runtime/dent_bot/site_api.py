@@ -159,6 +159,29 @@ class SiteApiClient:
             contractVersion="bot-onboarding-v1", challengeRef=challenge_ref, code=code,
         )
 
+    def request_phone_enrollment(self, user_id: int, *, phone_number: str) -> dict:
+        return self.request(
+            "requestPhoneEnrollmentV1",
+            user_id,
+            contractVersion="bot-onboarding-v1",
+            phoneNumber=phone_number,
+        )
+
+    def verify_phone_enrollment(
+        self,
+        user_id: int,
+        *,
+        phone_number: str,
+        code: str,
+    ) -> dict:
+        return self.request(
+            "verifyPhoneEnrollmentV1",
+            user_id,
+            contractVersion="bot-onboarding-v1",
+            phoneNumber=phone_number,
+            code=code,
+        )
+
     def request_profile_edit(self, user_id: int, *, field: str, value: str) -> dict:
         return self.request(
             "requestProfileEditV1", user_id,

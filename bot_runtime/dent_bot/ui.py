@@ -403,7 +403,7 @@ def account_screen(
                 f"ورودی: {html.escape(str(profile.get('entryYear') or 'ثبت نشده'))}",
                 f"نوع پذیرش: {html.escape(str(profile.get('admissionType') or 'ثبت نشده'))}",
                 f"شماره دانشجویی: <code>{html.escape(str(profile.get('studentNumber') or 'ثبت نشده'))}</code>",
-                f"موبایل: <code>{html.escape(str(profile.get('phoneMasked') or 'ثبت نشده'))}</code>",
+                f"موبایل: <code>{html.escape(str(linked_user.get('phoneMasked') or profile.get('phoneMasked') or 'ثبت نشده'))}</code>",
             ]
             if profile.get("isClassMember"):
                 profile_lines.insert(0, "<b>✅ عضو تأییدشدهٔ ورودی ۱۴۰۲ دندانپزشکی تهران</b>")
@@ -456,11 +456,12 @@ def account_screen(
         dis_block = "\n".join(dis_lines)
         return Screen(
             f"<b>👤 حساب من</b>\n\n{name}\n<blockquote>{role} · متصل به {platform_label}</blockquote>"
-            + (f"\n\n{details}\n\n<blockquote>مشخصات فقط خواندنی است؛ هر تغییر پس از تأیید مالک اعمال می‌شود.</blockquote>" if details else "")
+            + (f"\n\n{details}\n\n<blockquote>مشخصات آموزشی با تأیید مالک تغییر می‌کنند؛ شماره موبایل فقط با کد پیامکی ثبت یا تغییر می‌کند.</blockquote>" if details else "")
             + booklet_block
             + f"\n\n{dis_block}",
             keyboard(
                 [button("📊 مشاهده نمرات", action="grades", style="primary")],
+                [button("📱 ثبت / تغییر شماره موبایل", action="phone-enroll", style="success")],
                 [button("✏️ می‌خواهید ویرایش کنید؟", action="profile-edit")],
                 [button("مدیریت حساب سایت", url=f"{site_url}/account/")],
                 home_row,
@@ -508,8 +509,42 @@ def account_screen(
     )
 
 
+def phone_enrollment_start_screen() -> Screen:
+    return Screen(
+        "<b>📱 ثبت یا تغییر شماره موبایل</b>\n\n"
+        "شماره موبایل خودت را بفرست. بعد از ارسال کد پیامکی، شماره فقط با OTP تأیید می‌شود و همان شماره برای پرداخت‌های ربات استفاده خواهد شد.\n\n"
+        "<blockquote>نمونه: ۰۹۱۲۱۲۳۴۵۶۷</blockquote>",
+        keyboard([button("انصراف", action="phone-enroll-cancel", style="danger")]),
+    )
+
+
+def phone_enrollment_otp_screen(phone_masked: str) -> Screen:
+    masked = html.escape(str(phone_masked or "شماره ثبت‌شده"))
+    return Screen(
+        "<b>🔐 تأیید شماره موبایل</b>\n\n"
+        f"کد ۶ رقمی ارسال‌شده به <code>{masked}</code> را بفرست.",
+        keyboard(
+            [button("↩️ تغییر شماره", action="phone-enroll")],
+            [button("انصراف", action="phone-enroll-cancel", style="danger")],
+        ),
+    )
+
+
+def payment_phone_required_screen() -> Screen:
+    return Screen(
+        "<b>📱 شماره موبایل برای پرداخت لازم است</b>\n\n"
+        "برای ساخت لینک پرداخت، ابتدا شماره موبایل را ثبت و با کد پیامکی تأیید کن. بعد از تأیید، دوباره خرید را بزن.",
+        keyboard(
+            [button("📱 ثبت شماره موبایل", action="phone-enroll", style="success")],
+            [button("👤 حساب من", action="account")],
+            [button("🏠 منوی اصلی", action="home")],
+        ),
+    )
+
+
 def profile_edit_fields_screen() -> Screen:
     rows = [
+        [button("📱 شماره موبایل", action="phone-enroll", style="success")],
         [button("نام", action="profile-edit-field:firstName"), button("نام خانوادگی", action="profile-edit-field:lastName")],
         [button("رشته", action="profile-edit-field:major"), button("دانشگاه", action="profile-edit-field:institution")],
         [button("استان دانشگاه", action="profile-edit-field:province")],

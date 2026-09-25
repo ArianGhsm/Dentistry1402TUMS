@@ -250,7 +250,8 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         exact = {
             "admin", "system-status", "admin-grades", "admin-payments", "navid", "navid-check",
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
-            "profile-edit", "profile-edit-cancel", "profile-edit-requests", "grades", "notifications",
+            "profile-edit", "profile-edit-cancel", "profile-edit-requests",
+            "phone-enroll", "phone-enroll-cancel", "grades", "notifications",
             "student-assistant", "exam-owner", "payment-offer-new", "payment-offer-cancel",
             "payment-offer-publish", "payment-offer-no-description", "payment-offer-custom-amount",
             "payment-products", "payment-stats", "payment-transactions", "payment-search",

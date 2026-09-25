@@ -25,7 +25,14 @@ from .message_frames import frame_error
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
 from .subscriptions import policy_is_effective, subscription_identity_from_account
-from .ui import Screen, button, keyboard, payment_created_screen, term_subscription_screen
+from .ui import (
+    Screen,
+    button,
+    keyboard,
+    payment_created_screen,
+    payment_phone_required_screen,
+    term_subscription_screen,
+)
 
 
 class BookletAppWorkflows:
@@ -246,13 +253,16 @@ class BookletAppWorkflows:
                     return
             screen = self._booklet_screen_for_action(name, user_id, catalog)
         except SiteApiError as error:
-            screen = Screen(
-                frame_error(str(error)),
-                keyboard(
-                    [button("↻ تلاش دوباره", action="notes")],
-                    [button("🏠 منوی اصلی", action="home")],
-                ),
-            )
+            if error.code == "PAYMENT_PHONE_REQUIRED":
+                screen = payment_phone_required_screen()
+            else:
+                screen = Screen(
+                    frame_error(str(error)),
+                    keyboard(
+                        [button("↻ تلاش دوباره", action="notes")],
+                        [button("🏠 منوی اصلی", action="home")],
+                    ),
+                )
         self._render_booklet_screen(chat_id, message_id, screen)
 
     def _booklet_screen_for_action(self, name: str, user_id: int, catalog: dict) -> Screen:

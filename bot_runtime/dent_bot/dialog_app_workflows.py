@@ -25,7 +25,8 @@ from .ui import (
     identity_mapping_remove_screen, keyboard, payment_control_center_screen,
     payment_offer_admin_detail_screen, payment_offer_preview_screen,
     payment_offer_wizard_screen, payment_transaction_detail_screen,
-    payment_transactions_screen, profile_edit_prompt_screen, profile_edit_requests_screen,
+    payment_transactions_screen, phone_enrollment_otp_screen,
+    phone_enrollment_start_screen, profile_edit_prompt_screen, profile_edit_requests_screen,
     term_access_policies_screen, term_subscription_admin_screen,
     term_subscription_settings_screen,
 )
@@ -370,6 +371,57 @@ class DialogAppWorkflows:
                 screen = Screen(frame_error("یکی از دو روش احراز هویت را با دکمه انتخاب کن."), class_auth_screen().keyboard)
             self.api.send(chat_id, screen.text, screen.keyboard)
             return True
+        if dialog.get("kind") == "phone-enroll-v1":
+            step = str(dialog.get("step") or "phone")
+            payload = dict(dialog.get("payload") or {})
+            if step == "phone":
+                normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+                phone = re.sub(r"[^0-9+]", "", normalized)
+                if phone.startswith("+98"):
+                    phone = "0" + phone[3:]
+                elif phone.startswith("98") and len(phone) == 12:
+                    phone = "0" + phone[2:]
+                if not re.fullmatch(r"09\d{9}", phone):
+                    self.api.send(chat_id, frame_error("شماره موبایل معتبر مثل ۰۹۱۲۱۲۳۴۵۶۷ بفرست."), phone_enrollment_start_screen().keyboard)
+                    return True
+                try:
+                    result = self.site_api.request_phone_enrollment(user_id, phone_number=phone)
+                    payload = {
+                        "phoneNumber": phone,
+                        "phoneMasked": str(result.get("phoneMasked") or ""),
+                    }
+                    self.state.update_dialog(user_id, step="otp", payload=payload)
+                    screen = phone_enrollment_otp_screen(payload["phoneMasked"])
+                except (SiteApiError, AttributeError) as error:
+                    screen = Screen(frame_error(str(error)), phone_enrollment_start_screen().keyboard)
+                self.api.send(chat_id, screen.text, screen.keyboard)
+                return True
+            if step == "otp":
+                normalized = text.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+                code = re.sub(r"[^0-9]", "", normalized)
+                if len(code) != 6:
+                    self.api.send(chat_id, frame_error("کد تأیید باید ۶ رقم باشد."), phone_enrollment_otp_screen(str(payload.get("phoneMasked") or "")).keyboard)
+                    return True
+                try:
+                    self.site_api.verify_phone_enrollment(
+                        user_id,
+                        phone_number=str(payload.get("phoneNumber") or ""),
+                        code=code,
+                    )
+                    self.state.clear_dialog(user_id)
+                    account = self.site_api.account(user_id)
+                    screen = account_screen(
+                        self.site_url,
+                        platform=self.platform,
+                        linked_user=dict(account.get("user") or {}),
+                        onboarding_profile=dict(account.get("onboardingProfile") or {}),
+                        booklet_profile=dict(account.get("bookletProfile") or {}),
+                    )
+                    screen = Screen("<b>✅ شماره موبایل ثبت و تأیید شد.</b>\n\n" + screen.text, screen.keyboard)
+                except (SiteApiError, AttributeError) as error:
+                    screen = Screen(frame_error(str(error)), phone_enrollment_otp_screen(str(payload.get("phoneMasked") or "")).keyboard)
+                self.api.send(chat_id, screen.text, screen.keyboard)
+                return True
         if dialog.get("kind") == "booklets-v1":
             return self._handle_booklet_dialog(chat_id, user_id, text, dialog)
         if dialog.get("kind") == "profile-edit-v1":
