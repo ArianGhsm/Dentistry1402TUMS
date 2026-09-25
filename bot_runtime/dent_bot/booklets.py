@@ -56,17 +56,30 @@ def ordinal(number: int) -> str:
     return _ORDINALS.get(int(number), to_persian_digits(number))
 
 
-def parse_session_number(caption: str) -> int | None:
+def parse_session_numbers(caption: str) -> tuple[int, ...]:
     normalized = _normalized(caption).translate(_DIGIT_TRANSLATION)
+    value_pattern = rf"(?:{_ORDINAL_PATTERN}|[0-9]{{1,2}})"
     match = re.search(
-        rf"(?:^|\s)جلسه\s+(?P<value>{_ORDINAL_PATTERN}|[0-9]{{1,2}})(?:\s|$|[-–—:])",
+        rf"(?:^|\s)جلس(?:ه|ات)\s+"
+        rf"(?P<values>{value_pattern}(?:\s*(?:،|,|و)\s*{value_pattern})*)"
+        rf"(?=\s|$|[-–—:])",
         normalized,
     )
     if not match:
-        return None
-    value = match.group("value")
-    number = int(value) if value.isdigit() else _ORDINAL_LOOKUP.get(value, 0)
-    return number if 1 <= number <= 40 else None
+        return ()
+    numbers: list[int] = []
+    for token in re.findall(value_pattern, match.group("values")):
+        number = int(token) if token.isdigit() else _ORDINAL_LOOKUP.get(token, 0)
+        if not 1 <= number <= 40:
+            return ()
+        if number not in numbers:
+            numbers.append(number)
+    return tuple(numbers)
+
+
+def parse_session_number(caption: str) -> int | None:
+    numbers = parse_session_numbers(caption)
+    return numbers[0] if numbers else None
 
 
 def _tag_key(value: str) -> str:
@@ -154,8 +167,12 @@ class ParsedSource:
     course_name: str
     course_tag: str
     term: int
-    session_no: int
+    session_nos: tuple[int, ...]
     kinds: tuple[str, ...]
+
+    @property
+    def session_no(self) -> int:
+        return self.session_nos[0]
 
 
 def parse_source_caption(caption: str, catalog: dict) -> ParsedSource | None:
@@ -172,15 +189,15 @@ def parse_source_caption(caption: str, catalog: dict) -> ParsedSource | None:
         if match:
             term = int(match.group(1))
             break
-    session_no = parse_session_number(caption) or 0
+    session_nos = parse_session_numbers(caption)
     kinds = _content_kinds(caption)
     course_term = int(course.get("term") or 0) if course else 0
     if (
         course is None
         or not 1 <= term <= 12
         or term != course_term
-        or not 1 <= session_no <= 40
-        or session_by_number(course, session_no) is None
+        or not session_nos
+        or any(session_by_number(course, session_no) is None for session_no in session_nos)
         or not kinds
     ):
         return None
@@ -189,15 +206,27 @@ def parse_source_caption(caption: str, catalog: dict) -> ParsedSource | None:
         course_name=str(course.get("courseTitle") or "درس"),
         course_tag=str(course["bookletTag"]),
         term=term,
-        session_no=session_no,
+        session_nos=session_nos,
         kinds=kinds,
     )
 
 
-def source_records_from_channel_post(message: dict, catalog: dict) -> list[dict]:
+def source_records_from_channel_post(
+    message: dict,
+    catalog: dict,
+    *,
+    allowed_kinds: set[str] | frozenset[str] | None = None,
+) -> list[dict]:
     caption = str(message.get("caption") or message.get("text") or "")
     parsed = parse_source_caption(caption, catalog)
     if parsed is None:
+        return []
+    kinds = tuple(
+        kind
+        for kind in parsed.kinds
+        if allowed_kinds is None or kind in allowed_kinds
+    )
+    if not kinds:
         return []
     media_type = ""
     media: dict = {}
@@ -209,7 +238,7 @@ def source_records_from_channel_post(message: dict, catalog: dict) -> list[dict]
     if not media_type:
         return []
     method = {"document": "sendDocument", "audio": "sendAudio", "voice": "sendVoice"}[media_type]
-    if AI_BOOKLET_CONTENT_KIND in parsed.kinds:
+    if AI_BOOKLET_CONTENT_KIND in kinds:
         is_pdf = (
             media_type == "document"
             and (
@@ -224,7 +253,7 @@ def source_records_from_channel_post(message: dict, catalog: dict) -> list[dict]
         "courseName": parsed.course_name,
         "courseTag": parsed.course_tag,
         "term": parsed.term,
-        "sessionNo": parsed.session_no,
+        "sessionNo": session_no,
         "contentKind": kind,
         "telegramMethod": method,
         "fileId": str(media.get("file_id") or ""),
@@ -232,7 +261,7 @@ def source_records_from_channel_post(message: dict, catalog: dict) -> list[dict]
         "fileName": str(media.get("file_name") or "")[:240],
         "mimeType": str(media.get("mime_type") or "")[:120],
         "caption": caption[:3000],
-    } for kind in parsed.kinds]
+    } for session_no in parsed.session_nos for kind in kinds]
 
 
 def _short(value: object, limit: int = 52) -> str:

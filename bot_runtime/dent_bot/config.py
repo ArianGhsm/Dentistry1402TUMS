@@ -40,6 +40,8 @@ class BotSettings:
     required_channel_username: str
     booklet_source_channel_id: int
     booklet_source_channel_title: str
+    power_source_channel_id: int
+    power_source_channel_title: str
     booklet_media_workers: int
     booklet_media_queue_size: int
     booklet_access_mode: str
@@ -158,8 +160,18 @@ def load_settings() -> BotSettings:
         raise ValueError("Unsupported booklet access mode")
     booklet_source_channel_id = int(os.getenv("DENT_BOT_BOOKLET_SOURCE_CHANNEL_ID", "0").strip() or "0")
     booklet_source_channel_title = os.getenv("DENT_BOT_BOOKLET_SOURCE_CHANNEL_TITLE", "").strip()
+    power_source_channel_id = int(os.getenv("DENT_BOT_POWER_SOURCE_CHANNEL_ID", "0").strip() or "0")
+    power_source_channel_title = os.getenv("DENT_BOT_POWER_SOURCE_CHANNEL_TITLE", "").strip()
     if booklet_source_channel_id < 0 and not booklet_source_channel_title:
         raise ValueError("Protected booklet source channel title is not configured")
+    if power_source_channel_id < 0 and not power_source_channel_title:
+        raise ValueError("Power source channel title is not configured")
+    if (
+        booklet_source_channel_id < 0
+        and power_source_channel_id < 0
+        and booklet_source_channel_id == power_source_channel_id
+    ):
+        raise ValueError("Protected and power source channels must be distinct")
     booklet_pdf_normalizer = os.getenv("DENT_BOT_BOOKLET_PDF_NORMALIZER", "none").strip().lower()
     if booklet_pdf_normalizer not in {"none", "pikepdf"}:
         raise ValueError("Unsupported booklet PDF normalizer")
@@ -208,6 +220,8 @@ def load_settings() -> BotSettings:
         ),
         booklet_source_channel_id=booklet_source_channel_id,
         booklet_source_channel_title=booklet_source_channel_title,
+        power_source_channel_id=power_source_channel_id,
+        power_source_channel_title=power_source_channel_title,
         # Production currently uses one worker. The upper bound is configurable
         # for a future server upgrade instead of baking today's 1 GB profile
         # into the architecture.

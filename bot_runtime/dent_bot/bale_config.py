@@ -66,6 +66,8 @@ def load_settings() -> BotSettings:
         required_channel_username="",
         booklet_source_channel_id=0,
         booklet_source_channel_title="",
+        power_source_channel_id=0,
+        power_source_channel_title="",
         booklet_media_workers=1,
         booklet_media_queue_size=4,
         booklet_access_mode="all-authenticated",

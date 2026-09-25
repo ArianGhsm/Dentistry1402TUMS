@@ -115,6 +115,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         student_assistant_v1_enabled: bool = False,
         required_channel_username: str = "",
         booklet_source_channel_id: int = 0,
+        power_source_channel_id: int = 0,
         media_dispatcher=None,
     ) -> None:
         self.api = KeyboardInvariantApi(api, state)
@@ -129,6 +130,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         self.student_assistant_v1_enabled = student_assistant_v1_enabled
         self.required_channel_username = required_channel_username.strip().lstrip("@")
         self.booklet_source_channel_id = int(booklet_source_channel_id)
+        self.power_source_channel_id = int(power_source_channel_id)
         self.media_dispatcher = media_dispatcher
         self._interaction_lock = threading.Lock()
         self._interaction_versions: dict[int, int] = {}

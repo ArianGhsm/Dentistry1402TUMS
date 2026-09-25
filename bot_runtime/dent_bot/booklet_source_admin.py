@@ -7,6 +7,7 @@ import json
 from .api import TelegramBotApi
 from .app import DentBotApp
 from .booklets import source_records_from_channel_post
+from .booklet_sources import configured_source_policies, source_policy_for_channel
 from .config import load_settings
 from .protected_media import ProtectedMediaDispatcher
 from .site_api import SiteApiClient
@@ -29,6 +30,7 @@ def sync_existing_source_message(
     message_id: int,
     catalog: dict,
     caption_override: str | None = None,
+    allowed_kinds: set[str] | frozenset[str] | None = None,
 ) -> int:
     """Re-read one source post exactly as Telegram exposes it now.
 
@@ -51,7 +53,11 @@ def sync_existing_source_message(
             raise RuntimeError("Source synchronization did not return a temporary message")
         if caption_override is not None:
             forwarded["caption"] = str(caption_override)
-        records = source_records_from_channel_post(forwarded, catalog)
+        records = source_records_from_channel_post(
+            forwarded,
+            catalog,
+            allowed_kinds=allowed_kinds,
+        )
         return state.replace_protected_media_message(
             int(source_channel_id),
             int(message_id),
@@ -80,6 +86,7 @@ def register_source_metadata(
     file_unique_id: str = "",
     file_name: str = "",
     mime_type: str = "",
+    allowed_kinds: set[str] | frozenset[str] | None = None,
 ) -> int:
     if media_field not in {"document", "audio", "voice"}:
         raise ValueError("Unsupported Telegram media field")
@@ -92,7 +99,11 @@ def register_source_metadata(
             "mime_type": str(mime_type),
         },
     }
-    records = source_records_from_channel_post(message, catalog)
+    records = source_records_from_channel_post(
+        message,
+        catalog,
+        allowed_kinds=allowed_kinds,
+    )
     return state.replace_protected_media_message(
         int(source_channel_id),
         int(message_id),
@@ -108,8 +119,10 @@ def main() -> int:
     sync = subparsers.add_parser("sync-existing")
     sync.add_argument("--message-id", required=True, type=int)
     sync.add_argument("--caption-base64", default="")
+    sync.add_argument("--source-channel-id", type=int, default=0)
     metadata = subparsers.add_parser("register-metadata")
     metadata.add_argument("--message-id", required=True, type=int)
+    metadata.add_argument("--source-channel-id", type=int, default=0)
     metadata.add_argument("--caption-base64", required=True)
     metadata.add_argument("--media-field", required=True, choices=("document", "audio", "voice"))
     metadata.add_argument("--file-id", required=True)
@@ -118,8 +131,10 @@ def main() -> int:
     metadata.add_argument("--mime-type", default="")
     hydrate = subparsers.add_parser("hydrate-existing")
     hydrate.add_argument("--message-id", required=True, type=int)
+    hydrate.add_argument("--source-channel-id", type=int, default=0)
     register = subparsers.add_parser("register-existing")
     register.add_argument("--message-id", required=True, type=int)
+    register.add_argument("--source-channel-id", type=int, default=0)
     register.add_argument("--caption-base64", required=True)
     register.add_argument("--file-name", default="")
     register.add_argument("--mime-type", default="application/pdf")
@@ -128,21 +143,47 @@ def main() -> int:
     settings = load_settings()
     if settings.booklet_source_channel_id >= 0:
         raise ValueError("Protected booklet source channel is not configured")
+
+    def selected_policy(raw_source_channel_id: int = 0):
+        source_channel_id = int(raw_source_channel_id or settings.booklet_source_channel_id)
+        policy = source_policy_for_channel(
+            source_channel_id,
+            booklet_source_channel_id=settings.booklet_source_channel_id,
+            power_source_channel_id=settings.power_source_channel_id,
+            booklet_source_channel_title=settings.booklet_source_channel_title,
+            power_source_channel_title=settings.power_source_channel_title,
+        )
+        if policy is None:
+            raise ValueError("Source channel is not configured for booklet ingestion")
+        return policy
+
     if args.command == "probe":
         api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)
         try:
             me = dict(api.call("getMe") or {})
-            chat = dict(api.call("getChat", {"chat_id": settings.booklet_source_channel_id}) or {})
-            member = dict(api.call("getChatMember", {
-                "chat_id": settings.booklet_source_channel_id,
-                "user_id": int(me.get("id") or 0),
-            }) or {})
+            sources = []
+            for policy in configured_source_policies(settings):
+                chat = dict(api.call("getChat", {"chat_id": policy.channel_id}) or {})
+                member = dict(api.call("getChatMember", {
+                    "chat_id": policy.channel_id,
+                    "user_id": int(me.get("id") or 0),
+                }) or {})
+                item = {
+                    "role": policy.role,
+                    "reachable": bool(chat.get("id")),
+                    "titleMatch": not policy.title or str(chat.get("title") or "") == policy.title,
+                    "administrator": str(member.get("status") or "") in {"creator", "administrator"},
+                }
+                item["ready"] = (
+                    item["reachable"]
+                    and item["titleMatch"]
+                    and item["administrator"]
+                )
+                sources.append(item)
             result = {
-                "reachable": bool(chat.get("id")),
-                "titleMatch": str(chat.get("title") or "") == settings.booklet_source_channel_title,
-                "administrator": str(member.get("status") or "") in {"creator", "administrator"},
+                "ready": bool(sources) and all(bool(item["ready"]) for item in sources),
+                "sources": sources,
             }
-            result["ready"] = all(result.values())
             print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
             return 0 if result["ready"] else 2
         finally:
@@ -180,6 +221,7 @@ def main() -> int:
                 bot_username=settings.bot_username,
                 required_channel_username=settings.required_channel_username,
                 booklet_source_channel_id=settings.booklet_source_channel_id,
+                power_source_channel_id=settings.power_source_channel_id,
             )
             dispatcher = ProtectedMediaDispatcher(
                 api=api,
@@ -219,6 +261,7 @@ def main() -> int:
             api.close()
 
     if args.command == "register-metadata":
+        policy = selected_policy(args.source_channel_id)
         caption = _decode_caption(args.caption_base64)
         site_api = SiteApiClient(
             settings.site_api_url,
@@ -232,7 +275,7 @@ def main() -> int:
             catalog = site_api.booklet_catalog(settings.owner_id)
             count = register_source_metadata(
                 state=state,
-                source_channel_id=settings.booklet_source_channel_id,
+                source_channel_id=policy.channel_id,
                 message_id=int(args.message_id),
                 catalog=catalog,
                 caption=caption,
@@ -241,6 +284,7 @@ def main() -> int:
                 file_unique_id=str(args.file_unique_id),
                 file_name=str(args.file_name),
                 mime_type=str(args.mime_type),
+                allowed_kinds=policy.allowed_kinds,
             )
             print(json.dumps({
                 "success": count > 0,
@@ -252,6 +296,7 @@ def main() -> int:
             state.close()
 
     if args.command == "sync-existing":
+        policy = selected_policy(args.source_channel_id)
         api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)
         state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
         site_api = SiteApiClient(
@@ -266,7 +311,7 @@ def main() -> int:
             count = sync_existing_source_message(
                 api=api,
                 state=state,
-                source_channel_id=settings.booklet_source_channel_id,
+                source_channel_id=policy.channel_id,
                 owner_id=settings.owner_id,
                 message_id=int(args.message_id),
                 catalog=catalog,
@@ -275,6 +320,7 @@ def main() -> int:
                     if str(args.caption_base64 or "").strip()
                     else None
                 ),
+                allowed_kinds=policy.allowed_kinds,
             )
             print(json.dumps({
                 "success": count > 0,
@@ -287,13 +333,14 @@ def main() -> int:
             api.close()
 
     if args.command == "hydrate-existing":
+        policy = selected_policy(args.source_channel_id)
         api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)
         state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
         temporary_message_id = 0
         try:
             forwarded = dict(api.call("forwardMessage", {
                 "chat_id": settings.owner_id,
-                "from_chat_id": settings.booklet_source_channel_id,
+                "from_chat_id": policy.channel_id,
                 "message_id": int(args.message_id),
                 "protect_content": True,
                 "disable_notification": True,
@@ -316,7 +363,7 @@ def main() -> int:
             })
             temporary_message_id = 0
             updated = state.update_protected_media_file(
-                settings.booklet_source_channel_id,
+                policy.channel_id,
                 int(args.message_id),
                 file_id=file_id,
                 file_unique_id=str(media.get("file_unique_id") or ""),
@@ -339,6 +386,7 @@ def main() -> int:
             state.close()
             api.close()
 
+    policy = selected_policy(args.source_channel_id)
     caption = _decode_caption(args.caption_base64)
     site_api = SiteApiClient(
         settings.site_api_url,
@@ -348,19 +396,23 @@ def main() -> int:
         relay_secret=settings.site_relay_secret,
     )
     catalog = site_api.booklet_catalog(settings.owner_id)
-    records = source_records_from_channel_post({
-        "caption": caption,
-        "document": {
-            "file_name": str(args.file_name),
-            "mime_type": str(args.mime_type),
+    records = source_records_from_channel_post(
+        {
+            "caption": caption,
+            "document": {
+                "file_name": str(args.file_name),
+                "mime_type": str(args.mime_type),
+            },
         },
-    }, catalog)
+        catalog,
+        allowed_kinds=policy.allowed_kinds,
+    )
     if not records:
         raise ValueError("Existing source caption did not produce a valid route")
     state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
     try:
         count = state.replace_protected_media_message(
-            settings.booklet_source_channel_id,
+            policy.channel_id,
             int(args.message_id),
             records,
         )

@@ -6,6 +6,7 @@ import base64
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -18,7 +19,7 @@ ARCHIVE_WORKER = Path("/srv/telegram/apps/archive-worker")
 BOT_ENV = Path("/etc/integrated-dent/dent-bot.env")
 STATE_ROOT = Path("/var/lib/integrated-dent/booklet-source-reconcile")
 STATE_PATH = STATE_ROOT / "state.json"
-SOURCE_LIMIT = 200
+SOURCE_LIMIT_BY_ROLE = {"private": 200, "power": 250}
 
 sys.path.insert(0, str(CURRENT_RELEASE))
 sys.path.insert(0, str(ARCHIVE_WORKER))
@@ -65,7 +66,11 @@ def save_state(value: dict[str, object]) -> None:
     temporary.replace(STATE_PATH)
 
 
-async def current_media_messages(source_chat_id: int) -> list[dict[str, object]]:
+async def current_media_messages(
+    source_chat_id: int,
+    *,
+    limit: int,
+) -> list[dict[str, object]]:
     env = telegram_cli.load_env()
     with tempfile.TemporaryDirectory(prefix="booklet-reconcile-") as temporary:
         runtime_session = Path(temporary) / "arianbc"
@@ -80,7 +85,7 @@ async def current_media_messages(source_chat_id: int) -> list[dict[str, object]]
             await telegram_cli.checked_identity(client)
             entity = await telegram_cli.resolve_peer(client, str(source_chat_id))
             rows: list[dict[str, object]] = []
-            async for message in client.iter_messages(entity, limit=SOURCE_LIMIT):
+            async for message in client.iter_messages(entity, limit=int(limit)):
                 file = getattr(message, "file", None)
                 if file is None:
                     continue
@@ -112,10 +117,22 @@ async def current_media_messages(source_chat_id: int) -> list[dict[str, object]]
             await client.disconnect()
 
 
+def looks_like_power_caption(value: object) -> bool:
+    normalized = (
+        str(value or "")
+        .replace("ي", "ی")
+        .replace("ى", "ی")
+        .replace("ك", "ک")
+        .replace("‌", " ")
+    )
+    return re.search(r"(?<!\w)پاور(?:پوینت)?(?!\w)", normalized) is not None
+
+
 def register_message(
     bot_env: dict[str, str],
     row: dict[str, object],
     *,
+    source_chat_id: int,
     caption: str,
 ) -> tuple[str, str]:
     file_id = str(row.get("fileId") or "")
@@ -129,6 +146,7 @@ def register_message(
             "/opt/integrated-dent/telegram-venv/bin/python",
             "-m", "dent_bot.booklet_source_admin",
             "register-metadata",
+            "--source-channel-id", str(int(source_chat_id)),
             "--message-id", str(int(row["messageId"])),
             "--caption-base64", base64.b64encode(caption.encode("utf-8")).decode("ascii"),
             "--media-field", str(row["mediaField"]),
@@ -153,79 +171,133 @@ def register_message(
 
 async def main() -> int:
     bot_env = read_env(BOT_ENV)
-    source_chat_id = int(bot_env.get("DENT_BOT_BOOKLET_SOURCE_CHANNEL_ID", "0") or "0")
-    if source_chat_id >= 0:
+    private_source_id = int(bot_env.get("DENT_BOT_BOOKLET_SOURCE_CHANNEL_ID", "0") or "0")
+    power_source_id = int(bot_env.get("DENT_BOT_POWER_SOURCE_CHANNEL_ID", "0") or "0")
+    if private_source_id >= 0:
         raise RuntimeError("Protected booklet source channel is not configured")
+    if power_source_id < 0 and power_source_id == private_source_id:
+        raise RuntimeError("Protected and power source channels must be distinct")
+
+    sources: list[tuple[str, int, int]] = [
+        ("private", private_source_id, SOURCE_LIMIT_BY_ROLE["private"])
+    ]
+    if power_source_id < 0:
+        sources.append(("power", power_source_id, SOURCE_LIMIT_BY_ROLE["power"]))
 
     state = load_state()
     messages = dict(state.get("messages") or {})
-    now = int(time.time())
-    rows = await current_media_messages(source_chat_id)
-    album_overrides = album_caption_overrides(rows)
+    if int(state.get("version") or 1) < 2:
+        messages = {
+            (
+                f"{private_source_id}:{key}"
+                if str(key).isdigit()
+                else str(key)
+            ): value
+            for key, value in messages.items()
+        }
 
+    now = int(time.time())
     summary = {
-        "scanned": len(rows),
+        "scanned": 0,
         "changed": 0,
         "routed": 0,
+        "ignored": 0,
         "unrouted": 0,
         "failed": 0,
     }
+    source_summaries: list[dict[str, object]] = []
     failures: list[dict[str, object]] = []
 
-    for row in rows:
-        message_id = int(row["messageId"])
-        caption_override = album_overrides.get(message_id, "")
-        effective_text = str(row["text"] or "") or caption_override
-        fingerprint = source_fingerprint(
-            message_id=message_id,
-            date=str(row["date"]),
-            edit_date=str(row["editDate"]),
-            text=effective_text,
-            file_name=str(row["fileName"]),
-            file_size=int(row["fileSize"]),
-            mime_type=str(row["mimeType"]),
-            grouped_id=str(row["groupedId"]),
-        )
-        previous = messages.get(str(message_id))
-        if not should_reconcile(
-            previous if isinstance(previous, dict) else None,
-            fingerprint,
-            now=now,
-        ):
-            continue
+    for role, source_chat_id, limit in sources:
+        rows = await current_media_messages(source_chat_id, limit=limit)
+        album_overrides = album_caption_overrides(rows)
+        local = {
+            "role": role,
+            "chatId": source_chat_id,
+            "scanned": len(rows),
+            "changed": 0,
+            "routed": 0,
+            "ignored": 0,
+            "unrouted": 0,
+            "failed": 0,
+        }
+        summary["scanned"] += len(rows)
 
-        summary["changed"] += 1
-        status, detail = register_message(
-            bot_env,
-            row,
-            caption=effective_text,
-        )
-        summary[status] += 1
-        messages[str(message_id)] = reconciliation_record(
-            fingerprint,
-            status=status,
-            now=now,
-        )
-        if status == "failed":
-            failures.append({
-                "messageId": message_id,
-                "detail": detail[:300],
-            })
+        for row in rows:
+            message_id = int(row["messageId"])
+            caption_override = album_overrides.get(message_id, "")
+            effective_text = str(row["text"] or "") or caption_override
+            fingerprint = source_fingerprint(
+                message_id=message_id,
+                date=str(row["date"]),
+                edit_date=str(row["editDate"]),
+                text=effective_text,
+                file_name=str(row["fileName"]),
+                file_size=int(row["fileSize"]),
+                mime_type=str(row["mimeType"]),
+                grouped_id=str(row["groupedId"]),
+            )
+            message_key = f"{source_chat_id}:{message_id}"
+            previous = messages.get(message_key)
+            if not should_reconcile(
+                previous if isinstance(previous, dict) else None,
+                fingerprint,
+                now=now,
+            ):
+                continue
 
-    # Keep bounded state while preserving enough history for edit detection.
+            summary["changed"] += 1
+            local["changed"] = int(local["changed"]) + 1
+            metric_status = ""
+            if role == "power" and not looks_like_power_caption(effective_text):
+                status, detail = "routed", "source-policy-skip"
+                metric_status = "ignored"
+            else:
+                status, detail = register_message(
+                    bot_env,
+                    row,
+                    source_chat_id=source_chat_id,
+                    caption=effective_text,
+                )
+                if role == "power" and status == "unrouted":
+                    status = "routed"
+                    metric_status = "ignored"
+            metric_status = metric_status or status
+            summary[metric_status] += 1
+            local[metric_status] = int(local[metric_status]) + 1
+            messages[message_key] = reconciliation_record(
+                fingerprint,
+                status=status,
+                now=now,
+            )
+            if status == "failed":
+                failures.append({
+                    "role": role,
+                    "messageId": message_id,
+                    "detail": detail[:300],
+                })
+
+        source_summaries.append(local)
+
     ordered = sorted(
         messages.items(),
-        key=lambda item: int(item[0]) if str(item[0]).isdigit() else -1,
+        key=lambda item: int(dict(item[1]).get("checkedAt") or 0)
+        if isinstance(item[1], dict)
+        else 0,
         reverse=True,
-    )[:500]
+    )[:1200]
     state = {
-        "version": 1,
+        "version": 2,
         "messages": dict(ordered),
         "updatedAt": now,
     }
     save_state(state)
 
-    result = {**summary, "failures": failures[:10]}
+    result = {
+        **summary,
+        "sources": source_summaries,
+        "failures": failures[:10],
+    }
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
     return 1 if summary["failed"] else 0
 

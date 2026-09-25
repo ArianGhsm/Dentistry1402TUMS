@@ -61,9 +61,12 @@ class BookletReconcileTests(unittest.TestCase):
         worker = (root / "scripts" / "reconcile-booklet-source-channel.py").read_text(encoding="utf-8")
         hook = (root / "scripts" / "dent1402-booklet-post-write-hook.sh").read_text(encoding="utf-8")
         self.assertIn("register-metadata", worker)
+        self.assertIn("DENT_BOT_POWER_SOURCE_CHANNEL_ID", worker)
+        self.assertIn("--source-channel-id", worker)
         self.assertNotIn("sync-existing", worker)
         self.assertNotIn("forwardMessage", worker)
         self.assertIn("integrated-dent-booklet-source-reconcile.service", hook)
+        self.assertIn("DENT_BOT_POWER_SOURCE_CHANNEL_ID", hook)
         self.assertNotIn("sync-existing", hook)
 
     def test_routed_media_is_stable_until_source_changes(self) -> None:
