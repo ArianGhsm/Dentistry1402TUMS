@@ -174,16 +174,40 @@ def main():
                     assert value["alreadyCreated"] is False
                     assert urlsplit(value["redirectUrl"]).hostname == "dentistry1402tums.ir"
                     assert "gateway.zibal.ir/start/" not in value["redirectUrl"]
+                    provider_requests_before_duplicate = len(FakeGateway.requests)
                     duplicate = request(endpoint, secret, payload)
+                    assert len(FakeGateway.requests) == provider_requests_before_duplicate, "fresh duplicate checkout contacted provider"
                     assert duplicate["payload"]["alreadyCreated"] is True, duplicate
+                    assert duplicate["payload"].get("gatewayRefreshed") is not True, duplicate
                     assert duplicate["payload"]["orderToken"] == value["orderToken"]
                     assert duplicate["payload"]["resultUrl"] == value["resultUrl"]
                     assert urlsplit(duplicate["payload"]["redirectUrl"]).hostname == "dentistry1402tums.ir"
                     # Snapshot is deliberately raw, exactly as legacy pending orders.
-                    store = json.loads((Path(directory) / "storage/payments/store.json").read_text(encoding="utf-8"))
+                    store_path = Path(directory) / "storage/payments/store.json"
+                    store = json.loads(store_path.read_text(encoding="utf-8"))
                     order = next(o for o in store["orders"] if o["public_token"] == value["orderToken"])
                     assert order["gateway_response_snapshot"]["start"]["redirectUrl"].startswith("https://gateway.zibal.ir/start/")
                     assert order["extra_form_data"]["bot_origin_platform"] == platform
+
+                    # Stable bot request ids outlive provider pages. Age only the
+                    # provider attempt, then require a new authority on the same
+                    # immutable order token.
+                    first_track = order["authority"]
+                    order["payment_started_at"] = "2000-01-01T00:00:00Z"
+                    store_path.write_text(json.dumps(store, ensure_ascii=False), encoding="utf-8")
+                    refreshed = request(endpoint, secret, payload)
+                    assert refreshed["status"] == 200, refreshed
+                    refreshed_value = refreshed["payload"]
+                    assert refreshed_value["alreadyCreated"] is True
+                    assert refreshed_value["gatewayRefreshed"] is True
+                    assert refreshed_value["orderToken"] == value["orderToken"]
+                    refreshed_store = json.loads(store_path.read_text(encoding="utf-8"))
+                    matching = [o for o in refreshed_store["orders"] if o["public_token"] == value["orderToken"]]
+                    assert len(matching) == 1, matching
+                    refreshed_order = matching[0]
+                    assert refreshed_order["authority"] != first_track
+                    assert refreshed_order["status"] == "pending"
+                    assert refreshed_order["gateway_response_snapshot"]["startHistory"][-1]["authority"] == first_track
                     status = request(endpoint, secret, dict(action="paymentStatus", platform=platform, platformUserId=identity, orderToken=value["orderToken"]))
                     assert status["status"] == 200, status
                     url = value["redirectUrl"]
@@ -210,7 +234,7 @@ def main():
                     "merchant": "synthetic-merchant",
                     "trackId": voice["payload"]["trackId"],
                 }, FakeGateway.requests[-1]
-                assert len(FakeGateway.requests) == 5, "duplicate checkout contacted provider"
+                assert len(FakeGateway.requests) == 7, "unexpected provider request count after two intentional stale retries"
                 assert all(
                     urlsplit(p["callbackUrl"]).hostname == "dentistry1402tums.ir"
                     for p in FakeGateway.requests if "callbackUrl" in p
@@ -229,7 +253,7 @@ def main():
                     amountRials=200000, callbackToken="a" * 32))
                 assert ambiguous["status"] == 503, ambiguous
                 assert ambiguous["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_AMBIGUOUS", ambiguous
-                assert len(FakeGateway.requests) == 5, "ambiguous gateway selection contacted provider"
+                assert len(FakeGateway.requests) == 7, "ambiguous gateway selection contacted provider"
 
                 for gateway_record in payment_store["gateways"]:
                     gateway_record["is_enabled"] = False
@@ -239,7 +263,7 @@ def main():
                     amountRials=200000, callbackToken="b" * 32))
                 assert unavailable["status"] == 503, unavailable
                 assert unavailable["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_UNAVAILABLE", unavailable
-                assert len(FakeGateway.requests) == 5, "unavailable gateway selection contacted provider"
+                assert len(FakeGateway.requests) == 7, "unavailable gateway selection contacted provider"
                 no_redirect = build_opener(ProxyHandler({}), NoRedirect())
                 for platform, token in created_orders:
                     try:

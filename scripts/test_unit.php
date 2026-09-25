@@ -299,6 +299,31 @@ unit_assert(
     (int) ($crossIdentityReservation['userReserved'] ?? 0) === 1,
     'Per-user purchase limits survive a generic-profile to canonical-account transition'
 );
+$gatewayRetryNow = strtotime('2026-09-25T08:00:00Z') ?: 0;
+$gatewayRetryPending = [
+    'status' => PAYMENTS_ORDER_STATUS_PENDING,
+    'created_at' => '2026-09-25T06:59:59Z',
+    'payment_started_at' => '2026-09-25T06:59:59Z',
+];
+unit_assert(
+    dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === true,
+    'Bot checkout refreshes a pending gateway authority after one hour'
+);
+$gatewayRetryPending['payment_started_at'] = '2026-09-25T07:00:01Z';
+unit_assert(
+    dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === false,
+    'Bot checkout reuses a fresh pending gateway authority to keep double taps idempotent'
+);
+unit_assert(
+    dent_bot_payment_existing_needs_gateway_retry(['status' => PAYMENTS_ORDER_STATUS_CANCELED], $gatewayRetryNow) === true
+        && dent_bot_payment_existing_needs_gateway_retry(['status' => PAYMENTS_ORDER_STATUS_FAILED], $gatewayRetryNow) === true
+        && dent_bot_payment_existing_needs_gateway_retry(['status' => PAYMENTS_ORDER_STATUS_EXPIRED], $gatewayRetryNow) === true,
+    'Terminal non-success bot orders may obtain a fresh provider authority'
+);
+unit_assert(
+    dent_bot_payment_existing_needs_gateway_retry(['status' => PAYMENTS_ORDER_STATUS_SUCCESS], $gatewayRetryNow) === false,
+    'Provider-verified successful bot orders never restart checkout'
+);
 $summaryBucket = dent_bot_payment_summary_bucket([
     [
         'status' => PAYMENTS_ORDER_STATUS_SUCCESS,

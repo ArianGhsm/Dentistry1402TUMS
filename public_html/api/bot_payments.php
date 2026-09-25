@@ -202,6 +202,53 @@ function dent_bot_payment_existing_response(array $order): ?array
 }
 
 /**
+ * Provider launch URLs are short-lived while bot idempotency keys can remain
+ * stable for an entire product/session. Reuse fresh pending attempts to keep
+ * double taps idempotent, but renew an unfinished provider authority after one
+ * hour or immediately after a terminal non-success state.
+ */
+function dent_bot_payment_existing_needs_gateway_retry(array $order, ?int $nowEpoch = null): bool
+{
+    $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
+    if ($status === PAYMENTS_ORDER_STATUS_SUCCESS) {
+        return false;
+    }
+    if (in_array($status, [PAYMENTS_ORDER_STATUS_FAILED, PAYMENTS_ORDER_STATUS_CANCELED, PAYMENTS_ORDER_STATUS_EXPIRED], true)) {
+        return true;
+    }
+    if ($status !== PAYMENTS_ORDER_STATUS_PENDING) {
+        return false;
+    }
+
+    $startedAt = trim((string) ($order['payment_started_at'] ?? ''));
+    if ($startedAt === '') {
+        $startedAt = trim((string) ($order['created_at'] ?? ''));
+    }
+    $startedEpoch = $startedAt !== '' ? strtotime($startedAt) : false;
+    if ($startedEpoch === false) {
+        return false;
+    }
+    return ($nowEpoch ?? time()) - $startedEpoch >= 3600;
+}
+
+function dent_bot_payment_archive_gateway_start(array $order, array $snapshot): array
+{
+    $previousStart = is_array($snapshot['start'] ?? null) ? $snapshot['start'] : [];
+    if ($previousStart === []) {
+        return $snapshot;
+    }
+    $history = is_array($snapshot['startHistory'] ?? null) ? $snapshot['startHistory'] : [];
+    $history[] = [
+        'authority' => (string) ($order['authority'] ?? ''),
+        'paymentStartedAt' => (string) ($order['payment_started_at'] ?? ''),
+        'archivedAt' => dent_iso_now(),
+        'result' => $previousStart,
+    ];
+    $snapshot['startHistory'] = array_slice($history, -5);
+    return $snapshot;
+}
+
+/**
  * Computes the checkout reservation state in one deterministic pass.
  *
  * The caller still holds the payments-store exclusive lock, so the returned
@@ -342,7 +389,20 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
             $payerKeys
         );
         if (is_array($reservation['existing'] ?? null)) {
-            return ['existing' => $reservation['existing']];
+            $existing = $reservation['existing'];
+            if (!dent_bot_payment_existing_needs_gateway_retry($existing)) {
+                return ['existing' => $existing];
+            }
+            if ((string) ($existing['status'] ?? PAYMENTS_ORDER_STATUS_PENDING) !== PAYMENTS_ORDER_STATUS_PENDING) {
+                $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser);
+                if ($reservationError === 'PRODUCT_CAPACITY_REACHED') {
+                    dent_error('ظرفیت این محصول تکمیل شده است.', 409, ['code' => 'PRODUCT_CAPACITY_REACHED']);
+                }
+                if ($reservationError === 'PRODUCT_PURCHASE_LIMIT_REACHED') {
+                    dent_error('سقف خرید این محصول برای حساب شما تکمیل شده است.', 409, ['code' => 'PRODUCT_PURCHASE_LIMIT_REACHED']);
+                }
+            }
+            return ['retry' => $existing];
         }
         $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser);
         if ($reservationError === 'PRODUCT_CAPACITY_REACHED') {
@@ -410,53 +470,87 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
         dent_error('درخواست پرداخت قبلی هنوز در حال ایجاد است.', 409, ['code' => 'PAYMENT_REQUEST_IN_PROGRESS']);
     }
 
-    $order = is_array($created['order'] ?? null) ? $created['order'] : [];
+    $gatewayRefreshed = is_array($created['retry'] ?? null);
+    $order = $gatewayRefreshed
+        ? $created['retry']
+        : (is_array($created['order'] ?? null) ? $created['order'] : []);
+    $orderExtra = dent_bot_payment_extra($order);
+    $gatewayTitle = $gatewayRefreshed
+        ? (string) (($orderExtra['bot_offer_title'] ?? '') ?: $title)
+        : $title;
+    $gatewayDescription = $gatewayRefreshed
+        ? (string) (($orderExtra['bot_offer_description'] ?? '') ?: $description)
+        : $description;
+    $gatewayAmount = $gatewayRefreshed ? max(0, (int) ($order['amount'] ?? 0)) : $amount;
+    $gatewayPhone = $gatewayRefreshed
+        ? payments_normalize_phone((string) (($order['payer_phone'] ?? '') ?: $payerPhone))
+        : $payerPhone;
     $syntheticItem = [
         'id' => 0,
-        'title' => $title,
-        'description' => $description,
-        'price' => $amount,
-        'amount' => $amount,
+        'title' => $gatewayTitle,
+        'description' => $gatewayDescription,
+        'price' => $gatewayAmount,
+        'amount' => $gatewayAmount,
     ];
     $orderToken = (string) ($order['public_token'] ?? '');
     $callbackUrl = dent_bot_site_origin() . '/api/payments_api.php?action=callback&orderToken=' . rawurlencode($orderToken);
     $startResult = payments_gateway_start_payment((string) ($order['gateway'] ?? ''), $syntheticItem, $order, [
         'callbackUrl' => $callbackUrl,
-        'description' => 'پرداخت ' . $title,
-        'mobile' => $payerPhone,
+        'description' => 'پرداخت ' . $gatewayTitle,
+        'mobile' => $gatewayPhone,
         'orderId' => $orderToken,
     ]);
 
     if (!(bool) ($startResult['success'] ?? false)) {
-        payments_with_store_lock(static function (array &$store) use ($order, $startResult): void {
+        payments_with_store_lock(static function (array &$store) use ($order, $startResult, $gatewayRefreshed): void {
             $index = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
             if ($index < 0) {
                 return;
             }
-            $store['orders'][$index]['status'] = PAYMENTS_ORDER_STATUS_FAILED;
-            $store['orders'][$index]['gateway_response_snapshot']['start'] = $startResult;
+            if (!$gatewayRefreshed) {
+                $store['orders'][$index]['status'] = PAYMENTS_ORDER_STATUS_FAILED;
+                $store['orders'][$index]['gateway_response_snapshot']['start'] = $startResult;
+            } else {
+                $store['orders'][$index]['gateway_response_snapshot']['retryFailure'] = [
+                    'at' => dent_iso_now(),
+                    'result' => $startResult,
+                ];
+            }
             $store['orders'][$index]['updated_at'] = dent_iso_now();
         });
         dent_error('ساخت درخواست درگاه انجام نشد.', 503, ['code' => 'PAYMENT_START_FAILED']);
     }
 
     $redirectUrl = dent_bot_payment_public_redirect($startResult, (string) ($order['gateway'] ?? ''));
-    payments_with_store_lock(static function (array &$store) use ($order, $startResult): void {
+    payments_with_store_lock(static function (array &$store) use ($order, $startResult, $gatewayRefreshed): void {
         $index = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
         if ($index < 0) {
             return;
         }
-        $store['orders'][$index]['authority'] = dent_clean_text((string) ($startResult['authority'] ?? ''), 120);
-        $store['orders'][$index]['gateway_response_snapshot']['start'] = $startResult;
-        $store['orders'][$index]['payment_started_at'] = dent_iso_now();
-        $store['orders'][$index]['updated_at'] = dent_iso_now();
+        $current = $store['orders'][$index];
+        $snapshot = is_array($current['gateway_response_snapshot'] ?? null)
+            ? $current['gateway_response_snapshot']
+            : [];
+        if ($gatewayRefreshed) {
+            $snapshot = dent_bot_payment_archive_gateway_start($current, $snapshot);
+        }
+        $snapshot['start'] = $startResult;
+        unset($snapshot['retryFailure']);
+        $current['gateway_response_snapshot'] = $snapshot;
+        $current['authority'] = dent_clean_text((string) ($startResult['authority'] ?? ''), 120);
+        $current['ref_id'] = '';
+        $current['status'] = PAYMENTS_ORDER_STATUS_PENDING;
+        $current['payment_started_at'] = dent_iso_now();
+        $current['updated_at'] = dent_iso_now();
+        $store['orders'][$index] = $current;
     });
 
     return [
         'success' => true,
-        'alreadyCreated' => false,
+        'alreadyCreated' => $gatewayRefreshed,
+        'gatewayRefreshed' => $gatewayRefreshed,
         'orderToken' => $orderToken,
-        'amountRials' => $amount,
+        'amountRials' => $gatewayAmount,
         'redirectUrl' => $redirectUrl,
         'resultUrl' => dent_bot_payment_result_url($orderToken),
         'status' => PAYMENTS_ORDER_STATUS_PENDING,
