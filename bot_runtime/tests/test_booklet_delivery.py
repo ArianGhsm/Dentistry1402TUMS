@@ -13,15 +13,18 @@ from dent_bot.booklets import (
     RESOURCE_LABELS,
     ordinal,
     parse_session_number,
+    parse_session_numbers,
     parse_source_caption,
     source_records_from_channel_post,
 )
 from dent_bot.booklet_source_admin import register_source_metadata, sync_existing_source_message
+from dent_bot.booklet_sources import PRIVATE_SOURCE_CONTENT_KINDS, POWER_SOURCE_CONTENT_KINDS
 from dent_bot.state import BotState
 from dent_bot.protected_media import ProtectedMediaDispatcher, _protected_delivery_caption
 
 
 SOURCE_CHAT_ID = -1003706539157
+POWER_SOURCE_CHAT_ID = -1002016459508
 SOURCE_CAPTION = (
     "📓 جزوه رفرنس جلسه چهارم ورودی ۱۳۹۹ - تومورهای سینوس\n\n"
     "📚 گوش و حلق و بینی\n👨‍🏫 استاد ایرانی\n\n"
@@ -176,6 +179,77 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(parse_session_number(f"جزوه جلسه {ordinal(number)} - تست"), number)
                 self.assertEqual(parse_session_number(f"جزوه جلسه {number} - تست"), number)
         self.assertIsNone(parse_session_number("جزوه جلسه چهل و یکم"))
+
+    def test_multi_session_power_caption_routes_one_file_to_each_session(self) -> None:
+        caption = (
+            "📒 پاور جلسات اول و دوم روش تحقیق ۲ - مرور مباحث\n"
+            "#روش_تحقیق۲ #ترم۷"
+        )
+        self.assertEqual(parse_session_numbers(caption), (1, 2))
+        parsed = parse_source_caption(caption, BOOKLET_CATALOG)
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed.session_nos, (1, 2))
+        self.assertEqual(parsed.kinds, ("power",))
+        records = source_records_from_channel_post(
+            {
+                "caption": caption,
+                "document": {
+                    "file_id": "power-file",
+                    "file_unique_id": "power-unique",
+                    "file_name": "جلسات ۱ و ۲.pdf",
+                    "mime_type": "application/pdf",
+                },
+            },
+            BOOKLET_CATALOG,
+            allowed_kinds=POWER_SOURCE_CONTENT_KINDS,
+        )
+        self.assertEqual([item["sessionNo"] for item in records], [1, 2])
+        self.assertEqual({item["contentKind"] for item in records}, {"power"})
+
+    def test_source_policy_keeps_power_public_and_other_content_private(self) -> None:
+        power_caption = "📒 پاور جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷"
+        power_message = {
+            "caption": power_caption,
+            "document": {"file_id": "power-file", "file_name": "power.pdf"},
+        }
+        self.assertEqual(
+            source_records_from_channel_post(
+                power_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS,
+            ),
+            [],
+        )
+        self.assertEqual(
+            [item["contentKind"] for item in source_records_from_channel_post(
+                power_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=POWER_SOURCE_CONTENT_KINDS,
+            )],
+            ["power"],
+        )
+
+        booklet_message = {
+            "caption": "📓 جزوه جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷",
+            "document": {"file_id": "booklet-file", "file_name": "booklet.pdf"},
+        }
+        self.assertEqual(
+            source_records_from_channel_post(
+                booklet_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=POWER_SOURCE_CONTENT_KINDS,
+            ),
+            [],
+        )
+        self.assertEqual(
+            [item["contentKind"] for item in source_records_from_channel_post(
+                booklet_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS,
+            )],
+            ["booklet"],
+        )
 
     def test_caption_routes_booklet_reference_to_both_sections(self) -> None:
         parsed = parse_source_caption(SOURCE_CAPTION, BOOKLET_CATALOG)
@@ -473,6 +547,77 @@ class BookletDeliveryTests(unittest.TestCase):
                 app.handle({"channel_post": post})
                 count = state.connection.execute("SELECT COUNT(*) FROM protected_media_sources").fetchone()[0]
                 self.assertEqual(count, 2)
+            finally:
+                state.close()
+
+    def test_public_power_source_routes_only_power_and_supports_multi_session(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                app = DentBotApp(
+                    FakeApi(),
+                    state,
+                    owner_id=10,
+                    site_url="https://example.test",
+                    site_api=LinkedSite(),
+                    booklet_source_channel_id=SOURCE_CHAT_ID,
+                    power_source_channel_id=POWER_SOURCE_CHAT_ID,
+                )
+                power_post = {
+                    "message_id": 41,
+                    "chat": {"id": POWER_SOURCE_CHAT_ID, "type": "channel"},
+                    "caption": (
+                        "📒 پاور جلسات اول و دوم روش تحقیق ۲ - مرور مباحث\n"
+                        "#روش_تحقیق۲ #ترم۷"
+                    ),
+                    "document": {"file_id": "public-power", "file_name": "power.pdf"},
+                }
+                app.handle({"channel_post": power_post})
+                session_one = state.protected_media_for_tag(
+                    course_tag="روش_تحقیق۲",
+                    term=7,
+                    session_no=1,
+                    content_kind="power",
+                )
+                session_two = state.protected_media_for_tag(
+                    course_tag="روش_تحقیق۲",
+                    term=7,
+                    session_no=2,
+                    content_kind="power",
+                )
+                self.assertEqual(len(session_one), 1)
+                self.assertEqual(len(session_two), 1)
+                self.assertEqual(session_one[0]["sourceChatId"], POWER_SOURCE_CHAT_ID)
+                self.assertEqual(session_two[0]["sourceMessageId"], 41)
+
+                private_power = dict(power_post)
+                private_power["message_id"] = 42
+                private_power["chat"] = {"id": SOURCE_CHAT_ID, "type": "channel"}
+                app.handle({"channel_post": private_power})
+                self.assertEqual(
+                    state.connection.execute(
+                        "SELECT COUNT(*) FROM protected_media_sources "
+                        "WHERE source_chat_id=? AND source_message_id=?",
+                        (SOURCE_CHAT_ID, 42),
+                    ).fetchone()[0],
+                    0,
+                )
+
+                public_booklet = {
+                    "message_id": 43,
+                    "chat": {"id": POWER_SOURCE_CHAT_ID, "type": "channel"},
+                    "caption": "📓 جزوه جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷",
+                    "document": {"file_id": "public-booklet", "file_name": "booklet.pdf"},
+                }
+                app.handle({"channel_post": public_booklet})
+                self.assertEqual(
+                    state.connection.execute(
+                        "SELECT COUNT(*) FROM protected_media_sources "
+                        "WHERE source_chat_id=? AND source_message_id=?",
+                        (POWER_SOURCE_CHAT_ID, 43),
+                    ).fetchone()[0],
+                    0,
+                )
             finally:
                 state.close()
 

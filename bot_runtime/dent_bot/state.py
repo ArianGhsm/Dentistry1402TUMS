@@ -310,13 +310,15 @@ def _migrate_protected_media_schema(connection: sqlite3.Connection) -> None:
     row = connection.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name='protected_media_sources'"
     ).fetchone()
-    if row is None or "ai_booklet" in str(row[0] or ""):
+    current_sql = str(row[0] or "") if row else ""
+    target_unique = "UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no)"
+    if row is None or ("ai_booklet" in current_sql and target_unique in current_sql):
         return
     connection.execute("BEGIN IMMEDIATE")
     try:
         connection.execute("DROP INDEX IF EXISTS idx_protected_media_lookup")
         connection.execute(
-            "ALTER TABLE protected_media_sources RENAME TO protected_media_sources_legacy_ai"
+            "ALTER TABLE protected_media_sources RENAME TO protected_media_sources_legacy_routes"
         )
         connection.execute(
             "CREATE TABLE protected_media_sources ("
@@ -340,7 +342,7 @@ def _migrate_protected_media_schema(connection: sqlite3.Connection) -> None:
             "active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)),"
             "created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,"
             "updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-            "UNIQUE(source_chat_id, source_message_id, content_kind))"
+            "UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no))"
         )
         connection.execute(
             "INSERT INTO protected_media_sources("
@@ -349,9 +351,9 @@ def _migrate_protected_media_schema(connection: sqlite3.Connection) -> None:
             "created_at,updated_at) "
             "SELECT id,source_chat_id,source_message_id,course_code,course_name,course_tag,term,session_no,"
             "content_kind,telegram_method,file_id,file_unique_id,file_name,mime_type,caption,active,"
-            "created_at,updated_at FROM protected_media_sources_legacy_ai"
+            "created_at,updated_at FROM protected_media_sources_legacy_routes"
         )
-        connection.execute("DROP TABLE protected_media_sources_legacy_ai")
+        connection.execute("DROP TABLE protected_media_sources_legacy_routes")
         connection.execute(
             "CREATE INDEX idx_protected_media_lookup "
             "ON protected_media_sources(course_code, term, session_no, content_kind, active)"
@@ -438,7 +440,7 @@ class BotState:
                 active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)),
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(source_chat_id, source_message_id, content_kind)
+                UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no)
             );
             CREATE INDEX IF NOT EXISTS idx_protected_media_lookup
                 ON protected_media_sources(course_code, term, session_no, content_kind, active);
@@ -2457,7 +2459,7 @@ class BotState:
                     "source_chat_id,source_message_id,course_code,course_name,course_tag,term,session_no,"
                     "content_kind,telegram_method,file_id,file_unique_id,file_name,mime_type,caption,active"
                     ") VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,1) "
-                    "ON CONFLICT(source_chat_id,source_message_id,content_kind) DO UPDATE SET "
+                    "ON CONFLICT(source_chat_id,source_message_id,content_kind,course_code,session_no) DO UPDATE SET "
                     "course_code=excluded.course_code,course_name=excluded.course_name,"
                     "course_tag=excluded.course_tag,term=excluded.term,session_no=excluded.session_no,"
                     "telegram_method=excluded.telegram_method,"

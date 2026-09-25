@@ -562,6 +562,7 @@ def run_service(*, settings, api, platform_name: str) -> int:
         student_assistant_v1_enabled=bool(getattr(settings, "student_assistant_v1_enabled", False)),
         required_channel_username=str(getattr(settings, "required_channel_username", "")),
         booklet_source_channel_id=int(getattr(settings, "booklet_source_channel_id", 0)),
+        power_source_channel_id=int(getattr(settings, "power_source_channel_id", 0)),
     )
     media_dispatcher = None
     if settings.platform == "telegram" and int(getattr(settings, "booklet_source_channel_id", 0)) < 0:

@@ -20,6 +20,7 @@ from .booklets import (
     sessions_screen as booklet_sessions_screen,
     source_records_from_channel_post,
 )
+from .booklet_sources import source_policy_for_channel
 from .message_frames import frame_error
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
@@ -107,10 +108,16 @@ class BookletAppWorkflows:
         self.api.send(chat_id, screen.text, screen.keyboard)
 
     def _handle_booklet_source_post(self, message: dict) -> None:
-        if self.platform != "telegram" or self.booklet_source_channel_id >= 0:
+        if self.platform != "telegram":
             return
         chat = dict(message.get("chat") or {})
-        if int(chat.get("id") or 0) != self.booklet_source_channel_id:
+        source_chat_id = int(chat.get("id") or 0)
+        policy = source_policy_for_channel(
+            source_chat_id,
+            booklet_source_channel_id=self.booklet_source_channel_id,
+            power_source_channel_id=self.power_source_channel_id,
+        )
+        if policy is None:
             return
         message_id = int(message.get("message_id") or 0)
         if message_id <= 0:
@@ -120,13 +127,21 @@ class BookletAppWorkflows:
         except SiteApiError as error:
             logging.warning("booklet source catalog refresh skipped code=%s", error.code)
             return
-        records = source_records_from_channel_post(message, catalog)
+        records = source_records_from_channel_post(
+            message,
+            catalog,
+            allowed_kinds=policy.allowed_kinds,
+        )
         count = self.state.replace_protected_media_message(
-            self.booklet_source_channel_id,
+            source_chat_id,
             message_id,
             records,
         )
-        logging.info("booklet source catalog updated routes=%s", count)
+        logging.info(
+            "booklet source catalog updated source=%s routes=%s",
+            policy.role,
+            count,
+        )
 
     def booklet_access_allowed(self, user_id: int, source: dict) -> bool:
         """Fresh entitlement check for every protected-media delivery."""
