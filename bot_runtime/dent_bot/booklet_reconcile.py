@@ -116,3 +116,8 @@ def source_media_field(message: object) -> str:
     if getattr(message, "document", None) is not None:
         return "document"
     return ""
+
+
+def source_requires_reusable_file_id(role: str) -> bool:
+    """Private protected sources need reusable file IDs; public powers do not."""
+    return str(role or "").strip() != "power"
