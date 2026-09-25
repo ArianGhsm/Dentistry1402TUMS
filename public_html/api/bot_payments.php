@@ -201,6 +201,31 @@ function dent_bot_payment_existing_response(array $order): ?array
     ];
 }
 
+/** A pending attempt reserves quota for at most one hour. */
+function dent_bot_payment_pending_reserves_slot(array $order, ?int $nowEpoch = null): bool
+{
+    if ((string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING) !== PAYMENTS_ORDER_STATUS_PENDING) {
+        return false;
+    }
+    $nowEpoch = $nowEpoch ?? time();
+    $expiresAt = trim((string) ($order['expires_at'] ?? ''));
+    if ($expiresAt !== '') {
+        $expiresEpoch = strtotime($expiresAt);
+        if ($expiresEpoch !== false && $expiresEpoch <= $nowEpoch) {
+            return false;
+        }
+    }
+    $startedAt = trim((string) ($order['payment_started_at'] ?? ''));
+    if ($startedAt === '') {
+        $startedAt = trim((string) ($order['created_at'] ?? ''));
+    }
+    $startedEpoch = $startedAt !== '' ? strtotime($startedAt) : false;
+    if ($startedEpoch === false) {
+        return true;
+    }
+    return ($nowEpoch - $startedEpoch) < 3600;
+}
+
 /**
  * Provider launch URLs are short-lived while bot idempotency keys can remain
  * stable for an entire product/session. Reuse fresh pending attempts to keep
@@ -220,15 +245,7 @@ function dent_bot_payment_existing_needs_gateway_retry(array $order, ?int $nowEp
         return false;
     }
 
-    $startedAt = trim((string) ($order['payment_started_at'] ?? ''));
-    if ($startedAt === '') {
-        $startedAt = trim((string) ($order['created_at'] ?? ''));
-    }
-    $startedEpoch = $startedAt !== '' ? strtotime($startedAt) : false;
-    if ($startedEpoch === false) {
-        return false;
-    }
-    return ($nowEpoch ?? time()) - $startedEpoch >= 3600;
+    return !dent_bot_payment_pending_reserves_slot($order, $nowEpoch);
 }
 
 function dent_bot_payment_archive_gateway_start(array $order, array $snapshot): array
@@ -288,11 +305,9 @@ function dent_bot_payment_reservation_state(
         if (!in_array($status, [PAYMENTS_ORDER_STATUS_PENDING, PAYMENTS_ORDER_STATUS_SUCCESS], true)) {
             continue;
         }
-        if ($status === PAYMENTS_ORDER_STATUS_PENDING) {
-            $expiresAt = trim((string) ($existing['expires_at'] ?? ''));
-            if ($expiresAt !== '' && (int) strtotime($expiresAt) <= $nowEpoch) {
-                continue;
-            }
+        if ($status === PAYMENTS_ORDER_STATUS_PENDING
+            && !dent_bot_payment_pending_reserves_slot($existing, $nowEpoch)) {
+            continue;
         }
         $state['reserved']++;
         if (in_array((string) ($existing['user_id'] ?? ''), $identityKeys, true)) {
@@ -622,8 +637,8 @@ function dent_bot_payment_product_states(array $user, array $payload): array
             continue;
         }
         $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
-        if ($status === PAYMENTS_ORDER_STATUS_PENDING && trim((string) ($order['expires_at'] ?? '')) !== ''
-            && (int) strtotime((string) $order['expires_at']) <= time()) {
+        if ($status === PAYMENTS_ORDER_STATUS_PENDING
+            && !dent_bot_payment_pending_reserves_slot($order)) {
             continue;
         }
         if (in_array($status, [PAYMENTS_ORDER_STATUS_SUCCESS, PAYMENTS_ORDER_STATUS_PENDING], true)) {
@@ -649,11 +664,9 @@ function dent_bot_payment_summary_bucket(array $orders, int $since = 0): array
     $result = ['successCount' => 0, 'pendingCount' => 0, 'failedCount' => 0, 'receivedRials' => 0, 'pendingRials' => 0];
     foreach ($orders as $order) {
         $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
-        if ($status === PAYMENTS_ORDER_STATUS_PENDING) {
-            $expiresAt = trim((string) ($order['expires_at'] ?? ''));
-            if ($expiresAt !== '' && (int) strtotime($expiresAt) <= time()) {
-                continue;
-            }
+        if ($status === PAYMENTS_ORDER_STATUS_PENDING
+            && !dent_bot_payment_pending_reserves_slot($order)) {
+            continue;
         }
         $eventAt = $status === PAYMENTS_ORDER_STATUS_SUCCESS
             ? (string) (($order['verified_at'] ?? '') ?: (($order['paid_at'] ?? '') ?: ($order['created_at'] ?? '')))

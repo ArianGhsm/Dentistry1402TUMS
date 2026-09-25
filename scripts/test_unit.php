@@ -299,6 +299,54 @@ unit_assert(
     (int) ($crossIdentityReservation['userReserved'] ?? 0) === 1,
     'Per-user purchase limits survive a generic-profile to canonical-account transition'
 );
+$stalePendingReservation = dent_bot_payment_reservation_state(
+    [[
+        'id' => 10,
+        'user_id' => 'payer-a',
+        'status' => PAYMENTS_ORDER_STATUS_PENDING,
+        'created_at' => '2026-08-29T10:00:00Z',
+        'payment_started_at' => '2026-08-29T10:00:00Z',
+        'expires_at' => '2026-08-30T12:00:00Z',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-stale-pending',
+        ],
+    ]],
+    'offer-ref-1234567890',
+    'payer-a',
+    'request-ref-new-after-stale',
+    $reservationNow === false ? 0 : $reservationNow
+);
+unit_assert(
+    (int) ($stalePendingReservation['reserved'] ?? -1) === 0
+        && (int) ($stalePendingReservation['userReserved'] ?? -1) === 0,
+    'Abandoned pending gateway attempts stop consuming quota after one hour'
+);
+$freshPendingReservation = dent_bot_payment_reservation_state(
+    [[
+        'id' => 11,
+        'user_id' => 'payer-a',
+        'status' => PAYMENTS_ORDER_STATUS_PENDING,
+        'created_at' => '2026-08-29T11:30:00Z',
+        'payment_started_at' => '2026-08-29T11:30:00Z',
+        'expires_at' => '2026-08-30T12:00:00Z',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-fresh-pending',
+        ],
+    ]],
+    'offer-ref-1234567890',
+    'payer-a',
+    'request-ref-new-while-fresh',
+    $reservationNow === false ? 0 : $reservationNow
+);
+unit_assert(
+    (int) ($freshPendingReservation['reserved'] ?? -1) === 1
+        && (int) ($freshPendingReservation['userReserved'] ?? -1) === 1,
+    'Fresh pending gateway attempts still reserve quota'
+);
 $gatewayRetryNow = strtotime('2026-09-25T08:00:00Z') ?: 0;
 $gatewayRetryPending = [
     'status' => PAYMENTS_ORDER_STATUS_PENDING,
