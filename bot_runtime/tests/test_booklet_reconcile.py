@@ -8,6 +8,7 @@ from dent_bot.booklet_reconcile import (
     reconciliation_record,
     should_reconcile,
     source_fingerprint,
+    source_media_field,
 )
 
 
@@ -55,6 +56,22 @@ class BookletReconcileTests(unittest.TestCase):
         ]
         self.assertEqual(album_caption_overrides(ambiguous), {})
 
+
+    def test_source_media_filter_rejects_photo_false_positive(self) -> None:
+        class PhotoMessage:
+            voice = None
+            audio = None
+            document = None
+            photo = object()
+
+        class DocumentMessage:
+            voice = None
+            audio = None
+            document = object()
+            photo = None
+
+        self.assertEqual(source_media_field(PhotoMessage()), "")
+        self.assertEqual(source_media_field(DocumentMessage()), "document")
 
     def test_reconciler_never_uses_user_facing_sync_forward(self) -> None:
         root = __import__("pathlib").Path(__file__).resolve().parents[1]
