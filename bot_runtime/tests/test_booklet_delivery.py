@@ -862,6 +862,74 @@ class BookletDeliveryTests(unittest.TestCase):
         with self.assertRaises(BotApiError):
             bale.send_protected_media(20, source)
 
+    def test_pdf_power_uses_direct_protected_source_copy_without_watermark(self) -> None:
+        class PowerApi:
+            def __init__(self) -> None:
+                self.copies = []
+                self.sent = []
+
+            def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption=""):
+                self.copies.append({
+                    "chatId": chat_id,
+                    "sourceChatId": int(source.get("sourceChatId") or 0),
+                    "sourceMessageId": int(source.get("sourceMessageId") or 0),
+                    "personalizedFileId": personalized_file_id,
+                    "caption": caption,
+                })
+                return {"message_id": 777}
+
+            def send(self, chat_id, text, keyboard):
+                self.sent.append((chat_id, text, keyboard))
+                return {"message_id": 778}
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            dispatcher = None
+            try:
+                state.replace_protected_media_message(POWER_SOURCE_CHAT_ID, 3016, [{
+                    "contentKind": "power",
+                    "courseCode": "diagnostic-dentistry-3",
+                    "courseName": "دندانپزشکی تشخیصی ۳",
+                    "courseTag": "تشخیصی۳",
+                    "term": 7,
+                    "sessionNo": 2,
+                    "telegramMethod": "sendDocument",
+                    "fileId": "packed-but-not-bot-reusable",
+                    "fileUniqueId": "",
+                    "fileName": "تشخیصی ۳ ۱۴۰۵.pdf",
+                    "mimeType": "application/pdf",
+                    "caption": "📒 پاور جلسات دوم و سوم دندانپزشکی تشخیصی ۳",
+                }])
+                source_id = int(state.protected_media_for(
+                    course_code="diagnostic-dentistry-3",
+                    term=7,
+                    session_no=2,
+                    content_kind="power",
+                )[0]["id"])
+                api = PowerApi()
+                dispatcher = ProtectedMediaDispatcher(
+                    api=api,
+                    state=state,
+                    authorize=lambda _user, _source: True,
+                    temp_root=Path(directory) / "jobs",
+                    workers=1,
+                    max_queue=4,
+                )
+                self.assertEqual(dispatcher.enqueue(20, source_id), "queued")
+                dispatcher.queue.join()
+                self.assertEqual(len(api.copies), 1)
+                self.assertEqual(api.copies[0]["sourceChatId"], POWER_SOURCE_CHAT_ID)
+                self.assertEqual(api.copies[0]["sourceMessageId"], 3016)
+                self.assertEqual(api.copies[0]["personalizedFileId"], "")
+                self.assertEqual(api.copies[0]["caption"], "")
+                delivery = state.latest_protected_media_delivery(20, source_id)
+                self.assertIsNotNone(delivery)
+                self.assertEqual(delivery["status"], "sent")
+            finally:
+                if dispatcher is not None:
+                    dispatcher.close()
+                state.close()
+
     def test_initial_personalized_upload_sets_multipart_protect_content(self) -> None:
         class MultipartTransport:
             def post_multipart_file(self, path, **kwargs):

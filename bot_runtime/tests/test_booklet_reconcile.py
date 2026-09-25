@@ -9,6 +9,7 @@ from dent_bot.booklet_reconcile import (
     should_reconcile,
     source_fingerprint,
     source_media_field,
+    source_requires_reusable_file_id,
 )
 
 
@@ -72,6 +73,8 @@ class BookletReconcileTests(unittest.TestCase):
 
         self.assertEqual(source_media_field(PhotoMessage()), "")
         self.assertEqual(source_media_field(DocumentMessage()), "document")
+        self.assertFalse(source_requires_reusable_file_id("power"))
+        self.assertTrue(source_requires_reusable_file_id("private"))
 
     def test_reconciler_never_uses_user_facing_sync_forward(self) -> None:
         root = __import__("pathlib").Path(__file__).resolve().parents[1]

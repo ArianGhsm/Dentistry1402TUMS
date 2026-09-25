@@ -33,6 +33,7 @@ def _error(message: str) -> str:
 
 
 _BOOKLET_CAPTION_KINDS = frozenset({"booklet", "ai_booklet"})
+_DIRECT_SOURCE_COPY_KINDS = frozenset({"power"})
 _TELEGRAM_CAPTION_SOURCE_BUDGET = 900
 
 
@@ -404,12 +405,17 @@ class ProtectedMediaDispatcher:
                         {"inline_keyboard": [[{"text": "🏠 منوی اصلی", "callback_data": "v1:home"}]]},
                     )
                     continue
-                if self._is_pdf(source):
+                kind = str(source.get("contentKind") or "").strip()
+                if kind in _DIRECT_SOURCE_COPY_KINDS:
+                    if not self.authorize(job.user_id, source):
+                        raise PermissionError("Booklet entitlement was revoked before media delivery")
+                    result = self.api.send_protected_media(job.user_id, source)
+                elif self._is_pdf(source):
                     result = self._send_pdf(job, source)
                 else:
                     if not self.authorize(job.user_id, source):
                         raise PermissionError("Booklet entitlement was revoked before media delivery")
-                    if str(source.get("contentKind") or "") in _BOOKLET_CAPTION_KINDS:
+                    if kind in _BOOKLET_CAPTION_KINDS:
                         result = self.api.send_protected_media(
                             job.user_id,
                             source,

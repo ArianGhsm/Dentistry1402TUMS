@@ -30,6 +30,7 @@ from dent_bot.booklet_reconcile import (  # noqa: E402
     should_reconcile,
     source_fingerprint,
     source_media_field,
+    source_requires_reusable_file_id,
 )
 import telegram_cli  # noqa: E402
 from telethon import utils as telethon_utils  # noqa: E402
@@ -132,9 +133,10 @@ def register_message(
     *,
     source_chat_id: int,
     caption: str,
+    require_file_id: bool = True,
 ) -> tuple[str, str]:
     file_id = str(row.get("fileId") or "")
-    if not file_id:
+    if require_file_id and not file_id:
         return "failed", "MTProto media did not expose a Bot API-compatible file_id"
     env = os.environ.copy()
     env.update(bot_env)
@@ -256,6 +258,7 @@ async def main() -> int:
                     row,
                     source_chat_id=source_chat_id,
                     caption=effective_text,
+                    require_file_id=source_requires_reusable_file_id(role),
                 )
                 if role == "power" and status == "unrouted":
                     status = "routed"
