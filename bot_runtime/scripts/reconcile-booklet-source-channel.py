@@ -163,7 +163,28 @@ def register_message(
     )
     output = (completed.stdout or completed.stderr or "").strip()
     if completed.returncode == 0:
-        return "routed", output
+        if not require_file_id:
+            return "routed", output
+        hydrated = subprocess.run(
+            [
+                "runuser", "-u", "dentbot", "--preserve-environment", "--",
+                "/opt/integrated-dent/telegram-venv/bin/python",
+                "-m", "dent_bot.booklet_source_admin",
+                "hydrate-existing",
+                "--source-channel-id", str(int(source_chat_id)),
+                "--message-id", str(int(row["messageId"])),
+            ],
+            cwd=str(CURRENT_RELEASE),
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=90,
+        )
+        hydrated_output = (hydrated.stdout or hydrated.stderr or "").strip()
+        if hydrated.returncode == 0:
+            return "routed", hydrated_output or output
+        return "failed", hydrated_output or "Bot API source hydration failed"
     if completed.returncode == 2:
         return "unrouted", output
     return "failed", output

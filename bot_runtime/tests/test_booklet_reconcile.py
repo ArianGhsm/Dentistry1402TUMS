@@ -76,11 +76,13 @@ class BookletReconcileTests(unittest.TestCase):
         self.assertFalse(source_requires_reusable_file_id("power"))
         self.assertTrue(source_requires_reusable_file_id("private"))
 
-    def test_reconciler_never_uses_user_facing_sync_forward(self) -> None:
+    def test_reconciler_hydrates_private_sources_with_bot_valid_file_ids(self) -> None:
         root = __import__("pathlib").Path(__file__).resolve().parents[1]
         worker = (root / "scripts" / "reconcile-booklet-source-channel.py").read_text(encoding="utf-8")
         hook = (root / "scripts" / "dent1402-booklet-post-write-hook.sh").read_text(encoding="utf-8")
         self.assertIn("register-metadata", worker)
+        self.assertIn("hydrate-existing", worker)
+        self.assertIn("source_requires_reusable_file_id", worker)
         self.assertIn("DENT_BOT_POWER_SOURCE_CHANNEL_ID", worker)
         self.assertIn("--source-channel-id", worker)
         self.assertNotIn("sync-existing", worker)
