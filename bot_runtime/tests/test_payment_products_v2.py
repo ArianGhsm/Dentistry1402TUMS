@@ -216,8 +216,9 @@ class PaymentProductsV2Tests(unittest.TestCase):
             api = ApiStub()
             try:
                 app = DentBotApp(api, state, owner_id=1, site_url="https://example.test", site_api=SiteStub())
+                offers_before = {item["ref"] for item in state.payment_offers()}
                 app.handle({"message": {"text": "/product 250000 آزمون جامع", "from": {"id": 1}, "chat": {"id": 1, "type": "private"}}})
-                self.assertEqual(state.payment_offers(), [])
+                self.assertEqual({item["ref"] for item in state.payment_offers()}, offers_before)
                 dialog = state.dialog(1)
                 self.assertEqual(dialog["step"], "audience")
                 self.assertEqual(dialog["payload"]["amountRials"], 2_500_000)

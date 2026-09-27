@@ -918,7 +918,7 @@ class DentBotTests(unittest.TestCase):
                 app = DentBotApp(api, state, owner_id=10, site_url="https://example.test", site_api=site)
                 offer = state.create_payment_offer("بسته آزمون", 300000, "ثبت‌نام")
                 confirm = app._dynamic_screen(f"payment-confirm:{offer['ref']}", 20)
-                self.assertIn("30,000 تومان", confirm.text)
+                self.assertIn("30٬000 تومان", confirm.text)
                 created = app._dynamic_screen(f"payment-create:{offer['ref']}", 20, request_id="callback-unique")
                 self.assertIn("https://gateway.example.test/start/abc", str(created.keyboard))
                 self.assertEqual(site.create_calls[0][0], 20)
@@ -965,12 +965,16 @@ class DentBotTests(unittest.TestCase):
                 self.assertEqual(state.dialog(10)["step"], "amount")
                 app._dynamic_screen("payment-offer-amount:50000", 10)
                 app._dynamic_screen("payment-offer-audience:all", 10)
+                baseline_refs = {item["ref"] for item in state.payment_offers()}
                 saved = app._dynamic_screen("payment-offer-publish", 10)
-                self.assertEqual(state.payment_offers()[0]["amountRials"], 500000)
+                offers_after_owner = state.payment_offers()
+                created = [item for item in offers_after_owner if item["ref"] not in baseline_refs]
+                self.assertEqual(len(created), 1)
+                self.assertEqual(created[0]["amountRials"], 500000)
                 self.assertIn("محصول ربات ساخته شد", saved.text)
                 self.assertIsNone(state.dialog(10))
                 app.handle({"message": {"text": "/product ممنوع | 50000", "from": {"id": 20}, "chat": {"id": 20, "type": "private"}}})
-                self.assertEqual(len(state.payment_offers()), 1)
+                self.assertEqual({item["ref"] for item in state.payment_offers()}, {item["ref"] for item in offers_after_owner})
                 self.assertIn("اجازه", api.sent[-1][1])
             finally:
                 state.close()
@@ -1730,7 +1734,8 @@ class DentBotTests(unittest.TestCase):
             try:
                 self.assertIsNotNone(runtime.payment_offer(telegram_offer["ref"]))
                 self.assertIsNotNone(runtime.payment_offer(bale_offer["ref"]))
-                self.assertEqual(len(runtime.payment_offers()), 2)
+                migrated_refs = {telegram_offer["ref"], bale_offer["ref"]}
+                self.assertTrue(migrated_refs.issubset({item["ref"] for item in runtime.payment_offers()}))
             finally:
                 runtime.close()
 

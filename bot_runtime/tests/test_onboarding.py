@@ -672,10 +672,11 @@ class OnboardingTests(unittest.TestCase):
                 app.handle(message(20, START_GENERIC))
                 self.assertEqual(state.dialog(20)["kind"], "class-auth-v1")
                 self.assertIn("یکی از دو روش احراز هویت", api.sent[-1][1])
+                offers_before = {item["ref"] for item in state.payment_offers()}
                 app.handle(message(10, "/product"))
                 self.assertIn("اتصال حساب کلاس کامل نیست", api.sent[-1][1])
                 self.assertEqual(state.dialog(10)["kind"], "class-auth-v1")
-                self.assertEqual(state.payment_offers(), [])
+                self.assertEqual({item["ref"] for item in state.payment_offers()}, offers_before)
             finally:
                 state.close()
 
@@ -730,9 +731,10 @@ class OnboardingTests(unittest.TestCase):
             state.start_dialog(10, "payment-offer", "title", {})
             app = DentBotApp(api, state, owner_id=10, site_url="https://example.test", site_api=GenericSite())
             try:
+                offers_before = {item["ref"] for item in state.payment_offers()}
                 app.handle(message(10, "محصول نباید ساخته شود"))
                 self.assertEqual(state.dialog(10)["step"], "title")
-                self.assertEqual(state.payment_offers(), [])
+                self.assertEqual({item["ref"] for item in state.payment_offers()}, offers_before)
                 self.assertIn("مشخصات تأییدشده", api.sent[-1][1])
             finally:
                 state.close()
