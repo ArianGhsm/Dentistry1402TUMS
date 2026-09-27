@@ -17,7 +17,8 @@ from .subscriptions import (
     billing_period_for, policy_is_effective, subscription_identity_from_account, utc_iso,
 )
 from .ui import (
-    Screen, account_screen, bot_start_url, button, complimentary_access_list_screen,
+    Screen, account_screen, ai_booklet_sales_screen, booklet_sales_overview_screen,
+    booklet_subscription_sales_screen, bot_start_url, button, complimentary_access_list_screen,
     exam_screen, format_rials, grades_screen, identity_mapping_remove_confirmation,
     identity_mapping_remove_screen, integration_challenge_waiting_screen, keyboard,
     navid_screen, notification_audience_screen, notification_detail_screen,
@@ -25,6 +26,7 @@ from .ui import (
     owner_payment_offers_screen, payment_confirm_screen, payment_control_center_screen,
     payment_created_screen, payment_offer_admin_detail_screen,
     payment_offer_delete_confirmation, payment_offer_preview_screen,
+    payment_phone_required_screen, phone_enrollment_start_screen,
     payment_offer_saved_screen, payment_offer_wizard_screen, payment_offers_screen,
     payment_people_screen, payment_product_report_screen, payment_status_screen,
     payment_transaction_detail_screen, payment_transaction_filters_screen,
@@ -55,6 +57,22 @@ class DynamicScreenWorkflows:
             return blocked
         if name == "admin-grades" and user_id == self.owner_id:
             return owner_grade_screen(self.site_url)
+        if name == "phone-enroll":
+            account = self._account_snapshot(user_id, refresh=True)
+            if not account.get("linked") or not account.get("authComplete"):
+                return account_screen(self.site_url, platform=self.platform)
+            self.state.start_dialog(user_id, "phone-enroll-v1", "phone", {})
+            return phone_enrollment_start_screen()
+        if name == "phone-enroll-cancel":
+            self.state.clear_dialog(user_id)
+            account = self._account_snapshot(user_id, refresh=True)
+            return account_screen(
+                self.site_url,
+                platform=self.platform,
+                linked_user=dict(account.get("user") or {}) if account.get("linked") else None,
+                onboarding_profile=dict(account.get("onboardingProfile") or {}),
+                booklet_profile=dict(account.get("bookletProfile") or {}),
+            )
         if name in {"term-subscription", "term-subscription:7"} or name.startswith("term-subscription-info:"):
             term = int(name.rsplit(":", 1)[1]) if ":" in name and name.rsplit(":", 1)[1].isdigit() else 7
             policy = self.state.term_access_policy(term)
@@ -111,6 +129,8 @@ class DynamicScreenWorkflows:
                     result, platform=self.platform, return_to_bot_enabled=self.payment_return_v1_enabled
                 )
             except (SiteApiError, TypeError, ValueError) as error:
+                if isinstance(error, SiteApiError) and error.code == "PAYMENT_PHONE_REQUIRED":
+                    return payment_phone_required_screen()
                 return Screen(frame_error(str(error)), term_subscription_screen(policy, decision, term=term).keyboard)
         if name == "term-access-policies" and user_id == self.owner_id:
             return term_access_policies_screen(self.state.term_access_policies())
@@ -207,6 +227,19 @@ class DynamicScreenWorkflows:
             except SiteApiError as error:
                 return Screen(frame_error(str(error)), self._screen("home", user_id).keyboard)
             return payment_offers_screen(offers, states=states, page=page)
+        if name in {"booklet-sales", "booklet-sales-ai", "booklet-sales-subscriptions"} and user_id == self.owner_id:
+            report = self.state.booklet_sales_report(7)
+            catalog = {}
+            if name != "booklet-sales-subscriptions":
+                try:
+                    catalog = self._booklet_catalog(user_id)
+                except SiteApiError:
+                    catalog = {}
+            if name == "booklet-sales-ai":
+                return ai_booklet_sales_screen(report, catalog)
+            if name == "booklet-sales-subscriptions":
+                return booklet_subscription_sales_screen(report)
+            return booklet_sales_overview_screen(report, catalog)
         if name == "admin-payments" and user_id == self.owner_id:
             summary = {}
             if self.site_api is not None and hasattr(self.site_api, "payment_owner_dashboard"):
@@ -720,6 +753,8 @@ class DynamicScreenWorkflows:
             except SiteApiError as error:
                 if error.code == "ACCOUNT_LINK_REQUIRED":
                     return account_screen(self.site_url, platform=self.platform)
+                if error.code == "PAYMENT_PHONE_REQUIRED":
+                    return payment_phone_required_screen()
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
         if name == "exam-owner" and self.exams_v1_enabled:
             if user_id != self.owner_id:
@@ -1015,6 +1050,8 @@ class DynamicScreenWorkflows:
             except SiteApiError as error:
                 if error.code == "ACCOUNT_LINK_REQUIRED":
                     return account_screen(self.site_url, platform=self.platform)
+                if error.code == "PAYMENT_PHONE_REQUIRED":
+                    return payment_phone_required_screen()
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
         if name.startswith("payment-status:"):
             order_token = name.split(":", 1)[1]

@@ -8,6 +8,8 @@ from dent_bot.booklet_reconcile import (
     reconciliation_record,
     should_reconcile,
     source_fingerprint,
+    source_media_field,
+    source_requires_reusable_file_id,
 )
 
 
@@ -56,14 +58,35 @@ class BookletReconcileTests(unittest.TestCase):
         self.assertEqual(album_caption_overrides(ambiguous), {})
 
 
+    def test_source_media_filter_rejects_photo_false_positive(self) -> None:
+        class PhotoMessage:
+            voice = None
+            audio = None
+            document = None
+            photo = object()
+
+        class DocumentMessage:
+            voice = None
+            audio = None
+            document = object()
+            photo = None
+
+        self.assertEqual(source_media_field(PhotoMessage()), "")
+        self.assertEqual(source_media_field(DocumentMessage()), "document")
+        self.assertFalse(source_requires_reusable_file_id("power"))
+        self.assertTrue(source_requires_reusable_file_id("private"))
+
     def test_reconciler_never_uses_user_facing_sync_forward(self) -> None:
         root = __import__("pathlib").Path(__file__).resolve().parents[1]
         worker = (root / "scripts" / "reconcile-booklet-source-channel.py").read_text(encoding="utf-8")
         hook = (root / "scripts" / "dent1402-booklet-post-write-hook.sh").read_text(encoding="utf-8")
         self.assertIn("register-metadata", worker)
+        self.assertIn("DENT_BOT_POWER_SOURCE_CHANNEL_ID", worker)
+        self.assertIn("--source-channel-id", worker)
         self.assertNotIn("sync-existing", worker)
         self.assertNotIn("forwardMessage", worker)
         self.assertIn("integrated-dent-booklet-source-reconcile.service", hook)
+        self.assertIn("DENT_BOT_POWER_SOURCE_CHANNEL_ID", hook)
         self.assertNotIn("sync-existing", hook)
 
     def test_routed_media_is_stable_until_source_changes(self) -> None:

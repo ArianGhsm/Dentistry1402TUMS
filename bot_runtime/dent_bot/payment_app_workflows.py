@@ -94,9 +94,44 @@ class PaymentAppWorkflows:
     def _activate_subscription_from_payment_status(
         self, user_id: int, order_token: str, payload: dict
     ) -> dict:
-        """Use only a canonical verified website status; a browser return flag is never sufficient."""
+        """Activate only from canonical provider-verified website state."""
+        if str(payload.get("status") or "") != "success":
+            return payload
+
+        ai_checkout = self.state.ai_booklet_checkout_by_order(order_token)
+        if ai_checkout is not None:
+            if (
+                str(ai_checkout.get("platform") or "") != self.platform
+                or int(ai_checkout.get("platformUserId") or 0) != int(user_id)
+                or not str(payload.get("verifiedAt") or "").strip()
+                or int(payload.get("amountRials") or 0) != int(ai_checkout.get("amountRials") or -1)
+            ):
+                return payload
+            proof_id = "status-" + hashlib.sha256(order_token.encode("ascii")).hexdigest()[:48]
+            try:
+                entitlement = self.state.activate_paid_ai_booklet(
+                    order_token=order_token,
+                    delivery_id=proof_id,
+                    platform=self.platform,
+                    platform_user_id=user_id,
+                    amount_rials=int(payload["amountRials"]),
+                    verified_at=str(payload["verifiedAt"]),
+                    payment_order_ref=str(payload.get("orderId") or payload.get("trackingRef") or ""),
+                )
+            except (TypeError, ValueError, RuntimeError):
+                return payload
+            result = dict(payload)
+            result["fulfillment"] = {
+                "text": "دسترسی جزوه هوش مصنوعی همین جلسه فعال شد.",
+                "action": (
+                    f"booklet-ai-get:{entitlement.get('courseCode')}:"
+                    f"{int(entitlement.get('sessionNo') or 0)}"
+                ),
+            }
+            return result
+
         checkout = self.state.term_subscription_checkout_by_order(order_token)
-        if checkout is None or str(payload.get("status") or "") != "success":
+        if checkout is None:
             return payload
         if (
             str(checkout.get("platform") or "") != self.platform

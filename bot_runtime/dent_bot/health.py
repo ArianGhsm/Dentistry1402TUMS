@@ -62,8 +62,31 @@ def check_runtime(*, settings, api, expected_username: str, require_commands: bo
         expected_source_title = str(getattr(settings, "booklet_source_channel_title", "") or "")
         booklet_source_title = not expected_source_title or str(source_chat.get("title") or "") == expected_source_title
         booklet_source_ok = booklet_source_admin is True and booklet_source_title is True
+
+    power_source_id = int(getattr(settings, "power_source_channel_id", 0) or 0)
+    power_source_admin: bool | str = "not-required"
+    power_source_title: bool | str = "not-required"
+    power_source_ok = True
+    if power_source_id < 0:
+        source_chat = dict(api.call("getChat", {"chat_id": power_source_id}) or {})
+        source_member = dict(api.call(
+            "getChatMember",
+            {"chat_id": power_source_id, "user_id": int(me.get("id") or 0)},
+        ) or {})
+        power_source_admin = str(source_member.get("status") or "") in {"creator", "administrator"}
+        expected_source_title = str(getattr(settings, "power_source_channel_title", "") or "")
+        power_source_title = not expected_source_title or str(source_chat.get("title") or "") == expected_source_title
+        power_source_ok = power_source_admin is True and power_source_title is True
     return {
-        "ready": username_ok and commands_ok and state_ok and payment_offers_ok and required_channel_ok and booklet_source_ok,
+        "ready": (
+            username_ok
+            and commands_ok
+            and state_ok
+            and payment_offers_ok
+            and required_channel_ok
+            and booklet_source_ok
+            and power_source_ok
+        ),
         "bot_identity": username_ok,
         "persian_commands": len(commands) if require_commands else "not-required",
         "expected_commands": commands_ok,
@@ -73,6 +96,8 @@ def check_runtime(*, settings, api, expected_username: str, require_commands: bo
         "required_channel_admin": required_channel_admin,
         "booklet_source_admin": booklet_source_admin,
         "booklet_source_title": booklet_source_title,
+        "power_source_admin": power_source_admin,
+        "power_source_title": power_source_title,
     }
 
 

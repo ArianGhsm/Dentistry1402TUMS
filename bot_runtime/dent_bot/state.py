@@ -9,6 +9,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .ai_booklets import AI_BOOKLET_PRICE_RIALS, ai_booklet_offer_ref
 from .payments import effective_status, iso_utc, normalize_audience, normalize_student_number, product_eligibility
 from .subscriptions import (
     DEFAULT_ACTIVE_FROM_JALALI,
@@ -148,6 +149,54 @@ CREATE TABLE IF NOT EXISTS term_subscription_checkouts (
 );
 CREATE INDEX IF NOT EXISTS idx_term_checkout_subject
     ON term_subscription_checkouts(subject_key, term, billing_period, status);
+CREATE TABLE IF NOT EXISTS ai_booklet_checkouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    request_id TEXT NOT NULL UNIQUE,
+    platform TEXT NOT NULL,
+    platform_user_id INTEGER NOT NULL,
+    subject_key TEXT NOT NULL,
+    student_number TEXT NOT NULL DEFAULT '',
+    display_name TEXT NOT NULL DEFAULT '',
+    term INTEGER NOT NULL CHECK(term BETWEEN 1 AND 12),
+    course_code TEXT NOT NULL,
+    course_tag TEXT NOT NULL DEFAULT '',
+    session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),
+    amount_rials INTEGER NOT NULL CHECK(amount_rials >= 10000),
+    offer_ref TEXT NOT NULL,
+    offer_version INTEGER NOT NULL DEFAULT 1,
+    status TEXT NOT NULL DEFAULT 'created' CHECK(status IN ('created','bound','activated','failed')),
+    order_token TEXT NOT NULL DEFAULT '',
+    verified_delivery_id TEXT NOT NULL DEFAULT '',
+    verified_at TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(platform, platform_user_id, term, course_code, session_no)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_booklet_checkout_order
+    ON ai_booklet_checkouts(order_token) WHERE order_token!='';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_booklet_checkout_delivery
+    ON ai_booklet_checkouts(verified_delivery_id) WHERE verified_delivery_id!='';
+CREATE INDEX IF NOT EXISTS idx_ai_booklet_checkout_subject
+    ON ai_booklet_checkouts(subject_key, term, course_code, session_no, status);
+CREATE TABLE IF NOT EXISTS ai_booklet_entitlements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_key TEXT NOT NULL,
+    student_number TEXT NOT NULL DEFAULT '',
+    display_name TEXT NOT NULL DEFAULT '',
+    term INTEGER NOT NULL CHECK(term BETWEEN 1 AND 12),
+    course_code TEXT NOT NULL,
+    course_tag TEXT NOT NULL DEFAULT '',
+    session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),
+    amount_rials INTEGER NOT NULL CHECK(amount_rials >= 10000),
+    granted_at TEXT NOT NULL,
+    payment_order_token TEXT NOT NULL UNIQUE,
+    payment_order_ref TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(subject_key, term, course_code, session_no)
+);
+CREATE INDEX IF NOT EXISTS idx_ai_booklet_entitlement_access
+    ON ai_booklet_entitlements(subject_key, term, course_code, session_no);
 CREATE TABLE IF NOT EXISTS term_access_audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     action TEXT NOT NULL,
@@ -177,6 +226,27 @@ CREATE TABLE IF NOT EXISTS term_subscription_renewal_notices (
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(term, billing_period, platform, platform_user_id)
 );
+CREATE TABLE IF NOT EXISTS daily_content_digests (
+    digest_date TEXT PRIMARY KEY,
+    payload_json TEXT NOT NULL,
+    window_start TEXT NOT NULL,
+    window_end TEXT NOT NULL,
+    source_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS daily_content_digest_deliveries (
+    digest_date TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    platform_user_id INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','sent','failed')),
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT NOT NULL DEFAULT '',
+    sent_at TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(digest_date, platform, platform_user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_daily_content_digest_delivery_status
+    ON daily_content_digest_deliveries(digest_date, platform, status);
 """
 
 PAYMENT_OFFER_COLUMNS = (
@@ -234,6 +304,64 @@ def _migrate_payment_schema(connection: sqlite3.Connection) -> None:
         raise
     connection.executescript(PAYMENT_OFFERS_SCHEMA)
     connection.commit()
+
+
+def _migrate_protected_media_schema(connection: sqlite3.Connection) -> None:
+    row = connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='protected_media_sources'"
+    ).fetchone()
+    current_sql = str(row[0] or "") if row else ""
+    target_unique = "UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no)"
+    if row is None or ("ai_booklet" in current_sql and target_unique in current_sql):
+        return
+    connection.execute("BEGIN IMMEDIATE")
+    try:
+        connection.execute("DROP INDEX IF EXISTS idx_protected_media_lookup")
+        connection.execute(
+            "ALTER TABLE protected_media_sources RENAME TO protected_media_sources_legacy_routes"
+        )
+        connection.execute(
+            "CREATE TABLE protected_media_sources ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "source_chat_id INTEGER NOT NULL,"
+            "source_message_id INTEGER NOT NULL,"
+            "course_code TEXT NOT NULL,"
+            "course_name TEXT NOT NULL,"
+            "course_tag TEXT NOT NULL,"
+            "term INTEGER NOT NULL CHECK(term BETWEEN 1 AND 12),"
+            "session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),"
+            "content_kind TEXT NOT NULL CHECK(content_kind IN "
+            "('voice','power','booklet','reference','ai_booklet')),"
+            "telegram_method TEXT NOT NULL CHECK(telegram_method IN "
+            "('sendDocument','sendAudio','sendVoice')),"
+            "file_id TEXT NOT NULL DEFAULT '',"
+            "file_unique_id TEXT NOT NULL DEFAULT '',"
+            "file_name TEXT NOT NULL DEFAULT '',"
+            "mime_type TEXT NOT NULL DEFAULT '',"
+            "caption TEXT NOT NULL DEFAULT '',"
+            "active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)),"
+            "created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            "updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            "UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no))"
+        )
+        connection.execute(
+            "INSERT INTO protected_media_sources("
+            "id,source_chat_id,source_message_id,course_code,course_name,course_tag,term,session_no,"
+            "content_kind,telegram_method,file_id,file_unique_id,file_name,mime_type,caption,active,"
+            "created_at,updated_at) "
+            "SELECT id,source_chat_id,source_message_id,course_code,course_name,course_tag,term,session_no,"
+            "content_kind,telegram_method,file_id,file_unique_id,file_name,mime_type,caption,active,"
+            "created_at,updated_at FROM protected_media_sources_legacy_routes"
+        )
+        connection.execute("DROP TABLE protected_media_sources_legacy_routes")
+        connection.execute(
+            "CREATE INDEX idx_protected_media_lookup "
+            "ON protected_media_sources(course_code, term, session_no, content_kind, active)"
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
 
 
 class BotState:
@@ -302,7 +430,7 @@ class BotState:
                 course_tag TEXT NOT NULL,
                 term INTEGER NOT NULL CHECK(term BETWEEN 1 AND 12),
                 session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),
-                content_kind TEXT NOT NULL CHECK(content_kind IN ('voice','power','booklet','reference')),
+                content_kind TEXT NOT NULL CHECK(content_kind IN ('voice','power','booklet','reference','ai_booklet')),
                 telegram_method TEXT NOT NULL CHECK(telegram_method IN ('sendDocument','sendAudio','sendVoice')),
                 file_id TEXT NOT NULL DEFAULT '',
                 file_unique_id TEXT NOT NULL DEFAULT '',
@@ -312,7 +440,7 @@ class BotState:
                 active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)),
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(source_chat_id, source_message_id, content_kind)
+                UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no)
             );
             CREATE INDEX IF NOT EXISTS idx_protected_media_lookup
                 ON protected_media_sources(course_code, term, session_no, content_kind, active);
@@ -366,6 +494,7 @@ class BotState:
             """
         )
         self.connection.commit()
+        _migrate_protected_media_schema(self.connection)
         _migrate_payment_schema(self.connection)
         self._payment_connection_owned = payment_offers_path is not None and payment_offers_path != path
         if self._payment_connection_owned:
@@ -480,6 +609,32 @@ class BotState:
             "status": str(row[12]), "orderToken": str(row[13]),
             "verifiedDeliveryId": str(row[14]), "verifiedAt": str(row[15]),
             "createdAt": str(row[16]), "updatedAt": str(row[17]),
+        }
+
+    @staticmethod
+    def _ai_booklet_checkout_payload(row: tuple | None) -> dict | None:
+        if row is None:
+            return None
+        return {
+            "id": int(row[0]), "requestId": str(row[1]), "platform": str(row[2]),
+            "platformUserId": int(row[3]), "subjectKey": str(row[4]), "studentNumber": str(row[5]),
+            "displayName": str(row[6]), "term": int(row[7]), "courseCode": str(row[8]),
+            "courseTag": str(row[9]), "sessionNo": int(row[10]), "amountRials": int(row[11]),
+            "offerRef": str(row[12]), "offerVersion": int(row[13]), "status": str(row[14]),
+            "orderToken": str(row[15]), "verifiedDeliveryId": str(row[16]),
+            "verifiedAt": str(row[17]), "createdAt": str(row[18]), "updatedAt": str(row[19]),
+        }
+
+    @staticmethod
+    def _ai_booklet_entitlement_payload(row: tuple | None) -> dict | None:
+        if row is None:
+            return None
+        return {
+            "id": int(row[0]), "subjectKey": str(row[1]), "studentNumber": str(row[2]),
+            "displayName": str(row[3]), "term": int(row[4]), "courseCode": str(row[5]),
+            "courseTag": str(row[6]), "sessionNo": int(row[7]), "amountRials": int(row[8]),
+            "grantedAt": str(row[9]), "paymentOrderToken": str(row[10]),
+            "paymentOrderRef": str(row[11]), "createdAt": str(row[12]), "updatedAt": str(row[13]),
         }
 
     def _term_access_audit(
@@ -814,6 +969,232 @@ class BotState:
                     )
                 self.payment_connection.commit()
                 return payload
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def begin_ai_booklet_checkout(
+        self,
+        *,
+        request_id: str,
+        platform: str,
+        platform_user_id: int,
+        subject_key: str,
+        student_number: str,
+        display_name: str,
+        term: int,
+        course_code: str,
+        course_tag: str,
+        session_no: int,
+        amount_rials: int,
+        offer_ref: str,
+        offer_version: int = 1,
+    ) -> dict:
+        term_value = int(term)
+        session_value = int(session_no)
+        course = str(course_code or "").strip()
+        expected_offer = ai_booklet_offer_ref(term_value, course, session_value)
+        if (
+            not 1 <= term_value <= 12
+            or not 1 <= session_value <= 40
+            or not course
+            or not str(subject_key or "").strip()
+            or int(platform_user_id) <= 0
+            or int(amount_rials) != AI_BOOKLET_PRICE_RIALS
+            or str(offer_ref) != expected_offer
+        ):
+            raise ValueError("Invalid AI booklet checkout")
+        request = str(request_id)[:80]
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                self.payment_connection.execute(
+                    "INSERT OR IGNORE INTO ai_booklet_checkouts("
+                    "request_id,platform,platform_user_id,subject_key,student_number,display_name,term,"
+                    "course_code,course_tag,session_no,amount_rials,offer_ref,offer_version) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        request, str(platform)[:16], int(platform_user_id), str(subject_key)[:96],
+                        normalize_student_number(student_number), " ".join(str(display_name).split())[:160],
+                        term_value, course[:80], str(course_tag)[:80], session_value,
+                        AI_BOOKLET_PRICE_RIALS, expected_offer, max(1, int(offer_version)),
+                    ),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,request_id,platform,platform_user_id,subject_key,student_number,display_name,"
+                    "term,course_code,course_tag,session_no,amount_rials,offer_ref,offer_version,status,"
+                    "order_token,verified_delivery_id,verified_at,created_at,updated_at "
+                    "FROM ai_booklet_checkouts WHERE platform=? AND platform_user_id=? AND term=? "
+                    "AND course_code=? AND session_no=?",
+                    (str(platform)[:16], int(platform_user_id), term_value, course, session_value),
+                ).fetchone()
+                checkout = self._ai_booklet_checkout_payload(row)
+                if (
+                    checkout is None
+                    or checkout["subjectKey"] != str(subject_key)
+                    or checkout["requestId"] != request
+                    or checkout["amountRials"] != AI_BOOKLET_PRICE_RIALS
+                    or checkout["offerRef"] != expected_offer
+                ):
+                    raise ValueError("AI booklet checkout identity conflict")
+                self.payment_connection.commit()
+                return checkout
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def bind_ai_booklet_order(self, request_id: str, order_token: str) -> dict:
+        token = str(order_token).strip()
+        if not re.fullmatch(r"[A-Za-z0-9_-]{20,46}", token):
+            raise ValueError("Invalid AI booklet order token")
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT order_token FROM ai_booklet_checkouts WHERE request_id=?",
+                    (str(request_id),),
+                ).fetchone()
+                if row is None or (str(row[0]) and str(row[0]) != token):
+                    raise ValueError("AI booklet order binding conflict")
+                self.payment_connection.execute(
+                    "UPDATE ai_booklet_checkouts SET order_token=?,"
+                    "status=CASE WHEN status='created' THEN 'bound' ELSE status END,"
+                    "updated_at=CURRENT_TIMESTAMP WHERE request_id=?",
+                    (token, str(request_id)),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,request_id,platform,platform_user_id,subject_key,student_number,display_name,"
+                    "term,course_code,course_tag,session_no,amount_rials,offer_ref,offer_version,status,"
+                    "order_token,verified_delivery_id,verified_at,created_at,updated_at "
+                    "FROM ai_booklet_checkouts WHERE request_id=?",
+                    (str(request_id),),
+                ).fetchone()
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        result = self._ai_booklet_checkout_payload(row)
+        if result is None:
+            raise RuntimeError("AI booklet checkout binding was not persisted")
+        return result
+
+    def ai_booklet_checkout_by_order(self, order_token: str) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,request_id,platform,platform_user_id,subject_key,student_number,display_name,"
+                "term,course_code,course_tag,session_no,amount_rials,offer_ref,offer_version,status,"
+                "order_token,verified_delivery_id,verified_at,created_at,updated_at "
+                "FROM ai_booklet_checkouts WHERE order_token=?",
+                (str(order_token),),
+            ).fetchone()
+        return self._ai_booklet_checkout_payload(row)
+
+    def ai_booklet_entitlement(
+        self,
+        subject_key: str,
+        *,
+        term: int,
+        course_code: str,
+        session_no: int,
+    ) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,subject_key,student_number,display_name,term,course_code,course_tag,session_no,"
+                "amount_rials,granted_at,payment_order_token,payment_order_ref,created_at,updated_at "
+                "FROM ai_booklet_entitlements WHERE subject_key=? AND term=? AND course_code=? AND session_no=?",
+                (str(subject_key), int(term), str(course_code), int(session_no)),
+            ).fetchone()
+        return self._ai_booklet_entitlement_payload(row)
+
+    def has_ai_booklet_access(
+        self,
+        subject_key: str,
+        *,
+        term: int,
+        course_code: str,
+        session_no: int,
+    ) -> bool:
+        return self.ai_booklet_entitlement(
+            subject_key,
+            term=term,
+            course_code=course_code,
+            session_no=session_no,
+        ) is not None
+
+    def activate_paid_ai_booklet(
+        self,
+        *,
+        order_token: str,
+        delivery_id: str,
+        platform: str,
+        platform_user_id: int,
+        amount_rials: int,
+        verified_at: str,
+        payment_order_ref: str = "",
+    ) -> dict:
+        verified = iso_utc(verified_at, allow_empty=False)
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT id,request_id,platform,platform_user_id,subject_key,student_number,display_name,"
+                    "term,course_code,course_tag,session_no,amount_rials,offer_ref,offer_version,status,"
+                    "order_token,verified_delivery_id,verified_at,created_at,updated_at "
+                    "FROM ai_booklet_checkouts WHERE order_token=?",
+                    (str(order_token),),
+                ).fetchone()
+                checkout = self._ai_booklet_checkout_payload(row)
+                if checkout is None:
+                    raise ValueError("AI booklet checkout not found")
+                expected_offer = ai_booklet_offer_ref(
+                    checkout["term"], checkout["courseCode"], checkout["sessionNo"]
+                )
+                if (
+                    checkout["platform"] != str(platform)
+                    or checkout["platformUserId"] != int(platform_user_id)
+                    or checkout["amountRials"] != AI_BOOKLET_PRICE_RIALS
+                    or int(amount_rials) != AI_BOOKLET_PRICE_RIALS
+                    or checkout["offerRef"] != expected_offer
+                    or (
+                        checkout["verifiedDeliveryId"]
+                        and checkout["verifiedDeliveryId"] != str(delivery_id)
+                        and checkout["status"] != "activated"
+                    )
+                ):
+                    raise ValueError("AI booklet payment snapshot mismatch")
+                self.payment_connection.execute(
+                    "INSERT OR IGNORE INTO ai_booklet_entitlements("
+                    "subject_key,student_number,display_name,term,course_code,course_tag,session_no,"
+                    "amount_rials,granted_at,payment_order_token,payment_order_ref) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        checkout["subjectKey"], checkout["studentNumber"], checkout["displayName"],
+                        checkout["term"], checkout["courseCode"], checkout["courseTag"],
+                        checkout["sessionNo"], AI_BOOKLET_PRICE_RIALS, verified, str(order_token),
+                        str(payment_order_ref)[:80],
+                    ),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,course_code,course_tag,session_no,"
+                    "amount_rials,granted_at,payment_order_token,payment_order_ref,created_at,updated_at "
+                    "FROM ai_booklet_entitlements WHERE subject_key=? AND term=? AND course_code=? "
+                    "AND session_no=?",
+                    (
+                        checkout["subjectKey"], checkout["term"], checkout["courseCode"],
+                        checkout["sessionNo"],
+                    ),
+                ).fetchone()
+                entitlement = self._ai_booklet_entitlement_payload(row)
+                if entitlement is None:
+                    raise RuntimeError("AI booklet entitlement was not persisted")
+                self.payment_connection.execute(
+                    "UPDATE ai_booklet_checkouts SET status='activated',"
+                    "verified_delivery_id=CASE WHEN verified_delivery_id='' THEN ? ELSE verified_delivery_id END,"
+                    "verified_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    (str(delivery_id)[:100], verified, checkout["id"]),
+                )
+                self.payment_connection.commit()
+                return entitlement
             except Exception:
                 self.payment_connection.rollback()
                 raise
@@ -1287,6 +1668,102 @@ class BotState:
             "unpaidPreviousSubscribers": len(previous_subjects - paid_subjects - complimentary_subjects),
             "renewalRate": (renewed / len(previous_subjects)) if previous_subjects else 0.0,
             "newSubscribers": first_time, "revokedComplimentary": revoked,
+        }
+
+    def booklet_sales_report(self, term: int = 7, *, now: datetime | None = None) -> dict:
+        current = now or datetime.now(timezone.utc)
+        period = billing_period_for(int(term), current)
+        start = utc_iso(period.starts_at)
+        end = utc_iso(period.expires_at)
+        with self._lock:
+            ai_total = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "COUNT(DISTINCT course_code || ':' || session_no) "
+                "FROM ai_booklet_entitlements WHERE term=?",
+                (int(term),),
+            ).fetchone()
+            ai_current = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM ai_booklet_entitlements WHERE term=? AND granted_at>=? AND granted_at<?",
+                (int(term), start, end),
+            ).fetchone()
+            ai_items = self.payment_connection.execute(
+                "SELECT course_code,course_tag,session_no,COUNT(*),COUNT(DISTINCT subject_key),"
+                "COALESCE(SUM(amount_rials),0),MAX(granted_at) "
+                "FROM ai_booklet_entitlements WHERE term=? "
+                "GROUP BY course_code,course_tag,session_no "
+                "ORDER BY COUNT(*) DESC,SUM(amount_rials) DESC,MAX(granted_at) DESC LIMIT 20",
+                (int(term),),
+            ).fetchall()
+
+            subscription_total = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "COUNT(DISTINCT billing_period) "
+                "FROM term_subscription_checkouts WHERE term=? AND status='activated'",
+                (int(term),),
+            ).fetchone()
+            subscription_current = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM term_subscription_checkouts WHERE term=? AND billing_period=? AND status='activated'",
+                (int(term), period.key),
+            ).fetchone()
+            period_rows = self.payment_connection.execute(
+                "SELECT billing_period,COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM term_subscription_checkouts WHERE term=? AND status='activated' "
+                "GROUP BY billing_period ORDER BY billing_period DESC LIMIT 6",
+                (int(term),),
+            ).fetchall()
+
+        ai_breakdown = [
+            {
+                "courseCode": str(row[0]),
+                "courseTag": str(row[1]),
+                "sessionNo": int(row[2]),
+                "salesCount": int(row[3]),
+                "uniqueBuyers": int(row[4]),
+                "revenueRials": int(row[5]),
+                "lastSaleAt": str(row[6] or ""),
+            }
+            for row in ai_items
+        ]
+        periods = []
+        for row in period_rows:
+            key = str(row[0])
+            try:
+                label = billing_period_from_key(key).month_label
+            except ValueError:
+                label = key
+            periods.append({
+                "billingPeriod": key,
+                "periodLabel": label,
+                "salesCount": int(row[1]),
+                "uniqueBuyers": int(row[2]),
+                "revenueRials": int(row[3]),
+            })
+        return {
+            "term": int(term),
+            "currentPeriod": period.key,
+            "currentPeriodLabel": period.month_label,
+            "aiBooklets": {
+                "totalSales": int(ai_total[0]),
+                "uniqueBuyers": int(ai_total[1]),
+                "revenueRials": int(ai_total[2]),
+                "soldItems": int(ai_total[3]),
+                "currentSales": int(ai_current[0]),
+                "currentUniqueBuyers": int(ai_current[1]),
+                "currentRevenueRials": int(ai_current[2]),
+                "items": ai_breakdown,
+            },
+            "subscriptions": {
+                "totalSales": int(subscription_total[0]),
+                "uniqueBuyers": int(subscription_total[1]),
+                "revenueRials": int(subscription_total[2]),
+                "periodsSold": int(subscription_total[3]),
+                "currentSales": int(subscription_current[0]),
+                "currentUniqueBuyers": int(subscription_current[1]),
+                "currentRevenueRials": int(subscription_current[2]),
+                "periods": periods,
+            },
         }
 
     def claim_term_renewal_notices(
@@ -1827,6 +2304,114 @@ class BotState:
             )
             self.connection.commit()
 
+    def protected_media_created_between(self, start_utc: str, end_utc: str) -> list[dict]:
+        """Return active canonical source records first registered in the requested UTC window."""
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT source_message_id,course_code,course_name,term,session_no,content_kind,created_at "
+                "FROM protected_media_sources WHERE active=1 AND created_at>=? AND created_at<=? "
+                "ORDER BY created_at,source_message_id,content_kind",
+                (str(start_utc), str(end_utc)),
+            ).fetchall()
+        return [
+            {
+                "sourceMessageId": int(row[0]),
+                "courseCode": str(row[1]),
+                "courseName": str(row[2]),
+                "term": int(row[3]),
+                "sessionNo": int(row[4]),
+                "contentKind": str(row[5]),
+                "createdAt": str(row[6]),
+            }
+            for row in rows
+        ]
+
+    def latest_daily_content_digest_cutoff(self) -> str:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT window_end FROM daily_content_digests ORDER BY window_end DESC LIMIT 1"
+            ).fetchone()
+        return str(row[0]) if row else ""
+
+    def daily_content_digest(self, digest_date: str) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT payload_json,window_start,window_end,source_count FROM daily_content_digests "
+                "WHERE digest_date=?",
+                (str(digest_date),),
+            ).fetchone()
+        if row is None:
+            return None
+        try:
+            payload = json.loads(str(row[0]))
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(payload, dict):
+            return None
+        payload.setdefault("windowStart", str(row[1]))
+        payload.setdefault("windowEnd", str(row[2]))
+        payload.setdefault("sourceCount", int(row[3]))
+        return payload
+
+    def create_daily_content_digest(
+        self,
+        digest_date: str,
+        *,
+        payload: dict,
+        window_start: str,
+        window_end: str,
+    ) -> dict:
+        encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        with self._lock:
+            self.payment_connection.execute(
+                "INSERT OR IGNORE INTO daily_content_digests("
+                "digest_date,payload_json,window_start,window_end,source_count"
+                ") VALUES(?,?,?,?,?)",
+                (str(digest_date), encoded, str(window_start), str(window_end), len(payload.get("items", []))),
+            )
+            self.payment_connection.commit()
+        current = self.daily_content_digest(digest_date)
+        if current is None:
+            raise RuntimeError("Daily content digest could not be persisted")
+        return current
+
+    def daily_content_digest_delivery_sent(self, digest_date: str, platform: str, platform_user_id: int) -> bool:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT status FROM daily_content_digest_deliveries "
+                "WHERE digest_date=? AND platform=? AND platform_user_id=?",
+                (str(digest_date), str(platform), int(platform_user_id)),
+            ).fetchone()
+        return bool(row and str(row[0]) == "sent")
+
+    def record_daily_content_digest_delivery(
+        self,
+        digest_date: str,
+        platform: str,
+        platform_user_id: int,
+        *,
+        sent: bool,
+        error: str = "",
+    ) -> None:
+        status = "sent" if sent else "failed"
+        with self._lock:
+            self.payment_connection.execute(
+                "INSERT INTO daily_content_digest_deliveries("
+                "digest_date,platform,platform_user_id,status,attempts,last_error,sent_at"
+                ") VALUES(?,?,?,?,1,?,CASE WHEN ?='sent' THEN CURRENT_TIMESTAMP ELSE '' END) "
+                "ON CONFLICT(digest_date,platform,platform_user_id) DO UPDATE SET "
+                "status=excluded.status,attempts=daily_content_digest_deliveries.attempts+1,"
+                "last_error=excluded.last_error,"
+                "sent_at=CASE WHEN excluded.status='sent' THEN CURRENT_TIMESTAMP "
+                "ELSE daily_content_digest_deliveries.sent_at END,"
+                "updated_at=CURRENT_TIMESTAMP",
+                (
+                    str(digest_date), str(platform), int(platform_user_id), status,
+                    str(error)[:160], status,
+                ),
+            )
+            self.payment_connection.commit()
+
     @staticmethod
     def _protected_media_payload(row: tuple | None) -> dict | None:
         if row is None:
@@ -1867,14 +2452,14 @@ class BotState:
             )
             for item in records:
                 kind = str(item.get("contentKind") or "")
-                if kind not in {"voice", "power", "booklet", "reference"}:
+                if kind not in {"voice", "power", "booklet", "reference", "ai_booklet"}:
                     raise ValueError("Invalid protected media kind")
                 self.connection.execute(
                     "INSERT INTO protected_media_sources("
                     "source_chat_id,source_message_id,course_code,course_name,course_tag,term,session_no,"
                     "content_kind,telegram_method,file_id,file_unique_id,file_name,mime_type,caption,active"
                     ") VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,1) "
-                    "ON CONFLICT(source_chat_id,source_message_id,content_kind) DO UPDATE SET "
+                    "ON CONFLICT(source_chat_id,source_message_id,content_kind,course_code,session_no) DO UPDATE SET "
                     "course_code=excluded.course_code,course_name=excluded.course_name,"
                     "course_tag=excluded.course_tag,term=excluded.term,session_no=excluded.session_no,"
                     "telegram_method=excluded.telegram_method,"

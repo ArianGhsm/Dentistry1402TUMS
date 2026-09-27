@@ -115,6 +115,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         student_assistant_v1_enabled: bool = False,
         required_channel_username: str = "",
         booklet_source_channel_id: int = 0,
+        power_source_channel_id: int = 0,
         media_dispatcher=None,
     ) -> None:
         self.api = KeyboardInvariantApi(api, state)
@@ -129,6 +130,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         self.student_assistant_v1_enabled = student_assistant_v1_enabled
         self.required_channel_username = required_channel_username.strip().lstrip("@")
         self.booklet_source_channel_id = int(booklet_source_channel_id)
+        self.power_source_channel_id = int(power_source_channel_id)
         self.media_dispatcher = media_dispatcher
         self._interaction_lock = threading.Lock()
         self._interaction_versions: dict[int, int] = {}
@@ -248,11 +250,13 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         exact = {
             "admin", "system-status", "admin-grades", "admin-payments", "navid", "navid-check",
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
-            "profile-edit", "profile-edit-cancel", "profile-edit-requests", "grades", "notifications",
+            "profile-edit", "profile-edit-cancel", "profile-edit-requests",
+            "phone-enroll", "phone-enroll-cancel", "grades", "notifications",
             "student-assistant", "exam-owner", "payment-offer-new", "payment-offer-cancel",
             "payment-offer-publish", "payment-offer-no-description", "payment-offer-custom-amount",
             "payment-products", "payment-stats", "payment-transactions", "payment-search",
             "payment-audiences", "payment-export", "payment-reminders", "payment-settings",
+            "booklet-sales", "booklet-sales-ai", "booklet-sales-subscriptions",
             "payment-audience-new", "payment-transaction-filters", "payment-tx-clear", "payment-tx-product",
             "payment-audience-search", "payment-audience-search-more", "payment-audience-selection-save",
             "term-subscription", "term-access-policies", "term-access-policy-add",
@@ -1012,6 +1016,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
             "profile-edit-requests", "payment-offer-new", "payment-offer-cancel", "payment-offer-publish",
             "payment-offer-no-description", "payment-offer-custom-amount", "payment-offer-description",
             "payment-products", "payment-stats", "payment-transactions", "payment-search", "payment-audiences",
+            "booklet-sales", "booklet-sales-ai", "booklet-sales-subscriptions",
             "payment-export", "payment-reminders", "payment-settings", "payment-audience-new",
             "payment-audience-search", "payment-audience-search-more", "payment-audience-selection-save",
             "payment-transaction-filters", "payment-tx-clear", "payment-tx-product",

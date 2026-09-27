@@ -13,15 +13,18 @@ from dent_bot.booklets import (
     RESOURCE_LABELS,
     ordinal,
     parse_session_number,
+    parse_session_numbers,
     parse_source_caption,
     source_records_from_channel_post,
 )
 from dent_bot.booklet_source_admin import register_source_metadata, sync_existing_source_message
+from dent_bot.booklet_sources import PRIVATE_SOURCE_CONTENT_KINDS, POWER_SOURCE_CONTENT_KINDS
 from dent_bot.state import BotState
-from dent_bot.protected_media import ProtectedMediaDispatcher
+from dent_bot.protected_media import ProtectedMediaDispatcher, _protected_delivery_caption
 
 
 SOURCE_CHAT_ID = -1003706539157
+POWER_SOURCE_CHAT_ID = -1002016459508
 SOURCE_CAPTION = (
     "📓 جزوه رفرنس جلسه چهارم ورودی ۱۳۹۹ - تومورهای سینوس\n\n"
     "📚 گوش و حلق و بینی\n👨‍🏫 استاد ایرانی\n\n"
@@ -176,6 +179,77 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(parse_session_number(f"جزوه جلسه {ordinal(number)} - تست"), number)
                 self.assertEqual(parse_session_number(f"جزوه جلسه {number} - تست"), number)
         self.assertIsNone(parse_session_number("جزوه جلسه چهل و یکم"))
+
+    def test_multi_session_power_caption_routes_one_file_to_each_session(self) -> None:
+        caption = (
+            "📒 پاور جلسات اول و دوم روش تحقیق ۲ - مرور مباحث\n"
+            "#روش_تحقیق۲ #ترم۷"
+        )
+        self.assertEqual(parse_session_numbers(caption), (1, 2))
+        parsed = parse_source_caption(caption, BOOKLET_CATALOG)
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed.session_nos, (1, 2))
+        self.assertEqual(parsed.kinds, ("power",))
+        records = source_records_from_channel_post(
+            {
+                "caption": caption,
+                "document": {
+                    "file_id": "power-file",
+                    "file_unique_id": "power-unique",
+                    "file_name": "جلسات ۱ و ۲.pdf",
+                    "mime_type": "application/pdf",
+                },
+            },
+            BOOKLET_CATALOG,
+            allowed_kinds=POWER_SOURCE_CONTENT_KINDS,
+        )
+        self.assertEqual([item["sessionNo"] for item in records], [1, 2])
+        self.assertEqual({item["contentKind"] for item in records}, {"power"})
+
+    def test_source_policy_keeps_power_public_and_other_content_private(self) -> None:
+        power_caption = "📒 پاور جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷"
+        power_message = {
+            "caption": power_caption,
+            "document": {"file_id": "power-file", "file_name": "power.pdf"},
+        }
+        self.assertEqual(
+            source_records_from_channel_post(
+                power_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS,
+            ),
+            [],
+        )
+        self.assertEqual(
+            [item["contentKind"] for item in source_records_from_channel_post(
+                power_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=POWER_SOURCE_CONTENT_KINDS,
+            )],
+            ["power"],
+        )
+
+        booklet_message = {
+            "caption": "📓 جزوه جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷",
+            "document": {"file_id": "booklet-file", "file_name": "booklet.pdf"},
+        }
+        self.assertEqual(
+            source_records_from_channel_post(
+                booklet_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=POWER_SOURCE_CONTENT_KINDS,
+            ),
+            [],
+        )
+        self.assertEqual(
+            [item["contentKind"] for item in source_records_from_channel_post(
+                booklet_message,
+                BOOKLET_CATALOG,
+                allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS,
+            )],
+            ["booklet"],
+        )
 
     def test_caption_routes_booklet_reference_to_both_sections(self) -> None:
         parsed = parse_source_caption(SOURCE_CAPTION, BOOKLET_CATALOG)
@@ -476,6 +550,77 @@ class BookletDeliveryTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_public_power_source_routes_only_power_and_supports_multi_session(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                app = DentBotApp(
+                    FakeApi(),
+                    state,
+                    owner_id=10,
+                    site_url="https://example.test",
+                    site_api=LinkedSite(),
+                    booklet_source_channel_id=SOURCE_CHAT_ID,
+                    power_source_channel_id=POWER_SOURCE_CHAT_ID,
+                )
+                power_post = {
+                    "message_id": 41,
+                    "chat": {"id": POWER_SOURCE_CHAT_ID, "type": "channel"},
+                    "caption": (
+                        "📒 پاور جلسات اول و دوم روش تحقیق ۲ - مرور مباحث\n"
+                        "#روش_تحقیق۲ #ترم۷"
+                    ),
+                    "document": {"file_id": "public-power", "file_name": "power.pdf"},
+                }
+                app.handle({"channel_post": power_post})
+                session_one = state.protected_media_for_tag(
+                    course_tag="روش_تحقیق۲",
+                    term=7,
+                    session_no=1,
+                    content_kind="power",
+                )
+                session_two = state.protected_media_for_tag(
+                    course_tag="روش_تحقیق۲",
+                    term=7,
+                    session_no=2,
+                    content_kind="power",
+                )
+                self.assertEqual(len(session_one), 1)
+                self.assertEqual(len(session_two), 1)
+                self.assertEqual(session_one[0]["sourceChatId"], POWER_SOURCE_CHAT_ID)
+                self.assertEqual(session_two[0]["sourceMessageId"], 41)
+
+                private_power = dict(power_post)
+                private_power["message_id"] = 42
+                private_power["chat"] = {"id": SOURCE_CHAT_ID, "type": "channel"}
+                app.handle({"channel_post": private_power})
+                self.assertEqual(
+                    state.connection.execute(
+                        "SELECT COUNT(*) FROM protected_media_sources "
+                        "WHERE source_chat_id=? AND source_message_id=?",
+                        (SOURCE_CHAT_ID, 42),
+                    ).fetchone()[0],
+                    0,
+                )
+
+                public_booklet = {
+                    "message_id": 43,
+                    "chat": {"id": POWER_SOURCE_CHAT_ID, "type": "channel"},
+                    "caption": "📓 جزوه جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷",
+                    "document": {"file_id": "public-booklet", "file_name": "booklet.pdf"},
+                }
+                app.handle({"channel_post": public_booklet})
+                self.assertEqual(
+                    state.connection.execute(
+                        "SELECT COUNT(*) FROM protected_media_sources "
+                        "WHERE source_chat_id=? AND source_message_id=?",
+                        (POWER_SOURCE_CHAT_ID, 43),
+                    ).fetchone()[0],
+                    0,
+                )
+            finally:
+                state.close()
+
     def test_notes_flow_uses_inline_shared_syllabus_and_enqueues_registered_source(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")
@@ -589,7 +734,18 @@ class BookletDeliveryTests(unittest.TestCase):
                     },
                 }})
                 self.assertTrue(api.edited)
-                self.assertIn("دسترسی عمومی جزوات تا شروع دوره بسته است", api.edited[-1][2])
+                self.assertIn("آرشیو امن جزوات", api.edited[-1][2])
+
+                app.handle({"callback_query": {
+                    "id": "paid-regular-booklet",
+                    "from": {"id": 21},
+                    "data": "v1:booklet-resource:ent:4:booklet",
+                    "message": {
+                        "message_id": 7,
+                        "chat": {"id": 21, "type": "private"},
+                    },
+                }})
+                self.assertIn("دسترسی جزوات ترم ۷", api.edited[-1][2])
                 self.assertFalse(app.booklet_access_allowed(
                     21,
                     {"term": 7, "courseTag": "روش_تحقیق۲"},
@@ -630,6 +786,36 @@ class BookletDeliveryTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_booklet_delivery_caption_preserves_private_channel_caption(self) -> None:
+        for kind in ("booklet", "ai_booklet"):
+            caption = _protected_delivery_caption(
+                {"contentKind": kind, "caption": SOURCE_CAPTION},
+                "TRC-ABCDE-FGHIJ",
+            )
+            self.assertIn(SOURCE_CAPTION, caption)
+            self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", caption)
+            self.assertIn("TRC-ABCDE-FGHIJ", caption)
+
+        reference_caption = _protected_delivery_caption(
+            {"contentKind": "reference", "caption": SOURCE_CAPTION},
+            "TRC-ABCDE-FGHIJ",
+        )
+        self.assertNotIn(SOURCE_CAPTION, reference_caption)
+        self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", reference_caption)
+
+        escaped_caption = _protected_delivery_caption(
+            {"contentKind": "booklet", "caption": "جلسه <۱> & نکته"},
+            "TRC-ABCDE-FGHIJ",
+        )
+        self.assertIn("جلسه &lt;۱&gt; &amp; نکته", escaped_caption)
+
+        long_caption = _protected_delivery_caption(
+            {"contentKind": "booklet", "caption": "الف" * 1400},
+            "TRC-ABCDE-FGHIJ",
+        )
+        self.assertLess(len(long_caption), 1024)
+        self.assertIn("…\n\n🔐 نسخهٔ شخصی‌سازی‌شده", long_caption)
+
     def test_transport_always_protects_source_copy_and_personalized_file_id(self) -> None:
         class CapturingApi(TelegramBotApi):
             def __init__(self) -> None:
@@ -649,6 +835,17 @@ class BookletDeliveryTests(unittest.TestCase):
         self.assertEqual(api.calls[-1][0], "copyMessage")
         self.assertIs(api.calls[-1][1]["protect_content"], True)
         self.assertNotIn("file", str(api.calls[-1][1]).lower())
+
+        api.send_protected_media(
+            20,
+            source,
+            caption="کپشن منبع\n@Dent1402Booklets\n\n🔐 فایل محافظت‌شده",
+        )
+        self.assertEqual(api.calls[-1][0], "copyMessage")
+        self.assertIn("کپشن منبع", api.calls[-1][1]["caption"])
+        self.assertIn("@Dent1402Booklets", api.calls[-1][1]["caption"])
+        self.assertNotIn("@Dent۱۴۰۲Booklets", api.calls[-1][1]["caption"])
+        self.assertIs(api.calls[-1][1]["protect_content"], True)
         for method, field in (
             ("sendDocument", "document"),
             ("sendAudio", "audio"),
@@ -664,6 +861,74 @@ class BookletDeliveryTests(unittest.TestCase):
         bale = object.__new__(BaleBotApi)
         with self.assertRaises(BotApiError):
             bale.send_protected_media(20, source)
+
+    def test_pdf_power_uses_direct_protected_source_copy_without_watermark(self) -> None:
+        class PowerApi:
+            def __init__(self) -> None:
+                self.copies = []
+                self.sent = []
+
+            def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption=""):
+                self.copies.append({
+                    "chatId": chat_id,
+                    "sourceChatId": int(source.get("sourceChatId") or 0),
+                    "sourceMessageId": int(source.get("sourceMessageId") or 0),
+                    "personalizedFileId": personalized_file_id,
+                    "caption": caption,
+                })
+                return {"message_id": 777}
+
+            def send(self, chat_id, text, keyboard):
+                self.sent.append((chat_id, text, keyboard))
+                return {"message_id": 778}
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            dispatcher = None
+            try:
+                state.replace_protected_media_message(POWER_SOURCE_CHAT_ID, 3016, [{
+                    "contentKind": "power",
+                    "courseCode": "diagnostic-dentistry-3",
+                    "courseName": "دندانپزشکی تشخیصی ۳",
+                    "courseTag": "تشخیصی۳",
+                    "term": 7,
+                    "sessionNo": 2,
+                    "telegramMethod": "sendDocument",
+                    "fileId": "packed-but-not-bot-reusable",
+                    "fileUniqueId": "",
+                    "fileName": "تشخیصی ۳ ۱۴۰۵.pdf",
+                    "mimeType": "application/pdf",
+                    "caption": "📒 پاور جلسات دوم و سوم دندانپزشکی تشخیصی ۳",
+                }])
+                source_id = int(state.protected_media_for(
+                    course_code="diagnostic-dentistry-3",
+                    term=7,
+                    session_no=2,
+                    content_kind="power",
+                )[0]["id"])
+                api = PowerApi()
+                dispatcher = ProtectedMediaDispatcher(
+                    api=api,
+                    state=state,
+                    authorize=lambda _user, _source: True,
+                    temp_root=Path(directory) / "jobs",
+                    workers=1,
+                    max_queue=4,
+                )
+                self.assertEqual(dispatcher.enqueue(20, source_id), "queued")
+                dispatcher.queue.join()
+                self.assertEqual(len(api.copies), 1)
+                self.assertEqual(api.copies[0]["sourceChatId"], POWER_SOURCE_CHAT_ID)
+                self.assertEqual(api.copies[0]["sourceMessageId"], 3016)
+                self.assertEqual(api.copies[0]["personalizedFileId"], "")
+                self.assertEqual(api.copies[0]["caption"], "")
+                delivery = state.latest_protected_media_delivery(20, source_id)
+                self.assertIsNotNone(delivery)
+                self.assertEqual(delivery["status"], "sent")
+            finally:
+                if dispatcher is not None:
+                    dispatcher.close()
+                state.close()
 
     def test_initial_personalized_upload_sets_multipart_protect_content(self) -> None:
         class MultipartTransport:
@@ -726,13 +991,14 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assert_path = document_path
                 self.assert_bytes = document_path.stat().st_size
                 self.assert_filename = filename
+                self.upload_caption = caption
                 return {
                     "message_id": 700 + self.uploads,
                     "document": {"file_id": "personalized-file", "file_unique_id": "personalized-unique"},
                 }
 
-            def send_protected_media(self, chat_id, source, *, personalized_file_id=""):
-                self.cached_sends.append(personalized_file_id)
+            def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption=""):
+                self.cached_sends.append((personalized_file_id, caption))
                 return {"message_id": 800 + len(self.cached_sends)}
 
             def send(self, chat_id, text, keyboard):
@@ -790,6 +1056,9 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(api.uploads, 1)
                 self.assertGreater(api.assert_bytes, source_pdf.stat().st_size)
                 self.assertEqual(api.assert_filename, "dent1402-personalized.pdf")
+                self.assertIn(SOURCE_CAPTION, api.upload_caption)
+                self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", api.upload_caption)
+                self.assertIn("کد رهگیری:", api.upload_caption)
                 self.assertEqual(list(temp_root.glob("job-*")), [])
                 candidates = state.forensic_booklet_candidates()
                 self.assertEqual(len(candidates), 1)
@@ -799,7 +1068,10 @@ class BookletDeliveryTests(unittest.TestCase):
                 dispatcher.queue.join()
                 self.assertEqual(api.downloads, 1)
                 self.assertEqual(api.uploads, 1)
-                self.assertEqual(api.cached_sends, ["personalized-file"])
+                self.assertEqual(api.cached_sends[0][0], "personalized-file")
+                self.assertIn(SOURCE_CAPTION, api.cached_sends[0][1])
+                self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", api.cached_sends[0][1])
+                self.assertIn("کد رهگیری:", api.cached_sends[0][1])
             finally:
                 if dispatcher is not None:
                     dispatcher.close()

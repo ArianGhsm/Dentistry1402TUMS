@@ -60,6 +60,7 @@ def owner_management_screen() -> Screen:
         keyboard(
             [button("🖥 وضعیت سرویس‌ها", action="system-status"), button("🗂 مدیریت امور کلاس", action="c3:owner")],
             [button("🧭 مرکز نوید", action="navid"), button("💳 پرداخت‌ها", action="admin-payments")],
+            [button("📈 آمار فروش جزوات", action="booklet-sales", style="primary")],
             [button("📊 مدیریت نمرات", action="admin-grades"), button("✏️ درخواست‌های مشخصات", action="profile-edit-requests")],
             [button("🔗 اتصال حساب‌ها", action="identity-mappings")],
             [button("↩️ بازگشت", action="home")],

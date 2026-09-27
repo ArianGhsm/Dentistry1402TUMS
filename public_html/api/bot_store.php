@@ -300,6 +300,7 @@ function dent_bot_service_request(): array
 function dent_bot_public_user(array $user): array
 {
     $public = dent_public_user($user);
+    $phone = dent_normalize_phone_number((string) ($user['phoneNumber'] ?? ''));
     return [
         'name' => (string) ($public['name'] ?? ''),
         'studentNumber' => (string) ($public['studentNumber'] ?? ''),
@@ -308,6 +309,8 @@ function dent_bot_public_user(array $user): array
         'roleLabel' => (string) ($public['roleLabel'] ?? ''),
         'cohortKey' => (string) ($public['cohortKey'] ?? ''),
         'isOwner' => !empty($public['isOwner']),
+        'phoneMasked' => $phone !== '' ? dent_mask_phone_number($phone) : '',
+        'phoneVerified' => $phone !== '' && trim((string) ($user['phoneVerifiedAt'] ?? '')) !== '',
     ];
 }
 
@@ -1632,6 +1635,26 @@ function dent_bot_service_dispatch(array $payload): array
     // not disappear while that owner is completing the new interactive auth.
     if (!$authComplete && $action !== 'createDeployNotification') {
         dent_error('احراز هویت امن این اتصال هنوز کامل نشده است.', 403, ['code' => 'ACCOUNT_AUTH_REQUIRED']);
+    }
+    if ($action === 'requestPhoneEnrollmentV1') {
+        dent_bot_onboarding_require_contract($payload);
+        $phone = dent_normalize_phone_number((string) ($payload['phoneNumber'] ?? ''));
+        $result = dent_request_phone_enrollment_otp($user, $phone);
+        return [
+            'success' => true,
+            'phoneMasked' => dent_mask_phone_number($phone),
+            'expiresIn' => (int) ($result['expiresIn'] ?? 0),
+        ];
+    }
+    if ($action === 'verifyPhoneEnrollmentV1') {
+        dent_bot_onboarding_require_contract($payload);
+        $phone = dent_normalize_phone_number((string) ($payload['phoneNumber'] ?? ''));
+        $code = preg_replace('/\D+/', '', dent_normalize_digits((string) ($payload['code'] ?? ''))) ?? '';
+        $updated = dent_verify_phone_enrollment_otp($user, $phone, $code);
+        return [
+            'success' => true,
+            'user' => dent_bot_public_user($updated),
+        ];
     }
     if ($action === 'requestProfileEditV1') {
         dent_bot_onboarding_require_contract($payload);
