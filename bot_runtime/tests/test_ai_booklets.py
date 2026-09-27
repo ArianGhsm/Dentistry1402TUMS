@@ -36,6 +36,7 @@ CATALOG = {
                     "sessionNumber": 1,
                     "title": "ضایعات اگزوفیتیک خارج استخوانی",
                     "instructor": "دکتر پورشهیدی",
+                    "resident": "دکتر صبوری",
                     "sessionModeLabel": "حضوری",
                 },
                 {
@@ -168,6 +169,7 @@ class AiBookletTests(unittest.TestCase):
         self.assertEqual([item["text"] for item in rows[1]], ["📓 جزوه", "📘 رفرنس"])
         self.assertEqual(len(rows[2]), 1)
         self.assertEqual(rows[2][0]["text"], "🤖 جزوه هوش مصنوعی")
+        self.assertIn("🩺 رزیدنت مسئول: دکتر صبوری", screen.text)
 
     def test_purchase_screen_is_persian_and_session_specific(self) -> None:
         screen = ai_booklet_purchase_screen(CATALOG, "diagnostic-dentistry-3", 1)

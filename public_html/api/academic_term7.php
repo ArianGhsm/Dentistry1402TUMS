@@ -587,6 +587,7 @@ function dent_term7_ordered_schedule_rows(array $resolved, string $studentNumber
                 'end' => trim((string) ($event['end'] ?? '')),
                 'location' => dent_term7_event_display_location($event),
                 'instructor' => trim((string) ($event['instructor'] ?? '')),
+                'resident' => trim((string) ($event['resident'] ?? '')),
                 '_ordinal' => $ordinal++,
             ];
             if (
@@ -674,6 +675,10 @@ function dent_term7_summary_body(array $resolved, string $studentNumber = ''): s
             $instructor = trim((string) ($event['instructor'] ?? ''));
             if ($instructor !== '') {
                 $target[] = '  👤 ' . $instructor;
+            }
+            $resident = trim((string) ($event['resident'] ?? ''));
+            if ($resident !== '') {
+                $target[] = '  🩺 رزیدنت مسئول: ' . $resident;
             }
             $displayLocation = dent_term7_event_display_location($event);
             if ($displayLocation !== '') {

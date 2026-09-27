@@ -62,6 +62,7 @@ def _structured_rows(item: dict[str, Any]) -> list[dict[str, str]]:
             "time": time_text,
             "location": " ".join(str(raw.get("location") or "").split())[:180] or "—",
             "instructor": " ".join(str(raw.get("instructor") or "").split())[:180] or "—",
+            "resident": " ".join(str(raw.get("resident") or "").split())[:180],
             "presentationTopic": " ".join(str(raw.get("presentationTopic") or "").split())[:260],
             "presentationPartners": "، ".join(partner_names),
         })
@@ -103,6 +104,7 @@ def _legacy_rows(item: dict[str, Any]) -> tuple[list[dict[str, str]], list[str]]
                 "time": "—",
                 "location": "—",
                 "instructor": "—",
+                "resident": "",
                 "presentationTopic": "",
                 "presentationPartners": "",
             }
@@ -129,6 +131,12 @@ def _legacy_rows(item: dict[str, Any]) -> tuple[list[dict[str, str]], list[str]]
             continue
         if current is not None and line.startswith("👤"):
             current["instructor"] = line.removeprefix("👤").strip() or "—"
+            continue
+        if current is not None and line.startswith("🩺"):
+            resident = line.removeprefix("🩺").strip()
+            if resident.startswith("رزیدنت مسئول:"):
+                resident = resident.removeprefix("رزیدنت مسئول:").strip()
+            current["resident"] = resident
             continue
         if current is not None and line.startswith("📍"):
             current["location"] = line.removeprefix("📍").strip() or "—"
@@ -240,7 +248,12 @@ def academic_notification_text(item: dict[str, Any]):
             time_text = ui_module.to_persian_digits(str(row.get("time") or "—"))
             location = " ".join(str(row.get("location") or "—").split())[:140] or "—"
             instructor = " ".join(str(row.get("instructor") or "—").split())[:140] or "—"
-            meta_bits = [f"👤 {instructor}"]
+            resident = " ".join(str(row.get("resident") or "").split())[:140]
+            meta_bits = []
+            if instructor != "—":
+                meta_bits.append(f"👤 {instructor}")
+            if resident:
+                meta_bits.append(f"🩺 رزیدنت: {resident}")
             if location != "—":
                 meta_bits.append(f"📍 {location}")
             presentation_topic = " ".join(str(row.get("presentationTopic") or "").split())[:260]
@@ -262,10 +275,16 @@ def academic_notification_text(item: dict[str, Any]):
                     f"<br/>{html.escape(partner_text)}"
                 )
             location_html = "" if location == "—" else f"<br/>📍 {html.escape(location)}"
+            staff_lines = []
+            if instructor != "—":
+                staff_lines.append(html.escape(instructor))
+            if resident:
+                staff_lines.append(f"🩺 رزیدنت: {html.escape(resident)}")
+            staff_html = "<br/>".join(staff_lines) or "—"
             rich.append(
                 f"<tr><td><code>{html.escape(time_text)}</code></td>"
                 f"<td>{icon} <b>{html.escape(title)}</b>{location_html}{presentation_html}</td>"
-                f"<td>{html.escape(instructor)}</td></tr>"
+                f"<td>{staff_html}</td></tr>"
             )
         rich.append("</table>")
     else:

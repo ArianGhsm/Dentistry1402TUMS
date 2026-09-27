@@ -65,6 +65,7 @@ class ClassOpsUxV3Tests(unittest.TestCase):
                     type="practical",
                     title="سلامت دهان عملی ۲",
                     instructor="دکتر سرگران / دکتر پاکدامن",
+                    resident="دکتر صبوری",
                     startsAt="2026-09-21T09:00:00+03:30",
                     endsAt="2026-09-21T12:00:00+03:30",
                 ),
@@ -74,6 +75,8 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertIn("👤 دکتر سرگران / دکتر پاکدامن", str(screen.text))
         self.assertIn("<th>استاد</th>", screen.text.rich_html)
         self.assertIn("دکتر سرگران / دکتر پاکدامن", screen.text.rich_html)
+        self.assertIn("🩺 رزیدنت: دکتر صبوری", str(screen.text))
+        self.assertIn("🩺 رزیدنت: دکتر صبوری", screen.text.rich_html)
 
     def test_daily_oral_disease_presentation_reuses_schedule_row_hierarchy(self):
         day = {

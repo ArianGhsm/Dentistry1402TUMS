@@ -1441,7 +1441,7 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "pathology-practical-1": {
-    "version": "1405-1406-1.rotation-a.2",
+    "version": "1405-1406-1.rotation-a.3",
     "sourceDatesAuthoritative": true,
     "sourceOccurrenceRotations": [
       "A"
@@ -1462,8 +1462,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/05"
         ],
-        "title": "گرانول فوردایس – لکوادما – هیپرکراتوز",
+        "title": "گرانول فوردایس – لکوادما",
         "instructor": "دکتر درخشان",
+        "resident": "",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1478,6 +1479,7 @@ function classops_term7_syllabus_source_catalog(): array
         ],
         "title": "گرانولوم نوک ریشه – کیست رادیکولار",
         "instructor": "دکتر مرادزاده",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1492,6 +1494,7 @@ function classops_term7_syllabus_source_catalog(): array
         ],
         "title": "ادنتوژنیک کراتوسیست – کیست گورلین",
         "instructor": "دکتر شکیب",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1504,8 +1507,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/14"
         ],
-        "title": "آملوبلاستوما",
+        "title": "آملوبلاستوما – یونی‌سیستیک آملوبلاستوما",
         "instructor": "دکتر عارفی",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1518,8 +1522,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/19"
         ],
-        "title": "یونی‌سیستیک آملوبلاستوما – آملوبلاستیک فیبروما",
+        "title": "آملوبلاستیک فیبروما – میکسوما",
         "instructor": "دکتر مهدوی",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1533,8 +1538,9 @@ function classops_term7_syllabus_source_catalog(): array
           "1405/07/21"
         ],
         "title": "مرور",
-        "sourceTitle": "review",
+        "sourceTitle": "Review",
         "instructor": "",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1547,8 +1553,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/26"
         ],
-        "title": "آدنوماتوئید ادنتوژنیک تومور – تومور پیندبورگ",
+        "title": "ادنوماتوئید ادنتوژنیک تومور – تومور پیندبورگ",
         "instructor": "دکتر مهدوی",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1561,8 +1568,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/28"
         ],
-        "title": "ادنتوم – میگزوما",
+        "title": "ادنتوم – استئومیلیت",
         "instructor": "دکتر شکیب",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1575,8 +1583,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/08/03"
         ],
-        "title": "استئومیلیت – لیکن پلان",
+        "title": "هیپرکراتوز – لیکن پلان",
         "instructor": "دکتر درخشان",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1591,6 +1600,7 @@ function classops_term7_syllabus_source_catalog(): array
         ],
         "title": "پمفیگوس – پمفیگوئید",
         "instructor": "دکتر عارفی",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
@@ -1604,22 +1614,24 @@ function classops_term7_syllabus_source_catalog(): array
           "1405/08/10"
         ],
         "title": "مرور",
-        "sourceTitle": "review",
+        "sourceTitle": "Review",
         "instructor": "",
+        "resident": "دکتر صبوری",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1
       },
       {
-        "sessionNumber": 13,
+        "sessionNumber": 12,
         "sessionNumbers": [
-          13
+          12
         ],
         "dates": [
           "1405/08/12"
         ],
         "title": "امتحان",
         "instructor": "",
+        "resident": "",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1

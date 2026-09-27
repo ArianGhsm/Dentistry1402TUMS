@@ -281,10 +281,28 @@ syllabus_assert(
 
 $pathologyRows = $catalog['pathology-practical-1']['sessions'] ?? [];
 syllabus_assert(
-    array_column($pathologyRows, 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,13]
+    array_column($pathologyRows, 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,12]
         && ($pathologyRows[0]['dates'] ?? []) === ['1405/07/05']
-        && ($pathologyRows[11]['dates'] ?? []) === ['1405/08/12'],
-    'Pathology Practical 1 preserves all 12 Rotation A source rows and the source 11-to-13 numbering gap'
+        && ($pathologyRows[11]['dates'] ?? []) === ['1405/08/12']
+        && array_column($pathologyRows, 'title') === [
+            'گرانول فوردایس – لکوادما',
+            'گرانولوم نوک ریشه – کیست رادیکولار',
+            'ادنتوژنیک کراتوسیست – کیست گورلین',
+            'آملوبلاستوما – یونی‌سیستیک آملوبلاستوما',
+            'آملوبلاستیک فیبروما – میکسوما',
+            'مرور',
+            'ادنوماتوئید ادنتوژنیک تومور – تومور پیندبورگ',
+            'ادنتوم – استئومیلیت',
+            'هیپرکراتوز – لیکن پلان',
+            'پمفیگوس – پمفیگوئید',
+            'مرور',
+            'امتحان',
+        ]
+        && array_column($pathologyRows, 'resident') === [
+            '', 'دکتر صبوری', 'دکتر صبوری', 'دکتر صبوری', 'دکتر صبوری', 'دکتر صبوری',
+            'دکتر صبوری', 'دکتر صبوری', 'دکتر صبوری', 'دکتر صبوری', 'دکتر صبوری', '',
+        ],
+    'Pathology Practical 1 preserves the corrected 12-row schedule, titles and resident responsibility'
 );
 $pathologyFirst = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
@@ -296,8 +314,9 @@ $pathologyFirst = classops_term7_syllabus_enrich_events([[
 syllabus_assert(
     count($pathologyFirst) === 1
         && ($pathologyFirst[0]['sessionNumber'] ?? null) === 1
-        && ($pathologyFirst[0]['sessionTitle'] ?? '') === 'گرانول فوردایس – لکوادما – هیپرکراتوز'
+        && ($pathologyFirst[0]['sessionTitle'] ?? '') === 'گرانول فوردایس – لکوادما'
         && ($pathologyFirst[0]['instructor'] ?? '') === 'دکتر درخشان'
+        && ($pathologyFirst[0]['resident'] ?? 'x') === ''
         && ($pathologyFirst[0]['start'] ?? '') === '09:00'
         && ($pathologyFirst[0]['end'] ?? '') === '12:00'
         && empty($pathologyFirst[0]['sourceTimeExplicit']),
@@ -314,9 +333,10 @@ syllabus_assert(
     count($pathologyReview) === 1
         && ($pathologyReview[0]['sessionNumber'] ?? null) === 6
         && ($pathologyReview[0]['sessionTitle'] ?? '') === 'مرور'
-        && ($pathologyReview[0]['sourceTitle'] ?? '') === 'review'
-        && ($pathologyReview[0]['instructor'] ?? 'x') === '',
-    'Pathology review row is Persian in the UI while preserving the source review label and blank instructor'
+        && ($pathologyReview[0]['sourceTitle'] ?? '') === 'Review'
+        && ($pathologyReview[0]['instructor'] ?? 'x') === ''
+        && ($pathologyReview[0]['resident'] ?? '') === 'دکتر صبوری',
+    'Pathology review row is Persian in the UI while preserving source label, blank instructor and resident'
 );
 $pathologyExam = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
@@ -327,9 +347,10 @@ $pathologyExam = classops_term7_syllabus_enrich_events([[
 ]], '1405/08/12', 'A');
 syllabus_assert(
     count($pathologyExam) === 1
-        && ($pathologyExam[0]['sessionNumber'] ?? null) === 13
-        && ($pathologyExam[0]['sessionTitle'] ?? '') === 'امتحان',
-    'Pathology source exam remains row/session 13 on 1405/08/12 without inventing row 12'
+        && ($pathologyExam[0]['sessionNumber'] ?? null) === 12
+        && ($pathologyExam[0]['sessionTitle'] ?? '') === 'امتحان'
+        && ($pathologyExam[0]['resident'] ?? 'x') === '',
+    'Pathology source exam is corrected to row/session 12 on 1405/08/12 with no resident'
 );
 $pathologyRotationB = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
@@ -345,9 +366,10 @@ syllabus_assert(
 );
 $pathologyBooklet = $bookletByKey['pathology-practical-1'] ?? [];
 syllabus_assert(
-    array_column($pathologyBooklet['sessions'] ?? [], 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,13]
+    array_column($pathologyBooklet['sessions'] ?? [], 'sessionNumber') === [1,2,3,4,5,6,7,8,9,10,11,12]
+        && ($pathologyBooklet['sessions'][1]['resident'] ?? '') === 'دکتر صبوری'
         && ($pathologyBooklet['bookletTag'] ?? '') === 'آسیب_شناسی_عملی۱',
-    'Booklet projection exposes Pathology Practical 1 with canonical Persian tag and the source numbering gap'
+    'Booklet projection exposes the corrected Pathology Practical 1 numbering and resident metadata'
 );
 
 $healthTheory = classops_term7_syllabus_enrich_events([

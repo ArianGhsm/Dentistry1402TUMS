@@ -338,10 +338,13 @@ def resources_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
             keyboard([button("↩️ فهرست درس‌ها", action="notes")], [button("🏠 منوی اصلی", action="home")]),
         )
     instructor = " ".join(str(session.get("instructor") or "").split())
+    resident = " ".join(str(session.get("resident") or "").split())
     mode = " ".join(str(session.get("sessionModeLabel") or "").split())
     metadata = []
     if instructor:
         metadata.append(f"👨‍🏫 {html.escape(instructor)}")
+    if resident:
+        metadata.append(f"🩺 رزیدنت مسئول: {html.escape(resident)}")
     if mode:
         metadata.append(f"📍 {html.escape(mode)}")
     meta_text = "\n".join(metadata)

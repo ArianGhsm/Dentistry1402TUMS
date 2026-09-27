@@ -15,7 +15,7 @@ def assert_true(condition: bool, message: str) -> None:
     print(f"PASS: {message}")
 
 
-def schedule_item(title: str, *, instructor: str = "") -> dict:
+def schedule_item(title: str, *, instructor: str = "", resident: str = "") -> dict:
     return {
         "source": "term7",
         "ref": "t7_fixture",
@@ -32,13 +32,14 @@ def schedule_item(title: str, *, instructor: str = "") -> dict:
         "sortAt": "2026-09-19T04:00:00+00:00",
         "overdue": False,
         "instructor": instructor,
+        "resident": resident,
     }
 
 
 day = {
     "localDate": "2026-09-19",
     "items": [
-        schedule_item("پریو نظری ۱ — جلسه ۱: آناتومی انساج پریودنتال ۱", instructor="دکتر همتیان"),
+        schedule_item("پریو نظری ۱ — جلسه ۱: آناتومی انساج پریودنتال ۱", instructor="دکتر همتیان", resident="دکتر صبوری"),
         schedule_item("گوش و حلق و بینی"),
     ],
 }
@@ -54,8 +55,10 @@ for label, screen in screens:
     assert_true("<th>استاد</th>" in rich, f"{label}: ستون استاد در جدول برنامه وجود دارد")
     assert_true("<th>وضعیت</th>" not in rich, f"{label}: ستون وضعیت از جدول برنامه حذف شده است")
     assert_true("دکتر همتیان" in rich, f"{label}: نام استاد طرح درس نمایش داده می‌شود")
-    assert_true("<td></td>" in rich, f"{label}: استاد ناموجود به‌صورت سلول خالی نمایش داده می‌شود")
+    assert_true("🩺 رزیدنت: دکتر صبوری" in rich, f"{label}: رزیدنت مسئول در همان سلول کادر آموزشی نمایش داده می‌شود")
+    assert_true("<td></td>" in rich, f"{label}: کادر آموزشی ناموجود به‌صورت سلول خالی نمایش داده می‌شود")
     assert_true("دکتر همتیان" in fallback, f"{label}: fallback نام استاد را حفظ می‌کند")
+    assert_true("🩺 رزیدنت: دکتر صبوری" in fallback, f"{label}: fallback رزیدنت مسئول را حفظ می‌کند")
     assert_true("🟢" not in fallback and "فعال" not in fallback, f"{label}: fallback برنامه وضعیت را جای استاد نشان نمی‌دهد")
 
 print("ClassOps schedule instructor-column checks passed.")

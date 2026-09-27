@@ -130,6 +130,7 @@ function classops_bot_ui_term7_record(
         'sessionTitle' => (string) ($event['sessionTitle'] ?? ''),
         'sessionDetails' => (string) ($event['sessionDetails'] ?? ''),
         'instructor' => (string) ($event['instructor'] ?? ''),
+        'resident' => (string) ($event['resident'] ?? ''),
         'sessionMode' => $sessionMode,
         'sessionModeLabel' => (string) ($event['sessionModeLabel'] ?? ''),
         'references' => is_array($event['references'] ?? null) ? $event['references'] : [],

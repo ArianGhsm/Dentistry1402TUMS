@@ -212,6 +212,10 @@ def _instructor(item: dict[str, Any]) -> str:
     return _plain(item.get("instructor"), 80)
 
 
+def _resident(item: dict[str, Any]) -> str:
+    return _plain(item.get("resident"), 80)
+
+
 def _presentation(item: dict[str, Any]) -> dict[str, str] | None:
     raw = item.get("presentation")
     if not isinstance(raw, dict):
@@ -255,13 +259,20 @@ def _rich_day_table(day: dict[str, Any], *, limit: int | None = None) -> str:
         icon, label = _meta(item)
         marker, state = _status(item)
         instructor = _instructor(item)
+        resident = _resident(item)
+        staff_lines = []
+        if instructor:
+            staff_lines.append(html.escape(instructor))
+        if resident:
+            staff_lines.append(f"🩺 رزیدنت: {html.escape(resident)}")
+        staff_html = "<br/>".join(staff_lines)
         status_key = str(item.get("status") or "unknown")
         status_suffix = f" · {marker} {html.escape(state)}" if status_key not in {"active", "unknown"} else ""
         presentation_html = _presentation_html(item)
         parts.append(
             f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td>"
             f"<td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}{status_suffix}{presentation_html}</td>"
-            f"<td>{html.escape(instructor)}</td></tr>"
+            f"<td>{staff_html}</td></tr>"
         )
     parts.append("</table>")
     omitted = len(items) - len(visible)
@@ -321,6 +332,8 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
         meta = [label]
         instructor = _instructor(item)
         if instructor: meta.append("👤 " + instructor)
+        resident = _resident(item)
+        if resident: meta.append("🩺 رزیدنت: " + resident)
         if item.get("location"): meta.append("📍 " + _plain(item.get("location"), 70))
         fallback.append("   " + html.escape(" · ".join(meta)))
         presentation = _presentation(item)
@@ -379,7 +392,10 @@ def weekly_screen(days: list[dict[str, Any]], week_offset: int, *, owner: bool =
         for item in items[:_WEEKLY_DAY_PREVIEW]:
             icon, label = _meta(item)
             instructor = _instructor(item)
+            resident = _resident(item)
             suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
+            if resident:
+                suffix += f" · 🩺 رزیدنت: {html.escape(resident)}"
             if _presentation(item) is not None:
                 suffix += " · 🎤 ارائه دارید"
             fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 90)}</b>{suffix}")
@@ -416,7 +432,10 @@ def month_screen(days: list[dict[str, Any]], page: int, *, owner: bool = False) 
             for item in items[:4]:
                 icon, label = _meta(item)
                 instructor = _instructor(item)
+                resident = _resident(item)
                 suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
+                if resident:
+                    suffix += f" · 🩺 رزیدنت: {html.escape(resident)}"
                 if _presentation(item) is not None:
                     suffix += " · 🎤 ارائه دارید"
                 fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_esc(item.get('title') or label, 76)}{suffix}")

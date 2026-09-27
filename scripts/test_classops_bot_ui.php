@@ -94,6 +94,20 @@ $endoQuizRows = array_values(array_filter(
     classops_bot_ui_term7_records($endoStudent, $endoQuizDate, $state),
     static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'مبانی اندودانتیکس ۲'
 ));
+$pathologyDate = new DateTimeImmutable('2026-09-29 00:00:00', $timezone); // 1405/07/07
+$pathologyRows = array_values(array_filter(
+    classops_bot_ui_term7_records($endoStudent, $pathologyDate, $state),
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'آسیب‌شناسی عملی ۱'
+));
+classops_v3_assert(
+    count($pathologyRows) === 1
+        && ($pathologyRows[0]['sessionNumber'] ?? null) === 2
+        && ($pathologyRows[0]['sessionTitle'] ?? '') === 'گرانولوم نوک ریشه – کیست رادیکولار'
+        && ($pathologyRows[0]['instructor'] ?? '') === 'دکتر مرادزاده'
+        && ($pathologyRows[0]['resident'] ?? '') === 'دکتر صبوری',
+    'Pathology Practical 1 reaches ClassOps with corrected title, instructor and resident'
+);
+
 classops_v3_assert(
     count($endoQuizRows) === 1
         && ($endoQuizRows[0]['sessionNumber'] ?? null) === 5

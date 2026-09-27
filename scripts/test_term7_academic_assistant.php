@@ -75,8 +75,15 @@ try {
     $pathologyFirstSummary = dent_term7_summary_body($pathologyFirstDay);
     term7_assert(
         in_array('آسیب‌شناسی عملی ۱', term7_titles($pathologyFirstDay['practicalMorning']), true)
-            && str_contains($pathologyFirstSummary, 'آسیب‌شناسی عملی ۱ — جلسه ۱: گرانول فوردایس – لکوادما – هیپرکراتوز'),
+            && str_contains($pathologyFirstSummary, 'آسیب‌شناسی عملی ۱ — جلسه ۱: گرانول فوردایس – لکوادما'),
         'Pathology Practical 1 starts for group 5 exactly on 1405/07/05 with the source session title'
+    );
+    $pathologyResidentDay = dent_term7_resolve_jalali('1405/07/07', 2, ['group10' => 5, 'group8' => 14]);
+    $pathologyResidentSummary = dent_term7_summary_body($pathologyResidentDay);
+    term7_assert(
+        str_contains($pathologyResidentSummary, 'گرانولوم نوک ریشه – کیست رادیکولار')
+            && str_contains($pathologyResidentSummary, '🩺 رزیدنت مسئول: دکتر صبوری'),
+        'Pathology Practical 1 carries resident metadata into the shared daily summary'
     );
     $pathologyAfterSource = dent_term7_resolve_jalali('1405/08/17', 7, ['group10' => 5, 'group8' => 14]);
     term7_assert(

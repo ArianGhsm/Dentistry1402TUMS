@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.6';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.7';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -292,6 +292,7 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             $copy['sessionDetails'] = trim((string) ($session['sessionDetails'] ?? ''));
             $copy['sourceTitle'] = trim((string) ($session['sourceTitle'] ?? ''));
             $copy['instructor'] = trim((string) ($session['instructor'] ?? ''));
+            $copy['resident'] = trim((string) ($session['resident'] ?? ''));
             $copy['references'] = is_array($session['references'] ?? null) ? $session['references'] : [];
             $copy['sessionMode'] = $mode;
             $copy['sessionModeLabel'] = $modeLabel;
@@ -436,6 +437,7 @@ function classops_term7_syllabus_booklet_catalog(): array
                     'sessionNumber' => $number,
                     'title' => trim((string) ($session['title'] ?? '')),
                     'instructor' => trim((string) ($session['instructor'] ?? '')),
+                    'resident' => trim((string) ($session['resident'] ?? '')),
                     'sessionMode' => $mode,
                     'sessionModeLabel' => classops_term7_syllabus_mode_label($mode),
                     'sourcePage' => max(0, (int) ($session['sourcePage'] ?? 0)),
