@@ -32,7 +32,7 @@ def _error(message: str) -> str:
     return f"<b>⚠️ انجام نشد</b>\n\n{html.escape(message)}"
 
 
-_BOOKLET_CAPTION_KINDS = frozenset({"booklet", "ai_booklet"})
+_BOOKLET_CAPTION_KINDS = frozenset({"booklet", "ai_booklet", "paid_file"})
 _DIRECT_SOURCE_COPY_KINDS = frozenset({"power"})
 _TELEGRAM_CAPTION_SOURCE_BUDGET = 900
 
@@ -62,6 +62,7 @@ class DeliveryJob:
     source_id: int
     document_id: str
     enqueued_monotonic: float
+    source_type: str = "booklet"
 
 
 class ProtectedMediaDispatcher:
@@ -176,9 +177,23 @@ class ProtectedMediaDispatcher:
             self.cleanup_orphaned_temp()
 
     def enqueue(self, user_id: int, source_id: int) -> str:
+        source = self.state.protected_media_source(int(source_id))
+        return self._enqueue_source(user_id, source_id, source, source_type="booklet")
+
+    def enqueue_paid_file(self, user_id: int, asset_id: int) -> str:
+        source = self.state.paid_file_asset_by_id(int(asset_id))
+        return self._enqueue_source(user_id, asset_id, source, source_type="paid_file")
+
+    def _enqueue_source(
+        self,
+        user_id: int,
+        source_id: int,
+        source: dict | None,
+        *,
+        source_type: str,
+    ) -> str:
         user_id = int(user_id)
         source_id = int(source_id)
-        source = self.state.protected_media_source(source_id)
         if source is None:
             return "missing"
         if not self.authorize(user_id, source):
@@ -201,12 +216,25 @@ class ProtectedMediaDispatcher:
             if claim != "claimed":
                 return claim
             try:
-                self.queue.put_nowait(DeliveryJob(user_id, source_id, document_id, time.monotonic()))
+                self.queue.put_nowait(
+                    DeliveryJob(
+                        user_id,
+                        source_id,
+                        document_id,
+                        time.monotonic(),
+                        source_type=source_type,
+                    )
+                )
             except queue.Full:
                 return "full"
             self._pending.add(key)
-        logging.info("booklet request queued queue_depth=%s", self.queue.qsize())
+        logging.info("protected media request queued source=%s queue_depth=%s", source_type, self.queue.qsize())
         return "queued"
+
+    def _source_for_job(self, job: DeliveryJob) -> dict | None:
+        if job.source_type == "paid_file":
+            return self.state.paid_file_asset_by_id(job.source_id)
+        return self.state.protected_media_source(job.source_id)
 
     def _finish(self, job: DeliveryJob) -> None:
         with self._lock:
@@ -396,17 +424,34 @@ class ProtectedMediaDispatcher:
                 self.queue.task_done()
                 return
             try:
-                source = self.state.protected_media_source(job.source_id)
+                source = self._source_for_job(job)
                 if source is None or not self.authorize(job.user_id, source):
                     self.state.record_protected_media_delivery(job.user_id, job.source_id, "denied")
+                    denied_text = (
+                        "خرید این فایل برای حساب شما تأیید نشد؛ فایل ارسال نشد."
+                        if job.source_type == "paid_file"
+                        else "مجوز این درس یا ترم تأیید نشد؛ فایل ارسال نشد."
+                    )
                     self.api.send(
                         job.user_id,
-                        _error("مجوز این درس یا ترم تأیید نشد؛ فایل ارسال نشد."),
+                        _error(denied_text),
                         {"inline_keyboard": [[{"text": "🏠 منوی اصلی", "callback_data": "v1:home"}]]},
                     )
                     continue
                 kind = str(source.get("contentKind") or "").strip()
-                if kind in _DIRECT_SOURCE_COPY_KINDS:
+                if kind == "paid_file":
+                    if self._is_pdf(source):
+                        result = self._send_pdf(job, source)
+                    else:
+                        if not self.authorize(job.user_id, source):
+                            raise PermissionError("Paid file access was revoked before media delivery")
+                        result = self.api.send_protected_media(
+                            job.user_id,
+                            source,
+                            personalized_file_id=str(source.get("fileId") or ""),
+                            caption=_protected_delivery_caption(source),
+                        )
+                elif kind in _DIRECT_SOURCE_COPY_KINDS:
                     if not self.authorize(job.user_id, source):
                         raise PermissionError("Booklet entitlement was revoked before media delivery")
                     result = self.api.send_protected_media(job.user_id, source)
@@ -430,20 +475,38 @@ class ProtectedMediaDispatcher:
             except PermissionError:
                 self.state.record_protected_media_delivery(job.user_id, job.source_id, "denied")
                 try:
-                    self.api.send(
-                        job.user_id,
-                        _error("دسترسی این ترم دیگر فعال نیست؛ فایل ارسال نشد."),
-                        {"inline_keyboard": [[{"text": "🔒 وضعیت اشتراک", "callback_data": "v1:term-subscription:7"}]]},
-                    )
+                    if job.source_type == "paid_file":
+                        message = _error("دسترسی خرید این فایل دیگر معتبر نیست؛ فایل ارسال نشد.")
+                        reply_markup = {
+                            "inline_keyboard": [[{"text": "🏠 منوی اصلی", "callback_data": "v1:home"}]]
+                        }
+                    else:
+                        message = _error("دسترسی این ترم دیگر فعال نیست؛ فایل ارسال نشد.")
+                        reply_markup = {
+                            "inline_keyboard": [[{
+                                "text": "🔒 وضعیت اشتراک",
+                                "callback_data": "v1:term-subscription:7",
+                            }]]
+                        }
+                    self.api.send(job.user_id, message, reply_markup)
                 except BotApiError:
                     pass
             except Exception as error:
                 self.state.record_protected_media_delivery(job.user_id, job.source_id, "failed")
-                logging.warning("protected media delivery failed type=%s", type(error).__name__)
+                logging.warning(
+                    "protected media delivery failed source=%s type=%s",
+                    job.source_type,
+                    type(error).__name__,
+                )
                 try:
+                    failure_text = (
+                        "صدور فایل محافظت‌شده انجام نشد؛ کمی بعد دوباره دریافت را بزن."
+                        if job.source_type == "paid_file"
+                        else "صدور نسخهٔ شخصی انجام نشد؛ مشخصات کامل حساب یا فایل منبع را بررسی کن و دوباره تلاش کن."
+                    )
                     self.api.send(
                         job.user_id,
-                        _error("صدور نسخهٔ شخصی انجام نشد؛ مشخصات کامل حساب یا فایل منبع را بررسی کن و دوباره تلاش کن."),
+                        _error(failure_text),
                         {"inline_keyboard": [[{"text": "🏠 منوی اصلی", "callback_data": "v1:home"}]]},
                     )
                 except BotApiError:

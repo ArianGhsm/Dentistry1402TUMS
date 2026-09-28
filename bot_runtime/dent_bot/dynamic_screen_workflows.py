@@ -13,9 +13,7 @@ from .payments import identity_from_account
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
 from .student_assistant import send_private_challenge
-from .subscriptions import (
-    billing_period_for, policy_is_effective, subscription_identity_from_account, utc_iso,
-)
+from .subscriptions import billing_period_for, policy_is_effective, subscription_identity_from_account, utc_iso
 from .ui import (
     Screen, account_screen, ai_booklet_sales_screen, booklet_sales_overview_screen,
     booklet_subscription_sales_screen, bot_start_url, button, complimentary_access_list_screen,
@@ -537,6 +535,8 @@ class DynamicScreenWorkflows:
         if name == "payment-offer-new" and user_id == self.owner_id:
             dialog = self.state.start_dialog(user_id, "payment-offer", "title")
             return payment_offer_wizard_screen("title", dialog["payload"])
+        if name == "payment-file-new" and user_id == self.owner_id:
+            return self._start_paid_file_sale_screen(user_id)
         if name == "payment-offer-cancel" and user_id == self.owner_id:
             self.state.clear_dialog(user_id)
             return owner_payment_offers_screen(self._ordinary_payment_offers())
@@ -596,10 +596,17 @@ class DynamicScreenWorkflows:
             payload = dict(dialog.get("payload") or {}) if dialog else {}
             if not dialog or dialog.get("kind") != "payment-offer" or not payload.get("title") or not payload.get("amountRials"):
                 return Screen(frame_error("اطلاعات محصول کامل نیست."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            is_file_sale = str(payload.get("saleType") or "") == "file"
+            if is_file_sale and not isinstance(payload.get("fileAsset"), dict):
+                return Screen(
+                    frame_error("فایل فروش ثبت نشده است؛ ساخت فروش فایل را از ابتدا انجام بده."),
+                    payment_offer_preview_screen(payload).keyboard,
+                )
             try:
                 item = self.state.create_payment_offer(
                     str(payload["title"]), int(payload["amountRials"]), str(payload.get("description") or ""),
                     audience=dict(payload.get("audience") or {"mode": "all"}),
+                    paid_file_asset=dict(payload["fileAsset"]) if is_file_sale else None,
                     actor_user_id=user_id, actor_platform=self.platform,
                 )
             except (TypeError, ValueError):
@@ -735,6 +742,8 @@ class DynamicScreenWorkflows:
             item = self.state.payment_offer_for_user(name.split(":", 1)[1], identity_from_account(account))
             if item is None:
                 return Screen(frame_error("این محصول در دسترس این حساب نیست یا اعتبارش پایان یافته است."), self._screen("home", user_id).keyboard)
+            if self._is_paid_file_offer(item) and self.platform != "telegram":
+                return self._paid_file_telegram_screen(item)
             states = self._payment_product_states(user_id, [item])
             return payment_confirm_screen(item, state=dict(states.get(str(item.get("ref") or "")) or {}))
         if name == "student-assistant" and not self.student_assistant_v1_enabled:
@@ -1016,6 +1025,8 @@ class DynamicScreenWorkflows:
                 if error.code == "NOTIFICATION_NOT_FOUND":
                     return self._dynamic_screen_core("notifications", user_id, request_id=request_id, sender=sender)
                 return Screen(frame_error(str(error)), home(self.site_url, is_owner=True).keyboard)
+        if name.startswith("paid-file-get:"):
+            return self._paid_file_delivery_screen(user_id, name.split(":", 1)[1])
         if name.startswith(("payment-create:", "payment-create-link:")):
             via_link = name.startswith("payment-create-link:")
             account = self._account_snapshot(user_id)
@@ -1027,6 +1038,9 @@ class DynamicScreenWorkflows:
                 offer = self.state.payment_offer_for_user(name.split(":", 1)[1], identity_from_account(account))
             if offer is None:
                 return Screen(frame_error("این محصول در دسترس این حساب نیست یا اعتبارش پایان یافته است."), self._screen("home", user_id).keyboard)
+            blocked = self._paid_file_purchase_blocker(user_id, offer)
+            if blocked is not None:
+                return blocked
             stable_request_id = hashlib.sha256(request_id.encode("utf-8")).hexdigest()
             try:
                 return payment_created_screen(

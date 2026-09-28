@@ -61,6 +61,12 @@ Audience membership is independent from delivery capability. A missing bot link 
 
 `classops-surface-v1` is integrated with the approved domain graph across the Website Operations Center, Telegram and Bale. Trusted state persistence and notification/runtime adapters remain canonical shared boundaries; transport-specific code must not create independent business state.
 
+## Bot commerce paid-file fulfillment extension
+
+`bot-commerce-v2` keeps the existing payment/order authority and adds a backward-compatible optional fulfillment shape for Telegram paid-file products. The only accepted action form is `kind=paid_file` with an opaque `paid-file-get:<token>` action; Telegram `file_id`, source chat/message IDs and other source metadata must never be copied into website payment orders. The bot resolves the opaque token against its shared payment-offer metadata and rechecks verified payment state before every delivery. Bale must fail closed for paid-file purchase/delivery because the source asset belongs to Telegram. This extension does not change the meaning of existing v2 fields, so no contract-version bump or historical migration is required.
+
+Producer/consumer coverage lives in `scripts/test_paid_file_fulfillment.php` and `bot_runtime/tests/test_paid_file_sales.py`.
+
 ## Change process
 
 A semantic contract change must:
