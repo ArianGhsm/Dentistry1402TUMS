@@ -529,7 +529,16 @@ class TelegramBotApi:
         """Deliver Telegram media with forwarding/saving protection enabled."""
         if personalized_file_id:
             method = str(source.get("telegramMethod") or "sendDocument")
-            field = {"sendDocument": "document", "sendAudio": "audio", "sendVoice": "voice"}.get(method)
+            field = {
+                "sendDocument": "document",
+                "sendAudio": "audio",
+                "sendVoice": "voice",
+                "sendVideo": "video",
+                "sendAnimation": "animation",
+                "sendPhoto": "photo",
+                "sendVideoNote": "video_note",
+                "sendSticker": "sticker",
+            }.get(method)
             if field is None:
                 raise BotApiError("Unsupported protected media method")
             payload = {
@@ -537,7 +546,7 @@ class TelegramBotApi:
                 field: personalized_file_id,
                 "protect_content": True,
             }
-            if caption:
+            if caption and method not in {"sendVideoNote", "sendSticker"}:
                 payload["caption"] = self._prepare_rich_text(caption)
                 if self._parse_mode() is not None:
                     payload["parse_mode"] = str(self._parse_mode())

@@ -116,6 +116,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         required_channel_username: str = "",
         booklet_source_channel_id: int = 0,
         power_source_channel_id: int = 0,
+        paid_file_pdf_max_bytes: int = 20 * 1024 * 1024,
         media_dispatcher=None,
     ) -> None:
         self.api = KeyboardInvariantApi(api, state)
@@ -131,6 +132,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         self.required_channel_username = required_channel_username.strip().lstrip("@")
         self.booklet_source_channel_id = int(booklet_source_channel_id)
         self.power_source_channel_id = int(power_source_channel_id)
+        self.paid_file_pdf_max_bytes = max(1, int(paid_file_pdf_max_bytes))
         self.media_dispatcher = media_dispatcher
         self._interaction_lock = threading.Lock()
         self._interaction_versions: dict[int, int] = {}
@@ -252,7 +254,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
             "profile-edit", "profile-edit-cancel", "profile-edit-requests",
             "phone-enroll", "phone-enroll-cancel", "grades", "notifications",
-            "student-assistant", "exam-owner", "payment-offer-new", "payment-offer-cancel",
+            "student-assistant", "exam-owner", "payment-offer-new", "payment-file-new", "payment-offer-cancel",
             "payment-offer-publish", "payment-offer-no-description", "payment-offer-custom-amount",
             "payment-products", "payment-stats", "payment-transactions", "payment-search",
             "payment-audiences", "payment-export", "payment-reminders", "payment-settings",
@@ -479,6 +481,8 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
                     frame_error("این لینک در دسترس این حساب نیست یا اعتبارش پایان یافته است."),
                     self._screen("home", user_id).keyboard,
                 )
+            elif self._is_paid_file_offer(allowed) and self.platform != "telegram":
+                screen = self._paid_file_telegram_screen(allowed)
             else:
                 states = self._payment_product_states(user_id, [allowed])
                 screen = payment_confirm_screen(
@@ -495,7 +499,13 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
                 return
             account = self._account_snapshot(user_id)
             offer = self.state.payment_offer_for_user(command_argument[4:], identity_from_account(account))
-            screen = payment_confirm_screen(offer) if offer else Screen(frame_error("این محصول فعال نیست."), gateway_screen().keyboard)
+            if offer is not None and self._is_paid_file_offer(offer) and self.platform != "telegram":
+                screen = self._paid_file_telegram_screen(offer)
+            else:
+                screen = payment_confirm_screen(offer) if offer else Screen(
+                    frame_error("این محصول فعال نیست."),
+                    gateway_screen().keyboard,
+                )
             self.api.send(int(chat["id"]), screen.text, screen.keyboard)
             return
         if command == "/start" and command_argument.startswith("receipt_"):
@@ -572,7 +582,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         pending_dialog = self.state.dialog(user_id)
         private_message = (
             (self.student_assistant_v1_enabled and self._is_integration_captcha_reply(user_id, message))
-            or (user_id == self.owner_id and text.split(maxsplit=1)[0].split("@", 1)[0] == "/navid")
+            or (user_id == self.owner_id and command == "/navid")
             or (user_id == self.owner_id and self._is_navid_captcha_reply(message))
             or text.startswith("/setgrade")
             or command in {"/product", "/payform"}
@@ -590,7 +600,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         if self.student_assistant_v1_enabled and self._is_integration_captcha_reply(user_id, message):
             self._complete_integration_captcha(int(chat["id"]), user_id, message, text)
             return
-        if user_id == self.owner_id and text.split(maxsplit=1)[0].split("@", 1)[0] == "/navid":
+        if user_id == self.owner_id and command == "/navid":
             self._send_navid_challenge(int(chat["id"]), refresh=True)
             return
         if user_id == self.owner_id and self._is_navid_captcha_reply(message):
@@ -604,7 +614,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
             return
         if self._handle_dialog_message(int(chat["id"]), user_id, text, sender=sender, message=message):
             return
-        command = text.split(maxsplit=1)[0].split("@", 1)[0]
+        command = command.split("@", 1)[0]
         target = (
             "help" if command == "/help"
             else "account" if command in {"/verify", "/account"}
@@ -1013,7 +1023,7 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
         owner_action = name in {
             "admin", "system-status", "admin-grades", "admin-payments", "navid", "navid-check",
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
-            "profile-edit-requests", "payment-offer-new", "payment-offer-cancel", "payment-offer-publish",
+            "profile-edit-requests", "payment-offer-new", "payment-file-new", "payment-offer-cancel", "payment-offer-publish",
             "payment-offer-no-description", "payment-offer-custom-amount", "payment-offer-description",
             "payment-products", "payment-stats", "payment-transactions", "payment-search", "payment-audiences",
             "booklet-sales", "booklet-sales-ai", "booklet-sales-subscriptions",

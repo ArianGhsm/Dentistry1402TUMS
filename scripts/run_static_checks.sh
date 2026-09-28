@@ -113,6 +113,7 @@ section "ClassOps Stage 1 domain contracts"
 
 section "Signed bot integration contracts"
 "$PYTHON_BIN" scripts/test_bot_integration_contracts.py || fail "test_bot_integration_contracts.py"
+"$PHP_BIN" scripts/test_paid_file_fulfillment.php || fail "test_paid_file_fulfillment.php"
 "$PHP_BIN" scripts/test_bot_persistence.php || fail "test_bot_persistence.php"
 "$PYTHON_BIN" scripts/test_bot_recovery_merge.py || fail "test_bot_recovery_merge.py"
 "$PYTHON_BIN" scripts/test_bot_snapshot_safety.py || fail "test_bot_snapshot_safety.py"

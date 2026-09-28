@@ -10,6 +10,7 @@ from .api import BotApiError
 from .booklets import courses_screen as booklet_courses_screen
 from .message_frames import frame_error
 from .navid import local_now
+from .paid_files import extract_paid_file_source
 from .onboarding import (
     BACK_STEP, CANCEL, CLASS_OTP, CLASS_SITE, CHANGE_PHONE, CONFIRM_PROFILE,
     NEXT_PAGE, PREVIOUS_PAGE, RESEND_OTP, RESTART_PROFILE, SKIP_STUDENT_NUMBER,
@@ -747,7 +748,34 @@ class DialogAppWorkflows:
             return False
         step = str(dialog.get("step") or "")
         payload = dict(dialog.get("payload") or {})
-        if step == "title":
+        if step == "file":
+            asset = extract_paid_file_source(message)
+            if asset is None:
+                self.api.send(
+                    chat_id,
+                    frame_error("یک فایل، PDF، صوت/ویس، ویدئو، تصویر یا رسانهٔ معتبر تلگرام بفرست."),
+                    payment_offer_wizard_screen("file", payload).keyboard,
+                )
+                return True
+            if (
+                bool(asset.get("isPdf"))
+                and int(asset.get("fileSize") or 0) > int(self.paid_file_pdf_max_bytes)
+            ):
+                limit_mb = max(1, int(self.paid_file_pdf_max_bytes) // (1024 * 1024))
+                self.api.send(
+                    chat_id,
+                    frame_error(
+                        "PDF برای شخصی‌سازی از سقف فعلی بزرگ‌تر است. "
+                        f"حداکثر اندازهٔ PDF این مسیر {to_persian_digits(limit_mb)} مگابایت است."
+                    ),
+                    payment_offer_wizard_screen("file", payload).keyboard,
+                )
+                return True
+            payload["saleType"] = "file"
+            payload["fileAsset"] = asset
+            self.state.update_dialog(user_id, step="title", payload=payload)
+            screen = payment_offer_wizard_screen("title", payload)
+        elif step == "title":
             title = " ".join(text.split())[:160]
             if len(title) < 3:
                 self.api.send(chat_id, frame_error("عنوان باید حداقل ۳ نویسه باشد."), payment_offer_wizard_screen("title", payload).keyboard)
