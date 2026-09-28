@@ -320,6 +320,19 @@ try {
         'Single-session Thursday Endo uses syllabus-priority 08:30-09:30'
     );
 
+    $diagnosticToday = dent_term7_resolve_jalali('1405/07/06', 1, []);
+    $diagnosticTodayGroups = dent_term7_enriched_event_groups($diagnosticToday);
+    $diagnosticTodayRows = array_values(array_filter($diagnosticTodayGroups['theory'], static fn(array $event): bool => ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'));
+    term7_assert(
+        count($diagnosticTodayRows) === 1
+            && ($diagnosticTodayRows[0]['sessionNumber'] ?? null) === 4
+            && ($diagnosticTodayRows[0]['sessionTitle'] ?? '') === 'ضایعات واکنشی'
+            && ($diagnosticTodayRows[0]['instructor'] ?? '') === 'دکتر درخشان'
+            && ($diagnosticTodayRows[0]['start'] ?? '') === '13:45'
+            && ($diagnosticTodayRows[0]['end'] ?? '') === '14:45',
+        'Monday 1405/07/06 resolves to Reactive Lesions with Dr Derakhshan'
+    );
+
     $diagnosticMonday = dent_term7_resolve_jalali('1405/07/13', 1, []);
     $diagnosticMondayRows = array_values(array_filter($diagnosticMonday['theory'], static fn(array $event): bool => ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'));
     term7_assert(

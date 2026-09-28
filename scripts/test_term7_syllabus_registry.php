@@ -163,6 +163,23 @@ syllabus_assert(
         && count(array_filter($diagnostic, static fn(array $row): bool => ($row['assessmentPart'] ?? '') === 'پایان‌ترم')) === 16,
     'Diagnostic Dentistry 3 keeps the source 17-session midterm and 16-session final split'
 );
+$diagnosticByDate = [];
+foreach ($diagnostic as $row) {
+    foreach (is_array($row['dates'] ?? null) ? $row['dates'] : [] as $date) {
+        $diagnosticByDate[(string) $date] = $row;
+    }
+}
+syllabus_assert(
+    ($diagnosticByDate['1405/07/06']['title'] ?? '') === 'ضایعات واکنشی'
+        && ($diagnosticByDate['1405/07/06']['instructor'] ?? '') === 'دکتر درخشان'
+        && ($diagnosticByDate['1405/07/20']['title'] ?? '') === 'ضایعات سفید و قرمز'
+        && ($diagnosticByDate['1405/07/20']['instructor'] ?? '') === 'دکتر منصوریان'
+        && ($diagnosticByDate['1405/08/04']['title'] ?? '') === 'ضایعات خوش‌خیم اپیتلیالی'
+        && ($diagnosticByDate['1405/08/04']['instructor'] ?? '') === 'دکتر مهدوی'
+        && ($diagnosticByDate['1405/10/07']['title'] ?? '') === 'ضایعات خوش‌خیم مزانشیمی'
+        && ($diagnosticByDate['1405/10/07']['instructor'] ?? '') === 'دکتر مرادزاده',
+    'Diagnostic merged-cell boundaries preserve the first date of each instructor/topic block'
+);
 $diagQuiz = classops_term7_syllabus_enrich_events([
     syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳'),
 ], '1405/07/13');

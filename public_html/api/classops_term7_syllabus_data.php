@@ -453,7 +453,7 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "diagnostic-dentistry-3": {
-    "version": "1405-1406-1.corrected.1",
+    "version": "1405-1406-1.corrected.2",
     "sourceTiming": {
       "byEventSlug": {
         "diagnostic-dentistry-3-sun": {"start": "07:30", "end": "08:30", "appliesToVirtual": true},
@@ -521,8 +521,8 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/06"
         ],
-        "title": "ضایعات اگزوفیتیک خارج استخوانی",
-        "instructor": "دکتر پورشهیدی",
+        "title": "ضایعات واکنشی",
+        "instructor": "دکتر درخشان",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1,
@@ -581,8 +581,8 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/20"
         ],
-        "title": "ضایعات واکنشی",
-        "instructor": "دکتر درخشان",
+        "title": "ضایعات سفید و قرمز",
+        "instructor": "دکتر منصوریان",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1,
@@ -641,8 +641,8 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/08/04"
         ],
-        "title": "ضایعات سفید و قرمز",
-        "instructor": "دکتر منصوریان",
+        "title": "ضایعات خوش‌خیم اپیتلیالی",
+        "instructor": "دکتر مهدوی",
         "references": [],
         "sessionMode": "in_person",
         "sourcePage": 1,
@@ -911,7 +911,7 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/10/07"
         ],
-        "title": "ضایعات بدخیم مزانشیمی",
+        "title": "ضایعات خوش‌خیم مزانشیمی",
         "instructor": "دکتر مرادزاده",
         "references": [],
         "sessionMode": "in_person",

@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.8';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.9';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
