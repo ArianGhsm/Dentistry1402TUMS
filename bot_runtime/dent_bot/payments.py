@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Iterable
 
+from .persian_datetime import to_persian_digits
+
 
 PRODUCT_STATUSES = {"draft", "scheduled", "active", "paused", "expired", "archived"}
 AUDIENCE_MODES = {"all", "open", "cohorts", "users", "lists"}
@@ -152,7 +154,7 @@ def audience_label(value: object) -> str:
     if mode == "open":
         return "فقط دارندگان لینک"
     if mode == "cohorts":
-        return f"{len(audience['cohorts'])} ورودی/گروه"
+        return f"{to_persian_digits(len(audience['cohorts']))} ورودی/گروه"
     if mode == "users":
-        return f"{len(audience['studentNumbers'])} کاربر مشخص"
-    return f"{len(audience['listRefs'])} فهرست ذخیره‌شده"
+        return f"{to_persian_digits(len(audience['studentNumbers']))} کاربر مشخص"
+    return f"{to_persian_digits(len(audience['listRefs']))} فهرست ذخیره‌شده"

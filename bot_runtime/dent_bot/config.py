@@ -228,7 +228,9 @@ def load_settings() -> BotSettings:
         booklet_media_workers=min(8, max(1, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_WORKERS", "1")))),
         booklet_media_queue_size=min(500, max(20, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_QUEUE_SIZE", "48")))),
         booklet_access_mode=booklet_access_mode,
-        booklet_fingerprint_key=load_booklet_fingerprint_key(required=booklet_source_channel_id < 0),
+        # Telegram can now watermark paid-file PDFs even when the private booklet source channel
+        # is disabled, so the fingerprint key is a runtime invariant for Telegram.
+        booklet_fingerprint_key=load_booklet_fingerprint_key(required=True),
         booklet_watermark_font=Path(os.getenv(
             "DENT_BOT_BOOKLET_WATERMARK_FONT",
             str(Path(__file__).resolve().parent / "assets" / "fonts" / "B_Nazanin_Bold.ttf"),

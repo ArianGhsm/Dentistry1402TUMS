@@ -918,7 +918,7 @@ class DentBotTests(unittest.TestCase):
                 app = DentBotApp(api, state, owner_id=10, site_url="https://example.test", site_api=site)
                 offer = state.create_payment_offer("بسته آزمون", 300000, "ثبت‌نام")
                 confirm = app._dynamic_screen(f"payment-confirm:{offer['ref']}", 20)
-                self.assertIn("30٬000 تومان", confirm.text)
+                self.assertIn("۳۰٬۰۰۰ تومان", confirm.text)
                 created = app._dynamic_screen(f"payment-create:{offer['ref']}", 20, request_id="callback-unique")
                 self.assertIn("https://gateway.example.test/start/abc", str(created.keyboard))
                 self.assertEqual(site.create_calls[0][0], 20)

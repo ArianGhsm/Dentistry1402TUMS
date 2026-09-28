@@ -52,6 +52,28 @@ CREATE INDEX IF NOT EXISTS idx_payment_offers_status_updated
     ON payment_offers(status, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_payment_offers_window
     ON payment_offers(status, available_from, expires_at);
+CREATE TABLE IF NOT EXISTS paid_file_assets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ref TEXT NOT NULL UNIQUE,
+    source_platform TEXT NOT NULL DEFAULT 'telegram' CHECK(source_platform = 'telegram'),
+    source_chat_id INTEGER NOT NULL,
+    source_message_id INTEGER NOT NULL,
+    telegram_method TEXT NOT NULL CHECK(telegram_method IN (
+        'sendDocument','sendAudio','sendVoice','sendVideo','sendAnimation','sendPhoto','sendVideoNote','sendSticker'
+    )),
+    file_id TEXT NOT NULL,
+    file_unique_id TEXT NOT NULL DEFAULT '',
+    file_name TEXT NOT NULL DEFAULT '',
+    mime_type TEXT NOT NULL DEFAULT '',
+    file_size INTEGER NOT NULL DEFAULT 0 CHECK(file_size >= 0),
+    caption TEXT NOT NULL DEFAULT '',
+    media_label TEXT NOT NULL DEFAULT 'فایل',
+    active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_paid_file_assets_active
+    ON paid_file_assets(active, updated_at DESC);
 CREATE TABLE IF NOT EXISTS payment_audiences (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ref TEXT NOT NULL UNIQUE,
@@ -1847,6 +1869,62 @@ class BotState:
             ).fetchall()
         return [dict(value) for row in rows if (value := self._term_entitlement_payload(row)) is not None]
 
+    @staticmethod
+    def _normalize_paid_file_asset(asset: dict) -> dict:
+        allowed_methods = {
+            "sendDocument", "sendAudio", "sendVoice", "sendVideo",
+            "sendAnimation", "sendPhoto", "sendVideoNote", "sendSticker",
+        }
+        method = str(asset.get("telegramMethod") or "").strip()
+        file_id = str(asset.get("fileId") or "").strip()
+        source_chat_id = int(asset.get("sourceChatId") or 0)
+        source_message_id = int(asset.get("sourceMessageId") or 0)
+        if (
+            str(asset.get("sourcePlatform") or "telegram") != "telegram"
+            or method not in allowed_methods
+            or not file_id
+            or source_chat_id <= 0
+            or source_message_id <= 0
+        ):
+            raise ValueError("Invalid paid file asset")
+        return {
+            "sourcePlatform": "telegram",
+            "sourceChatId": source_chat_id,
+            "sourceMessageId": source_message_id,
+            "telegramMethod": method,
+            "fileId": file_id[:2048],
+            "fileUniqueId": str(asset.get("fileUniqueId") or "").strip()[:160],
+            "fileName": " ".join(str(asset.get("fileName") or "").split())[:180],
+            "mimeType": " ".join(str(asset.get("mimeType") or "").split())[:120],
+            "fileSize": max(0, int(asset.get("fileSize") or 0)),
+            "mediaLabel": " ".join(str(asset.get("mediaLabel") or "فایل").split())[:80] or "فایل",
+        }
+
+    @staticmethod
+    def _paid_file_asset_payload(row: tuple | None) -> dict | None:
+        if row is None:
+            return None
+        return {
+            "id": int(row[0]),
+            "assetRef": str(row[1]),
+            "sourceType": "paid_file",
+            "sourcePlatform": str(row[2]),
+            "sourceChatId": int(row[3]),
+            "sourceMessageId": int(row[4]),
+            "telegramMethod": str(row[5]),
+            "fileId": str(row[6]),
+            "fileUniqueId": str(row[7]),
+            "fileName": str(row[8]),
+            "mimeType": str(row[9]),
+            "fileSize": int(row[10]),
+            "caption": str(row[11]),
+            "mediaLabel": str(row[12]),
+            "contentKind": "paid_file",
+            "active": bool(row[13]),
+            "createdAt": str(row[14]),
+            "updatedAt": str(row[15]),
+        }
+
     def create_payment_offer(
         self,
         title: str,
@@ -1860,6 +1938,7 @@ class BotState:
         capacity: int = 0,
         max_per_user: int = 1,
         fulfillment: dict | None = None,
+        paid_file_asset: dict | None = None,
         actor_user_id: int = 0,
         actor_platform: str = "system",
     ) -> dict:
@@ -1877,29 +1956,100 @@ class BotState:
             raise ValueError("Invalid product availability window")
         capacity = max(0, min(1_000_000, int(capacity)))
         max_per_user = max(0, min(10_000, int(max_per_user)))
+        normalized_asset = self._normalize_paid_file_asset(paid_file_asset) if isinstance(paid_file_asset, dict) else None
+        asset_ref = secrets.token_urlsafe(18) if normalized_asset is not None else ""
+        effective_fulfillment = dict(fulfillment or {})
+        if normalized_asset is not None:
+            effective_fulfillment = {
+                "kind": "paid_file",
+                "assetRef": asset_ref,
+                "action": f"paid-file-get:{asset_ref}",
+                "text": "فایل خریداری‌شده از داخل ربات تلگرام به‌صورت محافظت‌شده صادر می‌شود.",
+                "fileName": normalized_asset["fileName"],
+                "mediaLabel": normalized_asset["mediaLabel"],
+            }
         offer_ref = secrets.token_urlsafe(18)
         share_token = secrets.token_urlsafe(16)
         with self._lock:
-            cursor = self.payment_connection.execute(
-                "INSERT INTO payment_offers(ref,share_token,title,description,amount_rials,status,audience_json,"
-                "available_from,expires_at,capacity,max_per_user,fulfillment_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-                (
-                    offer_ref, share_token, clean_title, clean_description, int(amount_rials), normalized_status,
-                    json.dumps(normalized_audience, separators=(",", ":")), available, expires, capacity,
-                    max_per_user, json.dumps(fulfillment or {}, ensure_ascii=False, separators=(",", ":")),
-                ),
-            )
-            row = self.payment_connection.execute(
-                f"SELECT {PAYMENT_OFFER_COLUMNS} FROM payment_offers WHERE id=?",
-                (cursor.lastrowid,),
-            ).fetchone()
-            item = dict(self._offer_payload(row) or {})
-            self._payment_audit(
-                "product-created", actor_user_id=actor_user_id, actor_platform=actor_platform,
-                offer_ref=offer_ref, after=item,
-            )
-            self.payment_connection.commit()
+            try:
+                cursor = self.payment_connection.execute(
+                    "INSERT INTO payment_offers(ref,share_token,title,description,amount_rials,status,audience_json,"
+                    "available_from,expires_at,capacity,max_per_user,fulfillment_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        offer_ref, share_token, clean_title, clean_description, int(amount_rials), normalized_status,
+                        json.dumps(normalized_audience, separators=(",", ":")), available, expires, capacity,
+                        max_per_user, json.dumps(effective_fulfillment, ensure_ascii=False, separators=(",", ":")),
+                    ),
+                )
+                if normalized_asset is not None:
+                    self.payment_connection.execute(
+                        "INSERT INTO paid_file_assets("
+                        "ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,file_unique_id,"
+                        "file_name,mime_type,file_size,caption,media_label"
+                        ") VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (
+                            asset_ref, "telegram", normalized_asset["sourceChatId"], normalized_asset["sourceMessageId"],
+                            normalized_asset["telegramMethod"], normalized_asset["fileId"], normalized_asset["fileUniqueId"],
+                            normalized_asset["fileName"], normalized_asset["mimeType"], normalized_asset["fileSize"],
+                            clean_title, normalized_asset["mediaLabel"],
+                        ),
+                    )
+                row = self.payment_connection.execute(
+                    f"SELECT {PAYMENT_OFFER_COLUMNS} FROM payment_offers WHERE id=?",
+                    (cursor.lastrowid,),
+                ).fetchone()
+                item = dict(self._offer_payload(row) or {})
+                self._payment_audit(
+                    "file-product-created" if normalized_asset is not None else "product-created",
+                    actor_user_id=actor_user_id, actor_platform=actor_platform,
+                    offer_ref=offer_ref, after=item,
+                )
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
         return item
+
+    def paid_file_asset(self, asset_ref: str, *, require_active: bool = True) -> dict | None:
+        query = (
+            "SELECT id,ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,"
+            "file_unique_id,file_name,mime_type,file_size,caption,media_label,active,created_at,updated_at "
+            "FROM paid_file_assets WHERE ref=?"
+        )
+        if require_active:
+            query += " AND active=1"
+        with self._lock:
+            row = self.payment_connection.execute(query, (str(asset_ref),)).fetchone()
+        return self._paid_file_asset_payload(row)
+
+    def paid_file_asset_by_id(self, asset_id: int) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,"
+                "file_unique_id,file_name,mime_type,file_size,caption,media_label,active,created_at,updated_at "
+                "FROM paid_file_assets WHERE id=? AND active=1",
+                (int(asset_id),),
+            ).fetchone()
+        return self._paid_file_asset_payload(row)
+
+    def paid_file_offer_refs(self, asset_ref: str) -> list[str]:
+        refs: list[str] = []
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT ref,fulfillment_json FROM payment_offers ORDER BY id DESC"
+            ).fetchall()
+        for ref, raw in rows:
+            try:
+                fulfillment = json.loads(str(raw) or "{}")
+            except json.JSONDecodeError:
+                continue
+            if (
+                isinstance(fulfillment, dict)
+                and str(fulfillment.get("kind") or "") == "paid_file"
+                and str(fulfillment.get("assetRef") or "") == str(asset_ref)
+            ):
+                refs.append(str(ref))
+        return refs
 
     def payment_offers(self, *, include_inactive: bool = False) -> list[dict]:
         query = (
