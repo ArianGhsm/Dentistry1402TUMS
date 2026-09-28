@@ -12,7 +12,7 @@ require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.7';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.8';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
