@@ -457,7 +457,7 @@ function classops_term7_syllabus_source_catalog(): array
     "sourceTiming": {
       "byEventSlug": {
         "diagnostic-dentistry-3-sun": {"start": "07:30", "end": "08:30", "appliesToVirtual": true},
-        "diagnostic-dentistry-3-mon": {"start": "13:15", "end": "14:15", "appliesToVirtual": true}
+        "diagnostic-dentistry-3-mon": {"start": "13:45", "end": "14:45", "appliesToVirtual": true}
       }
     },
     "eventSlugs": [

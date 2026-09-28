@@ -170,9 +170,9 @@ syllabus_assert(
     count($diagQuiz) === 1
         && ($diagQuiz[0]['sessionNumber'] ?? null) === 6
         && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی'
-        && ($diagQuiz[0]['start'] ?? '') === '13:15'
-        && ($diagQuiz[0]['end'] ?? '') === '14:15',
-    'Diagnostic Monday metadata uses the syllabus-priority 13:15-14:15 clock'
+        && ($diagQuiz[0]['start'] ?? '') === '13:45'
+        && ($diagQuiz[0]['end'] ?? '') === '14:45',
+    'Diagnostic Monday metadata uses the corrected syllabus-priority 13:45-14:45 clock'
 );
 $diagnosticFallback = classops_term7_syllabus_apply_source_times([[
     'slug' => 'diagnostic-dentistry-3-mon',

@@ -86,8 +86,8 @@ class Term7AssistantUiTests(unittest.TestCase):
                         "kind": "theory",
                         "period": "theory",
                         "title": "دندانپزشکی تشخیصی ۳",
-                        "start": "13:15",
-                        "end": "14:15",
+                        "start": "13:45",
+                        "end": "14:45",
                         "location": "آمفی‌تئاتر ۹۰",
                         "instructor": "دکتر پورشهیدی",
                     },
@@ -110,7 +110,7 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertIn("دکتر عرب", rich)
         self.assertIn("دکتر پورشهیدی", rich)
         self.assertLess(rich.find("۰۹:۰۰–۱۲:۰۰"), rich.find("۱۲:۳۰–۱۳:۳۰"))
-        self.assertLess(rich.find("۱۲:۳۰–۱۳:۳۰"), rich.find("۱۳:۱۵–۱۴:۱۵"))
+        self.assertLess(rich.find("۱۲:۳۰–۱۳:۳۰"), rich.find("۱۳:۴۵–۱۴:۴۵"))
         self.assertLess(rich.find("سلامت دهان عملی ۲"), rich.find("ارتودنسی نظری ۱"))
         self.assertNotIn("جلسه 1", rich)
         self.assertNotIn("جلسه 2", rich)

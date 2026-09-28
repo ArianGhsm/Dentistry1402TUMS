@@ -174,7 +174,7 @@ try {
     ]);
     $mondayRows = dent_term7_ordered_schedule_rows($mondayOrdered);
     term7_assert(
-        array_column($mondayRows, 'start') === ['09:00', '12:30', '13:15']
+        array_column($mondayRows, 'start') === ['09:00', '12:30', '13:45']
             && array_column($mondayRows, 'instructor') === [
                 'دکتر سرگران / دکتر پاکدامن',
                 'دکتر عرب',
@@ -324,10 +324,10 @@ try {
     $diagnosticMondayRows = array_values(array_filter($diagnosticMonday['theory'], static fn(array $event): bool => ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'));
     term7_assert(
         count($diagnosticMondayRows) === 1
-            && ($diagnosticMondayRows[0]['start'] ?? '') === '13:15'
-            && ($diagnosticMondayRows[0]['end'] ?? '') === '14:15'
+            && ($diagnosticMondayRows[0]['start'] ?? '') === '13:45'
+            && ($diagnosticMondayRows[0]['end'] ?? '') === '14:45'
             && !empty($diagnosticMondayRows[0]['sourceTimeExplicit']),
-        'Monday Diagnostic Dentistry 3 uses syllabus-priority 13:15-14:15'
+        'Monday Diagnostic Dentistry 3 uses corrected syllabus-priority 13:45-14:45'
     );
 
     $missing = dent_term7_resolve_jalali('1405/07/05', 7, []);
