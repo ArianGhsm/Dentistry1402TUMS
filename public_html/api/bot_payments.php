@@ -134,6 +134,15 @@ function dent_bot_payment_safe_fulfillment($value): array
     if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) !== false && strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https') {
         $result['url'] = $url;
     }
+    $kind = strtolower(trim((string) ($value['kind'] ?? '')));
+    $action = dent_clean_text((string) ($value['action'] ?? ''), 120);
+    if (
+        $kind === 'paid_file'
+        && preg_match('/^paid-file-get:[A-Za-z0-9_-]{16,80}$/D', $action) === 1
+    ) {
+        $result['kind'] = 'paid_file';
+        $result['action'] = $action;
+    }
     return $result;
 }
 

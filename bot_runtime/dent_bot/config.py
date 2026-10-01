@@ -106,6 +106,23 @@ def load_optional_relay_secret() -> str:
     return raw
 
 
+def bundled_booklet_watermark_font() -> Path:
+    return Path(__file__).resolve().parent / "assets" / "fonts" / "B_Nazanin_Bold.ttf"
+
+
+def resolve_booklet_watermark_font() -> Path:
+    bundled = bundled_booklet_watermark_font()
+    configured_raw = os.getenv("DENT_BOT_BOOKLET_WATERMARK_FONT", "").strip()
+    if not configured_raw:
+        return bundled
+    configured = Path(configured_raw)
+    if configured.is_file() and os.access(configured, os.R_OK):
+        return configured
+    if bundled.is_file() and os.access(bundled, os.R_OK):
+        return bundled
+    return configured
+
+
 def load_booklet_fingerprint_key(*, required: bool = True) -> bytes:
     raw = os.getenv("DENT_BOT_BOOKLET_FINGERPRINT_KEY", "").strip()
     if not raw:
@@ -228,11 +245,10 @@ def load_settings() -> BotSettings:
         booklet_media_workers=min(8, max(1, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_WORKERS", "1")))),
         booklet_media_queue_size=min(500, max(20, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_QUEUE_SIZE", "48")))),
         booklet_access_mode=booklet_access_mode,
-        booklet_fingerprint_key=load_booklet_fingerprint_key(required=booklet_source_channel_id < 0),
-        booklet_watermark_font=Path(os.getenv(
-            "DENT_BOT_BOOKLET_WATERMARK_FONT",
-            str(Path(__file__).resolve().parent / "assets" / "fonts" / "B_Nazanin_Bold.ttf"),
-        )),
+        # Telegram can now watermark paid-file PDFs even when the private booklet source channel
+        # is disabled, so the fingerprint key is a runtime invariant for Telegram.
+        booklet_fingerprint_key=load_booklet_fingerprint_key(required=True),
+        booklet_watermark_font=resolve_booklet_watermark_font(),
         booklet_temp_root=Path(os.getenv(
             "DENT_BOT_BOOKLET_TEMP_ROOT",
             "/var/lib/integrated-dent/dent-bot/tmp/booklets",

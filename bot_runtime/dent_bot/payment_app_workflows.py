@@ -21,6 +21,7 @@ from .ui import (
     format_rials,
     keyboard,
     payment_control_center_screen,
+    payment_offer_wizard_screen,
 )
 
 
@@ -43,7 +44,10 @@ class PaymentAppWorkflows:
         identity = identity_from_account(account)
         offers = [
             item for item in self.state.eligible_payment_offers(identity, via_link=via_link)
-            if not self._is_term_subscription_offer(item)
+            if (
+                not self._is_term_subscription_offer(item)
+                and (self.platform == "telegram" or not self._is_paid_file_offer(item))
+            )
         ]
         if not offers or self.site_api is None or not hasattr(self.site_api, "payment_product_states"):
             return offers
@@ -67,6 +71,145 @@ class PaymentAppWorkflows:
     def _is_term_subscription_offer(offer: dict | None) -> bool:
         fulfillment = dict((offer or {}).get("fulfillment") or {})
         return str(fulfillment.get("kind") or "") == "term_subscription"
+
+    @staticmethod
+    def _is_paid_file_offer(offer: dict | None) -> bool:
+        fulfillment = dict((offer or {}).get("fulfillment") or {})
+        return str(fulfillment.get("kind") or "") == "paid_file"
+
+    @staticmethod
+    def _paid_file_asset_is_pdf(asset: dict | None) -> bool:
+        value = dict(asset or {})
+        return (
+            str(value.get("telegramMethod") or "") == "sendDocument"
+            and (
+                str(value.get("mimeType") or "").lower() == "application/pdf"
+                or str(value.get("fileName") or "").lower().endswith(".pdf")
+            )
+        )
+
+    def _paid_file_access_allowed(self, user_id: int, asset: dict) -> bool:
+        if self.platform != "telegram":
+            return False
+        if int(user_id) == int(self.owner_id):
+            return True
+        if self.site_api is None or not hasattr(self.site_api, "payment_product_states"):
+            return False
+        asset_ref = str(asset.get("assetRef") or "").strip()
+        if not asset_ref:
+            return False
+        offer_refs = self.state.paid_file_offer_refs(asset_ref)
+        if not offer_refs:
+            return False
+        try:
+            fresh = self.site_api.payment_product_states(int(user_id), offer_refs)
+            states = dict(fresh.get("states") or {}) if isinstance(fresh, dict) else {}
+        except (SiteApiError, AttributeError, TypeError, ValueError):
+            return False
+        return any(
+            int(dict(states.get(ref) or {}).get("successCount") or 0) > 0
+            for ref in offer_refs
+        )
+
+    def protected_media_access_allowed(self, user_id: int, source: dict) -> bool:
+        if str(source.get("contentKind") or "") == "paid_file":
+            return self._paid_file_access_allowed(user_id, source)
+        return self.booklet_access_allowed(user_id, source)
+
+    def _paid_file_telegram_screen(self, offer: dict | None = None) -> Screen:
+        share_url = ""
+        if self.platform == "telegram" and isinstance(offer, dict):
+            token = str(offer.get("shareToken") or "")
+            if token:
+                share_url = bot_start_url(
+                    self.bot_username,
+                    f"product_{token}",
+                    platform="telegram",
+                )
+        rows = []
+        if share_url:
+            rows.append([button("باز کردن در تلگرام", url=share_url, style="success")])
+        rows.append([button("🏠 منوی اصلی", action="home")])
+        return Screen(
+            "<b>📁 فروش فایل در تلگرام</b>\n\n"
+            "خرید و دریافت فایل‌های فروشی از مسیر محافظت‌شدهٔ تلگرام انجام می‌شود. "
+            "برای این محصول از ربات تلگرام استفاده کن.",
+            keyboard(*rows),
+        )
+
+    @staticmethod
+    def _paid_file_enqueue_screen(status: str) -> Screen:
+        messages = {
+            "queued": "✅ فایل در صف امن قرار گرفت و پس از بررسی دوبارهٔ مجوز خرید ارسال می‌شود.",
+            "duplicate": "همین فایل هم‌اکنون در صف ارسال توست.",
+            "full": "صف ارسال پر است؛ کمی بعد دوباره تلاش کن.",
+            "rate-limited": "⏳ درخواست‌ها خیلی سریع تکرار شدند؛ کمی بعد دوباره امتحان کن.",
+            "cooldown": "⏳ همین فایل چند لحظه پیش درخواست شده؛ کمی بعد دوباره امتحان کن.",
+            "denied": "⚠️ پرداخت معتبر برای این فایل پیدا نشد.",
+            "missing": "⚠️ فایل فروش پیدا نشد یا دیگر فعال نیست.",
+        }
+        text_value = messages.get(status, "⚠️ فایل قابل ارسال پیدا نشد.")
+        return Screen(
+            f"<b>📥 دریافت فایل</b>\n\n{text_value}",
+            keyboard([button("🛍 محصولات", action="payments"), button("🏠 منوی اصلی", action="home")]),
+        )
+
+    def _start_paid_file_sale_screen(self, user_id: int) -> Screen:
+        if self.platform != "telegram":
+            return self._paid_file_telegram_screen()
+        dialog = self.state.start_dialog(
+            user_id,
+            "payment-offer",
+            "file",
+            {"saleType": "file"},
+        )
+        return payment_offer_wizard_screen("file", dialog["payload"])
+
+    def _paid_file_delivery_screen(self, user_id: int, asset_ref: str) -> Screen:
+        asset = self.state.paid_file_asset(asset_ref)
+        if asset is None:
+            return self._paid_file_enqueue_screen("missing")
+        if self.platform != "telegram":
+            offer = None
+            for offer_ref in self.state.paid_file_offer_refs(asset_ref):
+                offer = self.state.payment_offer(offer_ref, require_active=False)
+                if offer is not None:
+                    break
+            return self._paid_file_telegram_screen(offer)
+        if not self._paid_file_access_allowed(user_id, asset):
+            return self._paid_file_enqueue_screen("denied")
+        if self.media_dispatcher is None:
+            return Screen(
+                frame_error("صف ارسال محافظت‌شده فعلاً در دسترس نیست."),
+                self._screen("home", user_id).keyboard,
+            )
+        status = self.media_dispatcher.enqueue_paid_file(user_id, int(asset["id"]))
+        return self._paid_file_enqueue_screen(status)
+
+    def _paid_file_purchase_blocker(self, user_id: int, offer: dict) -> Screen | None:
+        if not self._is_paid_file_offer(offer):
+            return None
+        if self.platform != "telegram":
+            return self._paid_file_telegram_screen(offer)
+        fulfillment = dict(offer.get("fulfillment") or {})
+        asset = self.state.paid_file_asset(str(fulfillment.get("assetRef") or ""))
+        if asset is None:
+            return Screen(
+                frame_error("فایل این محصول پیدا نشد؛ خرید موقتاً متوقف است."),
+                self._screen("home", user_id).keyboard,
+            )
+        if not self._paid_file_asset_is_pdf(asset):
+            return None
+        try:
+            self.site_api.booklet_watermark_identity(user_id)
+        except (SiteApiError, AttributeError):
+            return Screen(
+                frame_error(
+                    "برای خرید PDF شخصی، نام کامل، کد ملی و موبایل تأییدشده باید در حساب ثبت شده باشد."
+                ),
+                self._screen("account", user_id).keyboard,
+            )
+        return None
 
     def _ordinary_payment_offers(self, *, include_inactive: bool = True) -> list[dict]:
         return [
@@ -408,9 +551,21 @@ class PaymentAppWorkflows:
         if not batch or batch.get("status") != "preview" or batch.get("offerRef") != offer_ref or item is None:
             self.api.send(chat_id, frame_error("پیش‌نمایش ارسال منقضی یا قبلاً استفاده شده است."), payment_control_center_screen([]).keyboard)
             return
+        if self._is_paid_file_offer(item) and self.platform != "telegram":
+            self.state.finish_payment_reminder(batch_ref, status="failed", sent_count=0)
+            self.api.send(
+                chat_id,
+                frame_error("ارسال لینک فروش فایل از بخش تلگرام انجام می‌شود."),
+                keyboard([button("بازگشت به محصول", action=f"payment-offer:{offer_ref}")]),
+            )
+            return
         report = self._payment_people_report(user_id, item)
         recipients = [person for person in report.get("targets", []) if str(person.get("platformUserId") or "").isdigit()][:50]
-        share_url = bot_start_url(self.bot_username, f"product_{str(item.get('shareToken') or '')}", platform=self.platform)
+        share_url = bot_start_url(
+            self.bot_username,
+            f"product_{str(item.get('shareToken') or '')}",
+            platform=self.platform,
+        )
         if not share_url:
             self.state.finish_payment_reminder(batch_ref, status="failed", sent_count=0)
             self.api.send(chat_id, frame_error("لینک امن محصول ساخته نشد."), payment_control_center_screen([]).keyboard)

@@ -563,13 +563,14 @@ def run_service(*, settings, api, platform_name: str) -> int:
         required_channel_username=str(getattr(settings, "required_channel_username", "")),
         booklet_source_channel_id=int(getattr(settings, "booklet_source_channel_id", 0)),
         power_source_channel_id=int(getattr(settings, "power_source_channel_id", 0)),
+        paid_file_pdf_max_bytes=int(getattr(settings, "booklet_max_download_bytes", 20 * 1024 * 1024)),
     )
     media_dispatcher = None
-    if settings.platform == "telegram" and int(getattr(settings, "booklet_source_channel_id", 0)) < 0:
+    if settings.platform == "telegram" and hasattr(settings, "booklet_temp_root"):
         media_dispatcher = ProtectedMediaDispatcher(
             api=api,
             state=state,
-            authorize=app.booklet_access_allowed,
+            authorize=app.protected_media_access_allowed,
             identity_provider=site_api.booklet_watermark_identity,
             fingerprint_key=settings.booklet_fingerprint_key,
             watermark_font=settings.booklet_watermark_font,

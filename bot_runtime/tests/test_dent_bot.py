@@ -22,7 +22,11 @@ from dent_bot.ui import grades_screen, home, navid_screen, section
 from dent_bot.health import check
 from dent_bot.site_api import SiteApiClient, SiteApiError
 from dent_bot.site_health import check as check_site_health
-from dent_bot.config import load_optional_relay_secret
+from dent_bot.config import (
+    bundled_booklet_watermark_font,
+    load_optional_relay_secret,
+    resolve_booklet_watermark_font,
+)
 from dent_bot.runtime import (
     configure_profile_safely,
     dispatch_account_disconnect_batch,
@@ -834,6 +838,16 @@ class DentBotTests(unittest.TestCase):
         self.assertEqual(request.get_header("X-dent-signature"), expected)
         self.assertNotIn(relay_secret, request.data.decode("utf-8"))
 
+    def test_booklet_watermark_font_falls_back_to_bundled_asset(self) -> None:
+        bundled = bundled_booklet_watermark_font()
+        self.assertTrue(bundled.is_file())
+        with patch.dict(
+            os.environ,
+            {"DENT_BOT_BOOKLET_WATERMARK_FONT": "/definitely/missing/booklet-font.ttf"},
+            clear=False,
+        ):
+            self.assertEqual(resolve_booklet_watermark_font(), bundled)
+
     def test_relay_secret_requires_strong_explicit_encoding(self) -> None:
         for weak in ("changeme", "replace-me", "secret", "development", "test", "abc"):
             with self.subTest(weak=weak), patch.dict(os.environ, {"DENT_BOT_SITE_RELAY_SECRET": weak}):
@@ -918,7 +932,7 @@ class DentBotTests(unittest.TestCase):
                 app = DentBotApp(api, state, owner_id=10, site_url="https://example.test", site_api=site)
                 offer = state.create_payment_offer("بسته آزمون", 300000, "ثبت‌نام")
                 confirm = app._dynamic_screen(f"payment-confirm:{offer['ref']}", 20)
-                self.assertIn("30٬000 تومان", confirm.text)
+                self.assertIn("۳۰٬۰۰۰ تومان", confirm.text)
                 created = app._dynamic_screen(f"payment-create:{offer['ref']}", 20, request_id="callback-unique")
                 self.assertIn("https://gateway.example.test/start/abc", str(created.keyboard))
                 self.assertEqual(site.create_calls[0][0], 20)
@@ -1709,6 +1723,15 @@ class DentBotTests(unittest.TestCase):
             try:
                 telegram_offer = telegram.create_payment_offer("تلگرام", 100000)
                 bale_offer = bale.create_payment_offer("بله", 200000)
+                for connection, token, updated_at in (
+                    (telegram.payment_connection, "telegram-shared-token", "2026-01-01T00:00:00+00:00"),
+                    (bale.payment_connection, "bale-shared-token", "2026-01-02T00:00:00+00:00"),
+                ):
+                    connection.execute(
+                        "INSERT INTO payment_offers(ref,share_token,title,amount_rials,updated_at) VALUES(?,?,?,?,?)",
+                        ("shared-ref-for-migration-test", token, "محصول مشترک", 300000, updated_at),
+                    )
+                    connection.commit()
             finally:
                 telegram.close()
                 bale.close()

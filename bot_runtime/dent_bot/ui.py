@@ -888,7 +888,7 @@ def format_rials(value: object) -> str:
         rials = max(0, int(value))
     except (TypeError, ValueError):
         rials = 0
-    return f"{rials // 10:,}".replace(",", "٬") + " تومان"
+    return to_persian_digits(f"{rials // 10:,}".replace(",", "٬")) + " تومان"
 
 
 def term_subscription_screen(policy: dict, decision: dict, *, term: int = 7) -> Screen:
@@ -1323,7 +1323,10 @@ def payment_control_center_screen(offers: list[dict], summary: dict | None = Non
         "\n".join(lines),
         keyboard(
             [button("📚 اشتراک جزوات ترم ۷", action="term-subscription-admin:7", style="success")],
-            [button("➕ محصول جدید", action="payment-offer-new", style="success")],
+            [
+                button("📁 فروش فایل", action="payment-file-new", style="success"),
+                button("➕ محصول جدید", action="payment-offer-new"),
+            ],
             [button("📦 محصولات", action="payment-products"), button("📊 آمار", action="payment-stats")],
             [button("🧾 تراکنش‌ها", action="payment-transactions"), button("🔎 جستجو", action="payment-search")],
             [button("👥 مخاطبان", action="payment-audiences"), button("📤 خروجی", action="payment-export")],
@@ -1348,7 +1351,8 @@ def owner_payment_offers_screen(offers: list[dict], *, page: int = 0) -> Screen:
         offer_ref = str(item.get("ref") or "")
         marker, status_label = _product_status_label(item)
         title = str(item.get("title") or "محصول پرداختی")
-        lines.extend(("", f"{marker} <b>{html.escape(title)}</b>", f"<code>{html.escape(format_rials(item.get('amountRials')))}</code> · {status_label}"))
+        kind_marker = "📁 " if str(dict(item.get("fulfillment") or {}).get("kind") or "") == "paid_file" else ""
+        lines.extend(("", f"{marker} {kind_marker}<b>{html.escape(title)}</b>", f"<code>{html.escape(format_rials(item.get('amountRials')))}</code> · {status_label}"))
         rows.append([button(f"مدیریت · {title[:27]}", action=f"payment-offer:{offer_ref}")])
     if not items:
         lines.extend(("", "هنوز محصول پرداختی مستقلی در ربات ساخته نشده است."))
@@ -1360,7 +1364,7 @@ def owner_payment_offers_screen(offers: list[dict], *, page: int = 0) -> Screen:
     if navigation:
         rows.append(navigation)
     rows.extend((
-        [button("➕ محصول جدید", action="payment-offer-new", style="success")],
+        [button("📁 فروش فایل", action="payment-file-new", style="success"), button("➕ محصول جدید", action="payment-offer-new")],
         [button("بازگشت به پرداخت‌ها", action="admin-payments")],
         [button("🏠 منوی اصلی", action="home")],
     ))
@@ -1369,16 +1373,31 @@ def owner_payment_offers_screen(offers: list[dict], *, page: int = 0) -> Screen:
 
 def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
     cancel = [button("لغو ساخت", action="payment-offer-cancel", style="danger")]
-    if step == "title":
+    is_file_sale = str(payload.get("saleType") or "") == "file"
+    label = "فروش فایل" if is_file_sale else "محصول جدید"
+    if step == "file":
         return Screen(
-            "<b>➕ محصول جدید · ۱ از ۴</b>\n\n<b>عنوان محصول</b> را در یک پیام بفرست.\n"
-            "<blockquote>مثال: ثبت‌نام آزمون جامع</blockquote>",
+            "<b>📁 فروش فایل · ۱ از ۵</b>\n\n"
+            "فایل را همین‌جا در <b>تلگرام</b> برای ربات بفرست.\n\n"
+            "<blockquote>فایل و PDF، صوت و ویس، ویدئو، تصویر، انیمیشن و سایر فرمت‌هایی که به‌صورت فایل در تلگرام ارسال شوند پشتیبانی می‌شوند. "
+            "PDF برای خریدار شخصی‌سازی می‌شود؛ سایر رسانه‌ها با حفاظت تلگرام تحویل می‌شوند.</blockquote>",
+            keyboard(cancel),
+        )
+    if step == "title":
+        step_text = "۲ از ۵" if is_file_sale else "۱ از ۴"
+        example = "مثال: جزوه جمع‌بندی پاتولوژی" if is_file_sale else "مثال: ثبت‌نام آزمون جامع"
+        return Screen(
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\n"
+            "<b>عنوان محصول</b> را در یک پیام بفرست.\n"
+            f"<blockquote>{example}</blockquote>",
             keyboard(cancel),
         )
     if step == "amount":
         title = html.escape(str(payload.get("title") or "محصول"))
+        step_text = "۳ از ۵" if is_file_sale else "۲ از ۴"
         return Screen(
-            f"<b>➕ محصول جدید · ۲ از ۴</b>\n\n{title}\n\nمبلغ را انتخاب کن یا مقدار دلخواه را به تومان وارد کن.",
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\n{title}\n\n"
+            "مبلغ را انتخاب کن یا مقدار دلخواه را به تومان وارد کن.",
             keyboard(
                 [button("۵۰ هزار", action="payment-offer-amount:50000"), button("۱۰۰ هزار", action="payment-offer-amount:100000")],
                 [button("۲۵۰ هزار", action="payment-offer-amount:250000"), button("۵۰۰ هزار", action="payment-offer-amount:500000")],
@@ -1388,13 +1407,14 @@ def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
         )
     if step == "custom-amount":
         return Screen(
-            "<b>➕ محصول جدید · مبلغ دلخواه</b>\n\nمبلغ را فقط به <b>تومان</b> بفرست.\n"
-            "<blockquote>مثال: ۱۲۵۰۰۰</blockquote>",
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · مبلغ دلخواه</b>\n\n"
+            "مبلغ را فقط به <b>تومان</b> بفرست.\n<blockquote>مثال: ۱۲۵۰۰۰</blockquote>",
             keyboard(cancel),
         )
     if step == "audience":
+        step_text = "۴ از ۵" if is_file_sale else "۳ از ۴"
         return Screen(
-            "<b>➕ محصول جدید · ۳ از ۴</b>\n\nچه کسانی این محصول را ببینند؟\n"
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\nچه کسانی این محصول را ببینند؟\n"
             "<blockquote>«دارندگان لینک» در فهرست محصولات دیده نمی‌شود و فقط با لینک امن باز می‌شود.</blockquote>",
             keyboard(
                 [button("همه کاربران احرازشده", action="payment-offer-audience:all", style="success")],
@@ -1405,7 +1425,10 @@ def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
             ),
         )
     if step == "description":
-        return Screen("<b>⚙️ توضیح محصول</b>\n\nتوضیح کوتاه را بفرست.", keyboard([button("بدون توضیح", action="payment-offer-no-description")], cancel))
+        return Screen(
+            f"<b>⚙️ توضیح {label}</b>\n\nتوضیح کوتاه را بفرست.",
+            keyboard([button("بدون توضیح", action="payment-offer-no-description")], cancel),
+        )
     return payment_offer_preview_screen(payload)
 
 
@@ -1414,13 +1437,26 @@ def payment_offer_preview_screen(payload: dict) -> Screen:
     description = html.escape(str(payload.get("description") or "بدون توضیح"))
     amount = html.escape(format_rials(payload.get("amountRials")))
     audience = html.escape(audience_label(payload.get("audience") or {"mode": "all"}))
+    is_file_sale = str(payload.get("saleType") or "") == "file"
+    asset = dict(payload.get("fileAsset") or {})
+    file_line = ""
+    if is_file_sale:
+        media_label = html.escape(str(asset.get("mediaLabel") or "فایل"))
+        file_name = html.escape(str(asset.get("fileName") or "").strip())
+        file_line = f"\nفایل: <b>{media_label}</b>" + (f" · <code>{file_name}</code>" if file_name else "")
     return Screen(
-        f"<b>➕ محصول جدید · ۴ از ۴</b>\n\n<b>{title}</b>\n<blockquote>{description}</blockquote>\n"
-        f"مبلغ نهایی: <code>{amount}</code>\nمخاطب: <b>{audience}</b>\n\nپس از تأیید، محصول فقط در ربات منتشر می‌شود.",
+        f"<b>{'📁 فروش فایل' if is_file_sale else '➕ محصول جدید'} · {'۵ از ۵' if is_file_sale else '۴ از ۴'}</b>\n\n"
+        f"<b>{title}</b>\n<blockquote>{description}</blockquote>{file_line}\n"
+        f"مبلغ نهایی: <code>{amount}</code>\nمخاطب: <b>{audience}</b>\n\n"
+        + (
+            "پس از تأیید، لینک خرید تلگرام ساخته می‌شود و فایل فقط بعد از پرداخت موفق قابل دریافت است."
+            if is_file_sale
+            else "پس از تأیید، محصول فقط در ربات منتشر می‌شود."
+        ),
         keyboard(
             [button("تأیید و انتشار", action="payment-offer-publish", style="success")],
             [button("⚙️ توضیح اختیاری", action="payment-offer-description")],
-            [button("ویرایش از ابتدا", action="payment-offer-new")],
+            [button("ویرایش از ابتدا", action="payment-file-new" if is_file_sale else "payment-offer-new")],
             [button("لغو", action="payment-offer-cancel", style="danger")],
         ),
     )
@@ -1431,6 +1467,9 @@ def payment_offer_admin_detail_screen(item: dict, *, bot_username: str, platform
     description = html.escape(str(item.get("description") or "بدون توضیح"))
     amount = html.escape(format_rials(item.get("amountRials")))
     offer_ref = str(item.get("ref") or "")
+    fulfillment = dict(item.get("fulfillment") or {})
+    is_file_sale = str(fulfillment.get("kind") or "") == "paid_file"
+    asset_ref = str(fulfillment.get("assetRef") or "")
     marker, status = _product_status_label(item)
     active = str(item.get("effectiveStatus") or item.get("status") or "") == "active"
     target = "paused" if active else "active"
@@ -1443,11 +1482,17 @@ def payment_offer_admin_detail_screen(item: dict, *, bot_username: str, platform
         [button("❌ پرداخت‌نکرده‌ها", action=f"payment-offer-unpaid:{offer_ref}"), button("📤 خروجی", action=f"payment-offer-export:{offer_ref}")],
         [button("📑 کپی محصول", action=f"payment-offer-duplicate:{offer_ref}"), button("🔄 تعویض لینک", action=f"payment-offer-rotate:{offer_ref}")],
     ]
-    share_url = bot_start_url(bot_username, f"product_{str(item.get('shareToken') or '')}", platform=platform)
+    if is_file_sale and asset_ref and platform == "telegram":
+        rows.append([button("📥 تست دریافت فایل", action=f"paid-file-get:{asset_ref}", style="success")])
+    share_url = "" if is_file_sale and platform != "telegram" else bot_start_url(
+        bot_username,
+        f"product_{str(item.get('shareToken') or '')}",
+        platform=platform,
+    )
     if share_url:
-        rows.append([button("🔗 لینک محصول", url=share_url, style="primary")])
+        rows.append([button("🔗 لینک خرید", url=share_url, style="primary")])
         if platform == "telegram":
-            rows.append([button("📤 اشتراک‌گذاری / Inline", switch_inline_query=title[:40])])
+            rows.append([button("📤 اشتراک‌گذاری", switch_inline_query=title[:40])])
         else:
             rows.append([button("📤 اشتراک‌گذاری", url=share_url)])
         rows.append([button("📋 کپی اطلاعات", action=f"payment-product-copy:{offer_ref}")])
@@ -1460,13 +1505,23 @@ def payment_offer_admin_detail_screen(item: dict, *, bot_username: str, platform
     ))
     deadline = format_jalali_datetime(item.get("expiresAt")) or "بدون مهلت"
     audience = html.escape(audience_label(item.get("audience") or {"mode": "all"}))
-    fulfillment = dict(item.get("fulfillment") or {})
-    fulfillment_state = "فعال" if str(fulfillment.get("text") or "").strip() or str(fulfillment.get("url") or "").strip() else "تعریف نشده"
+    fulfillment_state = "فعال" if (
+        str(fulfillment.get("text") or "").strip()
+        or str(fulfillment.get("url") or "").strip()
+        or str(fulfillment.get("action") or "").strip()
+    ) else "تعریف نشده"
+    file_meta = ""
+    if is_file_sale:
+        media_label = html.escape(str(fulfillment.get("mediaLabel") or "فایل"))
+        file_name = html.escape(str(fulfillment.get("fileName") or "").strip())
+        file_meta = f"\nنوع فروش: <b>📁 فروش فایل</b>\nفایل: <b>{media_label}</b>" + (
+            f" · <code>{file_name}</code>" if file_name else ""
+        )
     return Screen(
-        f"<b>💳 {title}</b>\n\n<blockquote>{description}</blockquote>\n"
+        f"<b>{'📁' if is_file_sale else '💳'} {title}</b>\n\n<blockquote>{description}</blockquote>\n"
         f"مبلغ: <code>{amount}</code>\nوضعیت: <b>{marker} {status}</b>\n"
-        f"مخاطب: <b>{audience}</b>\nمهلت: {html.escape(deadline)}\n"
-        f"تحویل پس از خرید: <b>{fulfillment_state}</b>\n"
+        f"مخاطب: <b>{audience}</b>\nمهلت: {html.escape(deadline)}"
+        f"{file_meta}\nتحویل پس از خرید: <b>{fulfillment_state}</b>\n"
         f"نسخه: <code>{to_persian_digits(item.get('version', 1))}</code>",
         keyboard(*rows),
     )
@@ -1488,14 +1543,33 @@ def payment_offer_delete_confirmation(item: dict) -> Screen:
 def payment_offer_saved_screen(item: dict, *, bot_username: str = "", platform: str = "telegram") -> Screen:
     title = html.escape(str(item.get("title") or "محصول پرداختی"))
     amount = html.escape(format_rials(item.get("amountRials")))
-    share_url = bot_start_url(bot_username, f"product_{str(item.get('shareToken') or '')}", platform=platform)
+    fulfillment = dict(item.get("fulfillment") or {})
+    is_file_sale = str(fulfillment.get("kind") or "") == "paid_file"
+    share_url = "" if is_file_sale and platform != "telegram" else bot_start_url(
+        bot_username,
+        f"product_{str(item.get('shareToken') or '')}",
+        platform=platform,
+    )
     rows = [[button("مدیریت همین محصول", action=f"payment-offer:{item.get('ref', '')}")]]
+    asset_ref = str(fulfillment.get("assetRef") or "")
+    if is_file_sale and asset_ref and platform == "telegram":
+        rows.append([button("📥 تست دریافت فایل", action=f"paid-file-get:{asset_ref}", style="success")])
     if share_url:
-        rows.append([button("🔗 لینک محصول", url=share_url, style="primary")])
+        rows.append([button("🔗 لینک خرید", url=share_url, style="primary")])
     rows.extend(([button("مدیریت محصولات", action="payment-products")], [button("🏠 منوی اصلی", action="home")]))
+    file_line = ""
+    if is_file_sale:
+        media_label = html.escape(str(fulfillment.get("mediaLabel") or "فایل"))
+        file_name = html.escape(str(fulfillment.get("fileName") or "").strip())
+        file_line = f"\nفایل: <b>{media_label}</b>" + (f" · <code>{file_name}</code>" if file_name else "")
     return Screen(
-        f"<b>🟢 محصول ربات ساخته شد</b>\n\n{title}\n<blockquote>{amount}</blockquote>\n"
-        "این محصول فقط در منوی پرداخت ربات فعال است و وارد کاتالوگ سایت نشده است.",
+        f"<b>{'🟢 فروش فایل ساخته شد' if is_file_sale else '🟢 محصول ربات ساخته شد'}</b>\n\n"
+        f"{title}\n<blockquote>{amount}</blockquote>{file_line}\n"
+        + (
+            "لینک خرید تلگرام آماده است؛ تحویل فقط پس از تأیید پرداخت انجام می‌شود."
+            if is_file_sale
+            else "این محصول فقط در منوی پرداخت ربات فعال است و وارد کاتالوگ سایت نشده است."
+        ),
         keyboard(*rows),
     )
 
@@ -1512,6 +1586,10 @@ def payment_confirm_screen(item: dict, *, action_ref: str = "", state: dict | No
     create_action = action_ref or f"payment-create:{offer_ref}"
     rows: list[list[dict]] = []
     if paid:
+        fulfillment = dict(item.get("fulfillment") or {})
+        fulfillment_action = str(fulfillment.get("action") or "").strip()
+        if str(fulfillment.get("kind") or "") == "paid_file" and fulfillment_action:
+            rows.append([button("📥 دریافت فایل", action=fulfillment_action, style="success")])
         token = str(product_state.get("latestSuccessOrderToken") or "")
         if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", token):
             rows.append([button("✅ مشاهده رسید", action=f"payment-status:{token}", style="success")])
@@ -1589,8 +1667,10 @@ def payment_status_screen(
     fulfillment_text = html.escape(str(fulfillment.get("text") or "").strip()[:600])
     fulfillment_url = _safe_exam_url(fulfillment.get("url"))
     fulfillment_action = str(fulfillment.get("action") or "").strip()
+    fulfillment_kind = str(fulfillment.get("kind") or "").strip()
     if status == "success" and fulfillment_action:
-        rows.insert(0, [button("📥 دریافت جزوه هوش مصنوعی", action=fulfillment_action, style="success")])
+        action_label = "📥 دریافت فایل" if fulfillment_kind == "paid_file" else "📥 دریافت جزوه هوش مصنوعی"
+        rows.insert(0, [button(action_label, action=fulfillment_action, style="success")])
     elif status == "success" and fulfillment_url:
         rows.insert(0, [button("🎁 دریافت محصول", url=fulfillment_url, style="success")])
     return Screen(
@@ -1617,8 +1697,10 @@ def payment_success_push_screen(payload: dict, *, platform: str = "telegram") ->
     fulfillment_url = _safe_exam_url(fulfillment.get("url"))
     fulfillment_text = html.escape(str(fulfillment.get("text") or "").strip()[:600])
     fulfillment_action = str(fulfillment.get("action") or "").strip()
+    fulfillment_kind = str(fulfillment.get("kind") or "").strip()
     if fulfillment_action:
-        rows.append([button("📥 دریافت جزوه هوش مصنوعی", action=fulfillment_action, style="success")])
+        action_label = "📥 دریافت فایل" if fulfillment_kind == "paid_file" else "📥 دریافت جزوه هوش مصنوعی"
+        rows.append([button(action_label, action=fulfillment_action, style="success")])
     elif fulfillment_url:
         rows.append([button("🎁 دریافت محصول", url=fulfillment_url, style="success")])
     rows.extend((

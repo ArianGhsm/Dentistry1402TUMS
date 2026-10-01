@@ -63,6 +63,17 @@ def check_runtime(*, settings, api, expected_username: str, require_commands: bo
         booklet_source_title = not expected_source_title or str(source_chat.get("title") or "") == expected_source_title
         booklet_source_ok = booklet_source_admin is True and booklet_source_title is True
 
+    booklet_watermark_font: bool | str = "not-required"
+    booklet_watermark_font_ok = True
+    if booklet_source_id < 0:
+        font_path = getattr(settings, "booklet_watermark_font", None)
+        booklet_watermark_font = bool(
+            font_path is not None
+            and font_path.is_file()
+            and os.access(font_path, os.R_OK)
+        )
+        booklet_watermark_font_ok = booklet_watermark_font is True
+
     power_source_id = int(getattr(settings, "power_source_channel_id", 0) or 0)
     power_source_admin: bool | str = "not-required"
     power_source_title: bool | str = "not-required"
@@ -85,6 +96,7 @@ def check_runtime(*, settings, api, expected_username: str, require_commands: bo
             and payment_offers_ok
             and required_channel_ok
             and booklet_source_ok
+            and booklet_watermark_font_ok
             and power_source_ok
         ),
         "bot_identity": username_ok,
@@ -96,6 +108,7 @@ def check_runtime(*, settings, api, expected_username: str, require_commands: bo
         "required_channel_admin": required_channel_admin,
         "booklet_source_admin": booklet_source_admin,
         "booklet_source_title": booklet_source_title,
+        "booklet_watermark_font": booklet_watermark_font,
         "power_source_admin": power_source_admin,
         "power_source_title": power_source_title,
     }
