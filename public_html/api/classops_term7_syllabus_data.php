@@ -16,9 +16,6 @@ function classops_term7_syllabus_source_catalog(): array
 {
   "orthodontics-theory-1": {
     "version": "1405-1406-1.corrected.1",
-    "sourceTiming": {
-      "default": {"start": "12:30", "end": "13:30", "appliesToVirtual": true}
-    },
     "eventSlugs": [
       "orthodontics-theory-1"
     ],
@@ -289,10 +286,6 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "endodontics-theory-1": {
     "version": "1405-1406-1.corrected.1",
-    "sourceTiming": {
-      "singleSessionDay": {"start": "08:30", "end": "09:30", "appliesToVirtual": true},
-      "multiSessionDay": {"start": "08:30", "end": "10:30", "appliesToVirtual": true}
-    },
     "eventSlugs": [
       "endodontics-theory-1"
     ],
@@ -309,6 +302,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/02"
         ],
+        "canonicalDates": [
+          "1405/06/30"
+        ],
         "title": "عوامل مؤثر بر طرح درمان و ارزیابی میزان دشواری درمان‌های اندودانتیکس",
         "instructor": "دکتر صراف",
         "references": [],
@@ -323,6 +319,9 @@ function classops_term7_syllabus_source_catalog(): array
         ],
         "dates": [
           "1405/07/09"
+        ],
+        "canonicalDates": [
+          "1405/07/06"
         ],
         "title": "عوامل مؤثر بر طرح درمان و ارزیابی میزان دشواری درمان‌های اندودانتیکس",
         "instructor": "دکتر صراف",
@@ -339,6 +338,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/16"
         ],
+        "canonicalDates": [
+          "1405/07/13"
+        ],
         "title": "ارزیابی بیمار و ملاحظات سیستمیک در درمان‌های اندودانتیک",
         "instructor": "دکتر نوری",
         "references": [],
@@ -354,6 +356,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/07/23"
         ],
+        "canonicalDates": [
+          "1405/07/20"
+        ],
         "title": "رادیولوژی در اندودانتیکس",
         "instructor": "دکتر اسدیان",
         "references": [],
@@ -368,6 +373,9 @@ function classops_term7_syllabus_source_catalog(): array
         ],
         "dates": [
           "1405/07/30"
+        ],
+        "canonicalDates": [
+          "1405/07/27"
         ],
         "title": "بی‌حسی موضعی در اندودانتیکس",
         "instructor": "دکتر مروی",
@@ -385,6 +393,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/08/07"
         ],
+        "canonicalDates": [
+          "1405/08/04"
+        ],
         "title": "اورژانس‌های اندودانتیکس",
         "instructor": "دکتر غبرائی",
         "references": [],
@@ -400,6 +411,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/08/14"
         ],
+        "canonicalDates": [
+          "1405/08/11"
+        ],
         "title": "دارودرمانی در اندودانتیکس",
         "instructor": "دکتر خوشخونژاد",
         "references": [],
@@ -413,6 +427,9 @@ function classops_term7_syllabus_source_catalog(): array
         ],
         "dates": [
           "1405/08/14"
+        ],
+        "canonicalDates": [
+          "1405/08/11"
         ],
         "title": "ضایعات اندودانتیک - پریودنتال",
         "instructor": "دکتر خوشخونژاد",
@@ -429,6 +446,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/08/21"
         ],
+        "canonicalDates": [
+          "1405/08/18"
+        ],
         "title": "موفقیت و عدم موفقیت در درمان‌های اندودانتیک",
         "instructor": "دکتر شکوهی‌نژاد",
         "references": [],
@@ -444,6 +464,9 @@ function classops_term7_syllabus_source_catalog(): array
         "dates": [
           "1405/08/28"
         ],
+        "canonicalDates": [
+          "1405/08/25"
+        ],
         "title": "اندودانتیکس در بیماران مسن",
         "instructor": "دکتر صراف",
         "references": [],
@@ -454,12 +477,6 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "diagnostic-dentistry-3": {
     "version": "1405-1406-1.corrected.2",
-    "sourceTiming": {
-      "byEventSlug": {
-        "diagnostic-dentistry-3-sun": {"start": "07:30", "end": "08:30", "appliesToVirtual": true},
-        "diagnostic-dentistry-3-mon": {"start": "13:45", "end": "14:45", "appliesToVirtual": true}
-      }
-    },
     "eventSlugs": [
       "diagnostic-dentistry-3-sun",
       "diagnostic-dentistry-3-mon"
@@ -969,9 +986,6 @@ function classops_term7_syllabus_source_catalog(): array
     "version": "1405-1406-1.corrected.1",
     "rotationRelative": true,
     "rotationSourceAnchor": "1405/06/28",
-    "sourceTiming": {
-      "default": {"start": "13:00", "end": "15:30", "appliesToVirtual": false}
-    },
     "eventSlugs": [
       "research-methods-2-practical"
     ],
@@ -995,11 +1009,9 @@ function classops_term7_syllabus_source_catalog(): array
         "sourcePage": 1,
         "segments": [
           {
-            "time": "13:00–14:15",
             "title": "مقدمه، معرفی دوره و معرفی منابع"
           },
           {
-            "time": "14:15–15:30",
             "title": "آشنایی با بخش‌های پروپوزال، معرفی پژوهشیار و گروه‌بندی دانشجویان"
           }
         ]
@@ -1642,9 +1654,6 @@ function classops_term7_syllabus_source_catalog(): array
     "version": "1405-1406-1.corrected.1",
     "rotationRelative": true,
     "rotationSourceAnchor": "1405/06/28",
-    "sourceTiming": {
-      "default": {"start": "09:00", "end": "12:00", "appliesToVirtual": true}
-    },
     "eventSlugs": [
       "oral-health-practical-2"
     ],
@@ -1789,9 +1798,6 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "oral-health-theory-2": {
     "version": "1405-1406-1.corrected.1",
-    "sourceTiming": {
-      "default": {"start": "07:30", "end": "08:30", "appliesToVirtual": true}
-    },
     "eventSlugs": [
       "oral-health-theory-2"
     ],
@@ -2290,9 +2296,6 @@ function classops_term7_syllabus_source_catalog(): array
   },
   "periodontology-theory-1": {
     "version": "1405-1406-1.corrected.1",
-    "sourceTiming": {
-      "default": {"start": "07:30", "end": "08:30", "appliesToVirtual": true}
-    },
     "eventSlugs": [
       "periodontology-theory-1"
     ],

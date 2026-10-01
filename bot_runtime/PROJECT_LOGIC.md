@@ -457,10 +457,16 @@ normal buttons/deep links and does not fake unsupported inline mode.
 
 ### Term 7 academic and food reminders (2026-09-02)
 
-- `dentistry1402tums/public_html/api/academic_term7.php` is the versioned
-  canonical resolver for Term 7 theory, Rotation A/B practical patterns, red
-  practical closures, makeup days and the explicit Thursday Endo correction
-  `08:30-10:30`. Telegram and Bale never duplicate the timetable in handlers.
+- `dentistry1402tums/public_html/api/academic_term7.php` is the single
+  canonical resolver for every Term 7 class/section clock, Rotation A/B practical
+  pattern, closure and makeup day. The current official timetable uses 07:00-08:00
+  for morning theory, 08:15-11:15 for first-shift practical sections, 11:15-12:15
+  for thesis defense, and 11:45-14:15 for second-shift practical sections.
+  Research Methodology 2 is the explicit 11:45-14:00 timetable exception.
+  Monday theory is Diagnostic Dentistry 3 at 11:30-12:30, Orthodontics 1 at
+  12:40-13:40 and Endodontics 1 at 13:50-15:50; Thursday has no class.
+  Course-syllabus registries contribute session titles/instructors only and never
+  override timetable clocks. Telegram and Bale never duplicate the timetable.
 - Group membership is keyed only by canonical student number in deploy-safe
   website storage. The initial assignment store is empty: Term 6 groups and PDF
   layout are never used to infer Term 7 membership. Missing assignments retain

@@ -104,18 +104,17 @@ try {
     $entFirstSummary = dent_term7_summary_body($mondayA);
     term7_assert(
         str_contains($entFirstSummary, 'گوش و حلق و بینی — جلسه ۱: اصول معاینه در گوش و حلق و بینی · مجازی')
-            && str_contains($entFirstSummary, '📍 مجازی')
-            && !str_contains($entFirstSummary, 'گوش و حلق و بینی — جلسه ۱: اصول معاینه در گوش و حلق و بینی · مجازی' . PHP_EOL . '  ⏰')
-            && !str_contains($entFirstSummary, 'گوش و حلق و بینی — جلسه ۱: اصول معاینه در گوش و حلق و بینی · مجازی' . PHP_EOL . '  📍 آمفی‌تئاتر ۹۰'),
-        'ENT first session summary is virtual, source-titled, untimed, and has no classroom leakage'
+            && str_contains($entFirstSummary, '⏰ ۰۷:۰۰ تا ۰۸:۰۰')
+            && str_contains($entFirstSummary, '📍 مجازی'),
+        'ENT first session keeps the canonical Monday 07:00-08:00 clock and virtual location'
     );
     $entInPersonDay = dent_term7_resolve_jalali('1405/07/20', 1, ['group10' => 1, 'group8' => 15]);
     $entInPersonSummary = dent_term7_summary_body($entInPersonDay);
     term7_assert(
         str_contains($entInPersonSummary, 'گوش و حلق و بینی — جلسه ۳: آنومالی‌های مادرزادی گردن')
-            && str_contains($entInPersonSummary, '⏰ ۰۷:۳۰ تا ۰۸:۳۰')
+            && str_contains($entInPersonSummary, '⏰ ۰۷:۰۰ تا ۰۸:۰۰')
             && str_contains($entInPersonSummary, '📍 آمفی‌تئاتر ۹۰'),
-        'ENT shaded in-person session keeps the canonical timetable clock and room'
+        'ENT in-person session keeps the canonical 07:00-08:00 timetable clock and room'
     );
     $entAfterEnd = dent_term7_resolve_jalali('1405/09/30', 1, ['group10' => 6, 'group8' => 11]);
     term7_assert(
@@ -124,9 +123,9 @@ try {
     );
 
     term7_assert(
-        dent_term7_practical_time_range('morning') === ['09:00', '12:00']
-            && dent_term7_practical_time_range('afternoon') === ['13:00', '15:00'],
-        'Practical period contract maps morning 09:00-12:00 and afternoon 13:00-15:00'
+        dent_term7_practical_time_range('morning') === ['08:15', '11:15']
+            && dent_term7_practical_time_range('afternoon') === ['11:45', '14:15'],
+        'Practical period contract maps morning 08:15-11:15 and afternoon 11:45-14:15'
     );
     $precisePractical = dent_term7_event('fixture', 'نمونه', 'morning', 'group10', [1], '', '10:15', '11:45');
     term7_assert(
@@ -134,10 +133,10 @@ try {
         'Explicit canonical practical time overrides the morning/afternoon fallback'
     );
     term7_assert(
-        ($satA15['practicalMorning'][0]['start'] ?? '') === '09:00'
-            && ($satA15['practicalMorning'][0]['end'] ?? '') === '12:00'
-            && ($satA15['practicalAfternoon'][0]['start'] ?? '') === '13:00'
-            && ($satA15['practicalAfternoon'][0]['end'] ?? '') === '15:00',
+        ($satA15['practicalMorning'][0]['start'] ?? '') === '08:15'
+            && ($satA15['practicalMorning'][0]['end'] ?? '') === '11:15'
+            && ($satA15['practicalAfternoon'][0]['start'] ?? '') === '11:45'
+            && ($satA15['practicalAfternoon'][0]['end'] ?? '') === '14:15',
         'Resolved practical events carry explicit clock ranges'
     );
 
@@ -174,11 +173,12 @@ try {
     ]);
     $mondayRows = dent_term7_ordered_schedule_rows($mondayOrdered);
     term7_assert(
-        array_column($mondayRows, 'start') === ['09:00', '12:30', '13:45']
+        array_column($mondayRows, 'start') === ['08:15', '11:30', '12:40', '13:50']
             && array_column($mondayRows, 'instructor') === [
                 'دکتر سرگران / دکتر پاکدامن',
-                'دکتر عرب',
                 'دکتر پورشهیدی',
+                'دکتر عرب',
+                'دکتر صراف',
             ],
         'Monday schedule rows are globally chronological across practical/theory sections and retain instructors'
     );
@@ -303,21 +303,24 @@ try {
     }
 
     $thursday = dent_term7_resolve_jalali('1405/07/02', 4, []);
+    $nextThursday = dent_term7_resolve_jalali('1405/07/09', 4, []);
     term7_assert(
-        count($thursday['theory']) === 1
-            && $thursday['theory'][0]['title'] === 'اندو نظری ۱'
-            && $thursday['theory'][0]['start'] === '08:30'
-            && $thursday['theory'][0]['end'] === '10:30',
-        'Two-session Thursday Endo uses syllabus-priority 08:30-10:30'
+        $thursday['theory'] === [] && $nextThursday['theory'] === [],
+        'Thursday has no theory classes in the official timetable'
     );
 
-    $singleEndoThursday = dent_term7_resolve_jalali('1405/07/09', 4, []);
+    $mondayEndo = dent_term7_resolve_jalali('1405/07/06', 1, []);
+    $mondayEndoRows = array_values(array_filter(
+        dent_term7_enriched_event_groups($mondayEndo)['theory'],
+        static fn(array $event): bool => ($event['slug'] ?? '') === 'endodontics-theory-1'
+    ));
     term7_assert(
-        count($singleEndoThursday['theory']) === 1
-            && ($singleEndoThursday['theory'][0]['start'] ?? '') === '08:30'
-            && ($singleEndoThursday['theory'][0]['end'] ?? '') === '09:30'
-            && !empty($singleEndoThursday['theory'][0]['sourceTimeExplicit']),
-        'Single-session Thursday Endo uses syllabus-priority 08:30-09:30'
+        count($mondayEndoRows) === 1
+            && ($mondayEndoRows[0]['sessionNumber'] ?? null) === 3
+            && ($mondayEndoRows[0]['start'] ?? '') === '13:50'
+            && ($mondayEndoRows[0]['end'] ?? '') === '15:50'
+            && ($mondayEndoRows[0]['instructor'] ?? '') === 'دکتر صراف',
+        'Endodontics Theory 1 moves to Monday 13:50-15:50 with syllabus metadata preserved'
     );
 
     $diagnosticToday = dent_term7_resolve_jalali('1405/07/06', 1, []);
@@ -328,8 +331,8 @@ try {
             && ($diagnosticTodayRows[0]['sessionNumber'] ?? null) === 4
             && ($diagnosticTodayRows[0]['sessionTitle'] ?? '') === 'ضایعات واکنشی'
             && ($diagnosticTodayRows[0]['instructor'] ?? '') === 'دکتر درخشان'
-            && ($diagnosticTodayRows[0]['start'] ?? '') === '13:45'
-            && ($diagnosticTodayRows[0]['end'] ?? '') === '14:45',
+            && ($diagnosticTodayRows[0]['start'] ?? '') === '11:30'
+            && ($diagnosticTodayRows[0]['end'] ?? '') === '12:30',
         'Monday 1405/07/06 resolves to Reactive Lesions with Dr Derakhshan'
     );
 
@@ -337,10 +340,9 @@ try {
     $diagnosticMondayRows = array_values(array_filter($diagnosticMonday['theory'], static fn(array $event): bool => ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'));
     term7_assert(
         count($diagnosticMondayRows) === 1
-            && ($diagnosticMondayRows[0]['start'] ?? '') === '13:45'
-            && ($diagnosticMondayRows[0]['end'] ?? '') === '14:45'
-            && !empty($diagnosticMondayRows[0]['sourceTimeExplicit']),
-        'Monday Diagnostic Dentistry 3 uses corrected syllabus-priority 13:45-14:45'
+            && ($diagnosticMondayRows[0]['start'] ?? '') === '11:30'
+            && ($diagnosticMondayRows[0]['end'] ?? '') === '12:30',
+        'Monday Diagnostic Dentistry 3 uses the canonical 11:30-12:30 timetable clock'
     );
 
     $missing = dent_term7_resolve_jalali('1405/07/05', 7, []);
@@ -404,18 +406,18 @@ try {
         term7_assert(count($researchRows) === $expectedCount, 'Research Methodology 2 follows active rotation and never duplicates');
         if ($expectedCount === 1) {
             term7_assert(
-                ($researchRows[0]['start'] ?? '') === '13:00'
-                    && ($researchRows[0]['end'] ?? '') === '15:30'
+                ($researchRows[0]['start'] ?? '') === '11:45'
+                    && ($researchRows[0]['end'] ?? '') === '14:00'
                     && ($researchRows[0]['location'] ?? '') === (dent_term7_schedule()['theory'][6][0]['location'] ?? ''),
-                'Research Methodology 2 uses syllabus-priority time and amphitheater location'
+                'Research Methodology 2 uses the canonical 11:45-14:00 timetable clock and amphitheater location'
             );
         }
     }
     term7_assert(str_contains(dent_term7_summary_body($missing), 'گروه کارآموزی'), 'Missing-group UX is explicit');
     $clockSummary = dent_term7_summary_body($satA15);
     term7_assert(
-        str_contains($clockSummary, '۰۹:۰۰ تا ۱۲:۰۰')
-            && str_contains($clockSummary, '۱۳:۰۰ تا ۱۵:۰۰')
+        str_contains($clockSummary, '۰۸:۱۵ تا ۱۱:۱۵')
+            && str_contains($clockSummary, '۱۱:۴۵ تا ۱۴:۱۵')
             && str_contains($clockSummary, 'کارآموزی صبح')
             && str_contains($clockSummary, 'کارآموزی عصر'),
         'User-facing practical summary keeps exact per-event clocks with daypart headings'
@@ -426,9 +428,9 @@ try {
         'oralHealthRotationAWeekday' => 1,
     ]));
     term7_assert(
-        str_contains($researchSummary, '۱۳:۰۰ تا ۱۵:۳۰')
-            && !str_contains($researchSummary, 'کارآموزی ۱۳:۰۰ تا ۱۵:۰۰'),
-        'Research Methodology summary exposes the syllabus-priority 13:00-15:30 window without a conflicting section clock'
+        str_contains($researchSummary, '۱۱:۴۵ تا ۱۴:۰۰')
+            && !str_contains($researchSummary, '۱۳:۰۰ تا ۱۵:۳۰'),
+        'Research Methodology summary exposes only the canonical 11:45-14:00 clock'
     );
     term7_assert(dent_term7_schedule()['prepChecklists'] === [], 'Preparation checklist remains intentionally empty');
     term7_assert(dent_term7_schedule()['foodUrl'] === DENT_TERM7_FOOD_URL, 'Food URL has one canonical config source');
@@ -439,9 +441,13 @@ try {
     $statusPayload = dent_bot_term7_status(['studentNumber' => '40211272003', 'role' => 'owner', 'cohortKey' => DENT_TERM7_COHORT]);
     term7_assert(
         ($statusPayload['contractVersion'] ?? '') === DENT_TERM7_CONTRACT
-            && ($statusPayload['thursdayEndo']['end'] ?? '') === '10:30'
+            && ($statusPayload['scheduleVersion'] ?? '') === '1405-1406.10'
+            && ($statusPayload['mondayEndo']['start'] ?? '') === '13:50'
+            && ($statusPayload['mondayEndo']['end'] ?? '') === '15:50'
+            && ($statusPayload['timePolicy']['practicalMorning'] ?? []) === ['start' => '08:15', 'end' => '11:15']
+            && ($statusPayload['timePolicy']['practicalAfternoon'] ?? []) === ['start' => '11:45', 'end' => '14:15']
             && ($statusPayload['sample']['morningTitles'] ?? []) === ['پروتز پارسیل عملی ۱'],
-        'Owner-only live status smoke exposes version, Endo correction and RTL sample without PII'
+        'Owner-only live status exposes the official timetable policy, Monday Endo and RTL sample without PII'
     );
 
     // End-to-end synthetic fixture through canonical auth, link, schedule,
@@ -574,7 +580,7 @@ try {
     );
     term7_assert(
         str_contains((string) ($studentBReminder['body'] ?? ''), 'پریو نظری ۱ — جلسه ۱: آناتومی انساج پریودنتال ۱ · مجازی')
-            && str_contains((string) ($studentBReminder['body'] ?? ''), '۰۷:۳۰ تا ۰۸:۳۰')
+            && str_contains((string) ($studentBReminder['body'] ?? ''), '۰۷:۰۰ تا ۰۸:۰۰')
             && str_contains((string) ($studentBReminder['body'] ?? ''), '📍 مجازی'),
         'Friday-night reminder enriches Perio theory with session title, virtual mode and explicit virtual location/status'
     );
@@ -583,14 +589,14 @@ try {
         : [];
     term7_assert(
         $studentBMetaRows !== []
-            && ($studentBMetaRows[0]['start'] ?? '') === '07:30'
+            && ($studentBMetaRows[0]['start'] ?? '') === '07:00'
             && trim((string) ($studentBMetaRows[0]['instructor'] ?? '')) !== '',
         'Academic notification persists structured chronological schedule rows with instructor metadata'
     );
     $studentAReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentA)))[0] ?? [];
     term7_assert(
-        str_contains((string) ($studentAReminder['body'] ?? ''), '۰۹:۰۰ تا ۱۲:۰۰')
-            && str_contains((string) ($studentAReminder['body'] ?? ''), '۱۳:۰۰ تا ۱۵:۰۰'),
+        str_contains((string) ($studentAReminder['body'] ?? ''), '۰۸:۱۵ تا ۱۱:۱۵')
+            && str_contains((string) ($studentAReminder['body'] ?? ''), '۱۱:۴۵ تا ۱۴:۱۵'),
         'Canonical reminder body preserves explicit practical clock ranges'
     );
     term7_assert(!str_contains(implode('|', array_column($academicRecords, 'sourceKey')), $studentC), 'Integration: cross-cohort fixture C is absent');
