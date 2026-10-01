@@ -1709,6 +1709,15 @@ class DentBotTests(unittest.TestCase):
             try:
                 telegram_offer = telegram.create_payment_offer("تلگرام", 100000)
                 bale_offer = bale.create_payment_offer("بله", 200000)
+                for connection, token, updated_at in (
+                    (telegram.payment_connection, "telegram-shared-token", "2026-01-01T00:00:00+00:00"),
+                    (bale.payment_connection, "bale-shared-token", "2026-01-02T00:00:00+00:00"),
+                ):
+                    connection.execute(
+                        "INSERT INTO payment_offers(ref,share_token,title,amount_rials,updated_at) VALUES(?,?,?,?,?)",
+                        ("shared-ref-for-migration-test", token, "محصول مشترک", 300000, updated_at),
+                    )
+                    connection.commit()
             finally:
                 telegram.close()
                 bale.close()

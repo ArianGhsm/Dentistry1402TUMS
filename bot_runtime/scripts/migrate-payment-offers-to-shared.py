@@ -70,7 +70,14 @@ def main() -> int:
         raise RuntimeError("Shared payment-offer database already exists")
     telegram = read_offers(args.telegram)
     bale = read_offers(args.bale)
-    comparable = lambda value: {key: item for key, item in value.items() if key not in {"id", "share_token"}}
+    # Row identity/share tokens and audit timestamps can legitimately differ
+    # between the legacy Telegram/Bale databases even when the product itself is
+    # identical. Only business fields should trigger manual conflict review.
+    comparable = lambda value: {
+        key: item
+        for key, item in value.items()
+        if key not in {"id", "share_token", "created_at", "updated_at"}
+    }
     conflicts = [ref for ref in set(telegram) & set(bale) if comparable(telegram[ref]) != comparable(bale[ref])]
     if conflicts:
         raise RuntimeError("Conflicting payment offers require manual owner review")
