@@ -22,7 +22,11 @@ from dent_bot.ui import grades_screen, home, navid_screen, section
 from dent_bot.health import check
 from dent_bot.site_api import SiteApiClient, SiteApiError
 from dent_bot.site_health import check as check_site_health
-from dent_bot.config import load_optional_relay_secret
+from dent_bot.config import (
+    bundled_booklet_watermark_font,
+    load_optional_relay_secret,
+    resolve_booklet_watermark_font,
+)
 from dent_bot.runtime import (
     configure_profile_safely,
     dispatch_account_disconnect_batch,
@@ -833,6 +837,16 @@ class DentBotTests(unittest.TestCase):
         ).hexdigest()
         self.assertEqual(request.get_header("X-dent-signature"), expected)
         self.assertNotIn(relay_secret, request.data.decode("utf-8"))
+
+    def test_booklet_watermark_font_falls_back_to_bundled_asset(self) -> None:
+        bundled = bundled_booklet_watermark_font()
+        self.assertTrue(bundled.is_file())
+        with patch.dict(
+            os.environ,
+            {"DENT_BOT_BOOKLET_WATERMARK_FONT": "/definitely/missing/booklet-font.ttf"},
+            clear=False,
+        ):
+            self.assertEqual(resolve_booklet_watermark_font(), bundled)
 
     def test_relay_secret_requires_strong_explicit_encoding(self) -> None:
         for weak in ("changeme", "replace-me", "secret", "development", "test", "abc"):

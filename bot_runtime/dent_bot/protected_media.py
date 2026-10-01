@@ -494,9 +494,11 @@ class ProtectedMediaDispatcher:
             except Exception as error:
                 self.state.record_protected_media_delivery(job.user_id, job.source_id, "failed")
                 logging.warning(
-                    "protected media delivery failed source=%s type=%s",
+                    "protected media delivery failed source=%s type=%s source_id=%s detail=%s",
                     job.source_type,
                     type(error).__name__,
+                    job.source_id,
+                    str(error)[:300],
                 )
                 try:
                     failure_text = (
