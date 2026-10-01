@@ -17,13 +17,18 @@ function syllabus_assert(bool $condition, string $message): void
     echo "FAIL: {$message}\n";
 }
 
-function syllabus_event(string $slug, string $title, string $location = 'آمفی‌تئاتر ۹۰'): array
-{
+function syllabus_event(
+    string $slug,
+    string $title,
+    string $location = 'آمفی‌تئاتر ۹۰',
+    string $start = '07:00',
+    string $end = '08:00'
+): array {
     return [
         'slug' => $slug,
         'title' => $title,
-        'start' => '07:30',
-        'end' => '08:30',
+        'start' => $start,
+        'end' => $end,
         'location' => $location,
     ];
 }
@@ -127,32 +132,34 @@ syllabus_assert(
     array_column($orth, 'sessionNumber') === [5, 6]
         && ($orth[1]['sessionMode'] ?? '') === 'virtual'
         && ($orth[1]['location'] ?? 'x') === ''
-        && ($orth[1]['start'] ?? '') === '12:30'
-        && ($orth[1]['end'] ?? '') === '13:30'
-        && !empty($orth[1]['sourceTimeExplicit']),
-    'Orthodontics virtual row keeps the explicit syllabus clock while omitting physical room'
+        && ($orth[1]['start'] ?? '') === '07:00'
+        && ($orth[1]['end'] ?? '') === '08:00'
+        && ($orth[1]['timeSource'] ?? '') === 'academic-term7',
+    'Orthodontics virtual row preserves the canonical timetable clock while omitting physical room'
 );
 
 $endo = classops_term7_syllabus_enrich_events([
-    syllabus_event('endodontics-theory-1', 'اندو نظری ۱'),
-], '1405/08/14');
+    syllabus_event('endodontics-theory-1', 'اندو نظری ۱', 'آمفی‌تئاتر ۹۰', '13:50', '15:50'),
+], '1405/08/11');
 syllabus_assert(
     array_column($endo, 'sessionNumber') === [11, 12]
-        && ($endo[0]['start'] ?? '') === '08:30'
-        && ($endo[0]['end'] ?? '') === '10:30'
-        && ($endo[1]['start'] ?? '') === '08:30'
-        && ($endo[1]['end'] ?? '') === '10:30',
-    'Endodontics preserves sessions 11 and 12 and applies the two-session-day 08:30-10:30 window'
+        && ($endo[0]['start'] ?? '') === '13:50'
+        && ($endo[0]['end'] ?? '') === '15:50'
+        && ($endo[1]['start'] ?? '') === '13:50'
+        && ($endo[1]['end'] ?? '') === '15:50'
+        && ($endo[0]['sourceDate'] ?? '') === '1405/08/14',
+    'Endodontics preserves sessions 11 and 12 while canonical Monday timing replaces the source-PDF Thursday clock'
 );
 $endoSingle = classops_term7_syllabus_enrich_events([
-    syllabus_event('endodontics-theory-1', 'اندو نظری ۱'),
-], '1405/07/09');
+    syllabus_event('endodontics-theory-1', 'اندو نظری ۱', 'آمفی‌تئاتر ۹۰', '13:50', '15:50'),
+], '1405/07/06');
 syllabus_assert(
     count($endoSingle) === 1
         && ($endoSingle[0]['sessionNumber'] ?? null) === 3
-        && ($endoSingle[0]['start'] ?? '') === '08:30'
-        && ($endoSingle[0]['end'] ?? '') === '09:30',
-    'Endodontics single-session day uses 08:30-09:30 from the syllabus header'
+        && ($endoSingle[0]['start'] ?? '') === '13:50'
+        && ($endoSingle[0]['end'] ?? '') === '15:50'
+        && ($endoSingle[0]['sourceDate'] ?? '') === '1405/07/09',
+    'Endodontics session metadata follows the canonical Monday occurrence without changing source provenance'
 );
 
 
@@ -181,48 +188,44 @@ syllabus_assert(
     'Diagnostic merged-cell boundaries preserve the first date of each instructor/topic block'
 );
 $diagQuiz = classops_term7_syllabus_enrich_events([
-    syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳'),
+    syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '11:30', '12:30'),
 ], '1405/07/13');
 syllabus_assert(
     count($diagQuiz) === 1
         && ($diagQuiz[0]['sessionNumber'] ?? null) === 6
         && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی'
-        && ($diagQuiz[0]['start'] ?? '') === '13:45'
-        && ($diagQuiz[0]['end'] ?? '') === '14:45',
-    'Diagnostic Monday metadata uses the corrected syllabus-priority 13:45-14:45 clock'
+        && ($diagQuiz[0]['start'] ?? '') === '11:30'
+        && ($diagQuiz[0]['end'] ?? '') === '12:30'
+        && ($diagQuiz[0]['timeSource'] ?? '') === 'academic-term7',
+    'Diagnostic Monday metadata preserves the canonical 11:30-12:30 timetable clock'
 );
-$diagnosticFallback = classops_term7_syllabus_apply_source_times([[
-    'slug' => 'diagnostic-dentistry-3-mon',
-    'title' => 'دندانپزشکی تشخیصی ۳',
-    'start' => '13:45',
-    'end' => '14:45',
-]], '1405/07/14');
+$timingOwners = array_filter(
+    $catalog,
+    static fn(array $course): bool => array_key_exists('sourceTiming', $course)
+);
 syllabus_assert(
-    count($diagnosticFallback) === 1
-        && ($diagnosticFallback[0]['start'] ?? '') === '13:45'
-        && ($diagnosticFallback[0]['end'] ?? '') === '14:45'
-        && empty($diagnosticFallback[0]['sourceTimeExplicit']),
-    'Missing source session preserves the canonical fallback clock'
+    $timingOwners === [],
+    'Syllabus registry contains no competing timetable clock source'
 );
 
 $research = classops_term7_syllabus_enrich_events([
-    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲'),
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:00'),
 ], '1405/07/29');
 syllabus_assert(count($research) === 2, 'Research Methodology keeps session 10 plus virtual session 11 on 1405/07/29');
 syllabus_assert(
     ($research[0]['sessionNumber'] ?? null) === 10
-        && ($research[0]['start'] ?? '') === '13:00'
-        && ($research[0]['end'] ?? '') === '15:30'
+        && ($research[0]['start'] ?? '') === '11:45'
+        && ($research[0]['end'] ?? '') === '14:00'
         && ($research[1]['sessionNumber'] ?? null) === 11
         && ($research[1]['sessionMode'] ?? '') === 'virtual'
         && ($research[1]['location'] ?? 'x') === ''
-        && ($research[1]['start'] ?? 'x') === ''
-        && ($research[1]['end'] ?? 'x') === '',
-    'Research Methodology uses 13:00-15:30 for timed rows and keeps source dash-time virtual rows untimed'
+        && ($research[1]['start'] ?? '') === '11:45'
+        && ($research[1]['end'] ?? '') === '14:00',
+    'Research Methodology metadata preserves the canonical 11:45-14:00 clock for every row'
 );
 
 $researchWithSupplement = classops_term7_syllabus_enrich_events([
-    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲'),
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:00'),
 ], '1405/07/08', 'A');
 syllabus_assert(
     count($researchWithSupplement) === 2
@@ -232,7 +235,7 @@ syllabus_assert(
 );
 
 $researchRotationB = classops_term7_syllabus_enrich_events([
-    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲'),
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:00'),
 ], '1405/09/25', 'B');
 syllabus_assert(
     array_column($researchRotationB, 'sessionNumber') === [10, 11]
@@ -251,20 +254,20 @@ syllabus_assert(
     'Endodontics Foundations 2 preserves all 14 Rotation A rows without fabricating an instructor'
 );
 $endoBasicsQuiz = classops_term7_syllabus_enrich_events([
-    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲'),
+    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲', '11:45', '14:15'),
 ], '1405/07/12', 'A');
 syllabus_assert(
     count($endoBasicsQuiz) === 1
         && ($endoBasicsQuiz[0]['sessionNumber'] ?? null) === 5
         && str_contains((string) ($endoBasicsQuiz[0]['sessionTitle'] ?? ''), 'کوییز ۱')
         && ($endoBasicsQuiz[0]['instructor'] ?? '') === 'دکتر ملک پور'
-        && ($endoBasicsQuiz[0]['start'] ?? '') === '07:30'
-        && ($endoBasicsQuiz[0]['end'] ?? '') === '08:30'
-        && empty($endoBasicsQuiz[0]['sourceTimeExplicit']),
-    'Endodontics Foundations 2 enriches Rotation A quiz/demo metadata without inventing a source clock'
+        && ($endoBasicsQuiz[0]['start'] ?? '') === '11:45'
+        && ($endoBasicsQuiz[0]['end'] ?? '') === '14:15'
+        && ($endoBasicsQuiz[0]['timeSource'] ?? '') === 'academic-term7',
+    'Endodontics Foundations 2 enriches metadata without replacing the canonical practical clock'
 );
 $endoBasicsPractice = classops_term7_syllabus_enrich_events([
-    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲'),
+    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲', '11:45', '14:15'),
 ], '1405/07/14', 'A');
 syllabus_assert(
     count($endoBasicsPractice) === 1
@@ -273,7 +276,7 @@ syllabus_assert(
     'Endodontics Foundations 2 practice rows keep the source instructor blank'
 );
 $endoBasicsRotationB = classops_term7_syllabus_enrich_events([
-    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲'),
+    syllabus_event('endodontics-basics-2', 'مبانی اندو ۲', 'پری‌کلینیک منفی ۲', '11:45', '14:15'),
 ], '1405/09/07', 'B');
 syllabus_assert(
     count($endoBasicsRotationB) === 1 && !isset($endoBasicsRotationB[0]['sessionNumber']),
@@ -324,8 +327,8 @@ syllabus_assert(
 $pathologyFirst = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
     'title' => 'آسیب‌شناسی عملی ۱',
-    'start' => '09:00',
-    'end' => '12:00',
+    'start' => '08:15',
+    'end' => '11:15',
     'location' => '',
 ]], '1405/07/05', 'A');
 syllabus_assert(
@@ -334,16 +337,16 @@ syllabus_assert(
         && ($pathologyFirst[0]['sessionTitle'] ?? '') === 'گرانول فوردایس – لکوادما'
         && ($pathologyFirst[0]['instructor'] ?? '') === 'دکتر درخشان'
         && ($pathologyFirst[0]['resident'] ?? 'x') === ''
-        && ($pathologyFirst[0]['start'] ?? '') === '09:00'
-        && ($pathologyFirst[0]['end'] ?? '') === '12:00'
-        && empty($pathologyFirst[0]['sourceTimeExplicit']),
+        && ($pathologyFirst[0]['start'] ?? '') === '08:15'
+        && ($pathologyFirst[0]['end'] ?? '') === '11:15'
+        && ($pathologyFirst[0]['timeSource'] ?? '') === 'academic-term7',
     'Pathology Practical 1 enriches Rotation A metadata while preserving the canonical practical clock'
 );
 $pathologyReview = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
     'title' => 'آسیب‌شناسی عملی ۱',
-    'start' => '09:00',
-    'end' => '12:00',
+    'start' => '08:15',
+    'end' => '11:15',
     'location' => '',
 ]], '1405/07/21', 'A');
 syllabus_assert(
@@ -358,8 +361,8 @@ syllabus_assert(
 $pathologyExam = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
     'title' => 'آسیب‌شناسی عملی ۱',
-    'start' => '09:00',
-    'end' => '12:00',
+    'start' => '08:15',
+    'end' => '11:15',
     'location' => '',
 ]], '1405/08/12', 'A');
 syllabus_assert(
@@ -372,8 +375,8 @@ syllabus_assert(
 $pathologyRotationB = classops_term7_syllabus_enrich_events([[
     'slug' => 'pathology-practical-1',
     'title' => 'آسیب‌شناسی عملی ۱',
-    'start' => '09:00',
-    'end' => '12:00',
+    'start' => '08:15',
+    'end' => '11:15',
     'location' => '',
 ]], '1405/09/01', 'B');
 syllabus_assert(
@@ -396,9 +399,9 @@ syllabus_assert(
     array_column($healthTheory, 'sessionNumber') === [5, 6]
         && ($healthTheory[1]['sessionMode'] ?? '') === 'offline'
         && ($healthTheory[1]['location'] ?? 'x') === ''
-        && ($healthTheory[1]['start'] ?? '') === '07:30'
-        && ($healthTheory[1]['end'] ?? '') === '08:30',
-    'Oral Health Theory preserves offline session with the explicit syllabus clock and no physical room'
+        && ($healthTheory[1]['start'] ?? '') === '07:00'
+        && ($healthTheory[1]['end'] ?? '') === '08:00',
+    'Oral Health Theory preserves the canonical timetable clock and omits physical room for offline content'
 );
 
 $entVirtual = classops_term7_syllabus_enrich_events([
@@ -411,9 +414,9 @@ syllabus_assert(
         && ($entVirtual[0]['instructor'] ?? '') === 'دکتر سعید گل پروران'
         && ($entVirtual[0]['sessionMode'] ?? '') === 'virtual'
         && ($entVirtual[0]['location'] ?? 'x') === ''
-        && ($entVirtual[0]['start'] ?? 'x') === ''
-        && ($entVirtual[0]['end'] ?? 'x') === '',
-    'ENT first virtual session uses source metadata, omits a physical room, and does not invent a source clock'
+        && ($entVirtual[0]['start'] ?? '') === '07:00'
+        && ($entVirtual[0]['end'] ?? '') === '08:00',
+    'ENT first virtual session uses source metadata while preserving the canonical timetable clock'
 );
 $entInPerson = classops_term7_syllabus_enrich_events([
     syllabus_event('ent', 'گوش و حلق و بینی'),
@@ -425,8 +428,8 @@ syllabus_assert(
         && ($entInPerson[0]['instructor'] ?? '') === 'دکتر سارا رهاوی'
         && ($entInPerson[0]['sessionMode'] ?? '') === 'in_person'
         && ($entInPerson[0]['location'] ?? '') === 'آمفی‌تئاتر ۹۰'
-        && ($entInPerson[0]['start'] ?? '') === '07:30'
-        && ($entInPerson[0]['end'] ?? '') === '08:30',
+        && ($entInPerson[0]['start'] ?? '') === '07:00'
+        && ($entInPerson[0]['end'] ?? '') === '08:00',
     'ENT shaded source row is in-person and keeps the canonical timetable clock and room'
 );
 $entRows = $catalog['ent']['sessions'] ?? [];
@@ -444,9 +447,9 @@ $perio = classops_term7_syllabus_enrich_events([
 syllabus_assert(
     array_column($perio, 'sessionNumber') === [6, 7]
         && ($perio[1]['sessionMode'] ?? '') === 'virtual'
-        && ($perio[1]['start'] ?? '') === '07:30'
-        && ($perio[1]['end'] ?? '') === '08:30',
-    'Periodontology virtual row keeps the explicit 07:30-08:30 syllabus clock'
+        && ($perio[1]['start'] ?? '') === '07:00'
+        && ($perio[1]['end'] ?? '') === '08:00',
+    'Periodontology virtual row keeps the canonical 07:00-08:00 timetable clock'
 );
 
 $boardRows = classops_term7_syllabus_enrich_events([
@@ -466,15 +469,15 @@ syllabus_assert(
     'Oral Health Practical models one weekly session repeated across Saturday, Monday and Wednesday'
 );
 $healthVirtual = classops_term7_syllabus_enrich_events([
-    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
 ], '1405/07/11', 'A');
 syllabus_assert(
     count($healthVirtual) === 1
         && ($healthVirtual[0]['sessionNumber'] ?? null) === 3
         && ($healthVirtual[0]['sessionMode'] ?? '') === 'virtual'
-        && ($healthVirtual[0]['start'] ?? '') === '09:00'
-        && ($healthVirtual[0]['end'] ?? '') === '12:00',
-    'Oral Health Practical virtual week keeps the explicit 09:00-12:00 syllabus clock'
+        && ($healthVirtual[0]['start'] ?? '') === '08:15'
+        && ($healthVirtual[0]['end'] ?? '') === '11:15',
+    'Oral Health Practical virtual week keeps the canonical 08:15-11:15 timetable clock'
 );
 
 $healthField = $catalog['oral-health-practical-2']['sessions'][4] ?? [];
@@ -486,7 +489,7 @@ syllabus_assert(
 );
 foreach (['1405/06/28', '1405/06/30', '1405/07/01'] as $date) {
     $rows = classops_term7_syllabus_enrich_events([
-        syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+        syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
     ], $date);
     syllabus_assert(
         count($rows) === 1
@@ -498,7 +501,7 @@ foreach (['1405/06/28', '1405/06/30', '1405/07/01'] as $date) {
 
 foreach (['1405/08/23', '1405/08/25', '1405/08/27'] as $date) {
     $rows = classops_term7_syllabus_enrich_events([
-        syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+        syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
     ], $date, 'B');
     syllabus_assert(
         count($rows) === 1
@@ -508,7 +511,7 @@ foreach (['1405/08/23', '1405/08/25', '1405/08/27'] as $date) {
     );
 }
 $healthRotationBWeek8 = classops_term7_syllabus_enrich_events([
-    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
 ], '1405/10/14', 'B');
 syllabus_assert(
     count($healthRotationBWeek8) === 1
@@ -517,7 +520,7 @@ syllabus_assert(
     'Oral Health Practical maps Rotation B week 8 to source session 8'
 );
 $healthNoRotationGuess = classops_term7_syllabus_enrich_events([
-    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', ''),
+    syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
 ], '1405/08/23');
 syllabus_assert(
     count($healthNoRotationGuess) === 1 && !isset($healthNoRotationGuess[0]['sessionNumber']),
@@ -531,10 +534,10 @@ syllabus_assert(array_column($partial, 'sessionNumber') === [9, 10, 11], 'Existi
 syllabus_assert(count(array_unique(array_column($partial, 'sessionKey'))) === 3, 'Shared registry gives same-date sessions stable distinct keys');
 syllabus_assert(
     ($partial[1]['sessionMode'] ?? '') === 'virtual'
-        && ($partial[1]['start'] ?? '') === '07:30'
-        && ($partial[1]['end'] ?? '') === '08:30'
+        && ($partial[1]['start'] ?? '') === '07:00'
+        && ($partial[1]['end'] ?? '') === '08:00'
         && ($partial[1]['location'] ?? 'x') === '',
-    'Partial virtual session keeps the explicit 07:30-08:30 syllabus clock without physical room'
+    'Partial virtual session keeps the canonical 07:00-08:00 timetable clock without physical room'
 );
 
 if ($failures > 0) {

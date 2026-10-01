@@ -32,9 +32,9 @@ $basePartial = array_values(array_filter(
 ));
 classops_v3_assert(
     count($basePartial) === 1
-        && ($basePartial[0]['start'] ?? '') === '07:30'
-        && ($basePartial[0]['end'] ?? '') === '08:30',
-    'Canonical Wednesday partial theory recurrence remains unchanged at 07:30-08:30'
+        && ($basePartial[0]['start'] ?? '') === '07:00'
+        && ($basePartial[0]['end'] ?? '') === '08:00',
+    'Canonical Wednesday partial theory recurrence uses the official 07:00-08:00 clock'
 );
 
 $syllabus = classops_partial_theory_syllabus();
@@ -69,12 +69,12 @@ $practicalRows = array_values(array_filter(
     static fn(array $item): bool => ($item['type'] ?? '') === 'practical'
 ));
 classops_v3_assert(
-    count(array_filter($practicalRows, static fn(array $item): bool => str_contains((string) ($item['startsAt'] ?? ''), 'T09:00:00') && str_contains((string) ($item['endsAt'] ?? ''), 'T12:00:00'))) >= 1,
-    'Morning practical projection uses explicit 09:00-12:00 clock range'
+    count(array_filter($practicalRows, static fn(array $item): bool => str_contains((string) ($item['startsAt'] ?? ''), 'T08:15:00') && str_contains((string) ($item['endsAt'] ?? ''), 'T11:15:00'))) >= 1,
+    'Morning practical projection uses the official 08:15-11:15 clock range'
 );
 classops_v3_assert(
-    count(array_filter($practicalRows, static fn(array $item): bool => str_contains((string) ($item['startsAt'] ?? ''), 'T13:00:00') && str_contains((string) ($item['endsAt'] ?? ''), 'T15:00:00'))) >= 1,
-    'Afternoon practical projection uses explicit 13:00-15:00 clock range'
+    count(array_filter($practicalRows, static fn(array $item): bool => str_contains((string) ($item['startsAt'] ?? ''), 'T11:45:00') && str_contains((string) ($item['endsAt'] ?? ''), 'T14:15:00'))) >= 1,
+    'Afternoon practical projection uses the official 11:45-14:15 clock range'
 );
 classops_v3_assert(
     count(array_filter($practicalRows, static fn(array $item): bool => in_array((string) ($item['timeLabel'] ?? ''), ['صبح', 'عصر'], true))) === 0,
@@ -113,8 +113,8 @@ classops_v3_assert(
         && ($endoQuizRows[0]['sessionNumber'] ?? null) === 5
         && str_contains((string) ($endoQuizRows[0]['title'] ?? ''), 'کوییز ۱')
         && ($endoQuizRows[0]['instructor'] ?? '') === 'دکتر ملک پور'
-        && str_contains((string) ($endoQuizRows[0]['startsAt'] ?? ''), 'T13:00:00')
-        && str_contains((string) ($endoQuizRows[0]['endsAt'] ?? ''), 'T15:00:00')
+        && str_contains((string) ($endoQuizRows[0]['startsAt'] ?? ''), 'T11:45:00')
+        && str_contains((string) ($endoQuizRows[0]['endsAt'] ?? ''), 'T14:15:00')
         && ($endoQuizRows[0]['location'] ?? '') === 'پری‌کلینیک منفی ۲',
     'Rotation A Endodontics Foundations 2 reaches the bot timeline with session, quiz, instructor, canonical clock and location'
 );
@@ -185,9 +185,9 @@ classops_v3_assert(
     ($partialRows[1]['sessionModeLabel'] ?? '') === 'مجازی'
         && str_contains((string) ($partialRows[1]['title'] ?? ''), 'مجازی')
         && ($partialRows[1]['location'] ?? 'x') === ''
-        && str_contains((string) ($partialRows[1]['startsAt'] ?? ''), 'T07:30:00')
-        && str_contains((string) ($partialRows[1]['endsAt'] ?? ''), 'T08:30:00'),
-    'Virtual session 10 keeps the explicit syllabus clock while omitting physical room'
+        && str_contains((string) ($partialRows[1]['startsAt'] ?? ''), 'T07:00:00')
+        && str_contains((string) ($partialRows[1]['endsAt'] ?? ''), 'T08:00:00'),
+    'Virtual session 10 keeps the canonical timetable clock while omitting physical room'
 );
 classops_v3_assert(
     ($partialRows[2]['sessionModeLabel'] ?? '') === 'مجازی'

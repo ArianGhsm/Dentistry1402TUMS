@@ -41,8 +41,14 @@ function dent_bot_term7_status(array $user): array
     $schedule = dent_term7_schedule();
     $state = dent_term7_state_read();
     $sample = dent_term7_resolve_jalali('1405/07/04', 6, ['group10' => 6, 'group8' => 15]);
-    $thursday = dent_term7_resolve_jalali('1405/07/02', 4, []);
-    $endo = is_array($thursday['theory'][0] ?? null) ? $thursday['theory'][0] : [];
+    $monday = dent_term7_resolve_jalali('1405/07/06', 1, []);
+    $endo = [];
+    foreach (is_array($monday['theory'] ?? null) ? $monday['theory'] : [] as $event) {
+        if (is_array($event) && (string) ($event['slug'] ?? '') === 'endodontics-theory-1') {
+            $endo = $event;
+            break;
+        }
+    }
     return [
         'success' => true,
         'contractVersion' => DENT_TERM7_CONTRACT,
@@ -57,11 +63,12 @@ function dent_bot_term7_status(array $user): array
             'morningTitles' => array_values(array_map(static fn(array $event): string => (string) ($event['title'] ?? ''), $sample['practicalMorning'] ?? [])),
             'afternoonTitles' => array_values(array_map(static fn(array $event): string => (string) ($event['title'] ?? ''), $sample['practicalAfternoon'] ?? [])),
         ],
-        'thursdayEndo' => [
+        'mondayEndo' => [
             'title' => (string) ($endo['title'] ?? ''),
             'start' => (string) ($endo['start'] ?? ''),
             'end' => (string) ($endo['end'] ?? ''),
         ],
+        'timePolicy' => is_array($schedule['timePolicy'] ?? null) ? $schedule['timePolicy'] : [],
         'foodUrl' => (string) ($schedule['foodUrl'] ?? ''),
     ];
 }
