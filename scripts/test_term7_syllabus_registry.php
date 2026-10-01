@@ -209,23 +209,23 @@ syllabus_assert(
 );
 
 $research = classops_term7_syllabus_enrich_events([
-    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:00'),
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
 ], '1405/07/29');
 syllabus_assert(count($research) === 2, 'Research Methodology keeps session 10 plus virtual session 11 on 1405/07/29');
 syllabus_assert(
     ($research[0]['sessionNumber'] ?? null) === 10
         && ($research[0]['start'] ?? '') === '11:45'
-        && ($research[0]['end'] ?? '') === '14:00'
+        && ($research[0]['end'] ?? '') === '14:15'
         && ($research[1]['sessionNumber'] ?? null) === 11
         && ($research[1]['sessionMode'] ?? '') === 'virtual'
         && ($research[1]['location'] ?? 'x') === ''
         && ($research[1]['start'] ?? '') === '11:45'
-        && ($research[1]['end'] ?? '') === '14:00',
-    'Research Methodology metadata preserves the canonical 11:45-14:00 clock for every row'
+        && ($research[1]['end'] ?? '') === '14:15',
+    'Research Methodology metadata preserves the canonical 11:45-14:15 clock for every row'
 );
 
 $researchWithSupplement = classops_term7_syllabus_enrich_events([
-    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:00'),
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
 ], '1405/07/08', 'A');
 syllabus_assert(
     count($researchWithSupplement) === 2
@@ -235,7 +235,7 @@ syllabus_assert(
 );
 
 $researchRotationB = classops_term7_syllabus_enrich_events([
-    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:00'),
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
 ], '1405/09/25', 'B');
 syllabus_assert(
     array_column($researchRotationB, 'sessionNumber') === [10, 11]

@@ -407,9 +407,9 @@ try {
         if ($expectedCount === 1) {
             term7_assert(
                 ($researchRows[0]['start'] ?? '') === '11:45'
-                    && ($researchRows[0]['end'] ?? '') === '14:00'
+                    && ($researchRows[0]['end'] ?? '') === '14:15'
                     && ($researchRows[0]['location'] ?? '') === (dent_term7_schedule()['theory'][6][0]['location'] ?? ''),
-                'Research Methodology 2 uses the canonical 11:45-14:00 timetable clock and amphitheater location'
+                'Research Methodology 2 uses the canonical 11:45-14:15 timetable clock and amphitheater location'
             );
         }
     }
@@ -428,9 +428,9 @@ try {
         'oralHealthRotationAWeekday' => 1,
     ]));
     term7_assert(
-        str_contains($researchSummary, '۱۱:۴۵ تا ۱۴:۰۰')
+        str_contains($researchSummary, '۱۱:۴۵ تا ۱۴:۱۵')
             && !str_contains($researchSummary, '۱۳:۰۰ تا ۱۵:۳۰'),
-        'Research Methodology summary exposes only the canonical 11:45-14:00 clock'
+        'Research Methodology summary exposes only the canonical 11:45-14:15 clock'
     );
     term7_assert(dent_term7_schedule()['prepChecklists'] === [], 'Preparation checklist remains intentionally empty');
     term7_assert(dent_term7_schedule()['foodUrl'] === DENT_TERM7_FOOD_URL, 'Food URL has one canonical config source');

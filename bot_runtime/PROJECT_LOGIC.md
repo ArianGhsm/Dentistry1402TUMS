@@ -462,7 +462,6 @@ normal buttons/deep links and does not fake unsupported inline mode.
   pattern, closure and makeup day. The current official timetable uses 07:00-08:00
   for morning theory, 08:15-11:15 for first-shift practical sections, 11:15-12:15
   for thesis defense, and 11:45-14:15 for second-shift practical sections.
-  Research Methodology 2 is the explicit 11:45-14:00 timetable exception.
   Monday theory is Diagnostic Dentistry 3 at 11:30-12:30, Orthodontics 1 at
   12:40-13:40 and Endodontics 1 at 13:50-15:50; Thursday has no class.
   Course-syllabus registries contribute session titles/instructors only and never

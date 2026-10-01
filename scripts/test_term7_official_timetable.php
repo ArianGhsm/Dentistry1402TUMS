@@ -62,7 +62,7 @@ foreach (['A', 'B'] as $rotation) {
             $end = (string) ($event['end'] ?? '');
             if ($slug === 'research-methods-2-practical') {
                 $researchCount++;
-                $assert($start === '11:45' && $end === '14:00', 'Research Methodology 2 keeps its official 11:45-14:00 exception');
+                $assert($start === '11:45' && $end === '14:15', 'Research Methodology 2 uses the official second-shift 11:45-14:15 clock');
                 continue;
             }
             if ($period === 'morning') {
