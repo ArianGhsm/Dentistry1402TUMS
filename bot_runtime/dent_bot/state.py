@@ -2636,6 +2636,32 @@ class BotState:
             self.connection.commit()
         return len(records)
 
+    def deactivate_missing_protected_media_messages(
+        self,
+        source_chat_id: int,
+        live_message_ids: list[int] | tuple[int, ...] | set[int],
+    ) -> int:
+        """Deactivate routes whose source messages no longer exist in a fully scanned channel."""
+        if source_chat_id >= 0:
+            raise ValueError("Invalid Telegram source channel")
+        message_ids = sorted({int(value) for value in live_message_ids if int(value) > 0})
+        with self._lock:
+            if message_ids:
+                placeholders = ",".join("?" for _ in message_ids)
+                cursor = self.connection.execute(
+                    f"UPDATE protected_media_sources SET active=0,updated_at=CURRENT_TIMESTAMP "
+                    f"WHERE source_chat_id=? AND active=1 AND source_message_id NOT IN ({placeholders})",
+                    (source_chat_id, *message_ids),
+                )
+            else:
+                cursor = self.connection.execute(
+                    "UPDATE protected_media_sources SET active=0,updated_at=CURRENT_TIMESTAMP "
+                    "WHERE source_chat_id=? AND active=1",
+                    (source_chat_id,),
+                )
+            self.connection.commit()
+            return int(cursor.rowcount)
+
     def update_protected_media_file(
         self,
         source_chat_id: int,

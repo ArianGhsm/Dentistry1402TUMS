@@ -5,7 +5,7 @@ import json
 from typing import Mapping, Sequence
 
 
-RETRY_UNROUTED_SECONDS = 15 * 60
+RETRY_UNROUTED_SECONDS = 60
 RETRY_FAILED_SECONDS = 60
 
 
@@ -121,3 +121,25 @@ def source_media_field(message: object) -> str:
 def source_requires_reusable_file_id(role: str) -> bool:
     """Private protected sources need reusable file IDs; public powers do not."""
     return str(role or "").strip() != "power"
+
+
+def source_history_complete(scanned_messages: int, limit: int) -> bool:
+    """A short MTProto page means the scan reached the channel beginning."""
+    return int(limit) > 0 and 0 <= int(scanned_messages) < int(limit)
+
+
+def should_prune_missing_sources(role: str, scanned_messages: int, limit: int) -> bool:
+    """Only the dedicated private source may prune, and only after a full history scan."""
+    return (
+        str(role or "").strip() == "private"
+        and source_history_complete(scanned_messages, limit)
+    )
+
+
+def blocking_private_unrouted(source_summaries: Sequence[Mapping[str, object]]) -> int:
+    """Count private-source routing failures that must make reconciliation unhealthy."""
+    return sum(
+        max(0, int(item.get("unrouted") or 0))
+        for item in source_summaries
+        if str(item.get("role") or "").strip() == "private"
+    )

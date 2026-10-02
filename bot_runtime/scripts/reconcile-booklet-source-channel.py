@@ -26,9 +26,12 @@ sys.path.insert(0, str(ARCHIVE_WORKER))
 
 from dent_bot.booklet_reconcile import (  # noqa: E402
     album_caption_overrides,
+    blocking_private_unrouted,
     reconciliation_record,
+    should_prune_missing_sources,
     should_reconcile,
     source_fingerprint,
+    source_history_complete,
     source_media_field,
     source_requires_reusable_file_id,
 )
@@ -72,7 +75,7 @@ async def current_media_messages(
     source_chat_id: int,
     *,
     limit: int,
-) -> list[dict[str, object]]:
+) -> tuple[list[dict[str, object]], int]:
     env = telegram_cli.load_env()
     with tempfile.TemporaryDirectory(prefix="booklet-reconcile-") as temporary:
         runtime_session = Path(temporary) / "arianbc"
@@ -87,7 +90,9 @@ async def current_media_messages(
             await telegram_cli.checked_identity(client)
             entity = await telegram_cli.resolve_peer(client, str(source_chat_id))
             rows: list[dict[str, object]] = []
+            scanned_messages = 0
             async for message in client.iter_messages(entity, limit=int(limit)):
+                scanned_messages += 1
                 file = getattr(message, "file", None)
                 if file is None:
                     continue
@@ -111,7 +116,7 @@ async def current_media_messages(
                     "fileId": bot_file_id,
                 })
             rows.sort(key=lambda item: int(item["messageId"]))
-            return rows
+            return rows, scanned_messages
         finally:
             await client.disconnect()
 
@@ -169,6 +174,43 @@ def register_message(
     return "failed", output
 
 
+def deactivate_missing_routes(
+    bot_env: dict[str, str],
+    *,
+    source_chat_id: int,
+    live_message_ids: list[int],
+) -> tuple[bool, int, str]:
+    env = os.environ.copy()
+    env.update(bot_env)
+    command = [
+        "runuser", "-u", "dentbot", "--preserve-environment", "--",
+        "/opt/integrated-dent/telegram-venv/bin/python",
+        "-m", "dent_bot.booklet_source_admin",
+        "deactivate-missing",
+        "--source-channel-id", str(int(source_chat_id)),
+    ]
+    for message_id in sorted({int(value) for value in live_message_ids if int(value) > 0}):
+        command.extend(["--live-message-id", str(message_id)])
+    completed = subprocess.run(
+        command,
+        cwd=str(CURRENT_RELEASE),
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    output = (completed.stdout or completed.stderr or "").strip()
+    if completed.returncode != 0:
+        return False, 0, output
+    try:
+        payload = json.loads(output)
+        deactivated = int(payload.get("deactivatedRoutes") or 0)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return False, 0, "Invalid deactivate-missing response"
+    return True, max(0, deactivated), output
+
+
 async def main() -> int:
     bot_env = read_env(BOT_ENV)
     private_source_id = int(bot_env.get("DENT_BOT_BOOKLET_SOURCE_CHANNEL_ID", "0") or "0")
@@ -204,23 +246,29 @@ async def main() -> int:
         "ignored": 0,
         "unrouted": 0,
         "failed": 0,
+        "deactivatedMissingRoutes": 0,
     }
     source_summaries: list[dict[str, object]] = []
     failures: list[dict[str, object]] = []
     unrouted_details: list[dict[str, object]] = []
 
     for role, source_chat_id, limit in sources:
-        rows = await current_media_messages(source_chat_id, limit=limit)
+        rows, scanned_messages = await current_media_messages(source_chat_id, limit=limit)
         album_overrides = album_caption_overrides(rows)
+        history_complete = source_history_complete(scanned_messages, limit)
+        prune_missing = should_prune_missing_sources(role, scanned_messages, limit)
         local = {
             "role": role,
             "chatId": source_chat_id,
             "scanned": len(rows),
+            "historyMessagesScanned": scanned_messages,
+            "historyComplete": history_complete,
             "changed": 0,
             "routed": 0,
             "ignored": 0,
             "unrouted": 0,
             "failed": 0,
+            "deactivatedMissingRoutes": 0,
         }
         summary["scanned"] += len(rows)
 
@@ -285,6 +333,24 @@ async def main() -> int:
                     "detail": detail[:300],
                 })
 
+        if prune_missing:
+            ok, deactivated, detail = deactivate_missing_routes(
+                bot_env,
+                source_chat_id=source_chat_id,
+                live_message_ids=[int(row["messageId"]) for row in rows],
+            )
+            if ok:
+                local["deactivatedMissingRoutes"] = deactivated
+                summary["deactivatedMissingRoutes"] += deactivated
+            else:
+                summary["failed"] += 1
+                local["failed"] = int(local["failed"]) + 1
+                failures.append({
+                    "role": role,
+                    "messageId": 0,
+                    "detail": ("missing-route-prune: " + detail)[:300],
+                })
+
         source_summaries.append(local)
 
     ordered = sorted(
@@ -301,14 +367,16 @@ async def main() -> int:
     }
     save_state(state)
 
+    private_unrouted = blocking_private_unrouted(source_summaries)
     result = {
         **summary,
+        "privateUnrouted": private_unrouted,
         "sources": source_summaries,
         "unroutedDetails": unrouted_details[:10],
         "failures": failures[:10],
     }
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
-    return 1 if summary["failed"] else 0
+    return 1 if summary["failed"] or private_unrouted else 0
 
 
 if __name__ == "__main__":

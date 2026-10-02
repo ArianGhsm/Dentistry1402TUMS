@@ -129,6 +129,9 @@ def main() -> int:
     metadata.add_argument("--file-unique-id", default="")
     metadata.add_argument("--file-name", default="")
     metadata.add_argument("--mime-type", default="")
+    deactivate_missing = subparsers.add_parser("deactivate-missing")
+    deactivate_missing.add_argument("--source-channel-id", type=int, default=0)
+    deactivate_missing.add_argument("--live-message-id", type=int, action="append", default=[])
     hydrate = subparsers.add_parser("hydrate-existing")
     hydrate.add_argument("--message-id", required=True, type=int)
     hydrate.add_argument("--source-channel-id", type=int, default=0)
@@ -156,6 +159,25 @@ def main() -> int:
         if policy is None:
             raise ValueError("Source channel is not configured for booklet ingestion")
         return policy
+
+    if args.command == "deactivate-missing":
+        policy = selected_policy(args.source_channel_id)
+        if policy.role != "private":
+            raise ValueError("Only the protected private source supports missing-message pruning")
+        state = BotState(settings.state_db, payment_offers_path=settings.payment_offers_db)
+        try:
+            deactivated = state.deactivate_missing_protected_media_messages(
+                policy.channel_id,
+                list(args.live_message_id or []),
+            )
+            print(json.dumps({
+                "success": True,
+                "deactivatedRoutes": deactivated,
+                "liveMessages": len(set(args.live_message_id or [])),
+            }, separators=(",", ":")))
+            return 0
+        finally:
+            state.close()
 
     if args.command == "probe":
         api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)

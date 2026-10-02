@@ -597,6 +597,39 @@ class BookletDeliveryTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_full_history_pruning_deactivates_only_missing_source_messages(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                records = source_records_from_channel_post({
+                    "caption": SOURCE_CAPTION,
+                    "document": {"file_id": "file-id", "file_name": "test.pdf"},
+                }, BOOKLET_CATALOG)
+                state.replace_protected_media_message(SOURCE_CHAT_ID, 4, records)
+                state.replace_protected_media_message(SOURCE_CHAT_ID, 5, records)
+                foreign_channel = SOURCE_CHAT_ID - 1
+                state.replace_protected_media_message(foreign_channel, 4, records)
+
+                self.assertEqual(
+                    state.deactivate_missing_protected_media_messages(
+                        SOURCE_CHAT_ID,
+                        {5},
+                    ),
+                    2,
+                )
+                surviving = state.protected_media_for_tag(
+                    course_tag="گوش_حلق_بینی",
+                    term=7,
+                    session_no=4,
+                    content_kind="booklet",
+                )
+                self.assertEqual(
+                    {(item["sourceChatId"], item["sourceMessageId"]) for item in surviving},
+                    {(SOURCE_CHAT_ID, 5), (foreign_channel, 4)},
+                )
+            finally:
+                state.close()
+
     def test_issuance_attribution_survives_source_catalog_removal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")
