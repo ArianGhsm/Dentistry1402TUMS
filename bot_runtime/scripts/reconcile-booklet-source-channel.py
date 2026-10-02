@@ -33,10 +33,9 @@ from dent_bot.booklet_reconcile import (  # noqa: E402
     source_fingerprint,
     source_history_complete,
     source_media_field,
-    source_requires_reusable_file_id,
+    source_requires_bot_api_hydration,
 )
 import telegram_cli  # noqa: E402
-from telethon import utils as telethon_utils  # noqa: E402
 
 
 def read_env(path: Path) -> dict[str, str]:
@@ -99,10 +98,6 @@ async def current_media_messages(
                 media_field = source_media_field(message)
                 if not media_field:
                     continue
-                try:
-                    bot_file_id = str(telethon_utils.pack_bot_file_id(message.media) or "")
-                except Exception:
-                    bot_file_id = ""
                 rows.append({
                     "messageId": int(message.id),
                     "groupedId": str(message.grouped_id or ""),
@@ -113,7 +108,6 @@ async def current_media_messages(
                     "fileSize": int(getattr(file, "size", 0) or 0),
                     "mimeType": str(getattr(file, "mime_type", "") or ""),
                     "mediaField": media_field,
-                    "fileId": bot_file_id,
                 })
             rows.sort(key=lambda item: int(item["messageId"]))
             return rows, scanned_messages
@@ -138,11 +132,11 @@ def register_message(
     *,
     source_chat_id: int,
     caption: str,
-    require_file_id: bool = True,
 ) -> tuple[str, str]:
-    file_id = str(row.get("fileId") or "")
-    if require_file_id and not file_id:
-        return "failed", "MTProto media did not expose a Bot API-compatible file_id"
+    # Never persist Telethon/MTProto packed identifiers as Bot API file_ids.
+    # Empty metadata preserves an existing genuine Bot API id, if one arrived
+    # through channel_post, and private PDFs are hydrated explicitly below.
+    file_id = ""
     env = os.environ.copy()
     env.update(bot_env)
     completed = subprocess.run(
@@ -172,6 +166,34 @@ def register_message(
     if completed.returncode == 2:
         return "unrouted", output
     return "failed", output
+
+
+def hydrate_message(
+    bot_env: dict[str, str],
+    *,
+    source_chat_id: int,
+    message_id: int,
+) -> tuple[str, str]:
+    env = os.environ.copy()
+    env.update(bot_env)
+    completed = subprocess.run(
+        [
+            "runuser", "-u", "dentbot", "--preserve-environment", "--",
+            "/opt/integrated-dent/telegram-venv/bin/python",
+            "-m", "dent_bot.booklet_source_admin",
+            "hydrate-existing",
+            "--source-channel-id", str(int(source_chat_id)),
+            "--message-id", str(int(message_id)),
+        ],
+        cwd=str(CURRENT_RELEASE),
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    output = (completed.stdout or completed.stderr or "").strip()
+    return ("routed", output) if completed.returncode == 0 else ("failed", output)
 
 
 def deactivate_missing_routes(
@@ -307,8 +329,20 @@ async def main() -> int:
                     row,
                     source_chat_id=source_chat_id,
                     caption=effective_text,
-                    require_file_id=source_requires_reusable_file_id(role),
                 )
+                if (
+                    status == "routed"
+                    and source_requires_bot_api_hydration(
+                        role,
+                        file_name=str(row["fileName"]),
+                        mime_type=str(row["mimeType"]),
+                    )
+                ):
+                    status, detail = hydrate_message(
+                        bot_env,
+                        source_chat_id=source_chat_id,
+                        message_id=message_id,
+                    )
                 if role == "power" and status == "unrouted":
                     status = "routed"
                     metric_status = "ignored"

@@ -118,9 +118,19 @@ def source_media_field(message: object) -> str:
     return ""
 
 
-def source_requires_reusable_file_id(role: str) -> bool:
-    """Private protected sources need reusable file IDs; public powers do not."""
-    return str(role or "").strip() != "power"
+def source_requires_bot_api_hydration(
+    role: str,
+    *,
+    file_name: str = "",
+    mime_type: str = "",
+) -> bool:
+    """Only private PDFs need a genuine Bot API file_id for watermark download."""
+    if str(role or "").strip() != "private":
+        return False
+    return (
+        str(mime_type or "").strip().lower() == "application/pdf"
+        or str(file_name or "").strip().lower().endswith(".pdf")
+    )
 
 
 def source_history_complete(scanned_messages: int, limit: int) -> bool:
