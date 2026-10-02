@@ -289,6 +289,7 @@ function classops_term7_syllabus_booklet_tag_aliases(string $courseKey, string $
             'آسیب_شناسی_عملی۱',
             'آسیب_شناسی۱',
             'پاتولوژی_عملی۱',
+            'پاتو_عملی۱',
         ],
         'oral-health-theory-2' => [
             'سلامت_دهان_نظری۲',
