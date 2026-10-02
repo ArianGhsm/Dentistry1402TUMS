@@ -110,6 +110,18 @@ def _course_tag_keys(course: dict) -> set[str]:
     return {key for value in values if (key := _tag_key(value))}
 
 
+def _explicit_course_title(caption: str) -> str:
+    for raw_line in str(caption or "").splitlines():
+        match = re.fullmatch(r"\s*📚\s*(?P<title>.+?)\s*", raw_line)
+        if match:
+            return _normalized(match.group("title")).casefold()
+    return ""
+
+
+def _course_title_key(course: dict) -> str:
+    return _normalized(str(course.get("courseTitle") or "")).casefold()
+
+
 def _content_kinds(caption: str) -> tuple[str, ...]:
     normalized = _normalized(caption)
     tags = _hashtags(caption)
@@ -177,12 +189,32 @@ class ParsedSource:
 
 def parse_source_caption(caption: str, catalog: dict) -> ParsedSource | None:
     tags = _hashtags(caption)
-    matched_courses = [
+    courses = catalog_courses(catalog)
+    tag_matches = [
         item
-        for item in catalog_courses(catalog)
+        for item in courses
         if _course_tag_keys(item) & tags
     ]
-    course = matched_courses[0] if len(matched_courses) == 1 else None
+    explicit_title = _explicit_course_title(caption)
+    title_matches = [
+        item
+        for item in courses
+        if explicit_title and _course_title_key(item) == explicit_title
+    ]
+    course = None
+    if len(tag_matches) == 1:
+        course = tag_matches[0]
+        if title_matches and (
+            len(title_matches) != 1
+            or str(title_matches[0].get("courseKey") or "")
+            != str(course.get("courseKey") or "")
+        ):
+            course = None
+    elif len(tag_matches) == 0 and len(title_matches) == 1:
+        # Structured channel captions carry an explicit canonical course title.
+        # It is a safe fallback when a newly introduced shorthand hashtag is not
+        # yet present in the alias registry. Ambiguous titles still fail closed.
+        course = title_matches[0]
     term = 0
     for tag in tags:
         match = re.fullmatch(r"ترم([0-9]{1,2})", tag)

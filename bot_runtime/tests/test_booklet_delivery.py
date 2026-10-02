@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import tempfile
 import threading
 import time
@@ -66,6 +67,22 @@ BOOKLET_CATALOG = {
             "sessions": [
                 {"sessionNumber": 1, "title": "اپیدمیولوژی", "instructor": "دکتر سمانه رازقی", "sessionModeLabel": "حضوری"},
                 {"sessionNumber": 2, "title": "دندانپزشکی مبتنی بر شواهد", "instructor": "دکتر رضا یزدانی", "sessionModeLabel": "حضوری"},
+            ],
+        },
+        {
+            "courseKey": "pathology-practical-1",
+            "courseTitle": "آسیب‌شناسی عملی ۱",
+            "bookletTag": "آسیب_شناسی_عملی۱",
+            "bookletTagAliases": [
+                "آسیب_شناسی_عملی۱",
+                "آسیب_شناسی۱",
+                "پاتولوژی_عملی۱",
+                "پاتو_عملی۱",
+            ],
+            "term": 7,
+            "sessions": [
+                {"sessionNumber": 1, "title": "گرانول فوردایس – لکوادما", "instructor": "دکتر درخشان", "sessionModeLabel": "حضوری"},
+                {"sessionNumber": 2, "title": "گرانولوم نوک ریشه – کیست رادیکولار", "instructor": "دکتر مرادزاده", "sessionModeLabel": "حضوری"},
             ],
         },
     ],
@@ -276,6 +293,7 @@ class BookletDeliveryTests(unittest.TestCase):
             ("#گوش_حلق_و_بینی #ترم۷ ویس جلسه چهارم", "ent", "گوش_حلق_بینی", 4),
             ("#روش_شناسی_تحقیق۲ #ترم_۷ ویس جلسه اول", "research-methods-2", "روش_تحقیق۲", 1),
             ("#سلامت_نظری_۲ #ترم۷ ویس جلسه اول", "oral-health-theory-2", "سلامت_دهان_نظری۲", 1),
+            ("#پاتو_عملی۱ #ترم۷ ویس جلسه دوم", "pathology-practical-1", "آسیب_شناسی_عملی۱", 2),
         )
         for caption, expected_code, expected_tag, expected_session in cases:
             with self.subTest(caption=caption):
@@ -285,6 +303,72 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(parsed.course_code, expected_code)
                 self.assertEqual(parsed.course_tag, expected_tag)
                 self.assertEqual(parsed.session_no, expected_session)
+
+    def test_pathology_private_channel_caption_routes_with_standard_shorthand(self) -> None:
+        caption = (
+            "🎤 ویس جلسه دوم آسیب‌شناسی عملی ۱ - گرانولوم نوک ریشه – کیست رادیکولار (نسخه اول)\n\n"
+            "📚 آسیب‌شناسی عملی ۱\n"
+            "👨‍🏫 استاد مرادزاده\n"
+            "🩺 رزیدنت مسئول: دکتر صبوری\n\n"
+            "#پاتو_عملی۱ #ترم۷ #مرادزاده\n\n"
+            "▫️ @Dent1402Booklets"
+        )
+        parsed = parse_source_caption(caption, BOOKLET_CATALOG)
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed.course_code, "pathology-practical-1")
+        self.assertEqual(parsed.course_tag, "آسیب_شناسی_عملی۱")
+        self.assertEqual(parsed.session_no, 2)
+        self.assertEqual(parsed.kinds, ("voice",))
+        records = source_records_from_channel_post(
+            {
+                "caption": caption,
+                "audio": {
+                    "file_id": "pathology-session-2",
+                    "file_unique_id": "pathology-session-2-unique",
+                    "file_name": "پاتولوژی جلسه ۲.m4a",
+                    "mime_type": "audio/m4a",
+                },
+            },
+            BOOKLET_CATALOG,
+            allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS,
+        )
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["sessionNo"], 2)
+        self.assertEqual(records[0]["contentKind"], "voice")
+        self.assertEqual(records[0]["telegramMethod"], "sendAudio")
+
+    def test_exact_course_title_recovers_unregistered_shorthand_but_stays_fail_closed(self) -> None:
+        catalog = copy.deepcopy(BOOKLET_CATALOG)
+        pathology = next(
+            item
+            for item in catalog["courses"]
+            if item["courseKey"] == "pathology-practical-1"
+        )
+        pathology["bookletTagAliases"] = [
+            alias
+            for alias in pathology["bookletTagAliases"]
+            if alias != "پاتو_عملی۱"
+        ]
+        caption = (
+            "🎤 ویس جلسه دوم آسیب‌شناسی عملی ۱ - گرانولوم نوک ریشه – کیست رادیکولار\n\n"
+            "📚 آسیب‌شناسی عملی ۱\n\n"
+            "#پاتو_عملی۱ #ترم۷"
+        )
+        parsed = parse_source_caption(caption, catalog)
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed.course_code, "pathology-practical-1")
+        self.assertEqual(parsed.session_no, 2)
+        self.assertIsNone(
+            parse_source_caption("🎤 ویس جلسه دوم\n#پاتو_عملی۱ #ترم۷", catalog)
+        )
+        self.assertIsNone(
+            parse_source_caption(
+                "🎤 ویس جلسه اول\n📚 سلامت دهان نظری ۲\n#روش_تحقیق۲ #ترم۷",
+                catalog,
+            )
+        )
 
     def test_booklet_tag_alias_collision_fails_closed(self) -> None:
         catalog = {

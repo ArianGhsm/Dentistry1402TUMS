@@ -207,6 +207,7 @@ async def main() -> int:
     }
     source_summaries: list[dict[str, object]] = []
     failures: list[dict[str, object]] = []
+    unrouted_details: list[dict[str, object]] = []
 
     for role, source_chat_id, limit in sources:
         rows = await current_media_messages(source_chat_id, limit=limit)
@@ -277,6 +278,12 @@ async def main() -> int:
                     "messageId": message_id,
                     "detail": detail[:300],
                 })
+            elif status == "unrouted":
+                unrouted_details.append({
+                    "role": role,
+                    "messageId": message_id,
+                    "detail": detail[:300],
+                })
 
         source_summaries.append(local)
 
@@ -297,6 +304,7 @@ async def main() -> int:
     result = {
         **summary,
         "sources": source_summaries,
+        "unroutedDetails": unrouted_details[:10],
         "failures": failures[:10],
     }
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
