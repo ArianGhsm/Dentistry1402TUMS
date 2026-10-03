@@ -977,9 +977,549 @@ def term_subscription_info_screen(policy: dict, *, term: int = 7) -> Screen:
         f"<b>ℹ️ اشتراک جزوات ترم {to_persian_digits(term)}</b>\n\n"
         f"📅 شروع دسترسی اشتراکی: <b>{html.escape(start)}</b>\n"
         f"💳 هزینهٔ هر ماه: <code>{html.escape(price)}</code>\n\n"
-        "پیش از تاریخ شروع، برای حساب‌های دانشجویی ویس یا فایل جزوه ارسال نم
-…[sentinelx: truncated 33789 bytes]…
-" · <code>{file_name}</code>" if file_name else ""
+        "پیش از تاریخ شروع، برای حساب‌های دانشجویی ویس یا فایل جزوه ارسال نمی‌شود. "
+        "پس از شروع دوره، هر پرداخت فقط همان ماه شمسی را پوشش می‌دهد و با تأیید درگاه، "
+        "دسترسی به ویس‌ها، جزوات، پاورها و رفرنس‌های ثبت‌شده فعال می‌شود.\n\n"
+        "برای اعضای ثبت‌شدهٔ سیستم جزوه‌نویسی و مسئول اینفوگرافیک، هزینهٔ ماهانه صفر است و دسترسی هر ماه خودکار فعال می‌شود. "
+        "سایر دانشجویان باید اشتراک همان ماه را پرداخت کنند؛ تمدید یا برداشت خودکار برای پرداخت‌های عادی انجام نمی‌شود.\n\n"
+        "<blockquote>همهٔ فایل‌ها با محافظت تلگرام ارسال می‌شوند؛ فایل‌های PDF علاوه بر آن نسخهٔ شخصی‌سازی‌شده و واترمارک‌دار دارند.</blockquote>",
+        keyboard(
+            [button("مشاهده وضعیت", action=f"term-subscription:{term}")],
+            [button("🏠 منوی اصلی", action="home")],
+        ),
+    )
+
+
+def _booklet_sales_course_label(
+    catalog: dict | None,
+    course_code: str,
+    course_tag: str,
+    session_no: int,
+) -> tuple[str, str]:
+    course = next(
+        (
+            item for item in dict(catalog or {}).get("courses", [])
+            if isinstance(item, dict) and str(item.get("courseKey") or "") == str(course_code)
+        ),
+        None,
+    )
+    if isinstance(course, dict):
+        course_title = str(course.get("courseTitle") or "").strip()
+        session = next(
+            (
+                item for item in course.get("sessions", [])
+                if isinstance(item, dict) and int(item.get("sessionNumber") or 0) == int(session_no)
+            ),
+            None,
+        )
+        session_title = str(dict(session or {}).get("title") or "").strip()
+        return course_title or "درس", session_title
+    fallback = str(course_tag or "").replace("_", " ").strip() or "درس"
+    return fallback, ""
+
+
+def booklet_sales_overview_screen(report: dict, catalog: dict | None = None) -> Screen:
+    term = int(report.get("term") or 7)
+    current_label = html.escape(to_persian_digits(str(report.get("currentPeriodLabel") or "دورهٔ جاری")))
+    ai = dict(report.get("aiBooklets") or {})
+    subscriptions = dict(report.get("subscriptions") or {})
+    return Screen(
+        f"<b><u>📈 آمار فروش جزوات · ترم {to_persian_digits(term)}</u></b>\n\n"
+        "<blockquote>🤖 <b>جزوه‌های هوش مصنوعی</b>\n"
+        f"کل فروش: <b>{to_persian_digits(ai.get('totalSales', 0))}</b> · "
+        f"خریدار یکتا: <b>{to_persian_digits(ai.get('uniqueBuyers', 0))}</b>\n"
+        f"درآمد کل: <code>{to_persian_digits(format_rials(ai.get('revenueRials', 0)))}</code>\n"
+        f"{current_label}: <b>{to_persian_digits(ai.get('currentSales', 0))}</b> فروش · "
+        f"<code>{to_persian_digits(format_rials(ai.get('currentRevenueRials', 0)))}</code></blockquote>\n\n"
+        "<blockquote>📚 <b>اشتراک جزوات</b>\n"
+        f"کل فروش: <b>{to_persian_digits(subscriptions.get('totalSales', 0))}</b> · "
+        f"مشترک یکتا: <b>{to_persian_digits(subscriptions.get('uniqueBuyers', 0))}</b>\n"
+        f"درآمد کل: <code>{to_persian_digits(format_rials(subscriptions.get('revenueRials', 0)))}</code>\n"
+        f"{current_label}: <b>{to_persian_digits(subscriptions.get('currentSales', 0))}</b> فروش · "
+        f"<code>{to_persian_digits(format_rials(subscriptions.get('currentRevenueRials', 0)))}</code></blockquote>",
+        keyboard(
+            [button("🤖 فروش جزوه‌های هوش مصنوعی", action="booklet-sales-ai", style="primary")],
+            [button("📚 فروش اشتراک جزوات", action="booklet-sales-subscriptions")],
+            [button("↻ تازه‌سازی", action="booklet-sales"), button("↩️ مدیریت ربات", action="admin")],
+        ),
+    )
+
+
+def ai_booklet_sales_screen(report: dict, catalog: dict | None = None) -> Screen:
+    ai = dict(report.get("aiBooklets") or {})
+    lines = [
+        "<b><u>🤖 فروش جزوه‌های هوش مصنوعی</u></b>",
+        "",
+        f"فروش قطعی: <b>{to_persian_digits(ai.get('totalSales', 0))}</b>",
+        f"خریدار یکتا: <b>{to_persian_digits(ai.get('uniqueBuyers', 0))}</b>",
+        f"جلسهٔ فروخته‌شده: <b>{to_persian_digits(ai.get('soldItems', 0))}</b>",
+        f"درآمد کل: <code>{to_persian_digits(format_rials(ai.get('revenueRials', 0)))}</code>",
+    ]
+    items = [item for item in ai.get("items", []) if isinstance(item, dict)]
+    if items:
+        lines.extend(("", "<b>پرفروش‌ترین جلسه‌ها</b>"))
+        for index, item in enumerate(items[:10], start=1):
+            course_title, session_title = _booklet_sales_course_label(
+                catalog,
+                str(item.get("courseCode") or ""),
+                str(item.get("courseTag") or ""),
+                int(item.get("sessionNo") or 0),
+            )
+            title = (
+                f"{html.escape(course_title)} · جلسه {to_persian_digits(item.get('sessionNo', 0))}"
+            )
+            lines.extend(("", f"<b>{to_persian_digits(index)}. {title}</b>"))
+            if session_title:
+                lines.append(html.escape(session_title))
+            lines.append(
+                f"فروش: <b>{to_persian_digits(item.get('salesCount', 0))}</b> · "
+                f"خریدار: <b>{to_persian_digits(item.get('uniqueBuyers', 0))}</b> · "
+                f"<code>{to_persian_digits(format_rials(item.get('revenueRials', 0)))}</code>"
+            )
+    else:
+        lines.extend(("", "هنوز فروش قطعی برای جزوه‌های هوش مصنوعی ثبت نشده است."))
+    return Screen(
+        "\n".join(lines),
+        keyboard(
+            [button("↻ تازه‌سازی", action="booklet-sales-ai", style="primary")],
+            [button("↩️ آمار فروش جزوات", action="booklet-sales"), button("🏠 خانه", action="home")],
+        ),
+    )
+
+
+def booklet_subscription_sales_screen(report: dict) -> Screen:
+    subscriptions = dict(report.get("subscriptions") or {})
+    current_label = html.escape(to_persian_digits(str(report.get("currentPeriodLabel") or "دورهٔ جاری")))
+    lines = [
+        "<b><u>📚 فروش اشتراک جزوات</u></b>",
+        "",
+        f"<b>{current_label}</b>",
+        f"فروش: <b>{to_persian_digits(subscriptions.get('currentSales', 0))}</b> · "
+        f"مشترک یکتا: <b>{to_persian_digits(subscriptions.get('currentUniqueBuyers', 0))}</b>",
+        f"درآمد: <code>{to_persian_digits(format_rials(subscriptions.get('currentRevenueRials', 0)))}</code>",
+        "",
+        "<b>کل دوره</b>",
+        f"فروش قطعی: <b>{to_persian_digits(subscriptions.get('totalSales', 0))}</b> · "
+        f"مشترک یکتا: <b>{to_persian_digits(subscriptions.get('uniqueBuyers', 0))}</b>",
+        f"ماه‌های دارای فروش: <b>{to_persian_digits(subscriptions.get('periodsSold', 0))}</b>",
+        f"درآمد کل: <code>{to_persian_digits(format_rials(subscriptions.get('revenueRials', 0)))}</code>",
+    ]
+    periods = [item for item in subscriptions.get("periods", []) if isinstance(item, dict)]
+    if periods:
+        lines.extend(("", "<b>ماه‌های اخیر</b>"))
+        for item in periods:
+            label = html.escape(to_persian_digits(str(item.get("periodLabel") or "ماه")))
+            lines.append(
+                f"• <b>{label}</b> · {to_persian_digits(item.get('salesCount', 0))} فروش · "
+                f"<code>{to_persian_digits(format_rials(item.get('revenueRials', 0)))}</code>"
+            )
+    else:
+        lines.extend(("", "هنوز فروش قطعی اشتراک ثبت نشده است."))
+    return Screen(
+        "\n".join(lines),
+        keyboard(
+            [button("📚 مدیریت اشتراک ترم ۷", action="term-subscription-admin:7")],
+            [button("↻ تازه‌سازی", action="booklet-sales-subscriptions", style="primary")],
+            [button("↩️ آمار فروش جزوات", action="booklet-sales"), button("🏠 خانه", action="home")],
+        ),
+    )
+
+
+def term_subscription_admin_screen(policy: dict, report: dict) -> Screen:
+    term = int(policy.get("term") or 7)
+    period = report.get("period")
+    period_label = to_persian_digits(period.month_label) if period is not None else "—"
+    enabled = bool(policy.get("enabled")) and str(policy.get("mode")) == "subscription"
+    renewal = bool(policy.get("renewalRemindersEnabled"))
+    renewal_rate = f"{float(report.get('renewalRate') or 0.0) * 100:.1f}%"
+    no_access_line = (
+        f"❌ بدون اشتراک/رایگان: <b>{to_persian_digits(report.get('withoutSubscription', 0))}</b>\n"
+        if report.get("directoryCount") is not None else ""
+    )
+    return Screen(
+        f"<b>📚 اشتراک جزوات ترم {to_persian_digits(term)}</b>\n\n"
+        f"وضعیت سیاست: <b>{'فعال' if enabled else 'باز/غیرفعال'}</b>\n"
+        f"دورهٔ فعلی: <b>{html.escape(period_label)}</b>\n"
+        f"مبلغ: <code>{to_persian_digits(format_rials(policy.get('monthlyPriceRials')))}</code>\n\n"
+        f"👥 مشترکین پرداختی: <b>{to_persian_digits(report.get('paidSubscribers', 0))}</b>\n"
+        f"🎁 دسترسی رایگان: <b>{to_persian_digits(report.get('complimentary', 0))}</b>\n"
+        f"🔓 کل دسترسی فعال: <b>{to_persian_digits(report.get('totalActiveAccess', 0))}</b>\n"
+        + no_access_line
+        +
+        f"💳 درآمد دوره: <code>{to_persian_digits(format_rials(report.get('revenueRials', 0)))}</code>\n"
+        f"⌛ پرداخت‌نکرده از ماه قبل: <b>{to_persian_digits(report.get('unpaidPreviousSubscribers', 0))}</b>\n"
+        f"🔁 نرخ تمدید: <b>{to_persian_digits(renewal_rate)}</b>\n"
+        f"🆕 مشترک جدید: <b>{to_persian_digits(report.get('newSubscribers', 0))}</b>\n"
+        f"🔔 یادآوری تمدید: <b>{'فعال' if renewal else 'خاموش'}</b>",
+        keyboard(
+            [button("💰 مبلغ ماهانه", action=f"term-subscription-price:{term}"), button("⚙️ تنظیمات", action=f"term-subscription-settings:{term}")],
+            [button("🎁 اعطای رایگان", action=f"term-subscription-grant:{term}", style="success"), button("📋 دسترسی‌های رایگان", action=f"term-subscription-free:{term}")],
+            [button("🔎 جستجوی دانشجو", action=f"term-subscription-grant:{term}"), button("📈 آمار فروش", action="booklet-sales-subscriptions")],
+            [button("📤 CSV", action=f"term-subscription-export:{term}:csv"), button("📝 TXT", action=f"term-subscription-export:{term}:txt")],
+            [button("↻ تازه‌سازی", action=f"term-subscription-admin:{term}"), button("مرکز پرداخت‌ها", action="admin-payments")],
+        ),
+    )
+
+
+def term_subscription_settings_screen(policy: dict) -> Screen:
+    term = int(policy.get("term") or 7)
+    enabled = bool(policy.get("enabled"))
+    mode = str(policy.get("mode") or "open")
+    reminders = bool(policy.get("renewalRemindersEnabled"))
+    return Screen(
+        f"<b>⚙️ تنظیمات اشتراک ترم {to_persian_digits(term)}</b>\n\n"
+        f"مدل دسترسی: <b>{'اشتراک ماهانه' if mode == 'subscription' else 'باز'}</b>\n"
+        f"اعمال سیاست: <b>{'فعال' if enabled else 'غیرفعال'}</b>\n"
+        f"شروع: <code>{to_persian_digits(str(policy.get('activeFromJalali') or '').replace('-', '/'))}</code>\n"
+        f"یادآوری تمدید: <b>{'فعال' if reminders else 'خاموش'}</b>\n\n"
+        "<blockquote>غیرفعال‌کردن سیاست یا تغییر مدل به «باز» فروش اشتراک را متوقف می‌کند و رفتار دسترسی را باز می‌گذارد؛ entitlementهای قبلی حذف نمی‌شوند.</blockquote>",
+        keyboard(
+            [button("فعال/غیرفعال", action=f"term-subscription-toggle:{term}")],
+            [button("تغییر مدل باز/اشتراک", action=f"term-subscription-mode:{term}")],
+            [button("روشن/خاموش یادآوری", action=f"term-subscription-reminders:{term}")],
+            [button("💰 تغییر مبلغ", action=f"term-subscription-price:{term}")],
+            [button("📅 تغییر تاریخ شروع", action=f"term-subscription-start:{term}")],
+            [button("📚 سیاست ترم‌ها", action="term-access-policies")],
+            [button("بازگشت", action=f"term-subscription-admin:{term}")],
+        ),
+    )
+
+
+def term_access_policies_screen(policies: list[dict]) -> Screen:
+    lines = ["<b>📚 سیاست دسترسی ترم‌ها</b>", "", "هر ترم یک policy مستقل و قابل تغییر دارد."]
+    rows: list[list[dict]] = []
+    for policy in policies:
+        term = int(policy.get("term") or 0)
+        mode = "اشتراک" if str(policy.get("mode")) == "subscription" and policy.get("enabled") else "باز"
+        lines.append(
+            f"• ترم <b>{to_persian_digits(term)}</b> · {mode} · "
+            f"<code>{to_persian_digits(format_rials(policy.get('monthlyPriceRials')))}</code>"
+        )
+        rows.append([button(f"مدیریت ترم {to_persian_digits(term)}", action=f"term-subscription-admin:{term}")])
+    rows.extend((
+        [button("➕ افزودن policy ترم", action="term-access-policy-add", style="success")],
+        [button("مرکز پرداخت‌ها", action="admin-payments")],
+    ))
+    return Screen("\n".join(lines), keyboard(*rows))
+
+
+def complimentary_access_list_screen(items: list[dict], *, term: int = 7) -> Screen:
+    lines = [f"<b>🎁 دسترسی‌های رایگان ترم {to_persian_digits(term)}</b>", ""]
+    rows: list[list[dict]] = []
+    for index, item in enumerate(items[:40], 1):
+        name = html.escape(str(item.get("displayName") or "دانشجو"))
+        student = html.escape(to_persian_digits(item.get("studentNumber") or "—"))
+        lines.append(f"{to_persian_digits(index)}. <b>{name}</b> · <code>{student}</code>")
+        rows.append([button(f"لغو · {str(item.get('displayName') or item.get('studentNumber') or '')[:25]}", action=f"term-subscription-revoke:{int(item.get('id') or 0)}")])
+    if not items:
+        lines.append("هنوز هیچ دسترسی رایگانی ثبت نشده است.")
+    rows.extend((
+        [button("🎁 اعطای دسترسی", action=f"term-subscription-grant:{term}", style="success")],
+        [button("بازگشت", action=f"term-subscription-admin:{term}")],
+    ))
+    return Screen("\n".join(lines), keyboard(*rows))
+
+
+def complimentary_search_results_screen(candidates: list[dict], *, term: int) -> Screen:
+    lines = [f"<b>🔎 انتخاب دانشجوی ترم {to_persian_digits(term)}</b>", "", "نتیجه فقط از فهرست canonical سایت آمده است."]
+    rows: list[list[dict]] = []
+    for item in candidates[:12]:
+        student = str(item.get("studentNumber") or "")
+        name = str(item.get("name") or student)
+        if not student.isdigit():
+            continue
+        access_path = str(dict(item.get("termAccess") or {}).get("accessPath") or "none")
+        access_label = {
+            "paid": "💳 پرداختی", "complimentary": "🎁 رایگان", "both": "✅ هر دو", "none": "🔒 بدون دسترسی",
+        }.get(access_path, "🔒 بدون دسترسی")
+        lines.append(f"• <b>{html.escape(name)}</b> · {to_persian_digits(student)} · {access_label}")
+        rows.append([button(f"🎁 اعطای رایگان · {name[:20]}", action=f"term-subscription-grant-select:{term}:{student}")])
+    if not rows:
+        lines.append("نتیجهٔ قابل اعطایی پیدا نشد.")
+    rows.append([button("انصراف", action=f"term-subscription-admin:{term}")])
+    return Screen("\n".join(lines), keyboard(*rows))
+
+
+def _product_status_label(item: dict) -> tuple[str, str]:
+    status = str(item.get("effectiveStatus") or item.get("status") or "draft")
+    return {
+        "active": ("🟢", "فعال"),
+        "scheduled": ("🕒", "زمان‌بندی‌شده"),
+        "paused": ("⏸", "متوقف"),
+        "expired": ("⌛", "منقضی"),
+        "archived": ("🗄", "بایگانی"),
+        "draft": ("📝", "پیش‌نویس"),
+    }.get(status, ("⚪", "نامشخص"))
+
+
+def payment_offers_screen(offers: list[dict], *, states: dict | None = None, page: int = 0) -> Screen:
+    items = [item for item in offers if isinstance(item, dict)]
+    state_map = dict(states or {})
+    page_size = 6
+    page = max(0, min(int(page), max(0, (len(items) - 1) // page_size)))
+    visible = items[page * page_size:(page + 1) * page_size]
+    rows: list[list[dict]] = []
+    lines = ["<b>🛍 محصولات</b>", "", "محصول‌های قابل خرید برای حساب شما:"]
+    for index, item in enumerate(visible, page * page_size + 1):
+        title = str(item.get("title") or "آیتم خرید")
+        price = format_rials(item.get("amountRials"))
+        description = html.escape(str(item.get("description") or ""))
+        offer_ref = str(item.get("ref") or "")
+        state = dict(state_map.get(offer_ref) or {})
+        max_per_user = max(0, int(item.get("maxPurchasesPerUser") or 0))
+        success_count = max(0, int(state.get("successCount") or 0))
+        paid = max_per_user > 0 and success_count >= max_per_user
+        deadline = format_jalali_datetime(item.get("expiresAt"))
+        capacity = max(0, int(item.get("capacity") or 0))
+        reserved = max(0, int(state.get("reservedCount") or 0))
+        remaining = max(0, capacity - reserved) if capacity else 0
+        lines.extend(("", f"<b>{to_persian_digits(index)}. {html.escape(title)}</b>", f"<code>{html.escape(price)}</code>"))
+        if description:
+            lines.append(description[:220])
+        if deadline:
+            lines.append(f"مهلت: {html.escape(deadline)}")
+        if capacity:
+            lines.append(f"ظرفیت باقی‌مانده: <b>{to_persian_digits(remaining)}</b>")
+        if offer_ref:
+            if paid:
+                lines.append("✅ پرداخت شده")
+                order_token = str(state.get("latestSuccessOrderToken") or "")
+                if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", order_token):
+                    rows.append([button(f"رسید · {title[:24]}", action=f"payment-status:{order_token}", style="success")])
+            elif not capacity or remaining > 0:
+                rows.append([button(f"مشاهده و پرداخت · {title[:20]}", action=f"payment-confirm:{offer_ref}", style="success")])
+    if not items:
+        lines.extend(("", "در حال حاضر محصول قابل خریدی برای این حساب وجود ندارد."))
+    navigation: list[dict] = []
+    if page > 0:
+        navigation.append(button("قبلی", action=f"payments-page:{page - 1}"))
+    if (page + 1) * page_size < len(items):
+        navigation.append(button("بعدی", action=f"payments-page:{page + 1}"))
+    if navigation:
+        rows.append(navigation)
+    rows.append([button("🏠 منوی اصلی", action="home")])
+    return Screen("\n".join(lines), keyboard(*rows))
+
+
+def payment_control_center_screen(offers: list[dict], summary: dict | None = None) -> Screen:
+    local = {
+        "active": sum(1 for item in offers if str(item.get("effectiveStatus") or item.get("status")) == "active"),
+    }
+    data = dict(summary or {})
+    today = dict(data.get("today") or {})
+    week = dict(data.get("week") or {})
+    total = dict(data.get("total") or {})
+    lines = [
+        "<b>💳 مرکز کنترل پرداخت‌ها</b>", "",
+        "<b>📊 خلاصه زنده</b>",
+        f"امروز: <b>{to_persian_digits(today.get('successCount', 0))}</b> پرداخت · <code>{html.escape(format_rials(today.get('receivedRials', 0)))}</code>",
+        f"۷ روز: <b>{to_persian_digits(week.get('successCount', 0))}</b> پرداخت · <code>{html.escape(format_rials(week.get('receivedRials', 0)))}</code>",
+        f"کل: <b>{to_persian_digits(total.get('successCount', 0))}</b> موفق · <b>{to_persian_digits(total.get('pendingCount', 0))}</b> در انتظار",
+        f"محصول فعال: <b>{to_persian_digits(local['active'])}</b>",
+    ]
+    if offers:
+        lines.extend(("", "<b>آخرین محصولات</b>"))
+        for item in offers[:3]:
+            marker, label = _product_status_label(item)
+            lines.append(f"• {marker} {html.escape(str(item.get('title') or 'محصول'))} · {label}")
+    return Screen(
+        "\n".join(lines),
+        keyboard(
+            [button("📚 اشتراک جزوات ترم ۷", action="term-subscription-admin:7", style="success")],
+            [
+                button("📁 فروش فایل", action="payment-file-new", style="success"),
+                button("➕ محصول جدید", action="payment-offer-new"),
+            ],
+            [button("📦 محصولات", action="payment-products"), button("📊 آمار", action="payment-stats")],
+            [button("🧾 تراکنش‌ها", action="payment-transactions"), button("🔎 جستجو", action="payment-search")],
+            [button("👥 مخاطبان", action="payment-audiences"), button("🏷 کدهای تخفیف", action="discount-codes")],
+            [button("📤 خروجی", action="payment-export")],
+            [button("🔔 اعلان‌ها", action="payment-reminders"), button("⚙️ تنظیمات", action="payment-settings")],
+            [button("↻ تازه‌سازی", action="admin-payments"), button("🏠 منوی اصلی", action="home")],
+        ),
+    )
+
+
+def owner_payment_offers_screen(offers: list[dict], *, page: int = 0) -> Screen:
+    items = [item for item in offers if isinstance(item, dict)]
+    page_size = 8
+    page = max(0, min(int(page), max(0, (len(items) - 1) // page_size)))
+    visible = items[page * page_size:(page + 1) * page_size]
+    lines = [
+        "<b>📦 محصولات</b>",
+        "",
+        "تعریف محصول بین تلگرام و بله مشترک است؛ سفارش‌ها و وضعیت مالی در سایت ثبت می‌شوند.",
+    ]
+    rows: list[list[dict]] = []
+    for item in visible:
+        offer_ref = str(item.get("ref") or "")
+        marker, status_label = _product_status_label(item)
+        title = str(item.get("title") or "محصول پرداختی")
+        kind_marker = "📁 " if str(dict(item.get("fulfillment") or {}).get("kind") or "") == "paid_file" else ""
+        lines.extend(("", f"{marker} {kind_marker}<b>{html.escape(title)}</b>", f"<code>{html.escape(format_rials(item.get('amountRials')))}</code> · {status_label}"))
+        rows.append([button(f"مدیریت · {title[:27]}", action=f"payment-offer:{offer_ref}")])
+    if not items:
+        lines.extend(("", "هنوز محصول پرداختی مستقلی در ربات ساخته نشده است."))
+    navigation: list[dict] = []
+    if page > 0:
+        navigation.append(button("قبلی", action=f"payment-products-page:{page - 1}"))
+    if (page + 1) * page_size < len(items):
+        navigation.append(button("بعدی", action=f"payment-products-page:{page + 1}"))
+    if navigation:
+        rows.append(navigation)
+    rows.extend((
+        [button("📁 فروش فایل", action="payment-file-new", style="success"), button("➕ محصول جدید", action="payment-offer-new")],
+        [button("بازگشت به پرداخت‌ها", action="admin-payments")],
+        [button("🏠 منوی اصلی", action="home")],
+    ))
+    return Screen("\n".join(lines), keyboard(*rows))
+
+
+def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
+    cancel = [button("لغو ساخت", action="payment-offer-cancel", style="danger")]
+    is_file_sale = str(payload.get("saleType") or "") == "file"
+    label = "فروش فایل" if is_file_sale else "محصول جدید"
+    if step == "file":
+        return Screen(
+            "<b>📁 فروش فایل · ۱ از ۵</b>\n\n"
+            "فایل را همین‌جا در <b>تلگرام</b> برای ربات بفرست.\n\n"
+            "<blockquote>فایل و PDF، صوت و ویس، ویدئو، تصویر، انیمیشن و سایر فرمت‌هایی که به‌صورت فایل در تلگرام ارسال شوند پشتیبانی می‌شوند. "
+            "PDF برای خریدار شخصی‌سازی می‌شود؛ سایر رسانه‌ها با حفاظت تلگرام تحویل می‌شوند.</blockquote>",
+            keyboard(cancel),
+        )
+    if step == "title":
+        step_text = "۲ از ۵" if is_file_sale else "۱ از ۴"
+        example = "مثال: جزوه جمع‌بندی پاتولوژی" if is_file_sale else "مثال: ثبت‌نام آزمون جامع"
+        return Screen(
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\n"
+            "<b>عنوان محصول</b> را در یک پیام بفرست.\n"
+            f"<blockquote>{example}</blockquote>",
+            keyboard(cancel),
+        )
+    if step == "amount":
+        title = html.escape(str(payload.get("title") or "محصول"))
+        step_text = "۳ از ۵" if is_file_sale else "۲ از ۴"
+        return Screen(
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\n{title}\n\n"
+            "مبلغ را انتخاب کن یا مقدار دلخواه را به تومان وارد کن.",
+            keyboard(
+                [button("۵۰ هزار", action="payment-offer-amount:50000"), button("۱۰۰ هزار", action="payment-offer-amount:100000")],
+                [button("۲۵۰ هزار", action="payment-offer-amount:250000"), button("۵۰۰ هزار", action="payment-offer-amount:500000")],
+                [button("مبلغ دلخواه", action="payment-offer-custom-amount", style="primary")],
+                cancel,
+            ),
+        )
+    if step == "custom-amount":
+        return Screen(
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · مبلغ دلخواه</b>\n\n"
+            "مبلغ را فقط به <b>تومان</b> بفرست.\n<blockquote>مثال: ۱۲۵۰۰۰</blockquote>",
+            keyboard(cancel),
+        )
+    if step == "audience":
+        step_text = "۴ از ۵" if is_file_sale else "۳ از ۴"
+        return Screen(
+            f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\nچه کسانی این محصول را ببینند؟\n"
+            "<blockquote>«دارندگان لینک» در فهرست محصولات دیده نمی‌شود و فقط با لینک امن باز می‌شود.</blockquote>",
+            keyboard(
+                [button("همه کاربران احرازشده", action="payment-offer-audience:all", style="success")],
+                [button("ورودی ۱۴۰۲ دندان‌پزشکی تهران", action="payment-offer-audience:primary")],
+                [button("فقط دارندگان لینک", action="payment-offer-audience:open")],
+                [button("انتخاب افراد / فهرست", action="payment-offer-audience:advanced", style="primary")],
+                cancel,
+            ),
+        )
+    if step == "description":
+        return Screen(
+            f"<b>⚙️ توضیح {label}</b>\n\nتوضیح کوتاه را بفرست.",
+            keyboard([button("بدون توضیح", action="payment-offer-no-description")], cancel),
+        )
+    return payment_offer_preview_screen(payload)
+
+
+def payment_offer_preview_screen(payload: dict) -> Screen:
+    title = html.escape(str(payload.get("title") or "محصول"))
+    description = html.escape(str(payload.get("description") or "بدون توضیح"))
+    amount = html.escape(format_rials(payload.get("amountRials")))
+    audience = html.escape(audience_label(payload.get("audience") or {"mode": "all"}))
+    is_file_sale = str(payload.get("saleType") or "") == "file"
+    asset = dict(payload.get("fileAsset") or {})
+    file_line = ""
+    if is_file_sale:
+        media_label = html.escape(str(asset.get("mediaLabel") or "فایل"))
+        file_name = html.escape(str(asset.get("fileName") or "").strip())
+        file_line = f"\nفایل: <b>{media_label}</b>" + (f" · <code>{file_name}</code>" if file_name else "")
+    return Screen(
+        f"<b>{'📁 فروش فایل' if is_file_sale else '➕ محصول جدید'} · {'۵ از ۵' if is_file_sale else '۴ از ۴'}</b>\n\n"
+        f"<b>{title}</b>\n<blockquote>{description}</blockquote>{file_line}\n"
+        f"مبلغ نهایی: <code>{amount}</code>\nمخاطب: <b>{audience}</b>\n\n"
+        + (
+            "پس از تأیید، لینک خرید تلگرام ساخته می‌شود و فایل فقط بعد از پرداخت موفق قابل دریافت است."
+            if is_file_sale
+            else "پس از تأیید، محصول فقط در ربات منتشر می‌شود."
+        ),
+        keyboard(
+            [button("تأیید و انتشار", action="payment-offer-publish", style="success")],
+            [button("⚙️ توضیح اختیاری", action="payment-offer-description")],
+            [button("ویرایش از ابتدا", action="payment-file-new" if is_file_sale else "payment-offer-new")],
+            [button("لغو", action="payment-offer-cancel", style="danger")],
+        ),
+    )
+
+
+def payment_offer_admin_detail_screen(item: dict, *, bot_username: str, platform: str = "telegram") -> Screen:
+    title = html.escape(str(item.get("title") or "محصول"))
+    description = html.escape(str(item.get("description") or "بدون توضیح"))
+    amount = html.escape(format_rials(item.get("amountRials")))
+    offer_ref = str(item.get("ref") or "")
+    fulfillment = dict(item.get("fulfillment") or {})
+    is_file_sale = str(fulfillment.get("kind") or "") == "paid_file"
+    asset_ref = str(fulfillment.get("assetRef") or "")
+    marker, status = _product_status_label(item)
+    active = str(item.get("effectiveStatus") or item.get("status") or "") == "active"
+    target = "paused" if active else "active"
+    label = "⏸ توقف" if active else "▶️ فعال‌سازی"
+    rows = [
+        [button(label, action=f"payment-offer-status:{offer_ref}:{target}", style="danger" if active else "success")],
+        [button("✏️ ویرایش", action=f"payment-offer-edit:{offer_ref}"), button("👥 مخاطب", action=f"payment-offer-audience-edit:{offer_ref}")],
+        [button("🗓 زمان‌بندی", action=f"payment-offer-schedule:{offer_ref}"), button("⚙️ پیشرفته", action=f"payment-offer-advanced:{offer_ref}")],
+        [button("📊 آمار", action=f"payment-offer-stats:{offer_ref}"), button("🧾 پرداخت‌کنندگان", action=f"payment-offer-payers:{offer_ref}")],
+        [button("❌ پرداخت‌نکرده‌ها", action=f"payment-offer-unpaid:{offer_ref}"), button("📤 خروجی", action=f"payment-offer-export:{offer_ref}")],
+        [button("📑 کپی محصول", action=f"payment-offer-duplicate:{offer_ref}"), button("🔄 تعویض لینک", action=f"payment-offer-rotate:{offer_ref}")],
+    ]
+    if is_file_sale and asset_ref and platform == "telegram":
+        rows.append([button("📥 تست دریافت فایل", action=f"paid-file-get:{asset_ref}", style="success")])
+    share_url = "" if is_file_sale and platform != "telegram" else bot_start_url(
+        bot_username,
+        f"product_{str(item.get('shareToken') or '')}",
+        platform=platform,
+    )
+    if share_url:
+        rows.append([button("🔗 لینک خرید", url=share_url, style="primary")])
+        if platform == "telegram":
+            rows.append([button("📤 اشتراک‌گذاری", switch_inline_query=title[:40])])
+        else:
+            rows.append([button("📤 اشتراک‌گذاری", url=share_url)])
+        rows.append([button("📋 کپی اطلاعات", action=f"payment-product-copy:{offer_ref}")])
+    if str(dict(item.get("audience") or {}).get("mode") or "all") in {"cohorts", "users", "lists"}:
+        rows.append([button("👥 ارسال برای مخاطبان", action=f"payment-product-share-preview:{offer_ref}")])
+    rows.extend((
+        [button("🗄 بایگانی", action=f"payment-offer-delete-confirm:{offer_ref}", style="danger")],
+        [button("بازگشت به محصولات", action="admin-payments")],
+        [button("🏠 منوی اصلی", action="home")],
+    ))
+    deadline = format_jalali_datetime(item.get("expiresAt")) or "بدون مهلت"
+    audience = html.escape(audience_label(item.get("audience") or {"mode": "all"}))
+    fulfillment_state = "فعال" if (
+        str(fulfillment.get("text") or "").strip()
+        or str(fulfillment.get("url") or "").strip()
+        or str(fulfillment.get("action") or "").strip()
+    ) else "تعریف نشده"
+    file_meta = ""
+    if is_file_sale:
+        media_label = html.escape(str(fulfillment.get("mediaLabel") or "فایل"))
+        file_name = html.escape(str(fulfillment.get("fileName") or "").strip())
+        file_meta = f"\nنوع فروش: <b>📁 فروش فایل</b>\nفایل: <b>{media_label}</b>" + (
+            f" · <code>{file_name}</code>" if file_name else ""
         )
     return Screen(
         f"<b>{'📁' if is_file_sale else '💳'} {title}</b>\n\n<blockquote>{description}</blockquote>\n"

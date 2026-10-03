@@ -1410,9 +1410,1430 @@ class BotState:
                         period.key,
                         granted,
                         expires,
- 
-…[sentinelx: truncated 70966 bytes]…
-e_from", before.get("availableFrom") or ""))
+                        marker,
+                    ),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE subject_key=? "
+                    "AND term=? AND access_type='complimentary' AND billing_period=?",
+                    (identity.subject_key, int(term), period.key),
+                ).fetchone()
+                after = self._term_entitlement_payload(row)
+                assert after is not None
+                changed = (
+                    before is None
+                    or before.get("status") != "active"
+                    or before.get("expiresAt") != after.get("expiresAt")
+                    or before.get("studentNumber") != after.get("studentNumber")
+                    or before.get("displayName") != after.get("displayName")
+                    or before.get("note") != marker
+                )
+                if changed:
+                    self._term_access_audit(
+                        "booklet-system-auto-grant",
+                        term=int(term),
+                        subject_key=identity.subject_key,
+                        entitlement_id=int(after["id"]),
+                        before=before,
+                        after=after,
+                        note=marker,
+                    )
+                self.payment_connection.commit()
+                return after
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def revoke_automatic_booklet_entitlement(
+        self,
+        *,
+        student_number: str,
+        term: int = 7,
+        now: datetime | None = None,
+    ) -> bool:
+        identity = subscription_identity_from_directory(
+            {"studentNumber": student_number}
+        )
+        if identity is None:
+            return False
+        current = now or datetime.now(timezone.utc)
+        policy = self.term_access_policy(term)
+        if policy is None or not policy_is_effective(policy, current):
+            return False
+        period = billing_period_for(term, current)
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT id FROM term_access_entitlements WHERE subject_key=? AND term=? "
+                    "AND access_type='complimentary' AND billing_period=? AND status='active' "
+                    "AND note LIKE 'booklet-system:auto-monthly%' LIMIT 1",
+                    (identity.subject_key, int(term), period.key),
+                ).fetchone()
+                if row is None:
+                    self.payment_connection.rollback()
+                    return False
+                entitlement_id = int(row[0])
+                self.payment_connection.execute(
+                    "UPDATE term_access_entitlements SET status='revoked',revoked_at=CURRENT_TIMESTAMP,"
+                    "revoked_by=0,revoked_by_platform='system',updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    (entitlement_id,),
+                )
+                self._term_access_audit(
+                    "booklet-system-auto-revoke",
+                    term=int(term),
+                    subject_key=identity.subject_key,
+                    entitlement_id=entitlement_id,
+                    note="booklet-system:auto-monthly membership removed",
+                )
+                self.payment_connection.commit()
+                return True
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def sync_automatic_booklet_entitlements(
+        self,
+        eligible: list[dict],
+        *,
+        term: int = 7,
+        now: datetime | None = None,
+    ) -> dict:
+        current = now or datetime.now(timezone.utc)
+        policy = self.term_access_policy(term)
+        if policy is None or not policy_is_effective(policy, current):
+            return {"effective": False, "eligible": 0, "active": 0, "revoked": 0}
+        identities: dict[str, SubscriptionIdentity] = {}
+        for item in eligible:
+            identity = subscription_identity_from_directory(item)
+            if identity is not None:
+                identities[identity.subject_key] = identity
+        for identity in identities.values():
+            self.ensure_automatic_booklet_entitlement(
+                student_number=identity.student_number,
+                display_name=identity.display_name,
+                term=term,
+                now=current,
+            )
+        period = billing_period_for(term, current)
+        revoked = 0
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                rows = self.payment_connection.execute(
+                    "SELECT id,subject_key FROM term_access_entitlements WHERE term=? AND access_type='complimentary' "
+                    "AND billing_period=? AND status='active' AND note LIKE 'booklet-system:auto-monthly%'",
+                    (int(term), period.key),
+                ).fetchall()
+                for entitlement_id, subject_key in rows:
+                    if str(subject_key) in identities:
+                        continue
+                    self.payment_connection.execute(
+                        "UPDATE term_access_entitlements SET status='revoked',revoked_at=CURRENT_TIMESTAMP,"
+                        "revoked_by=0,revoked_by_platform='system',updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                        (int(entitlement_id),),
+                    )
+                    self._term_access_audit(
+                        "booklet-system-auto-revoke",
+                        term=int(term),
+                        subject_key=str(subject_key),
+                        entitlement_id=int(entitlement_id),
+                        note="booklet-system:auto-monthly membership removed",
+                    )
+                    revoked += 1
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        return {
+            "effective": True,
+            "billingPeriod": period.key,
+            "eligible": len(identities),
+            "active": len(identities),
+            "revoked": revoked,
+        }
+
+    def term_subject_entitlement_status(
+        self, *, student_number: str, term: int, now: datetime | None = None
+    ) -> dict:
+        identity = subscription_identity_from_directory({"studentNumber": student_number})
+        if identity is None:
+            return {"paidValid": False, "complimentaryValid": False, "accessPath": "none"}
+        current = now or datetime.now(timezone.utc)
+        self.expire_term_entitlements(now=current)
+        period = billing_period_for(term, current)
+        with self._lock:
+            paid = self.payment_connection.execute(
+                "SELECT 1 FROM term_access_entitlements WHERE subject_key=? AND term=? AND access_type='paid_subscription' "
+                "AND billing_period=? AND status='active' AND expires_at>? LIMIT 1",
+                (identity.subject_key, int(term), period.key, utc_iso(current)),
+            ).fetchone() is not None
+            complimentary = self.payment_connection.execute(
+                "SELECT 1 FROM term_access_entitlements WHERE subject_key=? AND term=? AND access_type='complimentary' "
+                "AND status='active' AND (expires_at='' OR expires_at>?) LIMIT 1",
+                (identity.subject_key, int(term), utc_iso(current)),
+            ).fetchone() is not None
+        return {
+            "paidValid": paid, "complimentaryValid": complimentary,
+            "accessPath": "both" if paid and complimentary else "paid" if paid else "complimentary" if complimentary else "none",
+            "billingPeriod": period.key,
+        }
+
+    def grant_complimentary_term_access(
+        self,
+        *,
+        term: int,
+        student_number: str,
+        display_name: str,
+        actor_user_id: int,
+        actor_platform: str,
+        note: str = "",
+        expires_at: str = "",
+    ) -> dict:
+        identity = subscription_identity_from_directory({"studentNumber": student_number, "name": display_name})
+        if identity is None:
+            raise ValueError("Canonical student number is required")
+        expiry = iso_utc(expires_at) if expires_at else ""
+        granted = utc_iso(datetime.now(timezone.utc))
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                previous = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE subject_key=? "
+                    "AND term=? AND access_type='complimentary' AND billing_period=''",
+                    (identity.subject_key, int(term)),
+                ).fetchone()
+                before = self._term_entitlement_payload(previous)
+                self.payment_connection.execute(
+                    "INSERT INTO term_access_entitlements(subject_key,student_number,display_name,term,access_type,"
+                    "billing_period,status,granted_at,expires_at,granted_by,granted_by_platform,note) "
+                    "VALUES(?,?,?,?, 'complimentary','', 'active',?,?,?,?,?) ON CONFLICT(subject_key,term,access_type,billing_period) "
+                    "DO UPDATE SET student_number=excluded.student_number,display_name=excluded.display_name,status='active',"
+                    "granted_at=excluded.granted_at,expires_at=excluded.expires_at,granted_by=excluded.granted_by,"
+                    "granted_by_platform=excluded.granted_by_platform,revoked_at='',revoked_by=0,revoked_by_platform='',"
+                    "note=excluded.note,updated_at=CURRENT_TIMESTAMP",
+                    (
+                        identity.subject_key, identity.student_number, identity.display_name, int(term), granted, expiry,
+                        int(actor_user_id), str(actor_platform)[:16], " ".join(str(note).split())[:240],
+                    ),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE subject_key=? "
+                    "AND term=? AND access_type='complimentary' AND billing_period=''",
+                    (identity.subject_key, int(term)),
+                ).fetchone()
+                after = self._term_entitlement_payload(row)
+                assert after is not None
+                self._term_access_audit(
+                    "complimentary-grant", term=int(term), subject_key=identity.subject_key,
+                    entitlement_id=after["id"], actor_user_id=actor_user_id, actor_platform=actor_platform,
+                    before=before, after=after, note=note,
+                )
+                self.payment_connection.commit()
+                return after
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def complimentary_term_access(self, term: int, *, include_revoked: bool = False) -> list[dict]:
+        clause = "" if include_revoked else " AND status='active'"
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE term=? "
+                "AND access_type='complimentary' AND billing_period=''" + clause + " ORDER BY updated_at DESC",
+                (int(term),),
+            ).fetchall()
+        return [dict(value) for row in rows if (value := self._term_entitlement_payload(row)) is not None]
+
+    def complimentary_term_access_by_id(self, entitlement_id: int) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE id=? "
+                "AND access_type='complimentary' AND status='active'",
+                (int(entitlement_id),),
+            ).fetchone()
+        return self._term_entitlement_payload(row)
+
+    def revoke_complimentary_term_access(
+        self,
+        entitlement_id: int,
+        *,
+        actor_user_id: int,
+        actor_platform: str,
+        note: str = "",
+    ) -> dict | None:
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE id=? "
+                    "AND access_type='complimentary'", (int(entitlement_id),),
+                ).fetchone()
+                before = self._term_entitlement_payload(row)
+                if before is None:
+                    self.payment_connection.rollback()
+                    return None
+                self.payment_connection.execute(
+                    "UPDATE term_access_entitlements SET status='revoked',revoked_at=CURRENT_TIMESTAMP,revoked_by=?,"
+                    "revoked_by_platform=?,note=CASE WHEN ?!='' THEN ? ELSE note END,updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    (int(actor_user_id), str(actor_platform)[:16], str(note), " ".join(str(note).split())[:240], int(entitlement_id)),
+                )
+                row = self.payment_connection.execute(
+                    "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                    "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                    "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE id=?",
+                    (int(entitlement_id),),
+                ).fetchone()
+                after = self._term_entitlement_payload(row)
+                assert after is not None
+                self._term_access_audit(
+                    "complimentary-revoke", term=after["term"], subject_key=after["subjectKey"],
+                    entitlement_id=after["id"], actor_user_id=actor_user_id, actor_platform=actor_platform,
+                    before=before, after=after, note=note,
+                )
+                self.payment_connection.commit()
+                return after
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+
+    def term_subscription_report(self, term: int, *, billing_period: str = "", now: datetime | None = None) -> dict:
+        current = now or datetime.now(timezone.utc)
+        period = billing_period_from_key(billing_period) if billing_period else billing_period_for(term, current)
+        previous_key = period.previous_key
+        with self._lock:
+            paid_subjects = {str(row[0]) for row in self.payment_connection.execute(
+                "SELECT subject_key FROM term_access_entitlements WHERE term=? AND access_type='paid_subscription' "
+                "AND billing_period=? AND status IN ('active','expired')", (int(term), period.key),
+            ).fetchall()}
+            previous_subjects = {str(row[0]) for row in self.payment_connection.execute(
+                "SELECT subject_key FROM term_access_entitlements WHERE term=? AND access_type='paid_subscription' "
+                "AND billing_period=?", (int(term), previous_key),
+            ).fetchall()}
+            complimentary_subjects = {str(row[0]) for row in self.payment_connection.execute(
+                "SELECT subject_key FROM term_access_entitlements WHERE term=? AND access_type='complimentary' "
+                "AND status='active' AND (expires_at='' OR expires_at>?)", (int(term), utc_iso(current)),
+            ).fetchall()}
+            revenue = int(self.payment_connection.execute(
+                "SELECT COALESCE(SUM(amount_rials),0) FROM term_subscription_checkouts WHERE term=? "
+                "AND billing_period=? AND status='activated'", (int(term), period.key),
+            ).fetchone()[0])
+            revoked = int(self.payment_connection.execute(
+                "SELECT COUNT(*) FROM term_access_entitlements WHERE term=? AND access_type='complimentary' AND status='revoked'",
+                (int(term),),
+            ).fetchone()[0])
+            first_time = 0
+            for subject in paid_subjects:
+                earlier = self.payment_connection.execute(
+                    "SELECT 1 FROM term_access_entitlements WHERE subject_key=? AND term=? AND access_type='paid_subscription' "
+                    "AND billing_period<? LIMIT 1", (subject, int(term), period.key),
+                ).fetchone()
+                first_time += int(earlier is None)
+        renewed = len(paid_subjects & previous_subjects)
+        return {
+            "term": int(term), "billingPeriod": period.key, "period": period,
+            "paidSubscribers": len(paid_subjects), "complimentary": len(complimentary_subjects),
+            "totalActiveAccess": len(paid_subjects | complimentary_subjects), "revenueRials": revenue,
+            "unpaidPreviousSubscribers": len(previous_subjects - paid_subjects - complimentary_subjects),
+            "renewalRate": (renewed / len(previous_subjects)) if previous_subjects else 0.0,
+            "newSubscribers": first_time, "revokedComplimentary": revoked,
+        }
+
+    def booklet_sales_report(self, term: int = 7, *, now: datetime | None = None) -> dict:
+        current = now or datetime.now(timezone.utc)
+        period = billing_period_for(int(term), current)
+        start = utc_iso(period.starts_at)
+        end = utc_iso(period.expires_at)
+        with self._lock:
+            ai_total = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "COUNT(DISTINCT course_code || ':' || session_no) "
+                "FROM ai_booklet_entitlements WHERE term=?",
+                (int(term),),
+            ).fetchone()
+            ai_current = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM ai_booklet_entitlements WHERE term=? AND granted_at>=? AND granted_at<?",
+                (int(term), start, end),
+            ).fetchone()
+            ai_items = self.payment_connection.execute(
+                "SELECT course_code,course_tag,session_no,COUNT(*),COUNT(DISTINCT subject_key),"
+                "COALESCE(SUM(amount_rials),0),MAX(granted_at) "
+                "FROM ai_booklet_entitlements WHERE term=? "
+                "GROUP BY course_code,course_tag,session_no "
+                "ORDER BY COUNT(*) DESC,SUM(amount_rials) DESC,MAX(granted_at) DESC LIMIT 20",
+                (int(term),),
+            ).fetchall()
+
+            subscription_total = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "COUNT(DISTINCT billing_period) "
+                "FROM term_subscription_checkouts WHERE term=? AND status='activated'",
+                (int(term),),
+            ).fetchone()
+            subscription_current = self.payment_connection.execute(
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM term_subscription_checkouts WHERE term=? AND billing_period=? AND status='activated'",
+                (int(term), period.key),
+            ).fetchone()
+            period_rows = self.payment_connection.execute(
+                "SELECT billing_period,COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "FROM term_subscription_checkouts WHERE term=? AND status='activated' "
+                "GROUP BY billing_period ORDER BY billing_period DESC LIMIT 6",
+                (int(term),),
+            ).fetchall()
+
+        ai_breakdown = [
+            {
+                "courseCode": str(row[0]),
+                "courseTag": str(row[1]),
+                "sessionNo": int(row[2]),
+                "salesCount": int(row[3]),
+                "uniqueBuyers": int(row[4]),
+                "revenueRials": int(row[5]),
+                "lastSaleAt": str(row[6] or ""),
+            }
+            for row in ai_items
+        ]
+        periods = []
+        for row in period_rows:
+            key = str(row[0])
+            try:
+                label = billing_period_from_key(key).month_label
+            except ValueError:
+                label = key
+            periods.append({
+                "billingPeriod": key,
+                "periodLabel": label,
+                "salesCount": int(row[1]),
+                "uniqueBuyers": int(row[2]),
+                "revenueRials": int(row[3]),
+            })
+        return {
+            "term": int(term),
+            "currentPeriod": period.key,
+            "currentPeriodLabel": period.month_label,
+            "aiBooklets": {
+                "totalSales": int(ai_total[0]),
+                "uniqueBuyers": int(ai_total[1]),
+                "revenueRials": int(ai_total[2]),
+                "soldItems": int(ai_total[3]),
+                "currentSales": int(ai_current[0]),
+                "currentUniqueBuyers": int(ai_current[1]),
+                "currentRevenueRials": int(ai_current[2]),
+                "items": ai_breakdown,
+            },
+            "subscriptions": {
+                "totalSales": int(subscription_total[0]),
+                "uniqueBuyers": int(subscription_total[1]),
+                "revenueRials": int(subscription_total[2]),
+                "periodsSold": int(subscription_total[3]),
+                "currentSales": int(subscription_current[0]),
+                "currentUniqueBuyers": int(subscription_current[1]),
+                "currentRevenueRials": int(subscription_current[2]),
+                "periods": periods,
+            },
+        }
+
+    def claim_term_renewal_notices(
+        self, *, platform: str, now: datetime | None = None, limit: int = 20
+    ) -> list[dict]:
+        current = now or datetime.now(timezone.utc)
+        local_jalali = billing_period_for(DEFAULT_TERM, current)
+        # Renewal reminders are intentionally bounded to the first three Solar
+        # Hijri days instead of running throughout the month.
+        _year, _month, local_day = gregorian_to_jalali(current.astimezone(tehran_timezone()).date())
+        if not 1 <= local_day <= 3:
+            return []
+        claimed: list[dict] = []
+        for policy in self.term_access_policies():
+            if len(claimed) >= max(1, int(limit)) or not policy_is_effective(policy, current):
+                continue
+            if not policy.get("renewalRemindersEnabled"):
+                continue
+            period = billing_period_for(int(policy["term"]), current)
+            with self._lock:
+                rows = self.payment_connection.execute(
+                    "SELECT DISTINCT c.platform_user_id,c.subject_key,c.display_name FROM term_subscription_checkouts c "
+                    "WHERE c.platform=? AND c.term=? AND c.billing_period=? AND c.status='activated' "
+                    "AND NOT EXISTS(SELECT 1 FROM term_access_entitlements e WHERE e.subject_key=c.subject_key AND e.term=c.term "
+                    "AND e.status='active' AND ((e.access_type='paid_subscription' AND e.billing_period=?) "
+                    "OR (e.access_type='complimentary' AND (e.expires_at='' OR e.expires_at>?)))) LIMIT ?",
+                    (
+                        str(platform), int(policy["term"]), period.previous_key, period.key, utc_iso(current),
+                        max(1, int(limit)) - len(claimed),
+                    ),
+                ).fetchall()
+                for platform_user_id, subject_key, display_name in rows:
+                    cursor = self.payment_connection.execute(
+                        "INSERT OR IGNORE INTO term_subscription_renewal_notices(term,billing_period,platform,"
+                        "platform_user_id,subject_key) VALUES(?,?,?,?,?)",
+                        (int(policy["term"]), period.key, str(platform), int(platform_user_id), str(subject_key)),
+                    )
+                    if not cursor.rowcount:
+                        cursor = self.payment_connection.execute(
+                            "UPDATE term_subscription_renewal_notices SET status='sending',attempts=attempts+1,"
+                            "last_error='',updated_at=CURRENT_TIMESTAMP WHERE term=? AND billing_period=? AND platform=? "
+                            "AND platform_user_id=? AND status='failed' AND attempts<5 "
+                            "AND updated_at<datetime('now','-30 minutes')",
+                            (int(policy["term"]), period.key, str(platform), int(platform_user_id)),
+                        )
+                    if cursor.rowcount:
+                        claimed.append({
+                            "term": int(policy["term"]), "billingPeriod": period.key, "period": period,
+                            "platformUserId": int(platform_user_id), "subjectKey": str(subject_key),
+                            "displayName": str(display_name),
+                        })
+                self.payment_connection.commit()
+        return claimed
+
+    def finish_term_renewal_notice(
+        self, *, term: int, billing_period: str, platform: str, platform_user_id: int,
+        sent: bool, error: str = "",
+    ) -> None:
+        with self._lock:
+            self.payment_connection.execute(
+                "UPDATE term_subscription_renewal_notices SET status=?,last_error=?,updated_at=CURRENT_TIMESTAMP "
+                "WHERE term=? AND billing_period=? AND platform=? AND platform_user_id=?",
+                (
+                    "sent" if sent else "failed", "" if sent else str(error)[:80], int(term),
+                    str(billing_period), str(platform), int(platform_user_id),
+                ),
+            )
+            self.payment_connection.commit()
+
+    def term_access_export_rows(self, term: int, *, now: datetime | None = None) -> list[dict]:
+        current = now or datetime.now(timezone.utc)
+        period = billing_period_for(term, current)
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT id,subject_key,student_number,display_name,term,access_type,billing_period,status,granted_at,"
+                "expires_at,granted_by,granted_by_platform,payment_order_token,payment_order_ref,revoked_at,revoked_by,"
+                "revoked_by_platform,note,created_at,updated_at FROM term_access_entitlements WHERE term=? AND "
+                "((access_type='paid_subscription' AND billing_period=?) OR access_type='complimentary') "
+                "ORDER BY access_type,display_name,student_number",
+                (int(term), period.key),
+            ).fetchall()
+        return [dict(value) for row in rows if (value := self._term_entitlement_payload(row)) is not None]
+
+    @staticmethod
+    def _normalize_paid_file_asset(asset: dict) -> dict:
+        allowed_methods = {
+            "sendDocument", "sendAudio", "sendVoice", "sendVideo",
+            "sendAnimation", "sendPhoto", "sendVideoNote", "sendSticker",
+        }
+        method = str(asset.get("telegramMethod") or "").strip()
+        file_id = str(asset.get("fileId") or "").strip()
+        source_chat_id = int(asset.get("sourceChatId") or 0)
+        source_message_id = int(asset.get("sourceMessageId") or 0)
+        if (
+            str(asset.get("sourcePlatform") or "telegram") != "telegram"
+            or method not in allowed_methods
+            or not file_id
+            or source_chat_id <= 0
+            or source_message_id <= 0
+        ):
+            raise ValueError("Invalid paid file asset")
+        return {
+            "sourcePlatform": "telegram",
+            "sourceChatId": source_chat_id,
+            "sourceMessageId": source_message_id,
+            "telegramMethod": method,
+            "fileId": file_id[:2048],
+            "fileUniqueId": str(asset.get("fileUniqueId") or "").strip()[:160],
+            "fileName": " ".join(str(asset.get("fileName") or "").split())[:180],
+            "mimeType": " ".join(str(asset.get("mimeType") or "").split())[:120],
+            "fileSize": max(0, int(asset.get("fileSize") or 0)),
+            "mediaLabel": " ".join(str(asset.get("mediaLabel") or "فایل").split())[:80] or "فایل",
+        }
+
+    @staticmethod
+    def _paid_file_asset_payload(row: tuple | None) -> dict | None:
+        if row is None:
+            return None
+        return {
+            "id": int(row[0]),
+            "assetRef": str(row[1]),
+            "sourceType": "paid_file",
+            "sourcePlatform": str(row[2]),
+            "sourceChatId": int(row[3]),
+            "sourceMessageId": int(row[4]),
+            "telegramMethod": str(row[5]),
+            "fileId": str(row[6]),
+            "fileUniqueId": str(row[7]),
+            "fileName": str(row[8]),
+            "mimeType": str(row[9]),
+            "fileSize": int(row[10]),
+            "caption": str(row[11]),
+            "mediaLabel": str(row[12]),
+            "contentKind": "paid_file",
+            "active": bool(row[13]),
+            "createdAt": str(row[14]),
+            "updatedAt": str(row[15]),
+        }
+
+    def create_payment_offer(
+        self,
+        title: str,
+        amount_rials: int,
+        description: str = "",
+        *,
+        status: str = "active",
+        audience: dict | None = None,
+        available_from: str = "",
+        expires_at: str = "",
+        capacity: int = 0,
+        max_per_user: int = 1,
+        fulfillment: dict | None = None,
+        paid_file_asset: dict | None = None,
+        actor_user_id: int = 0,
+        actor_platform: str = "system",
+    ) -> dict:
+        clean_title = " ".join(title.split())[:160]
+        clean_description = " ".join(description.split())[:360]
+        if not clean_title or amount_rials < 10000 or amount_rials > 100000000000:
+            raise ValueError("Invalid payment offer")
+        normalized_status = {"inactive": "paused", "deleted": "archived"}.get(status, status)
+        if normalized_status not in {"draft", "scheduled", "active", "paused", "expired", "archived"}:
+            raise ValueError("Invalid payment offer status")
+        normalized_audience = normalize_audience(audience or {"mode": "all"})
+        available = iso_utc(available_from)
+        expires = iso_utc(expires_at)
+        if available and expires and available >= expires:
+            raise ValueError("Invalid product availability window")
+        capacity = max(0, min(1_000_000, int(capacity)))
+        max_per_user = max(0, min(10_000, int(max_per_user)))
+        normalized_asset = self._normalize_paid_file_asset(paid_file_asset) if isinstance(paid_file_asset, dict) else None
+        asset_ref = secrets.token_urlsafe(18) if normalized_asset is not None else ""
+        effective_fulfillment = dict(fulfillment or {})
+        if normalized_asset is not None:
+            effective_fulfillment = {
+                "kind": "paid_file",
+                "assetRef": asset_ref,
+                "action": f"paid-file-get:{asset_ref}",
+                "text": "فایل خریداری‌شده از داخل ربات تلگرام به‌صورت محافظت‌شده صادر می‌شود.",
+                "fileName": normalized_asset["fileName"],
+                "mediaLabel": normalized_asset["mediaLabel"],
+            }
+        offer_ref = secrets.token_urlsafe(18)
+        share_token = secrets.token_urlsafe(16)
+        with self._lock:
+            try:
+                cursor = self.payment_connection.execute(
+                    "INSERT INTO payment_offers(ref,share_token,title,description,amount_rials,status,audience_json,"
+                    "available_from,expires_at,capacity,max_per_user,fulfillment_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        offer_ref, share_token, clean_title, clean_description, int(amount_rials), normalized_status,
+                        json.dumps(normalized_audience, separators=(",", ":")), available, expires, capacity,
+                        max_per_user, json.dumps(effective_fulfillment, ensure_ascii=False, separators=(",", ":")),
+                    ),
+                )
+                if normalized_asset is not None:
+                    self.payment_connection.execute(
+                        "INSERT INTO paid_file_assets("
+                        "ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,file_unique_id,"
+                        "file_name,mime_type,file_size,caption,media_label"
+                        ") VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (
+                            asset_ref, "telegram", normalized_asset["sourceChatId"], normalized_asset["sourceMessageId"],
+                            normalized_asset["telegramMethod"], normalized_asset["fileId"], normalized_asset["fileUniqueId"],
+                            normalized_asset["fileName"], normalized_asset["mimeType"], normalized_asset["fileSize"],
+                            clean_title, normalized_asset["mediaLabel"],
+                        ),
+                    )
+                row = self.payment_connection.execute(
+                    f"SELECT {PAYMENT_OFFER_COLUMNS} FROM payment_offers WHERE id=?",
+                    (cursor.lastrowid,),
+                ).fetchone()
+                item = dict(self._offer_payload(row) or {})
+                self._payment_audit(
+                    "file-product-created" if normalized_asset is not None else "product-created",
+                    actor_user_id=actor_user_id, actor_platform=actor_platform,
+                    offer_ref=offer_ref, after=item,
+                )
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        return item
+
+    def paid_file_asset(self, asset_ref: str, *, require_active: bool = True) -> dict | None:
+        query = (
+            "SELECT id,ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,"
+            "file_unique_id,file_name,mime_type,file_size,caption,media_label,active,created_at,updated_at "
+            "FROM paid_file_assets WHERE ref=?"
+        )
+        if require_active:
+            query += " AND active=1"
+        with self._lock:
+            row = self.payment_connection.execute(query, (str(asset_ref),)).fetchone()
+        return self._paid_file_asset_payload(row)
+
+    def paid_file_asset_by_id(self, asset_id: int) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,"
+                "file_unique_id,file_name,mime_type,file_size,caption,media_label,active,created_at,updated_at "
+                "FROM paid_file_assets WHERE id=? AND active=1",
+                (int(asset_id),),
+            ).fetchone()
+        return self._paid_file_asset_payload(row)
+
+    def paid_file_offer_refs(self, asset_ref: str) -> list[str]:
+        refs: list[str] = []
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT ref,fulfillment_json FROM payment_offers ORDER BY id DESC"
+            ).fetchall()
+        for ref, raw in rows:
+            try:
+                fulfillment = json.loads(str(raw) or "{}")
+            except json.JSONDecodeError:
+                continue
+            if (
+                isinstance(fulfillment, dict)
+                and str(fulfillment.get("kind") or "") == "paid_file"
+                and str(fulfillment.get("assetRef") or "") == str(asset_ref)
+            ):
+                refs.append(str(ref))
+        return refs
+
+    def payment_offers(self, *, include_inactive: bool = False) -> list[dict]:
+        query = (
+            f"SELECT {PAYMENT_OFFER_COLUMNS} FROM payment_offers "
+            + ("WHERE status!='archived' " if include_inactive else "WHERE status IN ('active','scheduled','expired') ")
+            + "ORDER BY id DESC LIMIT 500"
+        )
+        with self._lock:
+            rows = self.payment_connection.execute(query).fetchall()
+        items = [dict(value) for row in rows if (value := self._offer_payload(row)) is not None]
+        return items if include_inactive else [item for item in items if item["effectiveStatus"] == "active"]
+
+    def payment_offer(self, offer_ref: str, *, require_active: bool = True) -> dict | None:
+        query = (
+            f"SELECT {PAYMENT_OFFER_COLUMNS} FROM payment_offers WHERE ref=?"
+        )
+        query += " AND status!='archived'"
+        with self._lock:
+            row = self.payment_connection.execute(query, (offer_ref,)).fetchone()
+        item = self._offer_payload(row)
+        return item if item is not None and (not require_active or item["effectiveStatus"] == "active") else None
+
+    def payment_offer_by_share_token(self, token: str) -> dict | None:
+        if len(str(token)) < 16:
+            return None
+        with self._lock:
+            row = self.payment_connection.execute(
+                f"SELECT {PAYMENT_OFFER_COLUMNS} FROM payment_offers WHERE share_token=? AND status!='archived'",
+                (str(token),),
+            ).fetchone()
+        return self._offer_payload(row)
+
+    def saved_audience_members(self, refs: list[str]) -> list[str]:
+        cleaned = [str(value) for value in refs if str(value)]
+        if not cleaned:
+            return []
+        placeholders = ",".join("?" for _ in cleaned)
+        with self._lock:
+            rows = self.payment_connection.execute(
+                f"SELECT members_json FROM payment_audiences WHERE ref IN ({placeholders})", cleaned
+            ).fetchall()
+        members: list[str] = []
+        for row in rows:
+            try:
+                values = json.loads(str(row[0]))
+            except json.JSONDecodeError:
+                values = []
+            for value in values if isinstance(values, list) else []:
+                student = normalize_student_number(value)
+                if student and student not in members:
+                    members.append(student)
+        return members
+
+    def eligible_payment_offers(self, identity: dict, *, via_link: bool = False) -> list[dict]:
+        result: list[dict] = []
+        for item in self.payment_offers(include_inactive=True):
+            if str(dict(item.get("fulfillment") or {}).get("kind") or "") == "term_subscription":
+                continue
+            audience = dict(item.get("audience") or {})
+            members = self.saved_audience_members(list(audience.get("listRefs") or []))
+            if product_eligibility(item, identity, via_link=via_link, saved_members=members).allowed:
+                result.append(item)
+        return result
+
+    def payment_offer_for_user(self, offer_ref: str, identity: dict, *, via_link: bool = False) -> dict | None:
+        item = self.payment_offer(offer_ref, require_active=False)
+        if item is None or str(dict(item.get("fulfillment") or {}).get("kind") or "") == "term_subscription":
+            return None
+        audience = dict(item.get("audience") or {})
+        members = self.saved_audience_members(list(audience.get("listRefs") or []))
+        decision = product_eligibility(item, identity, via_link=via_link, saved_members=members)
+        return item if decision.allowed else None
+
+    def commerce_cart(self, subject_key: str) -> dict:
+        key = str(subject_key).strip()
+        if not key:
+            return {"subjectKey": "", "items": [], "discountCode": "", "version": 0}
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT subject_key,student_number,display_name,items_json,discount_code,version,created_at,updated_at "
+                "FROM commerce_carts WHERE subject_key=?",
+                (key,),
+            ).fetchone()
+        if row is None:
+            return {"subjectKey": key, "items": [], "discountCode": "", "version": 0}
+        try:
+            raw_items = json.loads(str(row[3]) or "[]")
+        except json.JSONDecodeError:
+            raw_items = []
+        items: list[dict] = []
+        for raw in raw_items if isinstance(raw_items, list) else []:
+            try:
+                item = normalize_cart_item(raw)
+            except (TypeError, ValueError):
+                continue
+            if cart_item_key(item) not in {cart_item_key(existing) for existing in items}:
+                items.append(item)
+        return {
+            "subjectKey": str(row[0]),
+            "studentNumber": str(row[1] or ""),
+            "displayName": str(row[2] or ""),
+            "items": items[:CART_MAX_ITEMS],
+            "discountCode": str(row[4] or ""),
+            "version": int(row[5] or 0),
+            "createdAt": str(row[6] or ""),
+            "updatedAt": str(row[7] or ""),
+        }
+
+    def commerce_cart_add(
+        self,
+        *,
+        subject_key: str,
+        student_number: str,
+        display_name: str,
+        item: dict,
+    ) -> dict:
+        key = str(subject_key).strip()
+        if not key:
+            raise ValueError("Canonical commerce identity is required")
+        normalized = normalize_cart_item(item)
+        normalized_key = cart_item_key(normalized)
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT items_json,discount_code,version FROM commerce_carts WHERE subject_key=?",
+                    (key,),
+                ).fetchone()
+                try:
+                    current = json.loads(str(row[0]) or "[]") if row else []
+                except json.JSONDecodeError:
+                    current = []
+                items: list[dict] = []
+                seen: set[str] = set()
+                for raw in current if isinstance(current, list) else []:
+                    try:
+                        value = normalize_cart_item(raw)
+                        value_key = cart_item_key(value)
+                    except (TypeError, ValueError):
+                        continue
+                    if value_key in seen:
+                        continue
+                    seen.add(value_key)
+                    items.append(value)
+                if normalized_key not in seen:
+                    if len(items) >= CART_MAX_ITEMS:
+                        raise ValueError("Cart item limit reached")
+                    items.append(normalized)
+                payload = json.dumps(items, ensure_ascii=False, separators=(",", ":"))
+                self.payment_connection.execute(
+                    "INSERT INTO commerce_carts(subject_key,student_number,display_name,items_json) VALUES(?,?,?,?) "
+                    "ON CONFLICT(subject_key) DO UPDATE SET student_number=excluded.student_number,"
+                    "display_name=excluded.display_name,items_json=excluded.items_json,"
+                    "version=commerce_carts.version+1,updated_at=CURRENT_TIMESTAMP",
+                    (
+                        key,
+                        normalize_student_number(student_number),
+                        " ".join(str(display_name).split())[:160],
+                        payload,
+                    ),
+                )
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        return self.commerce_cart(key)
+
+    def commerce_cart_remove(self, subject_key: str, item_key: str) -> dict:
+        key = str(subject_key).strip()
+        target = str(item_key).strip()
+        cart = self.commerce_cart(key)
+        items = [item for item in cart.get("items", []) if cart_item_key(item) != target]
+        with self._lock:
+            self.payment_connection.execute(
+                "UPDATE commerce_carts SET items_json=?,discount_code=CASE WHEN ?=0 THEN '' ELSE discount_code END,"
+                "version=version+1,updated_at=CURRENT_TIMESTAMP WHERE subject_key=?",
+                (
+                    json.dumps(items, ensure_ascii=False, separators=(",", ":")),
+                    len(items),
+                    key,
+                ),
+            )
+            self.payment_connection.commit()
+        return self.commerce_cart(key)
+
+    def commerce_cart_clear(self, subject_key: str) -> dict:
+        key = str(subject_key).strip()
+        with self._lock:
+            self.payment_connection.execute(
+                "UPDATE commerce_carts SET items_json='[]',discount_code='',version=version+1,"
+                "updated_at=CURRENT_TIMESTAMP WHERE subject_key=?",
+                (key,),
+            )
+            self.payment_connection.commit()
+        return self.commerce_cart(key)
+
+    def commerce_cart_set_discount(self, subject_key: str, code: str) -> dict:
+        key = str(subject_key).strip()
+        normalized = normalize_discount_code(code)
+        with self._lock:
+            self.payment_connection.execute(
+                "UPDATE commerce_carts SET discount_code=?,version=version+1,updated_at=CURRENT_TIMESTAMP "
+                "WHERE subject_key=?",
+                (normalized, key),
+            )
+            self.payment_connection.commit()
+        return self.commerce_cart(key)
+
+    @staticmethod
+    def _commerce_discount_payload(row: sqlite3.Row | tuple | None) -> dict | None:
+        if row is None:
+            return None
+        expires_at = str(row[7] or "")
+        active = bool(int(row[8] or 0))
+        if expires_at:
+            try:
+                active = active and datetime.fromisoformat(expires_at.replace("Z", "+00:00")) > datetime.now(timezone.utc)
+            except ValueError:
+                active = False
+        return {
+            "id": int(row[0]),
+            "ref": str(row[1]),
+            "code": str(row[2]),
+            "kind": str(row[3]),
+            "amount": int(row[4]),
+            "minSubtotalRials": int(row[5]),
+            "maxUses": int(row[6]),
+            "expiresAt": expires_at,
+            "active": active,
+            "configuredActive": bool(int(row[8] or 0)),
+            "createdBy": int(row[9] or 0),
+            "createdByPlatform": str(row[10] or ""),
+            "createdAt": str(row[11] or ""),
+            "updatedAt": str(row[12] or ""),
+        }
+
+    def commerce_discount_code(self, code: str, *, require_active: bool = True) -> dict | None:
+        try:
+            normalized = normalize_discount_code(code)
+        except ValueError:
+            return None
+        if not normalized:
+            return None
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,ref,code,kind,amount,min_subtotal_rials,max_uses,expires_at,active,"
+                "created_by,created_by_platform,created_at,updated_at FROM commerce_discount_codes WHERE code=?",
+                (normalized,),
+            ).fetchone()
+        item = self._commerce_discount_payload(row)
+        if item is None or (require_active and not item["active"]):
+            return None
+        return item
+
+    def commerce_discount_codes(self) -> list[dict]:
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT id,ref,code,kind,amount,min_subtotal_rials,max_uses,expires_at,active,"
+                "created_by,created_by_platform,created_at,updated_at FROM commerce_discount_codes "
+                "ORDER BY id DESC LIMIT 200"
+            ).fetchall()
+        return [item for row in rows if (item := self._commerce_discount_payload(row)) is not None]
+
+    def create_commerce_discount_code(
+        self,
+        *,
+        kind: str,
+        amount: int,
+        min_subtotal_rials: int = 0,
+        max_uses: int = 0,
+        expires_at: str = "",
+        actor_user_id: int,
+        actor_platform: str,
+    ) -> dict:
+        discount_kind = str(kind).strip().lower()
+        value = int(amount)
+        if discount_kind not in {"percent", "fixed"}:
+            raise ValueError("Invalid discount kind")
+        if (discount_kind == "percent" and not 1 <= value <= 90) or (
+            discount_kind == "fixed" and not 10000 <= value <= 100000000000
+        ):
+            raise ValueError("Invalid discount amount")
+        minimum = max(0, int(min_subtotal_rials))
+        uses = max(0, min(1000000, int(max_uses)))
+        expiry = iso_utc(expires_at) if str(expires_at).strip() else ""
+        for _attempt in range(10):
+            code = "DENT" + secrets.token_hex(3).upper()
+            ref = "discount_" + secrets.token_urlsafe(12).replace("-", "").replace("_", "")[:18]
+            try:
+                with self._lock:
+                    self.payment_connection.execute(
+                        "INSERT INTO commerce_discount_codes(ref,code,kind,amount,min_subtotal_rials,max_uses,"
+                        "expires_at,created_by,created_by_platform) VALUES(?,?,?,?,?,?,?,?,?)",
+                        (
+                            ref,
+                            code,
+                            discount_kind,
+                            value,
+                            minimum,
+                            uses,
+                            expiry,
+                            int(actor_user_id),
+                            str(actor_platform)[:16],
+                        ),
+                    )
+                    self.payment_connection.commit()
+                item = self.commerce_discount_code(code, require_active=False)
+                if item is None:
+                    raise RuntimeError("Discount code was not persisted")
+                return item
+            except sqlite3.IntegrityError:
+                continue
+        raise RuntimeError("Discount code generation failed")
+
+    def set_commerce_discount_code_active(self, code: str, active: bool) -> dict | None:
+        try:
+            normalized = normalize_discount_code(code)
+        except ValueError:
+            return None
+        with self._lock:
+            self.payment_connection.execute(
+                "UPDATE commerce_discount_codes SET active=?,updated_at=CURRENT_TIMESTAMP WHERE code=?",
+                (1 if active else 0, normalized),
+            )
+            self.payment_connection.commit()
+        return self.commerce_discount_code(normalized, require_active=False)
+
+    def record_commerce_cart_checkout(
+        self,
+        *,
+        request_id: str,
+        order_token: str,
+        platform: str,
+        platform_user_id: int,
+        subject_key: str,
+        student_number: str,
+        display_name: str,
+        items: list[dict],
+        subtotal_rials: int,
+        discount_code: str,
+        discount_amount_rials: int,
+        amount_rials: int,
+    ) -> dict:
+        token = str(order_token).strip()
+        if re.fullmatch(r"[A-Za-z0-9_-]{20,120}", token) is None:
+            raise ValueError("Invalid cart order token")
+        if not items or len(items) > CART_MAX_ITEMS:
+            raise ValueError("Invalid cart checkout items")
+        request = str(request_id).strip()[:100]
+        if not request:
+            raise ValueError("Invalid cart checkout request")
+        normalized_code = normalize_discount_code(discount_code)
+        payload = json.dumps(items, ensure_ascii=False, separators=(",", ":"))
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                existing = self.payment_connection.execute(
+                    "SELECT order_token,subject_key,items_json,amount_rials FROM commerce_cart_checkouts "
+                    "WHERE request_id=? OR order_token=? LIMIT 1",
+                    (request, token),
+                ).fetchone()
+                if existing is not None:
+                    if (
+                        str(existing[0]) != token
+                        or str(existing[1]) != str(subject_key)
+                        or str(existing[2]) != payload
+                        or int(existing[3]) != int(amount_rials)
+                    ):
+                        raise ValueError("Cart checkout binding conflict")
+                else:
+                    self.payment_connection.execute(
+                        "INSERT INTO commerce_cart_checkouts(request_id,order_token,platform,platform_user_id,"
+                        "subject_key,student_number,display_name,items_json,subtotal_rials,discount_code,"
+                        "discount_amount_rials,amount_rials) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (
+                            request,
+                            token,
+                            str(platform)[:16],
+                            int(platform_user_id),
+                            str(subject_key)[:96],
+                            normalize_student_number(student_number),
+                            " ".join(str(display_name).split())[:160],
+                            payload,
+                            max(0, int(subtotal_rials)),
+                            normalized_code,
+                            max(0, int(discount_amount_rials)),
+                            max(0, int(amount_rials)),
+                        ),
+                    )
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        result = self.commerce_cart_checkout_by_order(token)
+        if result is None:
+            raise RuntimeError("Cart checkout was not persisted")
+        return result
+
+    def commerce_cart_checkout_by_order(self, order_token: str) -> dict | None:
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT id,request_id,order_token,platform,platform_user_id,subject_key,student_number,"
+                "display_name,items_json,subtotal_rials,discount_code,discount_amount_rials,amount_rials,"
+                "status,verified_delivery_id,verified_at,created_at,updated_at "
+                "FROM commerce_cart_checkouts WHERE order_token=?",
+                (str(order_token),),
+            ).fetchone()
+        if row is None:
+            return None
+        try:
+            items = json.loads(str(row[8]) or "[]")
+        except json.JSONDecodeError:
+            items = []
+        return {
+            "id": int(row[0]),
+            "requestId": str(row[1]),
+            "orderToken": str(row[2]),
+            "platform": str(row[3]),
+            "platformUserId": int(row[4]),
+            "subjectKey": str(row[5]),
+            "studentNumber": str(row[6]),
+            "displayName": str(row[7]),
+            "items": [dict(item) for item in items if isinstance(item, dict)],
+            "subtotalRials": int(row[9]),
+            "discountCode": str(row[10]),
+            "discountAmountRials": int(row[11]),
+            "amountRials": int(row[12]),
+            "status": str(row[13]),
+            "verifiedDeliveryId": str(row[14]),
+            "verifiedAt": str(row[15]),
+            "createdAt": str(row[16]),
+            "updatedAt": str(row[17]),
+        }
+
+    def latest_bound_commerce_cart_checkout(self, subject_key: str) -> dict | None:
+        key = str(subject_key).strip()
+        if not key:
+            return None
+        with self._lock:
+            row = self.payment_connection.execute(
+                "SELECT order_token FROM commerce_cart_checkouts "
+                "WHERE subject_key=? AND status='bound' ORDER BY id DESC LIMIT 1",
+                (key,),
+            ).fetchone()
+        return self.commerce_cart_checkout_by_order(str(row[0])) if row is not None else None
+
+    def activate_commerce_cart_checkout(
+        self,
+        *,
+        order_token: str,
+        delivery_id: str,
+        platform: str,
+        platform_user_id: int,
+        amount_rials: int,
+        verified_at: str,
+        payment_order_ref: str = "",
+    ) -> dict:
+        verified = iso_utc(verified_at, allow_empty=False)
+        with self._lock:
+            try:
+                self.payment_connection.execute("BEGIN IMMEDIATE")
+                row = self.payment_connection.execute(
+                    "SELECT id,request_id,order_token,platform,platform_user_id,subject_key,student_number,"
+                    "display_name,items_json,subtotal_rials,discount_code,discount_amount_rials,amount_rials,"
+                    "status,verified_delivery_id,verified_at,created_at,updated_at "
+                    "FROM commerce_cart_checkouts WHERE order_token=?",
+                    (str(order_token),),
+                ).fetchone()
+                if row is None:
+                    raise ValueError("Cart checkout not found")
+                try:
+                    items = json.loads(str(row[8]) or "[]")
+                except json.JSONDecodeError as error:
+                    raise ValueError("Cart checkout items are corrupt") from error
+                if (
+                    str(row[3]) != str(platform)
+                    or int(row[4]) != int(platform_user_id)
+                    or int(row[12]) != int(amount_rials)
+                    or (str(row[14]) and str(row[14]) != str(delivery_id) and str(row[13]) != "activated")
+                ):
+                    raise ValueError("Cart payment snapshot mismatch")
+                subject_key = str(row[5])
+                student_number = str(row[6])
+                display_name = str(row[7])
+                for raw in items if isinstance(items, list) else []:
+                    if not isinstance(raw, dict):
+                        continue
+                    kind = str(raw.get("kind") or "")
+                    item_key = str(raw.get("itemKey") or "")
+                    if not item_key:
+                        continue
+                    if kind == "ai_booklet":
+                        term = int(raw.get("term") or 0)
+                        course_code = str(raw.get("courseCode") or "")
+                        course_tag = str(raw.get("courseTag") or "")
+                        session_no = int(raw.get("sessionNo") or 0)
+                        paid_token = str(order_token) + ":" + hashlib.sha256(item_key.encode("utf-8")).hexdigest()[:12]
+                        self.payment_connection.execute(
+                            "INSERT OR IGNORE INTO ai_booklet_entitlements("
+                            "subject_key,student_number,display_name,term,course_code,course_tag,session_no,"
+                            "amount_rials,granted_at,payment_order_token,payment_order_ref) "
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                            (
+                                subject_key,
+                                student_number,
+                                display_name,
+                                term,
+                                course_code,
+                                course_tag,
+                                session_no,
+                                max(AI_BOOKLET_PRICE_RIALS, int(raw.get("amountRials") or 0)),
+                                verified,
+                                paid_token,
+                                str(payment_order_ref)[:80],
+                            ),
+                        )
+                    elif kind == "term_subscription":
+                        term = int(raw.get("term") or 0)
+                        period = billing_period_from_key(str(raw.get("billingPeriod") or ""))
+                        if period.term != term:
+                            raise ValueError("Cart subscription period mismatch")
+                        entitlement_status = (
+                            "active"
+                            if period.expires_at > datetime.now(timezone.utc)
+                            else "expired"
+                        )
+                        self.payment_connection.execute(
+                            "INSERT OR IGNORE INTO term_access_entitlements("
+                            "subject_key,student_number,display_name,term,access_type,billing_period,status,"
+                            "granted_at,expires_at,payment_order_token,payment_order_ref,note) "
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (
+                                subject_key,
+                                student_number,
+                                display_name,
+                                term,
+                                "paid_subscription",
+                                period.key,
+                                entitlement_status,
+                                verified,
+                                utc_iso(period.expires_at),
+                                str(order_token),
+                                str(payment_order_ref)[:80],
+                                "provider-verified bot cart payment",
+                            ),
+                        )
+                    self.payment_connection.execute(
+                        "INSERT INTO commerce_cart_fulfillments(order_token,item_key,kind,status,detail_json) "
+                        "VALUES(?,?,?,?,?) ON CONFLICT(order_token,item_key) DO UPDATE SET "
+                        "status=CASE WHEN commerce_cart_fulfillments.status='complete' THEN 'complete' ELSE excluded.status END,"
+                        "detail_json=excluded.detail_json,updated_at=CURRENT_TIMESTAMP",
+                        (
+                            str(order_token),
+                            item_key,
+                            kind,
+                            "activated",
+                            json.dumps({"verifiedAt": verified}, separators=(",", ":")),
+                        ),
+                    )
+                self.payment_connection.execute(
+                    "UPDATE commerce_cart_checkouts SET status='activated',"
+                    "verified_delivery_id=CASE WHEN verified_delivery_id='' THEN ? ELSE verified_delivery_id END,"
+                    "verified_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    (str(delivery_id), verified, int(row[0])),
+                )
+                current = self.payment_connection.execute(
+                    "SELECT items_json FROM commerce_carts WHERE subject_key=?",
+                    (subject_key,),
+                ).fetchone()
+                if current is not None:
+                    try:
+                        current_items = json.loads(str(current[0]) or "[]")
+                    except json.JSONDecodeError:
+                        current_items = []
+                    purchased_keys = {
+                        str(item.get("itemKey") or "")
+                        for item in items
+                        if isinstance(item, dict) and str(item.get("itemKey") or "")
+                    }
+                    remaining = []
+                    for raw in current_items if isinstance(current_items, list) else []:
+                        try:
+                            normalized = normalize_cart_item(raw)
+                            key = cart_item_key(normalized)
+                        except (TypeError, ValueError):
+                            continue
+                        if key not in purchased_keys:
+                            remaining.append(normalized)
+                    self.payment_connection.execute(
+                        "UPDATE commerce_carts SET items_json=?,discount_code=CASE WHEN ?=0 THEN '' ELSE discount_code END,"
+                        "version=version+1,updated_at=CURRENT_TIMESTAMP WHERE subject_key=?",
+                        (
+                            json.dumps(remaining, ensure_ascii=False, separators=(",", ":")),
+                            len(remaining),
+                            subject_key,
+                        ),
+                    )
+                self.payment_connection.commit()
+            except Exception:
+                self.payment_connection.rollback()
+                raise
+        result = self.commerce_cart_checkout_by_order(str(order_token))
+        if result is None:
+            raise RuntimeError("Activated cart checkout disappeared")
+        return result
+
+    def commerce_cart_fulfillments(self, order_token: str) -> dict[str, dict]:
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT item_key,kind,status,detail_json,updated_at FROM commerce_cart_fulfillments "
+                "WHERE order_token=? ORDER BY rowid",
+                (str(order_token),),
+            ).fetchall()
+        result: dict[str, dict] = {}
+        for row in rows:
+            try:
+                detail = json.loads(str(row[3]) or "{}")
+            except json.JSONDecodeError:
+                detail = {}
+            result[str(row[0])] = {
+                "kind": str(row[1]),
+                "status": str(row[2]),
+                "detail": detail if isinstance(detail, dict) else {},
+                "updatedAt": str(row[4] or ""),
+            }
+        return result
+
+    def mark_commerce_cart_fulfillment(
+        self,
+        order_token: str,
+        item_key: str,
+        *,
+        kind: str,
+        status: str,
+        detail: dict | None = None,
+    ) -> None:
+        if status not in {"activated", "queued", "complete"}:
+            raise ValueError("Invalid cart fulfillment status")
+        with self._lock:
+            self.payment_connection.execute(
+                "INSERT INTO commerce_cart_fulfillments(order_token,item_key,kind,status,detail_json) "
+                "VALUES(?,?,?,?,?) ON CONFLICT(order_token,item_key) DO UPDATE SET status=excluded.status,"
+                "detail_json=excluded.detail_json,updated_at=CURRENT_TIMESTAMP",
+                (
+                    str(order_token),
+                    str(item_key),
+                    str(kind)[:32],
+                    status,
+                    json.dumps(dict(detail or {}), ensure_ascii=False, separators=(",", ":")),
+                ),
+            )
+            self.payment_connection.commit()
+
+    def set_payment_offer_status(
+        self,
+        offer_ref: str,
+        status: str,
+        *,
+        actor_user_id: int = 0,
+        actor_platform: str = "system",
+    ) -> dict | None:
+        status = {"inactive": "paused", "deleted": "archived"}.get(status, status)
+        if status not in {"draft", "scheduled", "active", "paused", "expired", "archived"}:
+            raise ValueError("Invalid payment offer status")
+        with self._lock:
+            before = self.payment_offer(offer_ref, require_active=False)
+            if before is None or str(dict(before.get("fulfillment") or {}).get("kind") or "") == "term_subscription":
+                return None
+            self.payment_connection.execute(
+                "UPDATE payment_offers SET status=?,version=version+1,updated_at=CURRENT_TIMESTAMP "
+                "WHERE ref=? AND status!='archived'",
+                (status, offer_ref),
+            )
+            after = self.payment_offer(offer_ref, require_active=False)
+            self._payment_audit(
+                "product-status-changed", actor_user_id=actor_user_id, actor_platform=actor_platform,
+                offer_ref=offer_ref, before=before, after=after,
+            )
+            self.payment_connection.commit()
+        return after
+
+    def update_payment_offer(
+        self,
+        offer_ref: str,
+        changes: dict,
+        *,
+        actor_user_id: int,
+        actor_platform: str,
+    ) -> dict | None:
+        allowed = {
+            "title": "title", "description": "description", "amountRials": "amount_rials",
+            "audience": "audience_json", "availableFrom": "available_from", "expiresAt": "expires_at",
+            "capacity": "capacity", "maxPurchasesPerUser": "max_per_user", "fulfillment": "fulfillment_json",
+        }
+        values: dict[str, object] = {}
+        for key, column in allowed.items():
+            if key not in changes:
+                continue
+            value = changes[key]
+            if key == "title":
+                value = " ".join(str(value).split())[:160]
+                if len(str(value)) < 3:
+                    raise ValueError("Invalid title")
+            elif key == "description":
+                value = " ".join(str(value).split())[:360]
+            elif key == "amountRials":
+                value = int(value)
+                if int(value) < 10000 or int(value) > 100000000000:
+                    raise ValueError("Invalid amount")
+            elif key == "audience":
+                value = json.dumps(normalize_audience(value), separators=(",", ":"))
+            elif key in {"availableFrom", "expiresAt"}:
+                value = iso_utc(str(value or ""))
+            elif key in {"capacity", "maxPurchasesPerUser"}:
+                value = max(0, min(1_000_000, int(value)))
+            elif key == "fulfillment":
+                value = json.dumps(value if isinstance(value, dict) else {}, ensure_ascii=False, separators=(",", ":"))
+            values[column] = value
+        if not values:
+            return self.payment_offer(offer_ref, require_active=False)
+        with self._lock:
+            before = self.payment_offer(offer_ref, require_active=False)
+            if before is None or str(dict(before.get("fulfillment") or {}).get("kind") or "") == "term_subscription":
+                return None
+            candidate_available = str(values.get("available_from", before.get("availableFrom") or ""))
             candidate_expires = str(values.get("expires_at", before.get("expiresAt") or ""))
             if candidate_available and candidate_expires and candidate_available >= candidate_expires:
                 raise ValueError("Invalid availability window")
