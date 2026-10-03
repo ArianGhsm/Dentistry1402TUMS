@@ -372,6 +372,9 @@ class DialogAppWorkflows:
                 screen = Screen(frame_error("یکی از دو روش احراز هویت را با دکمه انتخاب کن."), class_auth_screen().keyboard)
             self.api.send(chat_id, screen.text, screen.keyboard)
             return True
+        if self._handle_cart_dialog_message(chat_id, user_id, text, dialog):
+            return True
+
         if dialog.get("kind") == "phone-enroll-v1":
             step = str(dialog.get("step") or "phone")
             payload = dict(dialog.get("payload") or {})

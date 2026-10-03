@@ -70,14 +70,15 @@ require("نیمسال اول (روزانه یا تعهدی)" in ONBOARDING and O
 require("profileEncrypted" in ONBOARDING and "phoneEncrypted" in ONBOARDING, "onboarding PII must be encrypted at rest")
 require("bot-onboarding-phone:" in ONBOARDING and "onboardingIdentityProfiles" in ONBOARDING, "cross-platform profiles must join only by verified phone HMAC")
 require("websiteAccountLinked' => false" in ONBOARDING, "generic onboarding must not grant website access")
+require("'onboardingProfileRef' =>" in STORE and "'profileRef' => is_array($profile)" in ONBOARDING, "generic commerce cart identity must use only the opaque verified onboarding profile ref")
 require("count($institutions)" in ONBOARDING and ONBOARDING.count("['province' =>") == 106, "the verified medical-university catalog must contain 75 public and 31 Azad entries")
 require("'azadAdmissionTypes' => ['نیمسال اول', 'نیمسال دوم']" in ONBOARDING, "Azad admission must be term-only")
 require(ONBOARDING.count("'system' => 'azad'") == 31, "all 31 Azad medical units must be marked explicitly")
 require("createBotPayment" in STORE and "paymentStatus" in STORE, "bot checkout service actions are missing")
 require(
-    "$genericPaymentActions = ['createBotPayment', 'paymentStatus', 'paymentProductStatesV2'];" in STORE
+    "$genericPaymentActions = ['createBotPayment', 'createBotCartPayment', 'paymentStatus', 'paymentProductStatesV2'];" in STORE
     and "dent_bot_verified_onboarding_payment_user" in STORE,
-    "verified generic onboarding must be accepted only by the three user-commerce actions",
+    "verified generic onboarding must be accepted only by the four user-commerce actions",
 )
 require(
     "onboardingIdentityRoutes" in STORE

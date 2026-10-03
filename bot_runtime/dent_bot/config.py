@@ -243,7 +243,7 @@ def load_settings() -> BotSettings:
         # for a future server upgrade instead of baking today's 1 GB profile
         # into the architecture.
         booklet_media_workers=min(8, max(1, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_WORKERS", "1")))),
-        booklet_media_queue_size=min(500, max(20, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_QUEUE_SIZE", "48")))),
+        booklet_media_queue_size=min(500, max(20, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_QUEUE_SIZE", "100")))),
         booklet_access_mode=booklet_access_mode,
         # Telegram can now watermark paid-file PDFs even when the private booklet source channel
         # is disabled, so the fingerprint key is a runtime invariant for Telegram.

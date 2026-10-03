@@ -10,9 +10,10 @@ def home(
     is_owner: bool,
     student_assistant_enabled: bool = False,
     has_products: bool = False,
+    cart_count: int = 0,
 ) -> Screen:
     del site_url, student_assistant_enabled, has_products
-    return canonical_home_screen(is_owner=is_owner)
+    return canonical_home_screen(is_owner=is_owner, cart_count=max(0, int(cart_count)))
 
 def section(name: str, site_url: str, *, is_owner: bool) -> Screen:
     if name == "admin" and is_owner:

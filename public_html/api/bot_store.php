@@ -1616,11 +1616,12 @@ function dent_bot_service_dispatch(array $payload): array
             'authCompletedAt' => $authComplete ? (string) ($link['authCompletedAt'] ?? '') : '',
             'user' => is_array($user) ? dent_bot_public_user($user) : null,
             'identity' => is_array($user) ? ['recognized' => true, 'claimStatus' => 'approved'] : dent_bot_public_identity_state($platform, $platformUserId),
+            'onboardingProfileRef' => (string) ($onboarding['profileRef'] ?? ''),
             'onboardingProfile' => $onboardingProfile,
             'bookletProfile' => $bookletProfile,
         ];
     }
-    $genericPaymentActions = ['createBotPayment', 'paymentStatus', 'paymentProductStatesV2'];
+    $genericPaymentActions = ['createBotPayment', 'createBotCartPayment', 'paymentStatus', 'paymentProductStatesV2'];
     if (!is_array($user) && in_array($action, $genericPaymentActions, true)) {
         $user = dent_bot_verified_onboarding_payment_user($platform, $platformUserId);
         // This flag is local to the narrow commerce dispatch below. It does not
@@ -1683,6 +1684,9 @@ function dent_bot_service_dispatch(array $payload): array
     }
     if ($action === 'createBotPayment') {
         return dent_bot_create_offer_payment($user, $platform, $platformUserId, $payload);
+    }
+    if ($action === 'createBotCartPayment') {
+        return dent_bot_create_cart_payment($user, $platform, $platformUserId, $payload);
     }
     if ($action === 'paymentStatus') {
         return dent_bot_payment_status($user, $platform, $platformUserId, $payload);

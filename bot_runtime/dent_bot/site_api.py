@@ -338,6 +338,23 @@ class SiteApiClient:
             fulfillment=fulfillment or {},
         )
 
+    def create_bot_cart_payment(
+        self,
+        user_id: int,
+        *,
+        items: list[dict],
+        request_id: str,
+        discount: dict | None = None,
+    ) -> dict:
+        return self.request(
+            "createBotCartPayment",
+            user_id,
+            contractVersion="bot-commerce-v2",
+            items=[dict(item) for item in items[:20]],
+            requestId=request_id,
+            discount=dict(discount or {}),
+        )
+
     def payment_status(self, user_id: int, order_token: str) -> dict:
         return self.request("paymentStatus", user_id, orderToken=order_token)
 

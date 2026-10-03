@@ -241,6 +241,49 @@ class PaymentAppWorkflows:
         if str(payload.get("status") or "") != "success":
             return payload
 
+        cart_checkout = self.state.commerce_cart_checkout_by_order(order_token)
+        if cart_checkout is not None:
+            if (
+                str(cart_checkout.get("platform") or "") != self.platform
+                or int(cart_checkout.get("platformUserId") or 0) != int(user_id)
+                or not str(payload.get("verifiedAt") or "").strip()
+                or int(payload.get("amountRials") or 0) != int(cart_checkout.get("amountRials") or -1)
+            ):
+                return payload
+            proof_id = "status-" + hashlib.sha256(order_token.encode("ascii")).hexdigest()[:48]
+            try:
+                activated = self.state.activate_commerce_cart_checkout(
+                    order_token=order_token,
+                    delivery_id=proof_id,
+                    platform=self.platform,
+                    platform_user_id=user_id,
+                    amount_rials=int(payload["amountRials"]),
+                    verified_at=str(payload["verifiedAt"]),
+                    payment_order_ref=str(payload.get("orderId") or payload.get("trackingRef") or ""),
+                )
+            except (TypeError, ValueError, RuntimeError):
+                return payload
+            deliverable = any(
+                (
+                    str(item.get("kind") or "") == "ai_booklet"
+                    or str(dict(item.get("fulfillment") or {}).get("kind") or "") == "paid_file"
+                )
+                for item in activated.get("items", [])
+                if isinstance(item, dict)
+            )
+            result = dict(payload)
+            result["cartItems"] = [dict(item) for item in activated.get("items", []) if isinstance(item, dict)]
+            result["fulfillment"] = {
+                "kind": "cart",
+                "text": (
+                    "همهٔ دسترسی‌های سبد فعال شد. فایل‌های خریداری‌شده را از دکمهٔ زیر دریافت کن."
+                    if deliverable
+                    else "همهٔ دسترسی‌های سبد خرید فعال شد."
+                ),
+                **({"action": f"cart-deliver:{order_token}"} if deliverable else {}),
+            }
+            return result
+
         ai_checkout = self.state.ai_booklet_checkout_by_order(order_token)
         if ai_checkout is not None:
             if (

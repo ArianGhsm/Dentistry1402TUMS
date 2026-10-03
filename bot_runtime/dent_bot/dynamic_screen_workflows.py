@@ -1,9 +1,7 @@
 from __future__ import annotations
-
 import hashlib
 import html
 import re
-
 from .academic_term7_rich import decorate_academic_notification_screen
 from .api import BotApiError
 from .app_shell_screens import home
@@ -34,7 +32,6 @@ from .ui import (
     term_subscription_settings_screen,
 )
 
-
 class DynamicScreenWorkflows:
     """Large dynamic-screen routing table mixed into DentBotApp."""
 
@@ -53,6 +50,9 @@ class DynamicScreenWorkflows:
         )
         if blocked is not None:
             return blocked
+        cart_result = self._cart_route(name, user_id, request_id=request_id)
+        if cart_result is not None:
+            return cart_result
         if name == "admin-grades" and user_id == self.owner_id:
             return owner_grade_screen(self.site_url)
         if name == "phone-enroll":

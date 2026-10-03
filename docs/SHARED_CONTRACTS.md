@@ -77,3 +77,14 @@ A semantic contract change must:
 4. preserve historical readers or provide a deterministic tested migration;
 5. never require production secrets for repository-level tests;
 6. pass integration regression before any production migration/deploy.
+
+
+## Bot commerce cart extension
+
+`bot-commerce-v2` permits a backward-compatible `bot-cart` order source for multi-product checkout. Cart state is keyed by the same canonical student/profile identity across Telegram and Bale. Cart rows persist stable product descriptors only; current price, lifecycle, audience, entitlement and deliverability are resolved again from their existing sources before checkout.
+
+One cart checkout creates one order in the existing website payment subsystem. Its immutable line snapshot participates in the same atomic capacity and per-user reservation accounting as immediate single-product purchases. Owner discount codes are shared bot-commerce state and their validation/use limits are checked under the payment-store lock. A pending cart checkout blocks cart mutation until that checkout is terminal or stale.
+
+Fulfillment reuses existing systems: AI-booklet and term-subscription entitlements activate idempotently in their existing tables, and protected files enter the existing bounded `ProtectedMediaDispatcher` in stable cart order with permission rechecks and deduplication. Immediate single-product purchase remains unchanged. The account adapter may expose only an opaque onboarding `profileRef` so verified non-class users also receive a stable cross-platform commerce identity.
+
+Coverage: `scripts/test_payment_handoff_http.py`, `scripts/test_bot_integration_contracts.py`, and `bot_runtime/tests/test_commerce_cart.py`.

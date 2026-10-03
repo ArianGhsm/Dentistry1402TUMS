@@ -4,6 +4,7 @@ import html
 import re
 from typing import Any
 
+from .persian_datetime import to_persian_digits
 from .ui import Screen, button, keyboard
 
 
@@ -41,8 +42,10 @@ def status_marker(state: object) -> tuple[str, str]:
     return STATUS_MARKERS.get(str(state or "unknown").strip().lower(), STATUS_MARKERS["unknown"])
 
 
-def canonical_home_screen(*, is_owner: bool) -> Screen:
+def canonical_home_screen(*, is_owner: bool, cart_count: int = 0) -> Screen:
     rows = [[button(label, action=action) for label, action in row] for row in CANONICAL_HOME_ROWS]
+    if cart_count > 0:
+        rows.insert(2, [button(f"🛒 سبد خرید ({to_persian_digits(cart_count)})", action="cart", style="primary")])
     if is_owner:
         rows.append([button("🛠 مدیریت ربات", action="admin", style="primary")])
     return Screen(

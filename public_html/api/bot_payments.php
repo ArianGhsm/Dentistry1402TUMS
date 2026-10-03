@@ -100,13 +100,108 @@ function dent_bot_payment_extra(array $order): array
     return is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
 }
 
+/** @return list<array<string,mixed>> */
+function dent_bot_payment_cart_items(array $order): array
+{
+    $extra = dent_bot_payment_extra($order);
+    $raw = json_decode((string) ($extra['bot_cart_items_json'] ?? '[]'), true);
+    if (!is_array($raw)) {
+        return [];
+    }
+    $items = [];
+    foreach (array_slice($raw, 0, 20) as $value) {
+        if (!is_array($value)) {
+            continue;
+        }
+        $offerRef = trim((string) ($value['offerRef'] ?? ''));
+        $itemKey = dent_clean_text((string) ($value['itemKey'] ?? ''), 180);
+        $title = dent_clean_text((string) ($value['title'] ?? ''), 160);
+        $amount = max(0, (int) ($value['amountRials'] ?? 0));
+        if (preg_match('/^[A-Za-z0-9_-]{16,80}$/D', $offerRef) !== 1 || $itemKey === '' || $title === '' || $amount <= 0) {
+            continue;
+        }
+        $item = [
+            'itemKey' => $itemKey,
+            'kind' => dent_clean_text((string) ($value['kind'] ?? 'offer'), 32),
+            'offerRef' => $offerRef,
+            'title' => $title,
+            'amountRials' => $amount,
+            'fulfillment' => dent_bot_payment_safe_fulfillment($value['fulfillment'] ?? []),
+        ];
+        foreach (['term', 'sessionNo'] as $integerKey) {
+            if (isset($value[$integerKey])) {
+                $item[$integerKey] = max(0, (int) $value[$integerKey]);
+            }
+        }
+        foreach (['courseCode', 'courseTag', 'billingPeriod'] as $stringKey) {
+            $clean = dent_clean_text((string) ($value[$stringKey] ?? ''), 100);
+            if ($clean !== '') {
+                $item[$stringKey] = $clean;
+            }
+        }
+        $items[] = $item;
+    }
+    return $items;
+}
+
+/**
+ * Historical name retained for callers: this now means any standalone bot
+ * commerce order. When an offer ref is supplied, cart orders match only when
+ * that exact product is one of their immutable checkout lines.
+ */
 function dent_bot_payment_is_offer_order(array $order, string $offerRef = ''): bool
 {
     $extra = dent_bot_payment_extra($order);
-    if ((string) ($extra['source'] ?? '') !== 'bot-offer') {
+    $source = (string) ($extra['source'] ?? '');
+    if ($source === 'bot-offer') {
+        return $offerRef === '' || hash_equals((string) ($extra['bot_offer_ref'] ?? ''), $offerRef);
+    }
+    if ($source !== 'bot-cart') {
         return false;
     }
-    return $offerRef === '' || hash_equals((string) ($extra['bot_offer_ref'] ?? ''), $offerRef);
+    if ($offerRef === '') {
+        return true;
+    }
+    foreach (dent_bot_payment_cart_items($order) as $item) {
+        if (hash_equals((string) ($item['offerRef'] ?? ''), $offerRef)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** @return list<string> */
+function dent_bot_payment_order_offer_refs(array $order): array
+{
+    $extra = dent_bot_payment_extra($order);
+    if ((string) ($extra['source'] ?? '') === 'bot-offer') {
+        $ref = (string) ($extra['bot_offer_ref'] ?? '');
+        return $ref !== '' ? [$ref] : [];
+    }
+    return array_values(array_unique(array_map(
+        static fn(array $item): string => (string) ($item['offerRef'] ?? ''),
+        dent_bot_payment_cart_items($order)
+    )));
+}
+
+function dent_bot_payment_order_amount_for_offer(array $order, string $offerRef): int
+{
+    $extra = dent_bot_payment_extra($order);
+    if ((string) ($extra['source'] ?? '') === 'bot-offer') {
+        return max(0, (int) ($order['amount'] ?? 0));
+    }
+    $cartItems = payments_normalize_cart_order_items($order['cart_items'] ?? []);
+    foreach ($cartItems as $item) {
+        if (hash_equals((string) ($item['slug'] ?? ''), $offerRef)) {
+            return max(0, (int) ($item['amount'] ?? $item['subtotal'] ?? 0));
+        }
+    }
+    foreach (dent_bot_payment_cart_items($order) as $item) {
+        if (hash_equals((string) ($item['offerRef'] ?? ''), $offerRef)) {
+            return max(0, (int) ($item['amountRials'] ?? 0));
+        }
+    }
+    return 0;
 }
 
 function dent_bot_payment_status_label(string $status): string
@@ -149,12 +244,19 @@ function dent_bot_payment_safe_fulfillment($value): array
 function dent_bot_payment_order_payload(array $order, bool $owner = false): array
 {
     $extra = dent_bot_payment_extra($order);
+    $cartItems = dent_bot_payment_cart_items($order);
+    $isCart = (string) ($extra['source'] ?? '') === 'bot-cart';
     $payload = [
         'orderId' => (int) ($order['id'] ?? 0),
         'orderToken' => (string) ($order['public_token'] ?? ''),
-        'offerRef' => (string) ($extra['bot_offer_ref'] ?? ''),
-        'title' => (string) ($extra['bot_offer_title'] ?? 'محصول'),
+        'offerRef' => $isCart ? '' : (string) ($extra['bot_offer_ref'] ?? ''),
+        'title' => $isCart
+            ? ('سبد خرید' . (count($cartItems) > 1 ? ' (' . count($cartItems) . ' محصول)' : ''))
+            : (string) ($extra['bot_offer_title'] ?? 'محصول'),
         'amountRials' => max(0, (int) ($order['amount'] ?? 0)),
+        'subtotalRials' => max(0, (int) ($order['subtotal'] ?? ($order['amount'] ?? 0))),
+        'discountCode' => (string) ($order['discount_code'] ?? ''),
+        'discountAmountRials' => max(0, (int) ($order['discount_amount'] ?? 0)),
         'status' => (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING),
         'statusLabel' => dent_bot_payment_status_label((string) ($order['status'] ?? '')),
         'gateway' => (string) ($order['gateway'] ?? ''),
@@ -171,6 +273,7 @@ function dent_bot_payment_order_payload(array $order, bool $owner = false): arra
                 ? (json_decode((string) $extra['bot_fulfillment_json'], true) ?: [])
                 : []
         ),
+        'cartItems' => $cartItems,
     ];
     if ($owner) {
         $payload['payerName'] = (string) ($order['payer_name'] ?? '');
@@ -204,6 +307,10 @@ function dent_bot_payment_existing_response(array $order): ?array
         'alreadyCreated' => true,
         'orderToken' => $orderToken,
         'amountRials' => max(0, (int) ($order['amount'] ?? 0)),
+        'subtotalRials' => max(0, (int) ($order['subtotal'] ?? ($order['amount'] ?? 0))),
+        'discountCode' => (string) ($order['discount_code'] ?? ''),
+        'discountAmountRials' => max(0, (int) ($order['discount_amount'] ?? 0)),
+        'cartItems' => dent_bot_payment_cart_items($order),
         'redirectUrl' => $redirectUrl,
         'resultUrl' => dent_bot_payment_result_url($orderToken),
         'status' => (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING),
@@ -640,9 +747,11 @@ function dent_bot_payment_product_states(array $user, array $payload): array
         $states[$ref] = ['successCount' => 0, 'pendingCount' => 0, 'reservedCount' => 0, 'latestSuccessOrderToken' => ''];
     }
     foreach (dent_bot_payment_orders() as $order) {
-        $extra = dent_bot_payment_extra($order);
-        $ref = (string) ($extra['bot_offer_ref'] ?? '');
-        if (!isset($states[$ref])) {
+        $refsInOrder = array_values(array_filter(
+            dent_bot_payment_order_offer_refs($order),
+            static fn(string $ref): bool => isset($states[$ref])
+        ));
+        if ($refsInOrder === []) {
             continue;
         }
         $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
@@ -650,19 +759,22 @@ function dent_bot_payment_product_states(array $user, array $payload): array
             && !dent_bot_payment_pending_reserves_slot($order)) {
             continue;
         }
-        if (in_array($status, [PAYMENTS_ORDER_STATUS_SUCCESS, PAYMENTS_ORDER_STATUS_PENDING], true)) {
-            $states[$ref]['reservedCount']++;
-        }
-        if (!in_array((string) ($order['user_id'] ?? ''), $payerKeys, true)) {
-            continue;
-        }
-        if ($status === PAYMENTS_ORDER_STATUS_SUCCESS) {
-            $states[$ref]['successCount']++;
-            if ($states[$ref]['latestSuccessOrderToken'] === '') {
-                $states[$ref]['latestSuccessOrderToken'] = (string) ($order['public_token'] ?? '');
+        $belongsToUser = in_array((string) ($order['user_id'] ?? ''), $payerKeys, true);
+        foreach ($refsInOrder as $ref) {
+            if (in_array($status, [PAYMENTS_ORDER_STATUS_SUCCESS, PAYMENTS_ORDER_STATUS_PENDING], true)) {
+                $states[$ref]['reservedCount']++;
             }
-        } elseif ($status === PAYMENTS_ORDER_STATUS_PENDING) {
-            $states[$ref]['pendingCount']++;
+            if (!$belongsToUser) {
+                continue;
+            }
+            if ($status === PAYMENTS_ORDER_STATUS_SUCCESS) {
+                $states[$ref]['successCount']++;
+                if ($states[$ref]['latestSuccessOrderToken'] === '') {
+                    $states[$ref]['latestSuccessOrderToken'] = (string) ($order['public_token'] ?? '');
+                }
+            } elseif ($status === PAYMENTS_ORDER_STATUS_PENDING) {
+                $states[$ref]['pendingCount']++;
+            }
         }
     }
     return ['success' => true, 'contractVersion' => 'bot-commerce-v2', 'states' => $states];
@@ -742,7 +854,7 @@ function dent_bot_payment_product_report(array $owner, array $payload): array
                 continue;
             }
         }
-        $amount = max(0, (int) ($order['amount'] ?? 0));
+        $amount = dent_bot_payment_order_amount_for_offer($order, $offerRef);
         $studentNumber = dent_normalize_student_number((string) ($order['payer_student_number'] ?? ''));
         if ($studentNumber === '') {
             $legacyUserId = dent_normalize_digits(trim((string) ($order['user_id'] ?? '')));
@@ -798,7 +910,7 @@ function dent_bot_payment_transactions(array $owner, array $payload): array
     foreach (dent_bot_payment_orders() as $order) {
         $extra = dent_bot_payment_extra($order);
         $created = strtotime((string) ($order['created_at'] ?? '')) ?: 0;
-        if (($offerRef !== '' && (string) ($extra['bot_offer_ref'] ?? '') !== $offerRef)
+        if (($offerRef !== '' && !dent_bot_payment_is_offer_order($order, $offerRef))
             || ($status !== '' && (string) ($order['status'] ?? '') !== $status)
             || ($originPlatform !== '' && (string) ($extra['bot_origin_platform'] ?? '') !== $originPlatform)
             || ($gateway !== '' && (string) ($order['gateway'] ?? '') !== $gateway)
@@ -811,6 +923,7 @@ function dent_bot_payment_transactions(array $owner, array $payload): array
                 (string) ($order['payer_name'] ?? ''), (string) ($order['user_id'] ?? ''),
                 (string) ($order['ref_id'] ?? ''), (string) ($order['authority'] ?? ''),
                 (string) ($order['id'] ?? ''), (string) ($extra['bot_offer_title'] ?? ''),
+                implode('|', array_map(static fn(array $item): string => (string) ($item['title'] ?? ''), dent_bot_payment_cart_items($order))),
             ]), 'UTF-8');
             if (!str_contains($haystack, $query)) {
                 continue;
@@ -947,3 +1060,6 @@ function dent_bot_payment_directory(array $owner, string $platform, array $paylo
     }
     return ['success' => true, 'contractVersion' => 'bot-commerce-v2', 'items' => $items];
 }
+
+
+require_once __DIR__ . '/bot_cart_payments.php';

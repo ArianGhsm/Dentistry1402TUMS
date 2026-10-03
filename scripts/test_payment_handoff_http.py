@@ -240,6 +240,98 @@ def main():
                     for p in FakeGateway.requests if "callbackUrl" in p
                 )
 
+                cart_refs = ["cart_fixture_product_one", "cart_fixture_product_two"]
+                cart_payload = dict(
+                    action="createBotCartPayment",
+                    contractVersion="bot-commerce-v2",
+                    platform="telegram",
+                    platformUserId="654321",
+                    requestId=hashlib.sha256(b"cart-fixture").hexdigest(),
+                    items=[
+                        {
+                            "itemKey": "offer:" + cart_refs[0],
+                            "kind": "offer",
+                            "offerRef": cart_refs[0],
+                            "title": "Cart product one",
+                            "description": "Synthetic cart line",
+                            "amountRials": 120000,
+                            "productVersion": 1,
+                            "capacity": 0,
+                            "maxPurchasesPerUser": 1,
+                            "fulfillment": {},
+                        },
+                        {
+                            "itemKey": "offer:" + cart_refs[1],
+                            "kind": "offer",
+                            "offerRef": cart_refs[1],
+                            "title": "Cart product two",
+                            "description": "Synthetic cart line",
+                            "amountRials": 180000,
+                            "productVersion": 1,
+                            "capacity": 0,
+                            "maxPurchasesPerUser": 1,
+                            "fulfillment": {},
+                        },
+                    ],
+                    discount={
+                        "code": "DENTTEST1",
+                        "kind": "percent",
+                        "amount": 10,
+                        "minSubtotalRials": 100000,
+                        "maxUses": 2,
+                        "expiresAt": "",
+                    },
+                )
+                cart_created = request(endpoint, secret, cart_payload)
+                assert cart_created["status"] == 200, cart_created
+                cart_value = cart_created["payload"]
+                assert cart_value["subtotalRials"] == 300000, cart_value
+                assert cart_value["discountAmountRials"] == 30000, cart_value
+                assert cart_value["amountRials"] == 270000, cart_value
+                assert len(cart_value["cartItems"]) == 2, cart_value
+                provider_count = len(FakeGateway.requests)
+                cart_duplicate = request(endpoint, secret, cart_payload)
+                assert cart_duplicate["status"] == 200, cart_duplicate
+                assert len(FakeGateway.requests) == provider_count, "duplicate cart checkout contacted provider"
+                assert cart_duplicate["payload"]["orderToken"] == cart_value["orderToken"]
+                created_orders.append(("telegram", cart_value["orderToken"]))
+
+                cart_states = request(
+                    endpoint,
+                    secret,
+                    dict(
+                        action="paymentProductStatesV2",
+                        contractVersion="bot-commerce-v2",
+                        platform="telegram",
+                        platformUserId="654321",
+                        offerRefs=cart_refs,
+                    ),
+                )
+                assert cart_states["status"] == 200, cart_states
+                for ref in cart_refs:
+                    state = cart_states["payload"]["states"][ref]
+                    assert state["pendingCount"] == 1 and state["reservedCount"] == 1, state
+
+                standalone_blocked = request(
+                    endpoint,
+                    secret,
+                    dict(
+                        action="createBotPayment",
+                        contractVersion="bot-commerce-v2",
+                        platform="telegram",
+                        platformUserId="654321",
+                        offerRef=cart_refs[0],
+                        title="Same product outside cart",
+                        amountRials=120000,
+                        requestId=hashlib.sha256(b"cart-standalone-conflict").hexdigest(),
+                        maxPurchasesPerUser=1,
+                    ),
+                )
+                assert standalone_blocked["status"] == 409, standalone_blocked
+                assert standalone_blocked["payload"].get("code") == "PRODUCT_PURCHASE_LIMIT_REACHED", standalone_blocked
+                assert len(FakeGateway.requests) == provider_count, "cart reservation was bypassed"
+                print("cart checkout + discount + idempotency + shared reservation accounting passed")
+
                 # Provider resolution must fail closed when a managed store has
                 # no unique enabled/configured Zibal record. These requests
                 # must not reach the fake provider.
@@ -253,7 +345,7 @@ def main():
                     amountRials=200000, callbackToken="a" * 32))
                 assert ambiguous["status"] == 503, ambiguous
                 assert ambiguous["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_AMBIGUOUS", ambiguous
-                assert len(FakeGateway.requests) == 7, "ambiguous gateway selection contacted provider"
+                assert len(FakeGateway.requests) == 8, "ambiguous gateway selection contacted provider"
 
                 for gateway_record in payment_store["gateways"]:
                     gateway_record["is_enabled"] = False
@@ -263,7 +355,7 @@ def main():
                     amountRials=200000, callbackToken="b" * 32))
                 assert unavailable["status"] == 503, unavailable
                 assert unavailable["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_UNAVAILABLE", unavailable
-                assert len(FakeGateway.requests) == 7, "unavailable gateway selection contacted provider"
+                assert len(FakeGateway.requests) == 8, "unavailable gateway selection contacted provider"
                 no_redirect = build_opener(ProxyHandler({}), NoRedirect())
                 for platform, token in created_orders:
                     try:

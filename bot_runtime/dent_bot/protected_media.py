@@ -184,6 +184,89 @@ class ProtectedMediaDispatcher:
         source = self.state.paid_file_asset_by_id(int(asset_id))
         return self._enqueue_source(user_id, asset_id, source, source_type="paid_file")
 
+    def enqueue_batch(self, user_id: int, requests: list[tuple[str, int]]) -> list[str]:
+        """Queue a verified purchase batch in stable order using the existing bounded queue.
+
+        This path keeps the same authorization, deduplication and cooldown checks, but raises
+        the per-window request ceiling only for this already-paid internal batch so a cart
+        containing many files is not truncated by the interactive tap limiter.
+        """
+        user_id = int(user_id)
+        statuses = ["missing"] * len(requests)
+        candidates: list[tuple[int, int, str, dict, str]] = []
+        seen_documents: set[str] = set()
+
+        for index, raw in enumerate(requests[:100]):
+            source_type = str(raw[0] or "")
+            source_id = int(raw[1])
+            source = (
+                self.state.paid_file_asset_by_id(source_id)
+                if source_type == "paid_file"
+                else self.state.protected_media_source(source_id)
+            )
+            if source is None:
+                statuses[index] = "missing"
+                continue
+            if not self.authorize(user_id, source):
+                statuses[index] = "denied"
+                continue
+            document_id = self._document_id(source)
+            if document_id in seen_documents:
+                statuses[index] = "duplicate"
+                continue
+            seen_documents.add(document_id)
+            candidates.append((index, source_id, source_type, source, document_id))
+
+        with self._lock:
+            available = max(0, self.queue.maxsize - self.queue.qsize())
+            batch_limit = max(self.rate_max_requests, min(100, len(candidates) + 20))
+            enqueued = 0
+            for index, source_id, source_type, source, document_id in candidates:
+                key = (user_id, document_id, WATERMARK_VERSION)
+                if key in self._pending:
+                    statuses[index] = "duplicate"
+                    continue
+                if enqueued >= available:
+                    statuses[index] = "full"
+                    continue
+                claim = self.state.claim_booklet_request(
+                    user_id,
+                    document_id,
+                    now_epoch=int(time.time()),
+                    window_seconds=self.rate_window_seconds,
+                    max_requests=batch_limit,
+                    cooldown_seconds=self.same_document_cooldown_seconds,
+                )
+                if claim != "claimed":
+                    statuses[index] = claim
+                    continue
+                try:
+                    self.queue.put_nowait(
+                        DeliveryJob(
+                            user_id,
+                            source_id,
+                            document_id,
+                            time.monotonic(),
+                            source_type=source_type,
+                        )
+                    )
+                except queue.Full:
+                    statuses[index] = "full"
+                    continue
+                self._pending.add(key)
+                statuses[index] = "queued"
+                enqueued += 1
+
+        if any(status == "queued" for status in statuses):
+            logging.info(
+                "protected media batch queued user=%s requested=%s queued=%s queue_depth=%s",
+                user_id,
+                len(requests),
+                sum(status == "queued" for status in statuses),
+                self.queue.qsize(),
+            )
+        return statuses
+
     def _enqueue_source(
         self,
         user_id: int,

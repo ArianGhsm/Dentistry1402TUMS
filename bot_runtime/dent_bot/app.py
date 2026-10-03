@@ -16,6 +16,7 @@ from .payments import identity_from_account
 from .payment_app_workflows import PaymentAppWorkflows
 from .app_shell_screens import home, section
 from .booklet_app_workflows import BookletAppWorkflows
+from .cart_app_workflows import CartAppWorkflows
 from .dialog_app_workflows import DialogAppWorkflows
 from .dynamic_screen_workflows import DynamicScreenWorkflows
 from .message_frames import frame_error
@@ -99,7 +100,7 @@ from .onboarding import (
 
 
 
-class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows):
+class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows):
     def __init__(
         self,
         api: TelegramBotApi,
@@ -169,16 +170,25 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
     def _screen(self, name: str, user_id: int) -> Screen:
         is_owner = user_id == self.owner_id
         has_products = False
-        if name == "home" and not is_owner:
+        cart_count = 0
+        if name == "home":
+            if not is_owner:
+                try:
+                    has_products = bool(self._eligible_products(user_id))
+                except SiteApiError:
+                    has_products = False
             try:
-                has_products = bool(self._eligible_products(user_id))
-            except SiteApiError:
-                has_products = False
+                identity, _account = self._cart_identity(user_id)
+                if identity is not None:
+                    cart_count = len(self.state.commerce_cart(identity.subject_key).get("items", []))
+            except (SiteApiError, AttributeError, TypeError, ValueError):
+                cart_count = 0
         return home(
             self.site_url,
             is_owner=is_owner,
             student_assistant_enabled=self.student_assistant_v1_enabled,
             has_products=has_products,
+            cart_count=cart_count,
         ) if name == "home" else section(name, self.site_url, is_owner=is_owner)
 
     def _private_access_gate(self, user_id: int) -> Screen | None:
@@ -262,6 +272,8 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
             "payment-audience-new", "payment-transaction-filters", "payment-tx-clear", "payment-tx-product",
             "payment-audience-search", "payment-audience-search-more", "payment-audience-selection-save",
             "term-subscription", "term-access-policies", "term-access-policy-add",
+            "cart", "cart-checkout", "cart-discount", "cart-discount-remove",
+            "discount-codes", "discount-new",
         }
         prefixes = (
             "profile-edit-field:", "profile-edit-approve:", "profile-edit-reject:",
@@ -280,6 +292,8 @@ class DentBotApp(BookletAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows
             "notification-action:", "notification-read:", "notification:",
             "notification-audience:", "assistant-action:", "exam-action:",
             "term-subscription:", "term-subscription-buy:", "term-subscription-info:",
+            "cart-add:", "cart-add-ai:", "cart-add-subscription:", "cart-remove:", "cart-clear:",
+            "cart-deliver:", "discount-new-kind:", "discount-toggle:",
             "term-subscription-admin:", "term-subscription-settings:", "term-subscription-price:",
             "term-subscription-start:",
             "term-subscription-toggle:", "term-subscription-mode:", "term-subscription-reminders:",

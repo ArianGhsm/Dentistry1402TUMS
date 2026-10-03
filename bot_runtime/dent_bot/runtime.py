@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 from .api import BotApiError
 from .academic_term7_rich import decorate_academic_notification_screen
 from .classops_runtime import run_classops_background_loop
+from .cart import cart_media_requests
 from .daily_content_digest import (
     DIGEST_HOUR,
     DIGEST_TIMEZONE,
@@ -175,7 +176,7 @@ def dispatch_account_disconnect_batch(*, settings, api, state: BotState, site_ap
     return counts
 
 
-def dispatch_payment_result_batch(*, settings, api, state: BotState, site_api: SiteApiClient) -> dict[str, int]:
+def dispatch_payment_result_batch(*, settings, api, state: BotState, site_api: SiteApiClient, media_dispatcher=None) -> dict[str, int]:
     """Deliver canonical verified-success receipts only on the originating platform."""
     counts = {"claimed": 0, "sent": 0, "acknowledged": 0, "failed": 0, "activated": 0}
     if not bool(getattr(settings, "payment_result_push_enabled", False)):
@@ -209,7 +210,94 @@ def dispatch_payment_result_batch(*, settings, api, state: BotState, site_api: S
                 acknowledgements.append({"deliveryId": delivery_id, "delivered": False, "reasonCode": "INVALID_DELIVERY"})
             continue
         delivery_kind = str(delivery.get("deliveryKind") or "user")
-        ai_checkout = state.ai_booklet_checkout_by_order(order_token)
+        ai_checkout = None
+        cart_checkout = state.commerce_cart_checkout_by_order(order_token)
+        if cart_checkout is not None and delivery_kind == "owner":
+            cart_checkout = None
+        if cart_checkout is not None:
+            cart_valid = (
+                str(cart_checkout.get("platform") or "") == str(settings.platform)
+                and str(order.get("verifiedAt") or "").strip() != ""
+                and int(order.get("amountRials") or 0) == int(cart_checkout.get("amountRials") or -1)
+                and int(cart_checkout.get("platformUserId") or 0) == chat_id
+            )
+            if not cart_valid:
+                counts["failed"] += 1
+                acknowledgements.append({
+                    "deliveryId": delivery_id,
+                    "delivered": False,
+                    "reasonCode": "INVALID_DELIVERY",
+                })
+                continue
+            try:
+                activated = state.activate_commerce_cart_checkout(
+                    order_token=order_token,
+                    delivery_id=delivery_id,
+                    platform=str(cart_checkout["platform"]),
+                    platform_user_id=int(cart_checkout["platformUserId"]),
+                    amount_rials=int(order["amountRials"]),
+                    verified_at=str(order["verifiedAt"]),
+                    payment_order_ref=str(order.get("orderId") or order.get("trackingRef") or ""),
+                )
+                counts["activated"] += 1
+                cart_items = [
+                    dict(item) for item in activated.get("items", []) if isinstance(item, dict)
+                ]
+                jobs = cart_media_requests(state, cart_items)
+                statuses: list[str] = []
+                if jobs and media_dispatcher is not None and str(settings.platform) == "telegram":
+                    statuses = media_dispatcher.enqueue_batch(
+                        chat_id,
+                        [(source_type, source_id) for _item_key, source_type, source_id in jobs],
+                    )
+                    grouped: dict[str, list[str]] = {}
+                    for (item_key, _source_type, _source_id), job_status in zip(jobs, statuses):
+                        grouped.setdefault(item_key, []).append(job_status)
+                    for item_key, item_statuses in grouped.items():
+                        state.mark_commerce_cart_fulfillment(
+                            order_token,
+                            item_key,
+                            kind="media",
+                            status=(
+                                "queued"
+                                if any(job_status in {"queued", "duplicate"} for job_status in item_statuses)
+                                else "activated"
+                            ),
+                            detail={
+                                "queued": sum(job_status == "queued" for job_status in item_statuses),
+                                "duplicate": sum(job_status == "duplicate" for job_status in item_statuses),
+                                "full": sum(job_status == "full" for job_status in item_statuses),
+                            },
+                        )
+                queued = sum(job_status == "queued" for job_status in statuses)
+                deferred = sum(
+                    job_status in {"full", "rate-limited", "cooldown", "missing", "denied"}
+                    for job_status in statuses
+                )
+                order["cartItems"] = cart_items
+                order["fulfillment"] = {
+                    "kind": "cart",
+                    "text": (
+                        f"{to_persian_digits(queued)} فایل خریداری‌شده به‌صورت خودکار وارد صف امن شد."
+                        if queued and not deferred
+                        else (
+                            "دسترسی‌های سبد فعال شد؛ برای تکمیل ارسال فایل‌های باقی‌مانده از دکمهٔ زیر استفاده کن."
+                            if jobs
+                            else "همهٔ دسترسی‌های سبد خرید فعال شد."
+                        )
+                    ),
+                    **({"action": f"cart-deliver:{order_token}"} if jobs else {}),
+                }
+            except (TypeError, ValueError, RuntimeError):
+                counts["failed"] += 1
+                acknowledgements.append({
+                    "deliveryId": delivery_id,
+                    "delivered": False,
+                    "reasonCode": "INVALID_DELIVERY",
+                })
+                continue
+        else:
+            ai_checkout = state.ai_booklet_checkout_by_order(order_token)
         if ai_checkout is not None and delivery_kind == "owner":
             ai_checkout = None
         if ai_checkout is not None:
@@ -611,6 +699,7 @@ def run_service(*, settings, api, platform_name: str) -> int:
             "site_api": background_site_api,
             "platform_name": platform_name,
             "stop_event": stop_event,
+            "media_dispatcher": media_dispatcher,
         },
         name="dent-bot-background",
         daemon=True,
@@ -680,7 +769,7 @@ def _persist_completed_updates(
             state.save_offset(update_id + 1)
 
 
-def _run_background_tasks_core(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event) -> None:
+def _run_background_tasks_core(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event, media_dispatcher=None) -> None:
     next_account_disconnect_poll = 0.0
     next_notification_poll = 0.0
     next_payment_result_poll = 0.0
@@ -738,6 +827,7 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
                     api=api,
                     state=state,
                     site_api=site_api,
+                    media_dispatcher=media_dispatcher,
                 )
                 if payment_counts["claimed"]:
                     logging.info(
@@ -852,7 +942,7 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
         stop_event.wait(1)
 
 
-def _run_background_tasks(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event) -> None:
+def _run_background_tasks(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event, media_dispatcher=None) -> None:
     classops_background = threading.Thread(
         target=run_classops_background_loop,
         kwargs={
@@ -875,6 +965,7 @@ def _run_background_tasks(*, settings, api, state, site_api, platform_name: str,
             site_api=site_api,
             platform_name=platform_name,
             stop_event=stop_event,
+            media_dispatcher=media_dispatcher,
         )
     finally:
         stop_event.set()

@@ -431,10 +431,14 @@ def ai_booklet_purchase_screen(catalog: dict, course_key: str, session_no: int) 
         keyboard(
             [
                 button(
-                    f"💳 پرداخت {price}",
+                    f"⚡ خرید فوری · {price}",
                     action=f"booklet-ai-buy:{course_key}:{session_no}",
                     style="success",
-                )
+                ),
+                button(
+                    "🛒 افزودن به سبد",
+                    action=f"cart-add-ai:{course_key}:{session_no}",
+                ),
             ],
             [button("↩️ محتوای جلسه", action=f"booklet-session:{course_key}:{session_no}")],
             [button("🏠 منوی اصلی", action="home")],

@@ -282,6 +282,7 @@ function dent_bot_onboarding_status(string $platform, string $platformUserId): a
             'success' => true,
             'contractVersion' => 'bot-onboarding-v1',
             'complete' => is_array($profile),
+            'profileRef' => is_array($profile) ? $profileRef : '',
             'profile' => is_array($profile) ? dent_bot_onboarding_profile_public($profile) : null,
         ];
     });
