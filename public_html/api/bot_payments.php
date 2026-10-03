@@ -109,7 +109,8 @@ function dent_bot_payment_cart_items(array $order): array
         return [];
     }
     $items = [];
-    foreach (array_slice($raw, 0, 20) as $value) {
+    $lines = is_array($order['cart_items'] ?? null) ? array_values($order['cart_items']) : [];
+    foreach (array_slice($raw, 0, 50) as $index => $value) {
         if (!is_array($value)) {
             continue;
         }
@@ -120,12 +121,20 @@ function dent_bot_payment_cart_items(array $order): array
         if (preg_match('/^[A-Za-z0-9_-]{16,80}$/D', $offerRef) !== 1 || $itemKey === '' || $title === '' || $amount <= 0) {
             continue;
         }
+        $line = is_array($lines[$index] ?? null) ? $lines[$index] : [];
+        $lineDiscount = min($amount, max(0, (int) ($line['discount_amount'] ?? 0)));
+        $linePaid = min(
+            $amount,
+            max(0, (int) ($line['amount'] ?? max(0, $amount - $lineDiscount)))
+        );
         $item = [
             'itemKey' => $itemKey,
             'kind' => dent_clean_text((string) ($value['kind'] ?? 'offer'), 32),
             'offerRef' => $offerRef,
             'title' => $title,
             'amountRials' => $amount,
+            'discountAmountRials' => $lineDiscount,
+            'paidAmountRials' => $linePaid,
             'fulfillment' => dent_bot_payment_safe_fulfillment($value['fulfillment'] ?? []),
         ];
         foreach (['term', 'sessionNo'] as $integerKey) {

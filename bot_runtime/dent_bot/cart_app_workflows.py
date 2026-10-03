@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from .ai_booklets import AI_BOOKLET_CONTENT_KIND, AI_BOOKLET_PRICE_RIALS, ai_booklet_offer_ref
 from .booklets import course_by_key, session_by_number
 from .cart import (
+    ai_bulk_discount_summary,
     cart_checkout_request_id,
     cart_item_key,
     cart_media_requests,
@@ -125,6 +126,7 @@ class CartAppWorkflows:
         *,
         account: dict,
         commerce_identity,
+        booklet_catalog: dict | None = None,
     ) -> dict:
         kind = str(descriptor.get("kind") or "")
         key = cart_item_key(descriptor)
@@ -166,7 +168,7 @@ class CartAppWorkflows:
                     "available": False,
                     "reason": "تحویل جزوه هوش مصنوعی فقط در تلگرام انجام می‌شود.",
                 }
-            catalog = self._booklet_catalog(user_id)
+            catalog = booklet_catalog if isinstance(booklet_catalog, dict) else self._booklet_catalog(user_id)
             term = int(descriptor.get("term") or catalog.get("term") or 7)
             course_key = str(descriptor.get("courseCode") or "")
             session_no = int(descriptor.get("sessionNo") or 0)
@@ -376,8 +378,11 @@ class CartAppWorkflows:
                 item["reason"] = "ظرفیت این محصول تکمیل شده است."
 
         subtotal = sum(int(item.get("amountRials") or 0) for item in items if item.get("available"))
+        automatic = ai_bulk_discount_summary(items)
+        automatic_discount = min(subtotal, int(automatic.get("amountRials") or 0))
+        after_automatic = max(0, subtotal - automatic_discount)
         discount_code = str(cart.get("discountCode") or "")
-        discount_amount = 0
+        coupon_discount = 0
         discount_valid = True
         discount_reason = ""
         discount = self.state.commerce_discount_code(discount_code) if discount_code else None
@@ -389,9 +394,10 @@ class CartAppWorkflows:
                 discount_valid = False
                 discount_reason = "جمع سبد به حداقل مبلغ این کد تخفیف نرسیده است."
             elif str(discount.get("kind") or "") == "percent":
-                discount_amount = subtotal * int(discount.get("amount") or 0) // 100
+                coupon_discount = after_automatic * int(discount.get("amount") or 0) // 100
             else:
-                discount_amount = min(subtotal, int(discount.get("amount") or 0))
+                coupon_discount = min(after_automatic, int(discount.get("amount") or 0))
+        discount_amount = min(subtotal, automatic_discount + coupon_discount)
 
         return {
             "identityMissing": False,
@@ -404,6 +410,10 @@ class CartAppWorkflows:
             "discountValid": discount_valid,
             "discountReason": discount_reason,
             "subtotalRials": subtotal,
+            "aiBookletCount": int(automatic.get("aiCount") or 0),
+            "automaticDiscountPercent": int(automatic.get("percent") or 0),
+            "automaticDiscountAmountRials": automatic_discount,
+            "couponDiscountAmountRials": coupon_discount,
             "discountAmountRials": discount_amount,
             "amountRials": max(0, subtotal - discount_amount),
         }
@@ -439,6 +449,42 @@ class CartAppWorkflows:
             item=descriptor,
         )
         return cart_added_screen(self._cart_snapshot(user_id), title=title)
+
+    def _create_commerce_checkout(
+        self,
+        user_id: int,
+        *,
+        identity,
+        checkout_items: list[dict],
+        request_id: str,
+        discount: dict | None = None,
+    ) -> dict:
+        if self.site_api is None:
+            raise SiteApiError("درگاه پرداخت در دسترس نیست.", code="SITE_UNAVAILABLE")
+        result = self.site_api.create_bot_cart_payment(
+            user_id,
+            items=checkout_items,
+            request_id=request_id,
+            discount=dict(discount or {}),
+        )
+        self.state.record_commerce_cart_checkout(
+            request_id=request_id,
+            order_token=str(result.get("orderToken") or ""),
+            platform=self.platform,
+            platform_user_id=user_id,
+            subject_key=identity.subject_key,
+            student_number=identity.student_number,
+            display_name=identity.display_name,
+            items=(
+                [dict(item) for item in result.get("cartItems", []) if isinstance(item, dict)]
+                or checkout_items
+            ),
+            subtotal_rials=int(result.get("subtotalRials") or 0),
+            discount_code=str(result.get("discountCode") or ""),
+            discount_amount_rials=int(result.get("discountAmountRials") or 0),
+            amount_rials=int(result.get("amountRials") or 0),
+        )
+        return result
 
     def _cart_checkout_screen(self, user_id: int) -> Screen:
         if self.site_api is None:
@@ -488,28 +534,12 @@ class CartAppWorkflows:
         )
         discount = dict(snapshot.get("discount") or {})
         try:
-            result = self.site_api.create_bot_cart_payment(
+            result = self._create_commerce_checkout(
                 user_id,
-                items=checkout_items,
+                identity=identity,
+                checkout_items=checkout_items,
                 request_id=request_id,
                 discount=discount,
-            )
-            self.state.record_commerce_cart_checkout(
-                request_id=request_id,
-                order_token=str(result.get("orderToken") or ""),
-                platform=self.platform,
-                platform_user_id=user_id,
-                subject_key=identity.subject_key,
-                student_number=identity.student_number,
-                display_name=identity.display_name,
-                items=(
-                    [dict(item) for item in result.get("cartItems", []) if isinstance(item, dict)]
-                    or checkout_items
-                ),
-                subtotal_rials=int(result.get("subtotalRials") or snapshot.get("subtotalRials") or 0),
-                discount_code=str(result.get("discountCode") or ""),
-                discount_amount_rials=int(result.get("discountAmountRials") or 0),
-                amount_rials=int(result.get("amountRials") or 0),
             )
             return payment_created_screen(
                 result,

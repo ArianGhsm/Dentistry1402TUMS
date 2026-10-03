@@ -9,6 +9,7 @@ from .ai_booklets import (
     AI_BOOKLET_PRICE_RIALS,
     AI_BOOKLET_SOURCE_TAG_KEY,
 )
+from .cart import ai_bulk_discount_percent, ai_bulk_discount_progress
 from .persian_datetime import to_persian_digits
 from .ui import Screen, button, format_rials, keyboard, native_rich_text
 
@@ -20,6 +21,7 @@ RESOURCE_LABELS = {
     "reference": "📘 رفرنس",
     AI_BOOKLET_CONTENT_KIND: "🤖 جزوه هوش مصنوعی",
 }
+AI_BULK_PAGE_SIZE = 8
 
 _ORDINALS = {
     1: "اول", 2: "دوم", 3: "سوم", 4: "چهارم", 5: "پنجم", 6: "ششم", 7: "هفتم",
@@ -325,7 +327,13 @@ def courses_screen(catalog: dict) -> Screen:
     )
 
 
-def sessions_screen(catalog: dict, course_key: str) -> Screen:
+def sessions_screen(
+    catalog: dict,
+    course_key: str,
+    *,
+    ai_published_sessions: set[int] | None = None,
+    ai_owned_sessions: set[int] | None = None,
+) -> Screen:
     course = course_by_key(catalog, course_key)
     if course is None:
         return Screen(
@@ -338,27 +346,79 @@ def sessions_screen(catalog: dict, course_key: str) -> Screen:
         if isinstance(item, dict) and 1 <= int(item.get("sessionNumber") or 0) <= 40
     ]
     sessions.sort(key=lambda item: int(item.get("sessionNumber") or 0))
-    rows = [
+    valid_session_numbers = {int(item["sessionNumber"]) for item in sessions}
+    published = {
+        int(value)
+        for value in (ai_published_sessions or set())
+        if int(value) in valid_session_numbers
+    }
+    owned = {
+        int(value)
+        for value in (ai_owned_sessions or set())
+        if int(value) in valid_session_numbers
+    }
+    purchasable = sorted(published - owned)
+
+    rows: list[list[dict]] = []
+    if purchasable:
+        rows.append([
+            button(
+                f"🤖 خرید همه جزوه‌های منتشرشده · {to_persian_digits(len(purchasable))}",
+                action=f"ai-all:{course_key}",
+                style="success",
+            )
+        ])
+        if len(purchasable) > 1:
+            rows.append([
+                button(
+                    "☑️ انتخاب چند جلسه برای خرید",
+                    action=f"ai-pick:{course_key}",
+                    style="primary",
+                )
+            ])
+
+    rows.extend([
         [button(
             f"{to_persian_digits(item['sessionNumber'])} · {_short(item.get('title') or 'بدون عنوان', 46)}",
             action=f"booklet-session:{course_key}:{int(item['sessionNumber'])}",
         )]
         for item in sessions
-    ]
+    ])
     rows.extend((
         [button("↩️ فهرست درس‌ها", action="notes")],
         [button("🏠 منوی اصلی", action="home")],
     ))
-    body = (
-        f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n"
-        f"<blockquote>تعداد جلسات: <b>{to_persian_digits(len(sessions))}</b> · منبع: طرح درس مشترک امور کلاس</blockquote>"
-        if sessions
-        else (
-            f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n"
+
+    body_lines = [f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>"]
+    if sessions:
+        body_lines.append(
+            f"<blockquote>تعداد جلسات: <b>{to_persian_digits(len(sessions))}</b> · "
+            "منبع: طرح درس مشترک امور کلاس</blockquote>"
+        )
+    else:
+        body_lines.append(
             "<blockquote>برای این واحد هنوز جلسهٔ شماره‌دار قابل استفاده‌ای در طرح درس مرجع ثبت نشده است.</blockquote>"
         )
+    if published:
+        if purchasable:
+            body_lines.append(
+                f"<blockquote>🤖 جزوه هوش مصنوعی منتشرشده و قابل خرید: "
+                f"<b>{to_persian_digits(len(purchasable))}</b> جلسه"
+                + (f" · خریداری‌شده: <b>{to_persian_digits(len(published & owned))}</b>" if published & owned else "")
+                + "</blockquote>"
+            )
+        else:
+            body_lines.append(
+                "<blockquote>✅ همهٔ جزوه‌های هوش مصنوعی منتشرشدهٔ این درس قبلاً برای حساب شما فعال شده‌اند.</blockquote>"
+            )
+        body_lines.append(
+            "<blockquote>🎁 خرید هم‌زمان ۱۱ تا ۱۵ جزوه: <b>۲۰٪</b> تخفیف · "
+            "از ۱۶ جزوه به بالا: <b>۳۰٪</b> تخفیف خودکار</blockquote>"
+        )
+    return Screen(
+        "<b><u>📚 جلسات درس</u></b>\n\n" + "\n".join(body_lines),
+        keyboard(*rows),
     )
-    return Screen("<b><u>📚 جلسات درس</u></b>\n\n" + body, keyboard(*rows))
 
 
 def resources_screen(
@@ -461,6 +521,128 @@ def resources_screen(
     return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard(*rows))
 
 
+def ai_booklet_bulk_selection_screen(
+    catalog: dict,
+    course_key: str,
+    *,
+    published_sessions: set[int],
+    owned_sessions: set[int],
+    selected_sessions: set[int],
+    page: int = 0,
+) -> Screen:
+    course = course_by_key(catalog, course_key)
+    if course is None:
+        return Screen(
+            "<b>⚠️ درس پیدا نشد</b>",
+            keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+        )
+    sessions = {
+        int(item.get("sessionNumber") or 0): dict(item)
+        for item in course.get("sessions", [])
+        if isinstance(item, dict) and 1 <= int(item.get("sessionNumber") or 0) <= 40
+    }
+    eligible = sorted(
+        number
+        for number in published_sessions
+        if number in sessions and number not in owned_sessions
+    )
+    selected = {number for number in selected_sessions if number in eligible}
+    if not eligible:
+        return Screen(
+            "<b><u>🤖 خرید گروهی جزوات هوش مصنوعی</u></b>\n\n"
+            f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n\n"
+            "<blockquote>جزوه هوش مصنوعی منتشرشده و قابل خریدی برای این درس باقی نمانده است.</blockquote>",
+            keyboard(
+                [button("↩️ جلسات درس", action=f"booklet-course:{course_key}")],
+                [button("🏠 منوی اصلی", action="home")],
+            ),
+        )
+
+    page_count = max(1, (len(eligible) + AI_BULK_PAGE_SIZE - 1) // AI_BULK_PAGE_SIZE)
+    current_page = min(max(0, int(page)), page_count - 1)
+    start = current_page * AI_BULK_PAGE_SIZE
+    visible = eligible[start:start + AI_BULK_PAGE_SIZE]
+
+    count = len(selected)
+    subtotal = count * AI_BOOKLET_PRICE_RIALS
+    percent = ai_bulk_discount_percent(count)
+    discount = subtotal * percent // 100
+    total = max(0, subtotal - discount)
+    progress = ai_bulk_discount_progress(count)
+
+    lines = [
+        "<b><u>🤖 خرید گروهی جزوات هوش مصنوعی</u></b>",
+        "",
+        f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>",
+        f"<blockquote>منتشرشده و قابل خرید: <b>{to_persian_digits(len(eligible))}</b> جلسه · "
+        f"انتخاب‌شده: <b>{to_persian_digits(count)}</b></blockquote>",
+    ]
+    if count:
+        lines.append(f"جمع: <code>{html.escape(format_rials(subtotal))}</code>")
+        if percent:
+            lines.append(
+                f"تخفیف خودکار {to_persian_digits(percent)}٪: "
+                f"<code>{html.escape(format_rials(discount))}</code>"
+            )
+        lines.append(f"<b>مبلغ نهایی: <code>{html.escape(format_rials(total))}</code></b>")
+    if percent >= 30:
+        lines.append("<blockquote>🎁 بیشترین تخفیف گروهی، یعنی <b>۳۰٪</b>، فعال است.</blockquote>")
+    elif percent:
+        lines.append(
+            f"<blockquote>🎁 تخفیف <b>{to_persian_digits(percent)}٪</b> فعال است · "
+            f"با انتخاب {to_persian_digits(progress['remaining'])} جزوه دیگر به "
+            f"<b>{to_persian_digits(progress['nextPercent'])}٪</b> می‌رسد.</blockquote>"
+        )
+    else:
+        lines.append(
+            "<blockquote>🎁 از ۱۱ جزوه: <b>۲۰٪</b> · از ۱۶ جزوه به بالا: "
+            "<b>۳۰٪</b> تخفیف خودکار</blockquote>"
+        )
+
+    rows: list[list[dict]] = []
+    for number in visible:
+        item = sessions[number]
+        marker = "✅" if number in selected else "◻️"
+        rows.append([
+            button(
+                f"{marker} {to_persian_digits(number)} · {_short(item.get('title') or 'بدون عنوان', 38)}",
+                action=f"ai-toggle:{number}",
+            )
+        ])
+
+    nav: list[dict] = []
+    if current_page > 0:
+        nav.append(button("‹ قبلی", action=f"ai-page:{current_page - 1}"))
+    nav.append(
+        button(
+            f"{to_persian_digits(current_page + 1)} / {to_persian_digits(page_count)}",
+            action=f"ai-page:{current_page}",
+        )
+    )
+    if current_page + 1 < page_count:
+        nav.append(button("بعدی ›", action=f"ai-page:{current_page + 1}"))
+    if page_count > 1:
+        rows.append(nav)
+
+    rows.append([
+        button("✅ انتخاب همه", action="ai-select-all"),
+        button("⬜ پاک‌کردن انتخاب", action="ai-select-none"),
+    ])
+    if selected:
+        rows.append([
+            button(
+                f"💳 خرید {to_persian_digits(count)} جزوه · {to_persian_digits(format_rials(total))}",
+                action="ai-checkout",
+                style="success",
+            )
+        ])
+    rows.extend((
+        [button("↩️ جلسات درس", action=f"booklet-course:{course_key}")],
+        [button("🏠 منوی اصلی", action="home")],
+    ))
+    return Screen("\n".join(lines), keyboard(*rows))
+
+
 def ai_booklet_purchase_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
     course = course_by_key(catalog, course_key)
     session = session_by_number(course or {}, session_no) if course is not None else None
@@ -479,7 +661,9 @@ def ai_booklet_purchase_screen(catalog: dict, course_key: str, session_no: int) 
         f"<blockquote>💳 هزینهٔ این جزوه: <code>{price}</code>\n"
         "🔐 تحویل: نسخهٔ محافظت‌شده و شخصی‌سازی‌شده</blockquote>\n\n"
         "این خرید فقط جزوه هوش مصنوعی همین جلسه را فعال می‌کند و از اشتراک "
-        "جزوات و سیستم جزوه‌نویسی مستقل است.",
+        "جزوات و سیستم جزوه‌نویسی مستقل است.\n\n"
+        "<blockquote>🎁 اگر چند جزوه را باهم بخری: از ۱۱ جزوه <b>۲۰٪</b> و "
+        "از ۱۶ جزوه به بالا <b>۳۰٪</b> تخفیف خودکار می‌گیری.</blockquote>",
         keyboard(
             [
                 button(
@@ -491,6 +675,13 @@ def ai_booklet_purchase_screen(catalog: dict, course_key: str, session_no: int) 
                     "🛒 افزودن به سبد",
                     action=f"cart-add-ai:{course_key}:{session_no}",
                 ),
+            ],
+            [
+                button(
+                    "☑️ جلسات دیگر را هم می‌خواهم",
+                    action=f"ai-more:{course_key}:{session_no}",
+                    style="primary",
+                )
             ],
             [button("↩️ محتوای جلسه", action=f"booklet-session:{course_key}:{session_no}")],
             [button("🏠 منوی اصلی", action="home")],

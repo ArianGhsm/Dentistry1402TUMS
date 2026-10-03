@@ -4,7 +4,7 @@ declare(strict_types=1);
 /** @return list<array<string,mixed>> */
 function dent_bot_payment_normalize_cart_checkout_items($value): array
 {
-    if (!is_array($value) || $value === [] || count($value) > 20) {
+    if (!is_array($value) || $value === [] || count($value) > 50) {
         dent_error('سبد خرید معتبر نیست.', 422, ['code' => 'BOT_CART_INVALID']);
     }
 
@@ -76,87 +76,163 @@ function dent_bot_payment_normalize_cart_checkout_items($value): array
     return $items;
 }
 
-function dent_bot_payment_cart_discount(array $payload, int $subtotal, array $orders): array
+function dent_bot_payment_ai_bulk_discount(array $items): array
 {
-    $raw = is_array($payload['discount'] ?? null) ? $payload['discount'] : [];
-    if ($raw === []) {
-        return ['code' => '', 'amount' => 0, 'snapshot' => []];
-    }
-
-    $code = strtoupper(preg_replace('/\s+/', '', (string) ($raw['code'] ?? '')) ?? '');
-    $kind = strtolower(trim((string) ($raw['kind'] ?? '')));
-    $value = max(0, (int) ($raw['amount'] ?? 0));
-    $minimum = max(0, (int) ($raw['minSubtotalRials'] ?? 0));
-    $maxUses = max(0, min(1000000, (int) ($raw['maxUses'] ?? 0)));
-    $expiresAt = dent_bot_payment_iso((string) ($raw['expiresAt'] ?? ''));
-
-    if (preg_match('/^[A-Z0-9][A-Z0-9_-]{3,23}$/D', $code) !== 1
-        || !in_array($kind, ['percent', 'fixed'], true)
-        || ($kind === 'percent' && ($value < 1 || $value > 90))
-        || ($kind === 'fixed' && $value < 10000)
-        || $subtotal < $minimum
-        || ($expiresAt !== '' && (int) strtotime($expiresAt) <= time())) {
-        dent_error('کد تخفیف برای این سبد معتبر نیست.', 409, ['code' => 'DISCOUNT_CODE_INVALID']);
-    }
-
-    if ($maxUses > 0) {
-        $used = 0;
-        foreach ($orders as $order) {
-            if (!is_array($order) || !dent_bot_payment_is_offer_order($order)) {
-                continue;
-            }
-            if (!hash_equals((string) ($order['discount_code'] ?? ''), $code)) {
-                continue;
-            }
-            $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
-            if ($status === PAYMENTS_ORDER_STATUS_SUCCESS
-                || ($status === PAYMENTS_ORDER_STATUS_PENDING && dent_bot_payment_pending_reserves_slot($order))) {
-                $used++;
-            }
+    $count = 0;
+    $subtotal = 0;
+    foreach ($items as $item) {
+        if (!is_array($item) || (string) ($item['kind'] ?? '') !== 'ai_booklet') {
+            continue;
         }
-        if ($used >= $maxUses) {
-            dent_error('ظرفیت استفاده از این کد تخفیف تکمیل شده است.', 409, ['code' => 'DISCOUNT_USAGE_LIMIT_REACHED']);
-        }
+        $count++;
+        $subtotal += max(0, (int) ($item['amountRials'] ?? 0));
     }
-
-    $discount = $kind === 'percent'
-        ? intdiv($subtotal * $value, 100)
-        : min($subtotal, $value);
-    if ($subtotal - $discount < 10000) {
-        dent_error('مبلغ نهایی پس از تخفیف برای درگاه معتبر نیست.', 409, ['code' => 'DISCOUNT_AMOUNT_INVALID']);
-    }
-
+    $percent = $count >= 16 ? 30 : ($count >= 11 ? 20 : 0);
     return [
-        'code' => $code,
-        'amount' => $discount,
-        'snapshot' => [
+        'count' => $count,
+        'subtotal' => $subtotal,
+        'percent' => $percent,
+        'amount' => $percent > 0 ? intdiv($subtotal * $percent, 100) : 0,
+    ];
+}
+
+function dent_bot_payment_cart_discount(array $payload, array $items, int $subtotal, array $orders): array
+{
+    $automatic = dent_bot_payment_ai_bulk_discount($items);
+    $automaticAmount = min($subtotal, max(0, (int) ($automatic['amount'] ?? 0)));
+    $discountableAfterAutomatic = max(0, $subtotal - $automaticAmount);
+    $raw = is_array($payload['discount'] ?? null) ? $payload['discount'] : [];
+
+    $code = '';
+    $couponAmount = 0;
+    $couponSnapshot = [];
+    if ($raw !== []) {
+        $code = strtoupper(preg_replace('/\s+/', '', (string) ($raw['code'] ?? '')) ?? '');
+        $kind = strtolower(trim((string) ($raw['kind'] ?? '')));
+        $value = max(0, (int) ($raw['amount'] ?? 0));
+        $minimum = max(0, (int) ($raw['minSubtotalRials'] ?? 0));
+        $maxUses = max(0, min(1000000, (int) ($raw['maxUses'] ?? 0)));
+        $expiresAt = dent_bot_payment_iso((string) ($raw['expiresAt'] ?? ''));
+
+        if (preg_match('/^[A-Z0-9][A-Z0-9_-]{3,23}$/D', $code) !== 1
+            || !in_array($kind, ['percent', 'fixed'], true)
+            || ($kind === 'percent' && ($value < 1 || $value > 90))
+            || ($kind === 'fixed' && $value < 10000)
+            || $subtotal < $minimum
+            || ($expiresAt !== '' && (int) strtotime($expiresAt) <= time())) {
+            dent_error('کد تخفیف برای این سبد معتبر نیست.', 409, ['code' => 'DISCOUNT_CODE_INVALID']);
+        }
+
+        if ($maxUses > 0) {
+            $used = 0;
+            foreach ($orders as $order) {
+                if (!is_array($order) || !dent_bot_payment_is_offer_order($order)) {
+                    continue;
+                }
+                if (!hash_equals((string) ($order['discount_code'] ?? ''), $code)) {
+                    continue;
+                }
+                $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
+                if ($status === PAYMENTS_ORDER_STATUS_SUCCESS
+                    || ($status === PAYMENTS_ORDER_STATUS_PENDING && dent_bot_payment_pending_reserves_slot($order))) {
+                    $used++;
+                }
+            }
+            if ($used >= $maxUses) {
+                dent_error('ظرفیت استفاده از این کد تخفیف تکمیل شده است.', 409, ['code' => 'DISCOUNT_USAGE_LIMIT_REACHED']);
+            }
+        }
+
+        $couponAmount = $kind === 'percent'
+            ? intdiv($discountableAfterAutomatic * $value, 100)
+            : min($discountableAfterAutomatic, $value);
+        $couponSnapshot = [
             'code' => $code,
             'kind' => $kind,
             'amount' => $value,
             'minSubtotalRials' => $minimum,
             'maxUses' => $maxUses,
             'expiresAt' => $expiresAt,
+        ];
+    }
+
+    $totalDiscount = min($subtotal, $automaticAmount + $couponAmount);
+    if ($subtotal - $totalDiscount < 10000) {
+        dent_error('مبلغ نهایی پس از تخفیف برای درگاه معتبر نیست.', 409, ['code' => 'DISCOUNT_AMOUNT_INVALID']);
+    }
+
+    return [
+        'code' => $code,
+        'amount' => $totalDiscount,
+        'automaticAmount' => $automaticAmount,
+        'automaticPercent' => (int) ($automatic['percent'] ?? 0),
+        'automaticCount' => (int) ($automatic['count'] ?? 0),
+        'couponAmount' => $couponAmount,
+        'snapshot' => [
+            'automaticAi' => [
+                'count' => (int) ($automatic['count'] ?? 0),
+                'subtotalRials' => (int) ($automatic['subtotal'] ?? 0),
+                'percent' => (int) ($automatic['percent'] ?? 0),
+                'amountRials' => $automaticAmount,
+            ],
+            'coupon' => $couponSnapshot,
         ],
     ];
 }
 
 /** @return list<array<string,mixed>> */
-function dent_bot_payment_cart_order_lines(array $items, int $discountAmount): array
+function dent_bot_payment_cart_order_lines(array $items, array $discount): array
 {
-    $subtotal = array_sum(array_map(
-        static fn(array $item): int => (int) ($item['amountRials'] ?? 0),
+    $count = count($items);
+    $lineSubtotals = array_map(
+        static fn(array $item): int => max(0, (int) ($item['amountRials'] ?? 0)),
         $items
-    ));
-    $remaining = max(0, $discountAmount);
-    $last = count($items) - 1;
-    $lines = [];
+    );
+    $lineDiscounts = array_fill(0, $count, 0);
 
+    $automaticAmount = max(0, (int) ($discount['automaticAmount'] ?? 0));
+    $aiIndices = [];
+    $aiSubtotal = 0;
     foreach ($items as $index => $item) {
-        $lineSubtotal = max(0, (int) ($item['amountRials'] ?? 0));
-        $lineDiscount = $index === $last
-            ? min($lineSubtotal, $remaining)
-            : min($lineSubtotal, $subtotal > 0 ? intdiv($discountAmount * $lineSubtotal, $subtotal) : 0);
-        $remaining -= $lineDiscount;
+        if ((string) ($item['kind'] ?? '') !== 'ai_booklet') {
+            continue;
+        }
+        $aiIndices[] = $index;
+        $aiSubtotal += $lineSubtotals[$index];
+    }
+    $remainingAutomatic = $automaticAmount;
+    $lastAi = $aiIndices === [] ? -1 : $aiIndices[count($aiIndices) - 1];
+    foreach ($aiIndices as $index) {
+        $share = $index === $lastAi
+            ? min($lineSubtotals[$index], $remainingAutomatic)
+            : min(
+                $lineSubtotals[$index],
+                $aiSubtotal > 0 ? intdiv($automaticAmount * $lineSubtotals[$index], $aiSubtotal) : 0
+            );
+        $lineDiscounts[$index] += $share;
+        $remainingAutomatic -= $share;
+    }
+
+    $couponAmount = max(0, (int) ($discount['couponAmount'] ?? 0));
+    $postAutomaticSubtotal = max(0, array_sum($lineSubtotals) - $automaticAmount);
+    $remainingCoupon = $couponAmount;
+    $last = $count - 1;
+    foreach ($items as $index => $_item) {
+        $lineBase = max(0, $lineSubtotals[$index] - $lineDiscounts[$index]);
+        $share = $index === $last
+            ? min($lineBase, $remainingCoupon)
+            : min(
+                $lineBase,
+                $postAutomaticSubtotal > 0 ? intdiv($couponAmount * $lineBase, $postAutomaticSubtotal) : 0
+            );
+        $lineDiscounts[$index] += $share;
+        $remainingCoupon -= $share;
+    }
+
+    $lines = [];
+    foreach ($items as $index => $item) {
+        $lineSubtotal = $lineSubtotals[$index];
+        $lineDiscount = min($lineSubtotal, max(0, $lineDiscounts[$index]));
         $lines[] = [
             'item_id' => 0,
             'slug' => (string) ($item['offerRef'] ?? ''),
@@ -285,7 +361,7 @@ function dent_bot_create_cart_payment(array $user, string $platform, string $pla
             }
         }
 
-        $discount = dent_bot_payment_cart_discount($payload, $subtotal, $orders);
+        $discount = dent_bot_payment_cart_discount($payload, $items, $subtotal, $orders);
         if (is_array($existing)) {
             if ((string) ($existing['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS) {
                 return ['existing' => $existing];
@@ -326,7 +402,7 @@ function dent_bot_create_cart_payment(array $user, string $platform, string $pla
                     JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                 ) ?: '{}',
             ],
-            'cart_items' => dent_bot_payment_cart_order_lines($items, (int) $discount['amount']),
+            'cart_items' => dent_bot_payment_cart_order_lines($items, $discount),
             'quantity' => count($items),
             'unit_price' => $subtotal,
             'subtotal' => $subtotal,

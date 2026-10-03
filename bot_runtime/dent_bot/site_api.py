@@ -350,7 +350,7 @@ class SiteApiClient:
             "createBotCartPayment",
             user_id,
             contractVersion="bot-commerce-v2",
-            items=[dict(item) for item in items[:20]],
+            items=[dict(item) for item in items[:50]],
             requestId=request_id,
             discount=dict(discount or {}),
         )

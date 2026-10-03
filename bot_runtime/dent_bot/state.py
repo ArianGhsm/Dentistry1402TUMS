@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .ai_booklets import AI_BOOKLET_PRICE_RIALS, ai_booklet_offer_ref
-from .cart import CART_MAX_ITEMS, cart_item_key, normalize_cart_item, normalize_discount_code
+from .cart import CHECKOUT_MAX_ITEMS, CART_MAX_ITEMS, cart_item_key, normalize_cart_item, normalize_discount_code
 from .payments import effective_status, iso_utc, normalize_audience, normalize_student_number, product_eligibility
 from .subscriptions import (
     DEFAULT_ACTIVE_FROM_JALALI,
@@ -269,6 +269,7 @@ CREATE TABLE IF NOT EXISTS ai_booklet_entitlements (
     course_tag TEXT NOT NULL DEFAULT '',
     session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),
     amount_rials INTEGER NOT NULL CHECK(amount_rials >= 10000),
+    paid_amount_rials INTEGER NOT NULL DEFAULT -1 CHECK(paid_amount_rials >= -1),
     granted_at TEXT NOT NULL,
     payment_order_token TEXT NOT NULL UNIQUE,
     payment_order_ref TEXT NOT NULL DEFAULT '',
@@ -384,6 +385,21 @@ def _migrate_payment_schema(connection: sqlite3.Connection) -> None:
         connection.rollback()
         raise
     connection.executescript(PAYMENT_OFFERS_SCHEMA)
+    connection.commit()
+
+
+def _migrate_ai_booklet_pricing_schema(connection: sqlite3.Connection) -> None:
+    columns = {
+        str(row[1])
+        for row in connection.execute("PRAGMA table_info(ai_booklet_entitlements)")
+    }
+    if not columns or "paid_amount_rials" in columns:
+        return
+    connection.execute(
+        "ALTER TABLE ai_booklet_entitlements "
+        "ADD COLUMN paid_amount_rials INTEGER NOT NULL DEFAULT -1 "
+        "CHECK(paid_amount_rials >= -1)"
+    )
     connection.commit()
 
 
@@ -577,6 +593,7 @@ class BotState:
         self.connection.commit()
         _migrate_protected_media_schema(self.connection)
         _migrate_payment_schema(self.connection)
+        _migrate_ai_booklet_pricing_schema(self.connection)
         self._payment_connection_owned = payment_offers_path is not None and payment_offers_path != path
         if self._payment_connection_owned:
             assert payment_offers_path is not None
@@ -585,6 +602,7 @@ class BotState:
             self.payment_connection.execute("PRAGMA journal_mode=WAL")
             self.payment_connection.execute("PRAGMA busy_timeout=10000")
             _migrate_payment_schema(self.payment_connection)
+            _migrate_ai_booklet_pricing_schema(self.payment_connection)
         else:
             self.payment_connection = self.connection
         self._ensure_default_term_access_policy()
@@ -1187,6 +1205,21 @@ class BotState:
             ).fetchone()
         return self._ai_booklet_entitlement_payload(row)
 
+    def ai_booklet_entitled_sessions(
+        self,
+        subject_key: str,
+        *,
+        term: int,
+        course_code: str,
+    ) -> set[int]:
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT session_no FROM ai_booklet_entitlements "
+                "WHERE subject_key=? AND term=? AND course_code=? ORDER BY session_no",
+                (str(subject_key), int(term), str(course_code)),
+            ).fetchall()
+        return {int(row[0]) for row in rows if 1 <= int(row[0]) <= 40}
+
     def has_ai_booklet_access(
         self,
         subject_key: str,
@@ -1246,13 +1279,13 @@ class BotState:
                 self.payment_connection.execute(
                     "INSERT OR IGNORE INTO ai_booklet_entitlements("
                     "subject_key,student_number,display_name,term,course_code,course_tag,session_no,"
-                    "amount_rials,granted_at,payment_order_token,payment_order_ref) "
-                    "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                    "amount_rials,paid_amount_rials,granted_at,payment_order_token,payment_order_ref) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         checkout["subjectKey"], checkout["studentNumber"], checkout["displayName"],
                         checkout["term"], checkout["courseCode"], checkout["courseTag"],
-                        checkout["sessionNo"], AI_BOOKLET_PRICE_RIALS, verified, str(order_token),
-                        str(payment_order_ref)[:80],
+                        checkout["sessionNo"], AI_BOOKLET_PRICE_RIALS, AI_BOOKLET_PRICE_RIALS,
+                        verified, str(order_token), str(payment_order_ref)[:80],
                     ),
                 )
                 row = self.payment_connection.execute(
@@ -1758,22 +1791,26 @@ class BotState:
         end = utc_iso(period.expires_at)
         with self._lock:
             ai_total = self.payment_connection.execute(
-                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0),"
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),"
+                "COALESCE(SUM(CASE WHEN paid_amount_rials>=0 THEN paid_amount_rials ELSE amount_rials END),0),"
                 "COUNT(DISTINCT course_code || ':' || session_no) "
                 "FROM ai_booklet_entitlements WHERE term=?",
                 (int(term),),
             ).fetchone()
             ai_current = self.payment_connection.execute(
-                "SELECT COUNT(*),COUNT(DISTINCT subject_key),COALESCE(SUM(amount_rials),0) "
+                "SELECT COUNT(*),COUNT(DISTINCT subject_key),"
+                "COALESCE(SUM(CASE WHEN paid_amount_rials>=0 THEN paid_amount_rials ELSE amount_rials END),0) "
                 "FROM ai_booklet_entitlements WHERE term=? AND granted_at>=? AND granted_at<?",
                 (int(term), start, end),
             ).fetchone()
             ai_items = self.payment_connection.execute(
                 "SELECT course_code,course_tag,session_no,COUNT(*),COUNT(DISTINCT subject_key),"
-                "COALESCE(SUM(amount_rials),0),MAX(granted_at) "
-                "FROM ai_booklet_entitlements WHERE term=? "
+                "COALESCE(SUM(CASE WHEN paid_amount_rials>=0 THEN paid_amount_rials ELSE amount_rials END),0),"
+                "MAX(granted_at) FROM ai_booklet_entitlements WHERE term=? "
                 "GROUP BY course_code,course_tag,session_no "
-                "ORDER BY COUNT(*) DESC,SUM(amount_rials) DESC,MAX(granted_at) DESC LIMIT 20",
+                "ORDER BY COUNT(*) DESC,"
+                "SUM(CASE WHEN paid_amount_rials>=0 THEN paid_amount_rials ELSE amount_rials END) DESC,"
+                "MAX(granted_at) DESC LIMIT 20",
                 (int(term),),
             ).fetchall()
 
@@ -2455,7 +2492,7 @@ class BotState:
         token = str(order_token).strip()
         if re.fullmatch(r"[A-Za-z0-9_-]{20,120}", token) is None:
             raise ValueError("Invalid cart order token")
-        if not items or len(items) > CART_MAX_ITEMS:
+        if not items or len(items) > CHECKOUT_MAX_ITEMS:
             raise ValueError("Invalid cart checkout items")
         request = str(request_id).strip()[:100]
         if not request:
@@ -2609,8 +2646,8 @@ class BotState:
                         self.payment_connection.execute(
                             "INSERT OR IGNORE INTO ai_booklet_entitlements("
                             "subject_key,student_number,display_name,term,course_code,course_tag,session_no,"
-                            "amount_rials,granted_at,payment_order_token,payment_order_ref) "
-                            "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                            "amount_rials,paid_amount_rials,granted_at,payment_order_token,payment_order_ref) "
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                             (
                                 subject_key,
                                 student_number,
@@ -2620,6 +2657,14 @@ class BotState:
                                 course_tag,
                                 session_no,
                                 max(AI_BOOKLET_PRICE_RIALS, int(raw.get("amountRials") or 0)),
+                                max(
+                                    0,
+                                    int(
+                                        raw["paidAmountRials"]
+                                        if "paidAmountRials" in raw
+                                        else raw.get("amountRials") or 0
+                                    ),
+                                ),
                                 verified,
                                 paid_token,
                                 str(payment_order_ref)[:80],
@@ -3385,6 +3430,26 @@ class BotState:
             str(row[0]): max(0, int(row[1] or 0))
             for row in rows
             if str(row[0]) in {"voice", "power", "booklet", "reference", "ai_booklet"}
+        }
+
+    def protected_media_session_counts_for_tag(
+        self,
+        *,
+        course_tag: str,
+        term: int,
+        content_kind: str,
+    ) -> dict[int, int]:
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT session_no,COUNT(*) FROM protected_media_sources "
+                "WHERE course_tag=? AND term=? AND content_kind=? AND active=1 "
+                "GROUP BY session_no ORDER BY session_no",
+                (str(course_tag), int(term), str(content_kind)),
+            ).fetchall()
+        return {
+            int(row[0]): max(0, int(row[1] or 0))
+            for row in rows
+            if 1 <= int(row[0]) <= 40
         }
 
     def protected_media_source(self, source_id: int) -> dict | None:

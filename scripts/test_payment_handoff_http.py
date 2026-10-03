@@ -332,6 +332,121 @@ def main():
                 assert len(FakeGateway.requests) == provider_count, "cart reservation was bypassed"
                 print("cart checkout + discount + idempotency + shared reservation accounting passed")
 
+                def bulk_ai_items(count, prefix):
+                    return [
+                        {
+                            "itemKey": f"ai:7:{prefix}:{index}",
+                            "kind": "ai_booklet",
+                            "offerRef": f"bulk_{prefix}_{index:02d}_abcdefghijkl",
+                            "title": f"AI booklet {index}",
+                            "description": "Synthetic AI bulk line",
+                            "amountRials": 390000,
+                            "productVersion": 1,
+                            "capacity": 0,
+                            "maxPurchasesPerUser": 1,
+                            "fulfillment": {},
+                            "term": 7,
+                            "sessionNo": index,
+                            "courseCode": prefix,
+                            "courseTag": prefix,
+                        }
+                        for index in range(1, count + 1)
+                    ]
+
+                bulk_cases = [
+                    ("ten", 10, 0, False),
+                    ("eleven-mixed", 11, 20, True),
+                    ("fifteen", 15, 20, False),
+                    ("sixteen", 16, 30, False),
+                    ("thirtythree", 33, 30, False),
+                ]
+                for label, count, percent, mixed in bulk_cases:
+                    items = bulk_ai_items(count, label.replace("-", ""))
+                    generic_amount = 500000 if mixed else 0
+                    if mixed:
+                        items.append({
+                            "itemKey": f"offer:bulk_{label}_generic",
+                            "kind": "offer",
+                            "offerRef": f"bulk_{label}_generic_abcdefghijkl",
+                            "title": "Generic product outside AI discount",
+                            "description": "Synthetic mixed-cart line",
+                            "amountRials": generic_amount,
+                            "productVersion": 1,
+                            "capacity": 0,
+                            "maxPurchasesPerUser": 1,
+                            "fulfillment": {},
+                        })
+                    bulk_payload = dict(
+                        action="createBotCartPayment",
+                        contractVersion="bot-commerce-v2",
+                        platform="telegram",
+                        platformUserId="654321",
+                        requestId=hashlib.sha256(("bulk-" + label).encode()).hexdigest(),
+                        items=items,
+                        discount={},
+                    )
+                    response = request(endpoint, secret, bulk_payload)
+                    assert response["status"] == 200, response
+                    value = response["payload"]
+                    ai_subtotal = count * 390000
+                    subtotal = ai_subtotal + generic_amount
+                    expected_discount = ai_subtotal * percent // 100
+                    assert value["subtotalRials"] == subtotal, (label, value)
+                    assert value["discountAmountRials"] == expected_discount, (label, value)
+                    assert value["amountRials"] == subtotal - expected_discount, (label, value)
+                    assert len(value["cartItems"]) == len(items), (label, value)
+                    assert sum(int(item.get("paidAmountRials") or 0) for item in value["cartItems"]) == value["amountRials"], (label, value)
+                    assert sum(int(item.get("discountAmountRials") or 0) for item in value["cartItems"]) == value["discountAmountRials"], (label, value)
+                    if mixed:
+                        generic_line = value["cartItems"][-1]
+                        assert generic_line["amountRials"] == generic_amount, generic_line
+                        assert generic_line["discountAmountRials"] == 0, generic_line
+                        assert generic_line["paidAmountRials"] == generic_amount, generic_line
+                        store = json.loads((Path(directory) / "storage/payments/store.json").read_text(encoding="utf-8"))
+                        order = next(
+                            item for item in store["orders"]
+                            if item.get("public_token") == value["orderToken"]
+                        )
+                        assert order["cart_items"][-1]["discount_amount"] == 0, order["cart_items"][-1]
+                    duplicate_provider_count = len(FakeGateway.requests)
+                    duplicate = request(endpoint, secret, bulk_payload)
+                    assert duplicate["status"] == 200, duplicate
+                    assert duplicate["payload"]["orderToken"] == value["orderToken"], duplicate
+                    assert len(FakeGateway.requests) == duplicate_provider_count, "bulk retry contacted provider"
+                stack_items = bulk_ai_items(11, "stack")
+                stack_subtotal = 11 * 390000
+                stack_auto = stack_subtotal * 20 // 100
+                stack_coupon = (stack_subtotal - stack_auto) * 10 // 100
+                stacked = request(
+                    endpoint,
+                    secret,
+                    dict(
+                        action="createBotCartPayment",
+                        contractVersion="bot-commerce-v2",
+                        platform="telegram",
+                        platformUserId="654321",
+                        requestId=hashlib.sha256(b"bulk-stack-coupon").hexdigest(),
+                        items=stack_items,
+                        discount={
+                            "code": "STACKTEST1",
+                            "kind": "percent",
+                            "amount": 10,
+                            "minSubtotalRials": 0,
+                            "maxUses": 0,
+                            "expiresAt": "",
+                        },
+                    ),
+                )
+                assert stacked["status"] == 200, stacked
+                stacked_value = stacked["payload"]
+                assert stacked_value["discountAmountRials"] == stack_auto + stack_coupon, stacked_value
+                assert stacked_value["amountRials"] == stack_subtotal - stack_auto - stack_coupon, stacked_value
+                assert sum(int(item.get("paidAmountRials") or 0) for item in stacked_value["cartItems"]) == stacked_value["amountRials"], stacked_value
+                assert sum(int(item.get("discountAmountRials") or 0) for item in stacked_value["cartItems"]) == stacked_value["discountAmountRials"], stacked_value
+
+                bulk_provider_count = len(FakeGateway.requests)
+                print("AI bulk thresholds 10/11/15/16/33 + mixed-cart scope + coupon stacking passed")
+
                 # Provider resolution must fail closed when a managed store has
                 # no unique enabled/configured Zibal record. These requests
                 # must not reach the fake provider.
@@ -345,7 +460,7 @@ def main():
                     amountRials=200000, callbackToken="a" * 32))
                 assert ambiguous["status"] == 503, ambiguous
                 assert ambiguous["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_AMBIGUOUS", ambiguous
-                assert len(FakeGateway.requests) == 8, "ambiguous gateway selection contacted provider"
+                assert len(FakeGateway.requests) == bulk_provider_count, "ambiguous gateway selection contacted provider"
 
                 for gateway_record in payment_store["gateways"]:
                     gateway_record["is_enabled"] = False
@@ -355,7 +470,7 @@ def main():
                     amountRials=200000, callbackToken="b" * 32))
                 assert unavailable["status"] == 503, unavailable
                 assert unavailable["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_UNAVAILABLE", unavailable
-                assert len(FakeGateway.requests) == 8, "unavailable gateway selection contacted provider"
+                assert len(FakeGateway.requests) == bulk_provider_count, "unavailable gateway selection contacted provider"
                 no_redirect = build_opener(ProxyHandler({}), NoRedirect())
                 for platform, token in created_orders:
                     try:

@@ -271,6 +271,11 @@ class DialogAppWorkflows:
         dialog = self.state.dialog(user_id)
         if not dialog or text.startswith("/"):
             return False
+        if dialog.get("kind") == "ai-booklet-bulk":
+            # This dialog only backs inline multi-select state. Free-form text
+            # cancels it rather than hijacking unrelated message workflows.
+            self.state.clear_dialog(user_id)
+            return False
         if dialog.get("kind") == "onboarding-v1":
             return self._handle_onboarding_message(
                 chat_id,

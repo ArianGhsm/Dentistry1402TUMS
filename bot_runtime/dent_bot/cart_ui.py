@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 
+from .cart import ai_bulk_discount_progress
 from .persian_datetime import to_persian_digits
 from .ui import Screen, button, format_rials, keyboard, native_rich_text
 
@@ -26,6 +27,10 @@ def cart_screen(payload: dict, *, notice: str = "") -> Screen:
     version = max(0, int(payload.get("version") or 0))
     subtotal = max(0, int(payload.get("subtotalRials") or 0))
     discount_amount = max(0, int(payload.get("discountAmountRials") or 0))
+    automatic_discount = max(0, int(payload.get("automaticDiscountAmountRials") or 0))
+    automatic_percent = max(0, int(payload.get("automaticDiscountPercent") or 0))
+    coupon_discount = max(0, int(payload.get("couponDiscountAmountRials") or 0))
+    ai_count = max(0, int(payload.get("aiBookletCount") or 0))
     total = max(0, int(payload.get("amountRials") or max(0, subtotal - discount_amount)))
     discount_code = str(payload.get("discountCode") or "").strip()
     can_checkout = bool(items) and all(bool(item.get("available")) for item in items)
@@ -44,6 +49,26 @@ def cart_screen(payload: dict, *, notice: str = "") -> Screen:
         )
 
     lines.extend(("", f"{to_persian_digits(len(items))} محصول در سبد"))
+    if ai_count:
+        progress = ai_bulk_discount_progress(ai_count)
+        if automatic_percent >= 30:
+            bulk_notice = (
+                f"🤖 تخفیف خودکار <b>{to_persian_digits(automatic_percent)}٪</b> "
+                f"برای {to_persian_digits(ai_count)} جزوه هوش مصنوعی فعال است."
+            )
+        elif automatic_percent:
+            bulk_notice = (
+                f"🤖 تخفیف خودکار <b>{to_persian_digits(automatic_percent)}٪</b> فعال است. "
+                f"با افزودن {to_persian_digits(progress['remaining'])} جزوه دیگر، "
+                f"تخفیف به <b>{to_persian_digits(progress['nextPercent'])}٪</b> می‌رسد."
+            )
+        else:
+            bulk_notice = (
+                f"🤖 با خرید هم‌زمان <b>۱۱</b> جزوه هوش مصنوعی، <b>۲۰٪</b> و "
+                f"از <b>۱۶</b> جزوه به بالا، <b>۳۰٪</b> تخفیف خودکار اعمال می‌شود. "
+                f"تا تخفیف اول: {to_persian_digits(progress['remaining'])} جزوه دیگر."
+            )
+        lines.extend(("", f"<blockquote>{bulk_notice}</blockquote>"))
     remove_buttons: list[dict] = []
     for index, item in enumerate(items, start=1):
         title = html.escape(_compact_title(item.get("title")))
@@ -67,10 +92,15 @@ def cart_screen(payload: dict, *, notice: str = "") -> Screen:
 
     lines.extend(("", "────────────"))
     lines.append(f"جمع محصولات: <code>{html.escape(_money(subtotal))}</code>")
+    if automatic_discount:
+        lines.append(
+            f"تخفیف خودکار جزوات هوش مصنوعی ({to_persian_digits(automatic_percent)}٪): "
+            f"<code>{html.escape(_money(automatic_discount))}</code>"
+        )
     if discount_code:
         lines.append(
-            f"تخفیف <code>{html.escape(discount_code)}</code>: "
-            f"<code>{html.escape(_money(discount_amount))}</code>"
+            f"کد تخفیف <code>{html.escape(discount_code)}</code>: "
+            f"<code>{html.escape(_money(coupon_discount))}</code>"
         )
     lines.append(f"<b>مبلغ نهایی: <code>{html.escape(_money(total))}</code></b>")
     if not can_checkout:
@@ -88,17 +118,20 @@ def cart_screen(payload: dict, *, notice: str = "") -> Screen:
         status = "آماده" if item.get("available") else html.escape(to_persian_digits(str(item.get("reason") or "نیازمند بازبینی")))
         rich.append(f"<tr><td>{title}</td><td>{price}</td><td>{status}</td></tr>")
     rich.append("</table>")
-    rich.append(
-        "<p>"
-        f"جمع: <b>{html.escape(_money(subtotal))}</b>"
-        + (
-            f"<br/>تخفیف: <b>{html.escape(_money(discount_amount))}</b>"
-            if discount_amount
-            else ""
+    rich_summary = ["<p>", f"جمع: <b>{html.escape(_money(subtotal))}</b>"]
+    if automatic_discount:
+        rich_summary.append(
+            f"<br/>تخفیف خودکار جزوات هوش مصنوعی "
+            f"({to_persian_digits(automatic_percent)}٪): "
+            f"<b>{html.escape(_money(automatic_discount))}</b>"
         )
-        + f"<br/>مبلغ نهایی: <b>{html.escape(_money(total))}</b>"
-        "</p>"
-    )
+    if discount_code:
+        rich_summary.append(
+            f"<br/>کد تخفیف <code>{html.escape(discount_code)}</code>: "
+            f"<b>{html.escape(_money(coupon_discount))}</b>"
+        )
+    rich_summary.append(f"<br/>مبلغ نهایی: <b>{html.escape(_money(total))}</b></p>")
+    rich.append("".join(rich_summary))
     if not can_checkout:
         rich.append("<footer>یکی از محصولات نیازمند بازبینی است و تا حذف آن پرداخت انجام نمی‌شود.</footer>")
 

@@ -8,7 +8,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from dent_bot.ai_booklets import AI_BOOKLET_PRICE_RIALS, ai_booklet_offer_ref
-from dent_bot.cart import cart_checkout_request_id, cart_item_key, commerce_identity_from_account
+from dent_bot.cart import (
+    ai_bulk_discount_percent,
+    ai_bulk_discount_summary,
+    cart_checkout_request_id,
+    cart_item_key,
+    cart_media_requests,
+    commerce_identity_from_account,
+)
 from dent_bot.cart_app_workflows import CartAppWorkflows
 from dent_bot.cart_ui import cart_screen
 from dent_bot.classops_shell import canonical_home_screen
@@ -112,6 +119,186 @@ class CommerceCartTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.state.close()
         self.temp.cleanup()
+
+    def test_ai_bulk_discount_thresholds_and_mixed_scope(self) -> None:
+        self.assertEqual(ai_bulk_discount_percent(10), 0)
+        self.assertEqual(ai_bulk_discount_percent(11), 20)
+        self.assertEqual(ai_bulk_discount_percent(15), 20)
+        self.assertEqual(ai_bulk_discount_percent(16), 30)
+        items = [
+            {"kind": "ai_booklet", "amountRials": AI_BOOKLET_PRICE_RIALS, "available": True}
+            for _ in range(11)
+        ] + [
+            {"kind": "offer", "amountRials": 2_000_000, "available": True}
+        ]
+        summary = ai_bulk_discount_summary(items)
+        self.assertEqual(summary["aiCount"], 11)
+        self.assertEqual(summary["aiSubtotalRials"], 11 * AI_BOOKLET_PRICE_RIALS)
+        self.assertEqual(summary["percent"], 20)
+        self.assertEqual(
+            summary["amountRials"],
+            11 * AI_BOOKLET_PRICE_RIALS * 20 // 100,
+        )
+
+    def test_cart_ui_explains_automatic_ai_discount_separately(self) -> None:
+        ai_items = [
+            {
+                "title": f"جزوه هوش مصنوعی جلسه {index}",
+                "kind": "ai_booklet",
+                "amountRials": AI_BOOKLET_PRICE_RIALS,
+                "available": True,
+            }
+            for index in range(1, 12)
+        ]
+        subtotal = len(ai_items) * AI_BOOKLET_PRICE_RIALS
+        automatic = subtotal * 20 // 100
+        screen = cart_screen(
+            {
+                "version": 1,
+                "items": ai_items,
+                "subtotalRials": subtotal,
+                "aiBookletCount": 11,
+                "automaticDiscountPercent": 20,
+                "automaticDiscountAmountRials": automatic,
+                "couponDiscountAmountRials": 0,
+                "discountAmountRials": automatic,
+                "amountRials": subtotal - automatic,
+            }
+        )
+        self.assertIn("تخفیف خودکار <b>۲۰٪</b> فعال است", str(screen.text))
+        self.assertIn("تخفیف خودکار جزوات هوش مصنوعی (۲۰٪)", str(screen.text))
+        self.assertIn("تخفیف خودکار جزوات هوش مصنوعی", screen.text.rich_html)
+
+    def test_checkout_snapshot_allows_long_course_bulk_purchase(self) -> None:
+        items = []
+        for session_no in range(1, 34):
+            descriptor = {
+                "kind": "ai_booklet",
+                "offerRef": ai_booklet_offer_ref(7, "diagnostic-dentistry-3", session_no),
+                "term": 7,
+                "courseCode": "diagnostic-dentistry-3",
+                "courseTag": "تشخیصی۳",
+                "sessionNo": session_no,
+            }
+            items.append(
+                {
+                    "itemKey": cart_item_key(descriptor),
+                    **descriptor,
+                    "title": f"جزوه هوش مصنوعی جلسه {session_no}",
+                    "amountRials": AI_BOOKLET_PRICE_RIALS,
+                    "fulfillment": {},
+                }
+            )
+        subtotal = 33 * AI_BOOKLET_PRICE_RIALS
+        result = self.state.record_commerce_cart_checkout(
+            request_id="b" * 64,
+            order_token="bulk-ai-" + "x" * 24,
+            platform="telegram",
+            platform_user_id=20,
+            subject_key=self.identity.subject_key,
+            student_number=self.identity.student_number,
+            display_name=self.identity.display_name,
+            items=items,
+            subtotal_rials=subtotal,
+            discount_code="",
+            discount_amount_rials=subtotal * 30 // 100,
+            amount_rials=subtotal * 70 // 100,
+        )
+        self.assertEqual(len(result["items"]), 33)
+
+    def test_bulk_activation_grants_each_session_and_preserves_delivery_order(self) -> None:
+        checkout_items = []
+        expected_source_ids = []
+        for session_no in (2, 5, 9):
+            descriptor = {
+                "kind": "ai_booklet",
+                "offerRef": ai_booklet_offer_ref(7, "endo-bulk", session_no),
+                "term": 7,
+                "courseCode": "endo-bulk",
+                "courseTag": "اندو_گروهی",
+                "sessionNo": session_no,
+            }
+            self.state.replace_protected_media_message(
+                -1003706539157,
+                500 + session_no,
+                [{
+                    "courseCode": "endo-bulk",
+                    "courseName": "اندودانتیکس",
+                    "courseTag": "اندو_گروهی",
+                    "term": 7,
+                    "sessionNo": session_no,
+                    "contentKind": "ai_booklet",
+                    "telegramMethod": "sendDocument",
+                    "fileId": f"bulk-file-{session_no}",
+                    "fileUniqueId": f"bulk-unique-{session_no}",
+                    "fileName": f"bulk-{session_no}.pdf",
+                    "mimeType": "application/pdf",
+                    "caption": f"جزوه هوش مصنوعی جلسه {session_no}",
+                }],
+            )
+            source = self.state.protected_media_for_tag(
+                course_tag="اندو_گروهی",
+                term=7,
+                session_no=session_no,
+                content_kind="ai_booklet",
+            )[0]
+            expected_source_ids.append(int(source["id"]))
+            checkout_items.append({
+                "itemKey": cart_item_key(descriptor),
+                **descriptor,
+                "title": f"جزوه هوش مصنوعی جلسه {session_no}",
+                "amountRials": AI_BOOKLET_PRICE_RIALS,
+                "paidAmountRials": 300_000,
+                "fulfillment": {},
+            })
+
+        subtotal = len(checkout_items) * AI_BOOKLET_PRICE_RIALS
+        paid_total = len(checkout_items) * 300_000
+        token = "bulk-order-" + "z" * 24
+        self.state.record_commerce_cart_checkout(
+            request_id="d" * 64,
+            order_token=token,
+            platform="telegram",
+            platform_user_id=20,
+            subject_key=self.identity.subject_key,
+            student_number=self.identity.student_number,
+            display_name=self.identity.display_name,
+            items=checkout_items,
+            subtotal_rials=subtotal,
+            discount_code="",
+            discount_amount_rials=subtotal - paid_total,
+            amount_rials=paid_total,
+        )
+        activated = self.state.activate_commerce_cart_checkout(
+            order_token=token,
+            delivery_id="delivery-bulk-ai",
+            platform="telegram",
+            platform_user_id=20,
+            amount_rials=paid_total,
+            verified_at="2026-10-03T12:00:00Z",
+            payment_order_ref="bulk-ref",
+        )
+        for session_no in (2, 5, 9):
+            self.assertTrue(
+                self.state.has_ai_booklet_access(
+                    self.identity.subject_key,
+                    term=7,
+                    course_code="endo-bulk",
+                    session_no=session_no,
+                )
+            )
+        report = self.state.booklet_sales_report(7, now=datetime(2026, 10, 3, 12, 0, tzinfo=timezone.utc))
+        self.assertEqual(report["aiBooklets"]["revenueRials"], paid_total)
+        self.assertEqual(
+            sorted(item["revenueRials"] for item in report["aiBooklets"]["items"]),
+            [300_000, 300_000, 300_000],
+        )
+
+        jobs = cart_media_requests(self.state, activated["items"])
+        self.assertEqual(
+            [source_id for _item_key, source_type, source_id in jobs if source_type == "booklet"],
+            expected_source_ids,
+        )
 
     def test_cart_identity_is_canonical_and_not_platform_scoped(self) -> None:
         first = commerce_identity_from_account(linked_account())
@@ -353,7 +540,7 @@ class CommerceCartTests(unittest.TestCase):
         )
 
     def test_verified_batch_can_queue_more_than_interactive_rate_limit_in_order(self) -> None:
-        fake_state = BatchState(30)
+        fake_state = BatchState(40)
         dispatcher = object.__new__(ProtectedMediaDispatcher)
         dispatcher.state = fake_state
         dispatcher.authorize = lambda _user_id, _source: True
@@ -367,12 +554,12 @@ class CommerceCartTests(unittest.TestCase):
 
         statuses = dispatcher.enqueue_batch(
             20,
-            [("booklet", index) for index in range(1, 31)],
+            [("booklet", index) for index in range(1, 41)],
         )
-        self.assertEqual(statuses, ["queued"] * 30)
+        self.assertEqual(statuses, ["queued"] * 40)
         self.assertGreaterEqual(min(fake_state.claim_limits), 50)
-        queued_ids = [dispatcher.queue.get_nowait().source_id for _ in range(30)]
-        self.assertEqual(queued_ids, list(range(1, 31)))
+        queued_ids = [dispatcher.queue.get_nowait().source_id for _ in range(40)]
+        self.assertEqual(queued_ids, list(range(1, 41)))
 
     def test_crowded_cart_stays_compact_and_persian(self) -> None:
         screen = cart_screen(

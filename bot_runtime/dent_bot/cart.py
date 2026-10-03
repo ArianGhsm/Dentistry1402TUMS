@@ -9,6 +9,8 @@ from .payments import normalize_student_number
 
 
 CART_MAX_ITEMS = 20
+CHECKOUT_MAX_ITEMS = 50
+AI_BULK_DISCOUNT_RULES = ((16, 30), (11, 20))
 CART_ITEM_KINDS = {"offer", "ai_booklet", "term_subscription"}
 DISCOUNT_KINDS = {"percent", "fixed"}
 DISCOUNT_CODE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9_-]{3,23}$")
@@ -125,6 +127,44 @@ def normalize_discount_code(value: object) -> str:
     if DISCOUNT_CODE_PATTERN.fullmatch(code) is None:
         raise ValueError("Invalid discount code")
     return code
+
+
+def ai_bulk_discount_percent(ai_count: int) -> int:
+    count = max(0, int(ai_count))
+    for minimum, percent in AI_BULK_DISCOUNT_RULES:
+        if count >= minimum:
+            return percent
+    return 0
+
+
+def ai_bulk_discount_progress(ai_count: int) -> dict:
+    count = max(0, int(ai_count))
+    current = ai_bulk_discount_percent(count)
+    if count < 11:
+        return {"currentPercent": current, "nextCount": 11, "nextPercent": 20, "remaining": 11 - count}
+    if count < 16:
+        return {"currentPercent": current, "nextCount": 16, "nextPercent": 30, "remaining": 16 - count}
+    return {"currentPercent": current, "nextCount": 0, "nextPercent": 0, "remaining": 0}
+
+
+def ai_bulk_discount_summary(items: list[dict]) -> dict:
+    payable = [
+        dict(item)
+        for item in items
+        if isinstance(item, dict)
+        and str(item.get("kind") or "") == "ai_booklet"
+        and item.get("available", True) is not False
+    ]
+    count = len(payable)
+    subtotal = sum(max(0, int(item.get("amountRials") or 0)) for item in payable)
+    percent = ai_bulk_discount_percent(count)
+    amount = subtotal * percent // 100
+    return {
+        "aiCount": count,
+        "aiSubtotalRials": subtotal,
+        "percent": percent,
+        "amountRials": amount,
+    }
 
 
 def cart_media_requests(state: object, items: list[dict]) -> list[tuple[str, str, int]]:

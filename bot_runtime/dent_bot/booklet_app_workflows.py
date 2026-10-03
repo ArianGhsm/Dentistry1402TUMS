@@ -11,6 +11,7 @@ from .ai_booklets import (
 from .api import BotApiError
 from .booklets import (
     RESOURCE_LABELS,
+    ai_booklet_bulk_selection_screen,
     ai_booklet_purchase_screen,
     bale_unavailable_screen,
     course_by_key,
@@ -21,6 +22,7 @@ from .booklets import (
     source_records_from_channel_post,
 )
 from .booklet_sources import source_policy_for_channel
+from .cart import cart_checkout_request_id
 from .message_frames import frame_error
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
@@ -47,6 +49,14 @@ class BookletAppWorkflows:
                 "booklet-resource:",
                 "booklet-ai-buy:",
                 "booklet-ai-get:",
+                "ai-all:",
+                "ai-pick:",
+                "ai-more:",
+                "ai-toggle:",
+                "ai-page:",
+                "ai-select-all",
+                "ai-select-none",
+                "ai-checkout",
             )
         )
 
@@ -286,6 +296,231 @@ class BookletAppWorkflows:
             content_counts=counts,
         )
 
+    def _ai_bulk_context(
+        self,
+        user_id: int,
+        catalog: dict,
+        course_key: str,
+        *,
+        refresh_account: bool = False,
+    ) -> dict:
+        course = course_by_key(catalog, course_key)
+        if course is None:
+            return {
+                "course": None,
+                "term": int(catalog.get("term") or 7),
+                "published": set(),
+                "owned": set(),
+                "eligible": set(),
+                "identity": None,
+                "account": {},
+            }
+        term = int(catalog.get("term") or 7)
+        valid_sessions = {
+            int(item.get("sessionNumber") or 0)
+            for item in course.get("sessions", [])
+            if isinstance(item, dict) and 1 <= int(item.get("sessionNumber") or 0) <= 40
+        }
+        published = set(
+            self.state.protected_media_session_counts_for_tag(
+                course_tag=str(course.get("bookletTag") or ""),
+                term=term,
+                content_kind=AI_BOOKLET_CONTENT_KIND,
+            )
+        ) & valid_sessions
+        identity, account = self._cart_identity(user_id, refresh=refresh_account)
+        owned = (
+            self.state.ai_booklet_entitled_sessions(
+                identity.subject_key,
+                term=term,
+                course_code=str(course.get("courseKey") or ""),
+            )
+            if identity is not None
+            else set()
+        ) & valid_sessions
+        return {
+            "course": course,
+            "term": term,
+            "published": published,
+            "owned": owned,
+            "eligible": published - owned,
+            "identity": identity,
+            "account": account,
+        }
+
+    def _booklet_sessions_screen(self, user_id: int, catalog: dict, course_key: str) -> Screen:
+        context = self._ai_bulk_context(user_id, catalog, course_key)
+        return booklet_sessions_screen(
+            catalog,
+            course_key,
+            ai_published_sessions=set(context["published"]),
+            ai_owned_sessions=set(context["owned"]),
+        )
+
+    def _ai_bulk_selection_view(
+        self,
+        user_id: int,
+        catalog: dict,
+        course_key: str,
+        *,
+        selected: set[int],
+        page: int,
+    ) -> Screen:
+        context = self._ai_bulk_context(user_id, catalog, course_key)
+        return ai_booklet_bulk_selection_screen(
+            catalog,
+            course_key,
+            published_sessions=set(context["published"]),
+            owned_sessions=set(context["owned"]),
+            selected_sessions=set(selected),
+            page=page,
+        )
+
+    def _start_ai_bulk_selection(
+        self,
+        user_id: int,
+        catalog: dict,
+        course_key: str,
+        *,
+        selected: set[int] | None = None,
+    ) -> Screen:
+        context = self._ai_bulk_context(user_id, catalog, course_key)
+        if context["course"] is None:
+            return Screen(
+                frame_error("این درس در طرح درس مرجع پیدا نشد."),
+                keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+            )
+        eligible = set(context["eligible"])
+        chosen = set(selected or set()) & eligible
+        self.state.start_dialog(
+            user_id,
+            "ai-booklet-bulk",
+            "select",
+            {
+                "courseKey": course_key,
+                "selected": sorted(chosen),
+                "page": 0,
+            },
+        )
+        return self._ai_bulk_selection_view(
+            user_id,
+            catalog,
+            course_key,
+            selected=chosen,
+            page=0,
+        )
+
+    def _ai_bulk_checkout_screen(
+        self,
+        user_id: int,
+        catalog: dict,
+        course_key: str,
+        session_numbers: set[int],
+    ) -> Screen:
+        context = self._ai_bulk_context(
+            user_id,
+            catalog,
+            course_key,
+            refresh_account=True,
+        )
+        course = context["course"]
+        identity = context["identity"]
+        account = dict(context["account"] or {})
+        if course is None:
+            return Screen(
+                frame_error("این درس در طرح درس مرجع پیدا نشد."),
+                keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+            )
+        if identity is None:
+            return self._unlinked_access_screen(user_id, account)
+
+        selected = sorted(set(session_numbers) & set(context["eligible"]))
+        if not selected:
+            return Screen(
+                frame_error("جزوه منتشرشده و قابل خریدی در این انتخاب باقی نمانده است."),
+                self._booklet_sessions_screen(user_id, catalog, course_key).keyboard,
+            )
+
+        term = int(context["term"])
+        course_code = str(course.get("courseKey") or "")
+        course_tag = str(course.get("bookletTag") or "")
+        descriptors = [
+            {
+                "kind": "ai_booklet",
+                "offerRef": ai_booklet_offer_ref(term, course_code, session_no),
+                "term": term,
+                "courseCode": course_code,
+                "courseTag": course_tag,
+                "sessionNo": session_no,
+            }
+            for session_no in selected
+        ]
+        resolved = [
+            self._cart_resolve_descriptor(
+                user_id,
+                descriptor,
+                account=account,
+                commerce_identity=identity,
+                booklet_catalog=catalog,
+            )
+            for descriptor in descriptors
+        ]
+        invalid = [item for item in resolved if not item.get("available")]
+        if invalid:
+            reasons = [
+                str(item.get("reason") or "یکی از جزوه‌ها دیگر قابل خرید نیست.")
+                for item in invalid[:3]
+            ]
+            return Screen(
+                frame_error("انتخاب به‌روز شد:\n" + "\n".join(f"• {reason}" for reason in reasons)),
+                self._booklet_sessions_screen(user_id, catalog, course_key).keyboard,
+            )
+
+        checkout_items = [
+            {
+                key: value
+                for key, value in item.items()
+                if key not in {"available", "reason"}
+            }
+            for item in resolved
+        ]
+        request_id = cart_checkout_request_id(
+            identity.subject_key,
+            version=0,
+            items=checkout_items,
+            discount_code="",
+        )
+        try:
+            result = self._create_commerce_checkout(
+                user_id,
+                identity=identity,
+                checkout_items=checkout_items,
+                request_id=request_id,
+                discount={},
+            )
+        except SiteApiError as error:
+            if error.code == "PAYMENT_PHONE_REQUIRED":
+                return payment_phone_required_screen()
+            return Screen(
+                frame_error(str(error)),
+                keyboard(
+                    [button("↻ بازبینی انتخاب", action=f"ai-pick:{course_key}")],
+                    [button("↩️ جلسات درس", action=f"booklet-course:{course_key}")],
+                ),
+            )
+        except (TypeError, ValueError) as error:
+            return Screen(
+                frame_error(str(error)),
+                keyboard([button("↩️ جلسات درس", action=f"booklet-course:{course_key}")]),
+            )
+
+        self.state.clear_dialog(user_id)
+        return payment_created_screen(
+            result,
+            platform=self.platform,
+            return_to_bot_enabled=self.payment_return_v1_enabled,
+        )
+
     def _booklet_screen_for_action(self, name: str, user_id: int, catalog: dict) -> Screen:
         if name == "notes":
             self.state.touch_user(user_id, "notes")
@@ -301,7 +536,103 @@ class BookletAppWorkflows:
                         [button("🏠 منوی اصلی", action="home")],
                     ),
                 )
-            return booklet_sessions_screen(catalog, course_key)
+            dialog = self.state.dialog(user_id)
+            if dialog and str(dialog.get("kind") or "") == "ai-booklet-bulk":
+                self.state.clear_dialog(user_id)
+            return self._booklet_sessions_screen(user_id, catalog, course_key)
+
+        if name.startswith("ai-all:"):
+            course_key = name.removeprefix("ai-all:")
+            context = self._ai_bulk_context(user_id, catalog, course_key, refresh_account=True)
+            if context["course"] is None:
+                return Screen(
+                    frame_error("این درس در طرح درس مرجع پیدا نشد."),
+                    keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+                )
+            return self._ai_bulk_checkout_screen(
+                user_id,
+                catalog,
+                course_key,
+                set(context["eligible"]),
+            )
+
+        if name.startswith("ai-pick:"):
+            course_key = name.removeprefix("ai-pick:")
+            return self._start_ai_bulk_selection(user_id, catalog, course_key)
+
+        if name.startswith("ai-more:"):
+            parts = name.split(":")
+            if len(parts) != 3 or not parts[2].isdigit():
+                return Screen(
+                    frame_error("مسیر انتخاب چند جلسه معتبر نیست."),
+                    keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+                )
+            return self._start_ai_bulk_selection(
+                user_id,
+                catalog,
+                parts[1],
+                selected={int(parts[2])},
+            )
+
+        if (
+            name.startswith("ai-toggle:")
+            or name.startswith("ai-page:")
+            or name in {"ai-select-all", "ai-select-none", "ai-checkout"}
+        ):
+            dialog = self.state.dialog(user_id)
+            if not dialog or str(dialog.get("kind") or "") != "ai-booklet-bulk":
+                return Screen(
+                    frame_error("جلسهٔ انتخاب چندتایی منقضی شده است."),
+                    keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+                )
+            payload = dict(dialog.get("payload") or {})
+            course_key = str(payload.get("courseKey") or "")
+            selected = {
+                int(value)
+                for value in payload.get("selected", [])
+                if str(value).isdigit() and 1 <= int(value) <= 40
+            }
+            page = max(0, int(payload.get("page") or 0))
+            context = self._ai_bulk_context(user_id, catalog, course_key)
+            eligible = set(context["eligible"])
+            selected &= eligible
+
+            if name.startswith("ai-toggle:"):
+                raw = name.removeprefix("ai-toggle:")
+                if not raw.isdigit() or int(raw) not in eligible:
+                    return self._ai_bulk_selection_view(
+                        user_id, catalog, course_key, selected=selected, page=page
+                    )
+                session_no = int(raw)
+                if session_no in selected:
+                    selected.remove(session_no)
+                else:
+                    selected.add(session_no)
+            elif name.startswith("ai-page:"):
+                raw = name.removeprefix("ai-page:")
+                page = max(0, int(raw)) if raw.isdigit() else page
+            elif name == "ai-select-all":
+                selected = set(eligible)
+            elif name == "ai-select-none":
+                selected = set()
+            elif name == "ai-checkout":
+                return self._ai_bulk_checkout_screen(
+                    user_id,
+                    catalog,
+                    course_key,
+                    selected,
+                )
+
+            payload["selected"] = sorted(selected)
+            payload["page"] = page
+            self.state.update_dialog(user_id, step="select", payload=payload)
+            return self._ai_bulk_selection_view(
+                user_id,
+                catalog,
+                course_key,
+                selected=selected,
+                page=page,
+            )
 
         if name.startswith("booklet-session:"):
             parts = name.split(":")

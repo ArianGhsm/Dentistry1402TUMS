@@ -12,8 +12,10 @@ from dent_bot.ai_booklets import (
 )
 from dent_bot.app import DentBotApp
 from dent_bot.booklets import (
+    ai_booklet_bulk_selection_screen,
     ai_booklet_purchase_screen,
     resources_screen,
+    sessions_screen,
     parse_source_caption,
     source_records_from_channel_post,
 )
@@ -97,6 +99,29 @@ class Site:
             "success": True,
             "orderToken": "aiOrderToken123456789012345",
             "amountRials": payload["amount_rials"],
+            "redirectUrl": "https://example.test/pay",
+            "status": "pending",
+        }
+
+    def create_bot_cart_payment(self, user_id, *, items, request_id, discount=None):
+        payload = {
+            "items": [dict(item) for item in items],
+            "requestId": request_id,
+            "discount": dict(discount or {}),
+        }
+        self.payments.append((user_id, payload))
+        subtotal = sum(int(item.get("amountRials") or 0) for item in items)
+        count = sum(str(item.get("kind") or "") == "ai_booklet" for item in items)
+        percent = 30 if count >= 16 else (20 if count >= 11 else 0)
+        reduction = count * AI_BOOKLET_PRICE_RIALS * percent // 100
+        return {
+            "success": True,
+            "orderToken": "aiBulkOrderToken1234567890123",
+            "subtotalRials": subtotal,
+            "discountCode": "",
+            "discountAmountRials": reduction,
+            "amountRials": subtotal - reduction,
+            "cartItems": [dict(item) for item in items],
             "redirectUrl": "https://example.test/pay",
             "status": "pending",
         }
@@ -187,6 +212,158 @@ class AiBookletTests(unittest.TestCase):
         self.assertIn("🩺 رزیدنت مسئول: دکتر صبوری", screen.text)
         self.assertIn("<table bordered striped compact>", screen.text.rich_html)
         self.assertNotIn("Term", screen.text.rich_html)
+
+    def test_course_screen_places_bulk_ai_purchase_above_sessions(self) -> None:
+        screen = sessions_screen(
+            CATALOG,
+            "diagnostic-dentistry-3",
+            ai_published_sessions={1, 2},
+            ai_owned_sessions=set(),
+        )
+        rows = screen.keyboard["inline_keyboard"]
+        self.assertIn("خرید همه جزوه‌های منتشرشده · ۲", rows[0][0]["text"])
+        self.assertIn("انتخاب چند جلسه برای خرید", rows[1][0]["text"])
+        self.assertIn("۲۰٪", str(screen.text))
+        self.assertIn("۳۰٪", str(screen.text))
+        self.assertIn("v1:ai-all:diagnostic-dentistry-3", rows[0][0]["callback_data"])
+
+        owned = sessions_screen(
+            CATALOG,
+            "diagnostic-dentistry-3",
+            ai_published_sessions={1, 2},
+            ai_owned_sessions={1, 2},
+        )
+        self.assertNotIn("خرید همه جزوه‌های منتشرشده", str(owned.keyboard))
+        self.assertIn("همهٔ جزوه‌های هوش مصنوعی منتشرشده", str(owned.text))
+
+    def test_bulk_selection_prices_threshold_and_paginates(self) -> None:
+        long_catalog = {
+            "contractVersion": "term7-booklet-catalog-v1",
+            "term": 7,
+            "courses": [{
+                "courseKey": "diagnostic-dentistry-3",
+                "courseTitle": "دندانپزشکی تشخیصی ۳",
+                "bookletTag": "تشخیصی۳",
+                "term": 7,
+                "sessions": [
+                    {"sessionNumber": index, "title": f"عنوان جلسه {index}"}
+                    for index in range(1, 18)
+                ],
+            }],
+        }
+        screen = ai_booklet_bulk_selection_screen(
+            long_catalog,
+            "diagnostic-dentistry-3",
+            published_sessions=set(range(1, 18)),
+            owned_sessions=set(),
+            selected_sessions=set(range(1, 17)),
+            page=0,
+        )
+        self.assertIn("انتخاب‌شده: <b>۱۶</b>", str(screen.text))
+        self.assertIn("تخفیف خودکار ۳۰٪", str(screen.text))
+        self.assertIn("۴۳۶٬۸۰۰ تومان", str(screen.text))
+        self.assertIn("۱ / ۳", str(screen.keyboard))
+        self.assertIn("v1:ai-checkout", str(screen.keyboard))
+        self.assertLessEqual(len(screen.keyboard["inline_keyboard"]), 13)
+
+    def test_individual_ai_purchase_offers_multi_session_path(self) -> None:
+        screen = ai_booklet_purchase_screen(CATALOG, "diagnostic-dentistry-3", 1)
+        callbacks = [
+            str(item.get("callback_data") or "")
+            for row in screen.keyboard["inline_keyboard"]
+            for item in row
+        ]
+        self.assertIn("v1:ai-more:diagnostic-dentistry-3:1", callbacks)
+        self.assertIn("۲۰٪", str(screen.text))
+        self.assertIn("۳۰٪", str(screen.text))
+
+    def test_buy_all_published_ai_creates_one_multi_item_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            site = Site()
+            app = DentBotApp(
+                Api(),
+                state,
+                owner_id=99,
+                site_url="https://example.test",
+                site_api=site,
+            )
+            try:
+                register_ai_source(state, 1)
+                register_ai_source(state, 2)
+                screen = app._booklet_screen_for_action(
+                    "ai-all:diagnostic-dentistry-3",
+                    20,
+                    CATALOG,
+                )
+                self.assertIn("پرداخت", str(screen.text))
+                bulk_payment = site.payments[-1][1]
+                self.assertEqual(len(bulk_payment["items"]), 2)
+                self.assertEqual(
+                    [item["sessionNo"] for item in bulk_payment["items"]],
+                    [1, 2],
+                )
+                checkout = state.commerce_cart_checkout_by_order(
+                    "aiBulkOrderToken1234567890123"
+                )
+                self.assertIsNotNone(checkout)
+                assert checkout is not None
+                self.assertEqual(len(checkout["items"]), 2)
+                self.assertEqual(
+                    {item["kind"] for item in checkout["items"]},
+                    {"ai_booklet"},
+                )
+            finally:
+                state.close()
+
+    def test_multi_select_flow_preserves_selection_across_callbacks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            site = Site()
+            app = DentBotApp(
+                Api(),
+                state,
+                owner_id=99,
+                site_url="https://example.test",
+                site_api=site,
+            )
+            try:
+                register_ai_source(state, 1)
+                register_ai_source(state, 2)
+                start = app._booklet_screen_for_action(
+                    "ai-more:diagnostic-dentistry-3:1",
+                    20,
+                    CATALOG,
+                )
+                self.assertIn("انتخاب‌شده: <b>۱</b>", str(start.text))
+                dialog = state.dialog(20)
+                self.assertIsNotNone(dialog)
+                assert dialog is not None
+                self.assertEqual(dialog["payload"]["selected"], [1])
+
+                toggled = app._booklet_screen_for_action(
+                    "ai-toggle:2",
+                    20,
+                    CATALOG,
+                )
+                self.assertIn("انتخاب‌شده: <b>۲</b>", str(toggled.text))
+                dialog = state.dialog(20)
+                assert dialog is not None
+                self.assertEqual(dialog["payload"]["selected"], [1, 2])
+
+                checkout = app._booklet_screen_for_action(
+                    "ai-checkout",
+                    20,
+                    CATALOG,
+                )
+                self.assertIn("پرداخت", str(checkout.text))
+                self.assertIsNone(state.dialog(20))
+                self.assertEqual(
+                    [item["sessionNo"] for item in site.payments[-1][1]["items"]],
+                    [1, 2],
+                )
+            finally:
+                state.close()
 
     def test_purchase_screen_is_persian_and_session_specific(self) -> None:
         screen = ai_booklet_purchase_screen(CATALOG, "diagnostic-dentistry-3", 1)
