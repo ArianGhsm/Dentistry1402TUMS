@@ -162,14 +162,31 @@ class AiBookletTests(unittest.TestCase):
         )
         self.assertEqual(records, [])
 
-    def test_session_keyboard_keeps_four_existing_buttons_and_full_width_ai_row(self) -> None:
-        screen = resources_screen(CATALOG, "diagnostic-dentistry-3", 1)
+    def test_session_status_table_and_available_content_buttons(self) -> None:
+        screen = resources_screen(
+            CATALOG,
+            "diagnostic-dentistry-3",
+            1,
+            content_counts={
+                "voice": 2,
+                "power": 1,
+                "booklet": 1,
+                "reference": 0,
+                AI_BOOKLET_CONTENT_KIND: 1,
+            },
+        )
         rows = screen.keyboard["inline_keyboard"]
-        self.assertEqual([item["text"] for item in rows[0]], ["🎤 ویس", "📒 پاور"])
-        self.assertEqual([item["text"] for item in rows[1]], ["📓 جزوه", "📘 رفرنس"])
-        self.assertEqual(len(rows[2]), 1)
-        self.assertEqual(rows[2][0]["text"], "🤖 جزوه هوش مصنوعی")
+        labels = [item["text"] for row in rows for item in row]
+        self.assertIn("🎤 ویس", labels)
+        self.assertIn("📒 پاور", labels)
+        self.assertIn("📓 جزوه", labels)
+        self.assertNotIn("📘 رفرنس", labels)
+        self.assertIn("🤖 جزوه هوش مصنوعی", labels)
+        self.assertIn("🎤 ویس  ✅ موجود · ۲ فایل", screen.text)
+        self.assertIn("📘 رفرنس  — موجود نیست", screen.text)
         self.assertIn("🩺 رزیدنت مسئول: دکتر صبوری", screen.text)
+        self.assertIn("<table bordered striped compact>", screen.text.rich_html)
+        self.assertNotIn("Term", screen.text.rich_html)
 
     def test_purchase_screen_is_persian_and_session_specific(self) -> None:
         screen = ai_booklet_purchase_screen(CATALOG, "diagnostic-dentistry-3", 1)

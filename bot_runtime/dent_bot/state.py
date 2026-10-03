@@ -3366,6 +3366,27 @@ class BotState:
             ).fetchall()
         return [dict(payload) for row in rows if (payload := self._protected_media_payload(row)) is not None]
 
+    def protected_media_counts_for_tag(
+        self,
+        *,
+        course_tag: str,
+        term: int,
+        session_no: int,
+    ) -> dict[str, int]:
+        """Return the live active-content counts for one canonical lesson."""
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT content_kind,COUNT(*) FROM protected_media_sources "
+                "WHERE course_tag=? AND term=? AND session_no=? AND active=1 "
+                "GROUP BY content_kind",
+                (str(course_tag), int(term), int(session_no)),
+            ).fetchall()
+        return {
+            str(row[0]): max(0, int(row[1] or 0))
+            for row in rows
+            if str(row[0]) in {"voice", "power", "booklet", "reference", "ai_booklet"}
+        }
+
     def protected_media_source(self, source_id: int) -> dict | None:
         with self._lock:
             row = self.connection.execute(

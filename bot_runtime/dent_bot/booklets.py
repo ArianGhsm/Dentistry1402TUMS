@@ -10,7 +10,7 @@ from .ai_booklets import (
     AI_BOOKLET_SOURCE_TAG_KEY,
 )
 from .persian_datetime import to_persian_digits
-from .ui import Screen, button, format_rials, keyboard
+from .ui import Screen, button, format_rials, keyboard, native_rich_text
 
 
 RESOURCE_LABELS = {
@@ -361,7 +361,13 @@ def sessions_screen(catalog: dict, course_key: str) -> Screen:
     return Screen("<b><u>📚 جلسات درس</u></b>\n\n" + body, keyboard(*rows))
 
 
-def resources_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
+def resources_screen(
+    catalog: dict,
+    course_key: str,
+    session_no: int,
+    *,
+    content_counts: dict[str, int],
+) -> Screen:
     course = course_by_key(catalog, course_key)
     session = session_by_number(course or {}, session_no) if course is not None else None
     if course is None or session is None:
@@ -369,6 +375,7 @@ def resources_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
             "<b>⚠️ جلسه پیدا نشد</b>\n\nاین جلسه دیگر در طرح درس مرجع وجود ندارد.",
             keyboard([button("↩️ فهرست درس‌ها", action="notes")], [button("🏠 منوی اصلی", action="home")]),
         )
+
     instructor = " ".join(str(session.get("instructor") or "").split())
     resident = " ".join(str(session.get("resident") or "").split())
     mode = " ".join(str(session.get("sessionModeLabel") or "").split())
@@ -379,34 +386,79 @@ def resources_screen(catalog: dict, course_key: str, session_no: int) -> Screen:
         metadata.append(f"🩺 رزیدنت مسئول: {html.escape(resident)}")
     if mode:
         metadata.append(f"📍 {html.escape(mode)}")
-    meta_text = "\n".join(metadata)
-    if meta_text:
-        meta_text += "\n\n"
-    return Screen(
-        f"<b><u>جلسه {to_persian_digits(session_no)} · {html.escape(str(session.get('title') or 'بدون عنوان'))}</u></b>\n\n"
-        f"📚 {html.escape(str(course.get('courseTitle') or 'درس'))}\n"
-        f"{meta_text}"
-        "نوع محتوای موردنظر را انتخاب کن:",
-        keyboard(
-            [
-                button(RESOURCE_LABELS["voice"], action=f"booklet-resource:{course_key}:{session_no}:voice"),
-                button(RESOURCE_LABELS["power"], action=f"booklet-resource:{course_key}:{session_no}:power"),
-            ],
-            [
-                button(RESOURCE_LABELS["booklet"], action=f"booklet-resource:{course_key}:{session_no}:booklet"),
-                button(RESOURCE_LABELS["reference"], action=f"booklet-resource:{course_key}:{session_no}:reference"),
-            ],
-            [
-                button(
-                    RESOURCE_LABELS[AI_BOOKLET_CONTENT_KIND],
-                    action=f"booklet-resource:{course_key}:{session_no}:{AI_BOOKLET_CONTENT_KIND}",
-                    style="primary",
-                )
-            ],
-            [button("↩️ جلسات", action=f"booklet-course:{course_key}")],
-            [button("🏠 منوی اصلی", action="home")],
-        ),
+
+    kinds = ("voice", "power", "booklet", "reference", AI_BOOKLET_CONTENT_KIND)
+    counts = {kind: max(0, int(content_counts.get(kind) or 0)) for kind in kinds}
+    available = {kind: counts[kind] > 0 for kind in kinds}
+
+    fallback = [
+        f"<b><u>جلسه {to_persian_digits(session_no)} · {html.escape(str(session.get('title') or 'بدون عنوان'))}</u></b>",
+        "",
+        f"📚 {html.escape(str(course.get('courseTitle') or 'درس'))}",
+    ]
+    fallback.extend(metadata)
+    fallback.extend(("", "<b>وضعیت محتوای جلسه</b>"))
+    status_lines = []
+    for kind in kinds:
+        count = counts[kind]
+        if count:
+            suffix = f" · {to_persian_digits(count)} فایل" if count > 1 else ""
+            status_lines.append(f"{RESOURCE_LABELS[kind]}  ✅ موجود{suffix}")
+        else:
+            status_lines.append(f"{RESOURCE_LABELS[kind]}  — موجود نیست")
+    fallback.append("<blockquote>" + "\n".join(status_lines) + "</blockquote>")
+
+    rich = [
+        f"<h2>جلسه {to_persian_digits(session_no)} · {html.escape(str(session.get('title') or 'بدون عنوان'))}</h2>",
+        f"<p>📚 <b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>",
+    ]
+    if metadata:
+        rich.append("<br/>" + "<br/>".join(metadata))
+    rich.append("</p>")
+    rich.append(
+        "<table bordered striped compact><caption>وضعیت محتوای جلسه</caption>"
+        "<tr><th>محتوا</th><th>وضعیت</th></tr>"
     )
+    for kind in kinds:
+        count = counts[kind]
+        status = "✅ موجود" if count else "— موجود نیست"
+        if count > 1:
+            status += f" · {to_persian_digits(count)} فایل"
+        rich.append(
+            f"<tr><td>{html.escape(RESOURCE_LABELS[kind])}</td>"
+            f"<td>{html.escape(status)}</td></tr>"
+        )
+    rich.append("</table>")
+    rich.append("<footer>وضعیت از آرشیو زندهٔ همان جلسه خوانده می‌شود.</footer>")
+
+    rows: list[list[dict]] = []
+    first_row = [
+        button(RESOURCE_LABELS[kind], action=f"booklet-resource:{course_key}:{session_no}:{kind}")
+        for kind in ("voice", "power")
+        if available[kind]
+    ]
+    second_row = [
+        button(RESOURCE_LABELS[kind], action=f"booklet-resource:{course_key}:{session_no}:{kind}")
+        for kind in ("booklet", "reference")
+        if available[kind]
+    ]
+    if first_row:
+        rows.append(first_row)
+    if second_row:
+        rows.append(second_row)
+    if available[AI_BOOKLET_CONTENT_KIND]:
+        rows.append([
+            button(
+                RESOURCE_LABELS[AI_BOOKLET_CONTENT_KIND],
+                action=f"booklet-resource:{course_key}:{session_no}:{AI_BOOKLET_CONTENT_KIND}",
+                style="primary",
+            )
+        ])
+    rows.extend((
+        [button("↩️ جلسات", action=f"booklet-course:{course_key}")],
+        [button("🏠 منوی اصلی", action="home")],
+    ))
+    return Screen(native_rich_text("\n".join(fallback), "".join(rich)), keyboard(*rows))
 
 
 def ai_booklet_purchase_screen(catalog: dict, course_key: str, session_no: int) -> Screen:

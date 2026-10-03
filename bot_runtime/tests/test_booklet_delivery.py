@@ -224,6 +224,95 @@ class BookletDeliveryTests(unittest.TestCase):
         self.assertEqual([item["sessionNo"] for item in records], [1, 2])
         self.assertEqual({item["contentKind"] for item in records}, {"power"})
 
+    def test_session_content_counts_follow_live_active_routes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                private_records = [
+                    {
+                        "courseCode": "research-methods-2",
+                        "courseName": "روش تحقیق ۲",
+                        "courseTag": "روش_تحقیق۲",
+                        "term": 7,
+                        "sessionNo": 1,
+                        "contentKind": "voice",
+                        "telegramMethod": "sendAudio",
+                        "fileId": "voice-1",
+                        "fileUniqueId": "voice-u1",
+                        "fileName": "voice.m4a",
+                        "mimeType": "audio/m4a",
+                        "caption": "ویس جلسه اول",
+                    },
+                    {
+                        "courseCode": "research-methods-2",
+                        "courseName": "روش تحقیق ۲",
+                        "courseTag": "روش_تحقیق۲",
+                        "term": 7,
+                        "sessionNo": 1,
+                        "contentKind": "booklet",
+                        "telegramMethod": "sendDocument",
+                        "fileId": "booklet-1",
+                        "fileUniqueId": "booklet-u1",
+                        "fileName": "booklet.pdf",
+                        "mimeType": "application/pdf",
+                        "caption": "جزوه جلسه اول",
+                    },
+                ]
+                power_records = [
+                    {
+                        "courseCode": "research-methods-2",
+                        "courseName": "روش تحقیق ۲",
+                        "courseTag": "روش_تحقیق۲",
+                        "term": 7,
+                        "sessionNo": 1,
+                        "contentKind": "power",
+                        "telegramMethod": "sendDocument",
+                        "fileId": "power-1",
+                        "fileUniqueId": "power-u1",
+                        "fileName": "power.pdf",
+                        "mimeType": "application/pdf",
+                        "caption": "پاور جلسه اول",
+                    }
+                ]
+                state.replace_protected_media_message(SOURCE_CHAT_ID, 70, private_records)
+                state.replace_protected_media_message(POWER_SOURCE_CHAT_ID, 71, power_records)
+                self.assertEqual(
+                    state.protected_media_counts_for_tag(
+                        course_tag="روش_تحقیق۲",
+                        term=7,
+                        session_no=1,
+                    ),
+                    {"voice": 1, "power": 1, "booklet": 1},
+                )
+
+                # Editing the private source must immediately remove stale kinds
+                # from the next lesson render.
+                state.replace_protected_media_message(
+                    SOURCE_CHAT_ID,
+                    70,
+                    [
+                        {
+                            **private_records[0],
+                            "contentKind": "reference",
+                            "fileId": "reference-1",
+                            "fileUniqueId": "reference-u1",
+                            "fileName": "reference.pdf",
+                            "mimeType": "application/pdf",
+                            "caption": "رفرنس جلسه اول",
+                        }
+                    ],
+                )
+                self.assertEqual(
+                    state.protected_media_counts_for_tag(
+                        course_tag="روش_تحقیق۲",
+                        term=7,
+                        session_no=1,
+                    ),
+                    {"power": 1, "reference": 1},
+                )
+            finally:
+                state.close()
+
     def test_source_policy_keeps_power_public_and_other_content_private(self) -> None:
         power_caption = "📒 پاور جلسه اول روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷"
         power_message = {
@@ -780,7 +869,15 @@ class BookletDeliveryTests(unittest.TestCase):
                 resource_labels = {
                     item["text"] for row in api.edited[-1][3]["inline_keyboard"] for item in row
                 }
-                self.assertTrue(set(RESOURCE_LABELS.values()).issubset(resource_labels))
+                self.assertIn(RESOURCE_LABELS["booklet"], resource_labels)
+                self.assertNotIn(RESOURCE_LABELS["voice"], resource_labels)
+                self.assertNotIn(RESOURCE_LABELS["power"], resource_labels)
+                self.assertNotIn(RESOURCE_LABELS["reference"], resource_labels)
+                self.assertIn("📓 جزوه  ✅ موجود", api.edited[-1][2])
+                self.assertIn("🎤 ویس  — موجود نیست", api.edited[-1][2])
+                self.assertIn("📒 پاور  — موجود نیست", api.edited[-1][2])
+                self.assertIn("📘 رفرنس  — موجود نیست", api.edited[-1][2])
+                self.assertIn("🤖 جزوه هوش مصنوعی  — موجود نیست", api.edited[-1][2])
 
                 app.handle(callback("booklet-resource:ent:4:booklet"))
                 self.assertEqual(len(dispatcher.jobs), 1)

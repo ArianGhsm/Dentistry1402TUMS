@@ -265,6 +265,27 @@ class BookletAppWorkflows:
                 )
         self._render_booklet_screen(chat_id, message_id, screen)
 
+    def _booklet_resources_screen(self, catalog: dict, course_key: str, session_no: int) -> Screen:
+        course = course_by_key(catalog, course_key)
+        if course is None:
+            return booklet_resources_screen(
+                catalog,
+                course_key,
+                session_no,
+                content_counts={},
+            )
+        counts = self.state.protected_media_counts_for_tag(
+            course_tag=str(course.get("bookletTag") or ""),
+            term=int(catalog.get("term") or 7),
+            session_no=int(session_no),
+        )
+        return booklet_resources_screen(
+            catalog,
+            course_key,
+            session_no,
+            content_counts=counts,
+        )
+
     def _booklet_screen_for_action(self, name: str, user_id: int, catalog: dict) -> Screen:
         if name == "notes":
             self.state.touch_user(user_id, "notes")
@@ -297,7 +318,7 @@ class BookletAppWorkflows:
                     frame_error("این جلسه در طرح درس مرجع پیدا نشد."),
                     keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
                 )
-            return booklet_resources_screen(catalog, course_key, session_no)
+            return self._booklet_resources_screen(catalog, course_key, session_no)
 
         if name.startswith("booklet-ai-buy:"):
             return self._buy_ai_booklet_screen(name, user_id, catalog)
@@ -344,7 +365,7 @@ class BookletAppWorkflows:
             content_kind=AI_BOOKLET_CONTENT_KIND,
         )
         if not sources:
-            base_screen = booklet_resources_screen(catalog, course_key, session_no)
+            base_screen = self._booklet_resources_screen(catalog, course_key, session_no)
             return Screen(
                 "🤖 جزوه هوش مصنوعی این جلسه هنوز منتشر نشده است.\n\n" + base_screen.text,
                 base_screen.keyboard,
@@ -432,7 +453,7 @@ class BookletAppWorkflows:
             )
 
         if content_kind == AI_BOOKLET_CONTENT_KIND:
-            base_screen = booklet_resources_screen(catalog, course_key, session_no)
+            base_screen = self._booklet_resources_screen(catalog, course_key, session_no)
             ai_sources = self.state.protected_media_for_tag(
                 course_tag=str(course.get("bookletTag") or ""),
                 term=int(catalog.get("term") or 7),
@@ -461,7 +482,7 @@ class BookletAppWorkflows:
             ):
                 return ai_booklet_purchase_screen(catalog, course_key, session_no)
 
-        base_screen = booklet_resources_screen(catalog, course_key, session_no)
+        base_screen = self._booklet_resources_screen(catalog, course_key, session_no)
         sources = self.state.protected_media_for_tag(
             course_tag=str(course.get("bookletTag") or ""),
             term=7,
