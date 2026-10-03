@@ -5,11 +5,14 @@ import unittest
 from dent_bot.booklet_reconcile import (
     RETRY_UNROUTED_SECONDS,
     album_caption_overrides,
+    blocking_private_unrouted,
     reconciliation_record,
+    should_prune_missing_sources,
     should_reconcile,
     source_fingerprint,
+    source_history_complete,
     source_media_field,
-    source_requires_reusable_file_id,
+    source_requires_bot_api_hydration,
 )
 
 
@@ -58,6 +61,30 @@ class BookletReconcileTests(unittest.TestCase):
         self.assertEqual(album_caption_overrides(ambiguous), {})
 
 
+    def test_unrouted_private_source_retries_each_reconcile_minute(self) -> None:
+        self.assertEqual(RETRY_UNROUTED_SECONDS, 60)
+        record = reconciliation_record("fingerprint", status="unrouted", now=1000)
+        self.assertEqual(record["nextRetryAt"], 1060)
+        self.assertFalse(should_reconcile(record, "fingerprint", now=1059))
+        self.assertTrue(should_reconcile(record, "fingerprint", now=1060))
+
+    def test_missing_source_pruning_requires_complete_private_history(self) -> None:
+        self.assertTrue(source_history_complete(76, 200))
+        self.assertFalse(source_history_complete(200, 200))
+        self.assertTrue(should_prune_missing_sources("private", 76, 200))
+        self.assertFalse(should_prune_missing_sources("private", 200, 200))
+        self.assertFalse(should_prune_missing_sources("power", 76, 200))
+
+    def test_private_unrouted_is_operationally_blocking(self) -> None:
+        self.assertEqual(blocking_private_unrouted([
+            {"role": "private", "unrouted": 2},
+            {"role": "power", "unrouted": 9},
+        ]), 2)
+        self.assertEqual(blocking_private_unrouted([
+            {"role": "private", "unrouted": 0},
+            {"role": "power", "unrouted": 9},
+        ]), 0)
+
     def test_source_media_filter_rejects_photo_false_positive(self) -> None:
         class PhotoMessage:
             voice = None
@@ -73,14 +100,28 @@ class BookletReconcileTests(unittest.TestCase):
 
         self.assertEqual(source_media_field(PhotoMessage()), "")
         self.assertEqual(source_media_field(DocumentMessage()), "document")
-        self.assertFalse(source_requires_reusable_file_id("power"))
-        self.assertTrue(source_requires_reusable_file_id("private"))
+        self.assertFalse(source_requires_bot_api_hydration(
+            "power", file_name="power.pdf", mime_type="application/pdf"
+        ))
+        self.assertTrue(source_requires_bot_api_hydration(
+            "private", file_name="booklet.pdf", mime_type="application/pdf"
+        ))
+        self.assertTrue(source_requires_bot_api_hydration(
+            "private", file_name="booklet.PDF", mime_type=""
+        ))
+        self.assertFalse(source_requires_bot_api_hydration(
+            "private", file_name="voice.m4a", mime_type="audio/m4a"
+        ))
 
     def test_reconciler_never_uses_user_facing_sync_forward(self) -> None:
         root = __import__("pathlib").Path(__file__).resolve().parents[1]
         worker = (root / "scripts" / "reconcile-booklet-source-channel.py").read_text(encoding="utf-8")
         hook = (root / "scripts" / "dent1402-booklet-post-write-hook.sh").read_text(encoding="utf-8")
         self.assertIn("register-metadata", worker)
+        self.assertIn("hydrate-existing", worker)
+        self.assertIn("deactivate-missing", worker)
+        self.assertIn("privateUnrouted", worker)
+        self.assertNotIn("pack_bot_file_id", worker)
         self.assertIn("DENT_BOT_POWER_SOURCE_CHANNEL_ID", worker)
         self.assertIn("--source-channel-id", worker)
         self.assertNotIn("sync-existing", worker)
