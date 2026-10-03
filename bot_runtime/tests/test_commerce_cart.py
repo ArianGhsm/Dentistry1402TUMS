@@ -396,6 +396,41 @@ class CommerceCartTests(unittest.TestCase):
         self.assertIn("شماره ۱۲", str(screen.text))
         self.assertNotIn("شماره 12", str(screen.text))
 
+    def test_ai_booklet_cart_callback_parses_course_and_session(self) -> None:
+        captured: dict = {}
+
+        class AiCartHarness(CartHarness):
+            def _booklet_catalog(self, _user_id: int) -> dict:
+                return {
+                    "term": 7,
+                    "courses": [
+                        {
+                            "courseKey": "endodontics-basics-2",
+                            "courseTitle": "مبانی اندودانتیکس ۲",
+                            "bookletTag": "مبانی_اندو_۲",
+                            "sessions": [{"sessionNumber": 2}],
+                        }
+                    ],
+                }
+
+            def _cart_add_descriptor(
+                self,
+                _user_id: int,
+                descriptor: dict,
+                *,
+                title: str,
+            ) -> Screen:
+                captured["descriptor"] = dict(descriptor)
+                captured["title"] = title
+                return Screen("added", {"inline_keyboard": []})
+
+        app = AiCartHarness(self.state, PendingSite())
+        screen = app._cart_route("cart-add-ai:endodontics-basics-2:2", 20)
+        self.assertEqual(str(screen.text), "added")
+        self.assertEqual(captured["descriptor"]["courseCode"], "endodontics-basics-2")
+        self.assertEqual(captured["descriptor"]["sessionNo"], 2)
+        self.assertEqual(captured["descriptor"]["term"], 7)
+
     def test_paid_file_prerequisites_are_rechecked_at_checkout(self) -> None:
         offer = self.state.create_payment_offer(
             "PDF شخصی",

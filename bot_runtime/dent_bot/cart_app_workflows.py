@@ -789,10 +789,10 @@ class CartAppWorkflows:
 
         if name.startswith("cart-add-ai:"):
             parts = name.split(":")
-            if len(parts) != 4 or not parts[3].isdigit():
+            if len(parts) != 3 or not parts[2].isdigit():
                 return Screen(frame_error("مسیر افزودن جزوه معتبر نیست."), self._screen("home", user_id).keyboard)
-            course_key = parts[2]
-            session_no = int(parts[3])
+            course_key = parts[1]
+            session_no = int(parts[2])
             catalog = self._booklet_catalog(user_id)
             course = course_by_key(catalog, course_key)
             session = session_by_number(course or {}, session_no) if course is not None else None
