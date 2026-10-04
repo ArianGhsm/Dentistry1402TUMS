@@ -200,6 +200,39 @@ class DialogAppWorkflows:
                     phone_number=str(contact.get("phone_number") or ""),
                 )
             except SiteApiError as error:
+                if error.code == "CLASS_MEMBER_CANONICAL_LINK_REQUIRED":
+                    try:
+                        result = self.site_api.start_link(
+                            user_id,
+                            platform_profile=self._platform_profile(dict(sender or {"id": user_id})),
+                        )
+                        self.state.clear_dialog(user_id)
+                        self._remove_reply_keyboard(chat_id)
+                        screen = account_screen(
+                            self.site_url,
+                            platform=self.platform,
+                            linked_user=(
+                                dict(result.get("user") or {})
+                                if result.get("alreadyLinked") and result.get("authComplete")
+                                else None
+                            ),
+                            link_url=str(result.get("linkUrl") or ""),
+                        )
+                        self.api.send(
+                            chat_id,
+                            "<b>✅ حساب ورودی ۱۴۰۲ شناسایی شد</b>\n\n"
+                            "این شماره دانشجویی در فهرست رسمی کلاس ثبت است. "
+                            "برای فعال‌شدن همهٔ خدمات، اتصال امن حساب سایت را کامل کن.\n\n"
+                            + screen.text,
+                            screen.keyboard,
+                        )
+                    except (SiteApiError, AttributeError) as link_error:
+                        self.api.send(
+                            chat_id,
+                            frame_error(str(link_error)),
+                            class_auth_screen().keyboard,
+                        )
+                    return True
                 message_text = str(error)
                 if "مشخصات تحصیلی خارج از فهرست معتبر" in message_text:
                     message_text = "اطلاعات آموزشی با فهرست فعلی هم‌خوان نیست؛ «مرحله قبل» را بزن و نیمسال یا نوع دوره را دوباره انتخاب کن."
