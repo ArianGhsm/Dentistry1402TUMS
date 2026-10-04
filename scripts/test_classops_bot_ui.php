@@ -210,6 +210,20 @@ classops_v3_assert(
     'Partial sessions 14 and 15 both keep the corrected virtual label and omit a physical room'
 );
 
+$orthodonticsOfflineDate = new DateTimeImmutable('2026-10-05 00:00:00', $timezone);
+$orthodonticsOfflineRows = array_values(array_filter(
+    classops_bot_ui_term7_records($student, $orthodonticsOfflineDate, $state),
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'ارتودنسی نظری ۱'
+));
+classops_v3_assert(
+    count($orthodonticsOfflineRows) === 1
+        && ($orthodonticsOfflineRows[0]['sessionNumber'] ?? null) === 3
+        && ($orthodonticsOfflineRows[0]['sessionMode'] ?? '') === 'offline'
+        && ($orthodonticsOfflineRows[0]['sessionModeLabel'] ?? '') === 'مجازی (آفلاین)'
+        && ($orthodonticsOfflineRows[0]['location'] ?? 'x') === '',
+    'Orthodontics 1405/07/13 reaches the bot timeline as the one-off offline virtual session'
+);
+
 $diagnosticOfflineDate = new DateTimeImmutable('2026-10-05 00:00:00', $timezone);
 $diagnosticOfflineRows = array_values(array_filter(
     classops_bot_ui_term7_records($student, $diagnosticOfflineDate, $state),

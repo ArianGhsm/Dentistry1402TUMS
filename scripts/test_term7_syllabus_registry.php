@@ -150,6 +150,27 @@ syllabus_assert(
     'Partial Theory exposes exactly seven virtual sessions from the corrected PDF'
 );
 
+$orthException = classops_term7_syllabus_enrich_events([
+    syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱', 'آمفی‌تئاتر ۹۰', '12:40', '13:40'),
+], '1405/07/13');
+syllabus_assert(
+    count($orthException) === 1
+        && ($orthException[0]['sessionNumber'] ?? null) === 3
+        && ($orthException[0]['sessionMode'] ?? '') === 'offline'
+        && ($orthException[0]['sessionModeLabel'] ?? '') === 'مجازی (آفلاین)'
+        && ($orthException[0]['location'] ?? 'x') === ''
+        && ($orthException[0]['start'] ?? '') === '12:40'
+        && ($orthException[0]['end'] ?? '') === '13:40',
+    'Orthodontics 1405/07/13 applies the one-off offline virtual override'
+);
+$orthCatalogSession3 = $catalog['orthodontics-theory-1']['sessions'][2] ?? [];
+syllabus_assert(
+    ($orthCatalogSession3['sessionOverrideKind'] ?? '') === 'one_off'
+        && ($orthCatalogSession3['sessionOverrideDate'] ?? '') === '1405/07/13'
+        && ($orthCatalogSession3['sessionOverrideReason'] ?? '') !== '',
+    'Orthodontics one-off modality is explicit and traceable in the canonical catalog'
+);
+
 $orth = classops_term7_syllabus_enrich_events([
     syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱'),
 ], '1405/07/27');

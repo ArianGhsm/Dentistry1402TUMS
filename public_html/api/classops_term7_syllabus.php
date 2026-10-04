@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.11';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.12';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -17,6 +17,49 @@ function classops_term7_syllabus_mode_label(string $mode): string
         default => 'حضوری',
     };
 }
+
+function classops_term7_syllabus_one_off_overrides(): array
+{
+    return [
+        'orthodontics-theory-1|1405/07/13|3' => [
+            'sessionMode' => 'offline',
+            'sessionModeLabel' => 'مجازی (آفلاین)',
+            'overrideKind' => 'one_off',
+            'overrideReason' => 'برگزاری استثنایی این جلسه به‌صورت مجازی آفلاین',
+        ],
+    ];
+}
+
+function classops_term7_syllabus_apply_one_off_override(string $courseKey, array $session): array
+{
+    $numbers = array_values(array_filter(array_map(
+        'intval',
+        is_array($session['sessionNumbers'] ?? null) ? $session['sessionNumbers'] : []
+    ), static fn(int $number): bool => $number > 0));
+    if ($numbers === [] && isset($session['sessionNumber']) && (int) $session['sessionNumber'] > 0) {
+        $numbers = [(int) $session['sessionNumber']];
+    }
+    $dateSource = is_array($session['canonicalDates'] ?? null)
+        ? $session['canonicalDates']
+        : (is_array($session['dates'] ?? null) ? $session['dates'] : []);
+    foreach ($dateSource as $dateValue) {
+        $date = trim((string) $dateValue);
+        if ($date === '') continue;
+        foreach ($numbers as $number) {
+            $key = trim($courseKey) . '|' . $date . '|' . $number;
+            $override = classops_term7_syllabus_one_off_overrides()[$key] ?? null;
+            if (!is_array($override)) continue;
+            $session['sessionMode'] = (string) ($override['sessionMode'] ?? $session['sessionMode'] ?? 'in_person');
+            $session['sessionModeLabel'] = (string) ($override['sessionModeLabel'] ?? '');
+            $session['sessionOverrideKind'] = (string) ($override['overrideKind'] ?? 'one_off');
+            $session['sessionOverrideReason'] = (string) ($override['overrideReason'] ?? '');
+            $session['sessionOverrideDate'] = $date;
+            return $session;
+        }
+    }
+    return $session;
+}
+
 
 function classops_term7_syllabus_catalog(): array
 {
@@ -44,6 +87,17 @@ function classops_term7_syllabus_catalog(): array
         'courseCoordinator' => (string) ($partial['courseCoordinator'] ?? ''),
         'sessions' => $partialSessions,
     ];
+
+    foreach ($catalog as $courseKey => &$course) {
+        if (!is_array($course)) continue;
+        $sessions = [];
+        foreach (is_array($course['sessions'] ?? null) ? $course['sessions'] : [] as $session) {
+            if (!is_array($session)) continue;
+            $sessions[] = classops_term7_syllabus_apply_one_off_override((string) $courseKey, $session);
+        }
+        $course['sessions'] = $sessions;
+    }
+    unset($course);
     return $catalog;
 }
 
