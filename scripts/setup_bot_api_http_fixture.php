@@ -103,36 +103,7 @@ $authStore['users'][$websiteDisconnectStudentNumber] = [
     'phoneVerifiedAt' => '',
     'phoneLoginEnabled' => false,
 ];
-$legacyGenericClassStudentNumber = '402000007';
-$authStore['users'][$legacyGenericClassStudentNumber] = [
-    'studentNumber' => $legacyGenericClassStudentNumber,
-    'name' => 'Legacy Generic Class Student',
-    'passwordHash' => password_hash('test-password-not-used', PASSWORD_DEFAULT),
-    'role' => 'student',
-    'cohortKey' => dent_primary_cohort_key(),
-    'phoneNumber' => '',
-    'phoneVerifiedAt' => '',
-    'phoneLoginEnabled' => false,
-];
 dent_write_auth_store_payload($authStore);
-$legacyGenericIdentity = '888011';
-$legacyGenericIdentityHash = dent_bot_identity_hash('telegram', $legacyGenericIdentity);
-dent_bot_store_with_lock(static function (array &$store) use ($legacyGenericIdentityHash, $legacyGenericClassStudentNumber): array {
-    dent_bot_store_profile_for_identity($store, $legacyGenericIdentityHash, 'telegram', [
-        'firstName' => 'Legacy',
-        'lastName' => 'Generic',
-        'major' => 'دندانپزشکی',
-        'province' => 'تهران',
-        'institution' => 'دانشگاه علوم پزشکی تهران',
-        'entryYear' => '۱۴۰۲',
-        'admissionType' => 'نیمسال اول (روزانه یا تعهدی)',
-        'studentNumber' => $legacyGenericClassStudentNumber,
-        'phoneNumber' => '09121112244',
-        'verifiedAt' => dent_iso_now(),
-        'isClassMember' => false,
-    ]);
-    return [];
-});
 $user = dent_get_user_record($studentNumber);
 if (!is_array($user)) {
     throw new RuntimeException('Synthetic owner could not be created.');
