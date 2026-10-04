@@ -239,6 +239,26 @@ function dent_bot_onboarding_otp_purpose(string $identityHash, string $challenge
     return 'bot-onboarding-v1:' . substr($identityHash, 0, 20) . ':' . substr(hash('sha256', $challengeRef), 0, 20);
 }
 
+function dent_bot_primary_class_account_for_student_number(string $studentNumber): ?array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return null;
+    }
+    $user = dent_get_user_record($studentNumber);
+    if (!is_array($user) || dent_user_cohort_key($user) !== dent_primary_cohort_key()) {
+        return null;
+    }
+    return $user;
+}
+
+function dent_bot_onboarding_profile_is_primary_class_member(array $profile): bool
+{
+    $studentNumber = dent_normalize_student_number((string) ($profile['studentNumber'] ?? ''));
+    return $studentNumber !== ''
+        && dent_bot_primary_class_account_for_student_number($studentNumber) !== null;
+}
+
 function dent_bot_onboarding_profile_public(array $profile): array
 {
     return [
@@ -252,7 +272,7 @@ function dent_bot_onboarding_profile_public(array $profile): array
         'studentNumber' => (string) ($profile['studentNumber'] ?? ''),
         'phoneMasked' => dent_mask_phone_number((string) ($profile['phoneNumber'] ?? '')),
         'verifiedAt' => (string) ($profile['verifiedAt'] ?? ''),
-        'isClassMember' => !empty($profile['isClassMember']),
+        'isClassMember' => dent_bot_onboarding_profile_is_primary_class_member($profile),
         'editRequestStatus' => (string) ($profile['editRequestStatus'] ?? ''),
     ];
 }
@@ -306,6 +326,14 @@ function dent_bot_onboarding_request_otp(string $platform, string $platformUserI
 {
     $identityHash = dent_bot_identity_hash($platform, $platformUserId);
     $profile = dent_bot_onboarding_clean_profile(is_array($payload['profile'] ?? null) ? $payload['profile'] : []);
+    $studentNumber = dent_normalize_student_number((string) ($profile['studentNumber'] ?? ''));
+    if ($studentNumber !== '' && dent_bot_primary_class_account_for_student_number($studentNumber) !== null) {
+        dent_error(
+            'این شماره دانشجویی متعلق به حساب ورودی ۱۴۰۲ است؛ برای دسترسی کامل، حساب سایت را به‌صورت امن متصل کن.',
+            409,
+            ['code' => 'CLASS_MEMBER_CANONICAL_LINK_REQUIRED']
+        );
+    }
     $phone = dent_normalize_phone_number((string) ($payload['phoneNumber'] ?? ''));
     if ($phone === '') {
         dent_error('شماره موبایل معتبر نیست.', 422);
