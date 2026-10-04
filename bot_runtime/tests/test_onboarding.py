@@ -8,6 +8,7 @@ from pathlib import Path
 
 from dent_bot.app import DentBotApp
 from dent_bot.api import BotApiError
+from dent_bot.site_api import SiteApiError
 from dent_bot.onboarding import (
     BACK_STEP,
     CANCEL,
@@ -375,6 +376,51 @@ class OnboardingTests(unittest.TestCase):
                     with state._lock:
                         raw = state.connection.execute("SELECT payload_json FROM bot_dialogs").fetchall()
                     self.assertNotIn("123456", str(raw))
+                finally:
+                    state.close()
+
+    def test_generic_profile_with_canonical_class_number_redirects_to_secure_site_link(self) -> None:
+        class CanonicalClassSite(OnboardingSite):
+            def request_onboarding_otp(self, user_id, *, profile, phone_number):
+                raise SiteApiError(
+                    "این شماره دانشجویی متعلق به حساب ورودی ۱۴۰۲ است.",
+                    code="CLASS_MEMBER_CANONICAL_LINK_REQUIRED",
+                    status=409,
+                )
+
+            def start_link(self, _user_id, *, platform_profile):
+                self.platform_profile = dict(platform_profile)
+                return {"success": True, "linkUrl": "https://example.test/account/bot-link/?token=test"}
+
+        for platform in ("telegram", "bale"):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
+                state = BotState(Path(directory) / "state.sqlite3")
+                api = FakeApi()
+                site = CanonicalClassSite()
+                app = DentBotApp(
+                    api, state, owner_id=10, site_url="https://example.test",
+                    site_api=site, platform=platform,
+                )
+                try:
+                    payload = {
+                        "firstName": "فاطمه", "lastName": "آزمایشی", "major": "دندانپزشکی",
+                        "province": "تهران", "institution": "دانشگاه علوم پزشکی تهران",
+                        "institutionSystem": "public", "entryYear": "۱۴۰۲",
+                        "entryTerm": "نیمسال اول", "courseType": "روزانه یا تعهدی",
+                        "admissionType": "نیمسال اول (روزانه یا تعهدی)",
+                        "studentNumber": "402000001",
+                    }
+                    state.start_dialog(20, "onboarding-v1", "contact", payload)
+                    contact = {"phone_number": "+989121112233"}
+                    if platform == "telegram":
+                        contact["user_id"] = 20
+                    app.handle(message(20, contact=contact))
+                    self.assertIsNone(state.dialog(20))
+                    self.assertEqual(api.removed, [20])
+                    self.assertIn("حساب ورودی ۱۴۰۲ شناسایی شد", api.sent[-1][1])
+                    self.assertIn("اتصال امن حساب سایت", api.sent[-1][1])
+                    self.assertIn("inline_keyboard", api.sent[-1][2])
+                    self.assertEqual(site.platform_profile.get("displayName"), "آرین")
                 finally:
                     state.close()
 
