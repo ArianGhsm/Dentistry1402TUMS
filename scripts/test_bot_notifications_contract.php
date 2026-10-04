@@ -99,6 +99,25 @@ try {
             && ($cleanMeta['academicScheduleRows'][0]['instructor'] ?? '') === 'دکتر سرگران / دکتر پاکدامن',
         'Notification metadata preserves sanitized academic schedule instructor rows'
     );
+    $virtualCorrectionMeta = notifications_clean_meta([
+        'virtualClassSummaryRows' => [
+            [
+                'courseTitle' => 'دندانپزشکی تشخیصی ۳',
+                'virtualCount' => 16,
+                'detail' => '۱۱ آفلاین · ۵ آنلاین',
+            ],
+            [
+                'courseTitle' => 'مبانی پارسیل نظری',
+                'virtualCount' => 7,
+                'detail' => 'جلسات ۳، ۴، ۵، ۱۰، ۱۱، ۱۴ و ۱۵',
+            ],
+        ],
+    ]);
+    notification_contract_assert(
+        ($virtualCorrectionMeta['virtualClassSummaryRows'][0]['virtualCount'] ?? 0) === 16
+            && ($virtualCorrectionMeta['virtualClassSummaryRows'][1]['detail'] ?? '') === 'جلسات ۳، ۴، ۵، ۱۰، ۱۱، ۱۴ و ۱۵',
+        'Notification metadata preserves sanitized virtual-class correction summary rows'
+    );
     $presentationMeta = notifications_clean_meta([
         'oralDiseasePresentationRows' => [[
             'group' => 8,

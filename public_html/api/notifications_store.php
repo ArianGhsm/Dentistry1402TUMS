@@ -471,6 +471,23 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['academicScheduleRows'] = $academicRows;
     }
 
+    $virtualClassSummaryRows = [];
+    foreach (array_slice(is_array($meta['virtualClassSummaryRows'] ?? null) ? $meta['virtualClassSummaryRows'] : [], 0, 8) as $row) {
+        if (!is_array($row)) continue;
+        $courseTitle = dent_clean_text((string) ($row['courseTitle'] ?? ''), 180);
+        $virtualCount = max(0, min(40, (int) ($row['virtualCount'] ?? 0)));
+        $detail = dent_clean_text((string) ($row['detail'] ?? ''), 260);
+        if ($courseTitle === '' || $virtualCount <= 0) continue;
+        $virtualClassSummaryRows[] = [
+            'courseTitle' => $courseTitle,
+            'virtualCount' => $virtualCount,
+            'detail' => $detail,
+        ];
+    }
+    if ($virtualClassSummaryRows !== []) {
+        $clean['virtualClassSummaryRows'] = $virtualClassSummaryRows;
+    }
+
     $oralDiseaseRows = [];
     foreach (array_slice(is_array($meta['oralDiseasePresentationRows'] ?? null) ? $meta['oralDiseasePresentationRows'] : [], 0, 12) as $row) {
         if (!is_array($row)) continue;

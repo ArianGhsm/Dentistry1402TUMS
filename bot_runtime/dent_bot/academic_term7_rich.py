@@ -143,6 +143,65 @@ def _legacy_rows(item: dict[str, Any]) -> tuple[list[dict[str, str]], list[str]]
     return sorted(rows, key=_row_sort_key), notices
 
 
+def virtual_class_correction_notification_text(item: dict[str, Any]):
+    if str(item.get("source") or "") != "academic-term7-virtual-correction":
+        return None
+    meta = item.get("meta")
+    raw_rows = meta.get("virtualClassSummaryRows") if isinstance(meta, dict) else None
+    if not isinstance(raw_rows, list):
+        return None
+
+    rows: list[dict[str, str]] = []
+    for raw in raw_rows[:8]:
+        if not isinstance(raw, dict):
+            continue
+        course = " ".join(str(raw.get("courseTitle") or "").split())[:180]
+        count = max(0, int(raw.get("virtualCount") or 0))
+        detail = " ".join(str(raw.get("detail") or "").split())[:260]
+        if not course or count <= 0:
+            continue
+        rows.append({
+            "course": course,
+            "count": ui_module.to_persian_digits(str(count)),
+            "detail": detail or "—",
+        })
+    if not rows:
+        return None
+
+    raw_title = " ".join(str(item.get("title") or "").split())
+    title = raw_title or "📣 اصلاحیه نهایی برنامه کلاس‌های مجازی"
+    replacement_note = "این پیام جایگزین اعلان قبلی است."
+    footer = "تغییرات در برنامه‌های روزانه، هفتگی و ماهانه اعمال شده‌اند و نوع برگزاری کنار همان جلسه نمایش داده می‌شود."
+
+    fallback = [
+        f"<b>{html.escape(title)}</b>",
+        "",
+        f"<blockquote>ℹ️ {html.escape(replacement_note)}</blockquote>",
+        "",
+    ]
+    rich = [
+        f"<h2>{html.escape(title)}</h2>",
+        f"<blockquote>ℹ️ {html.escape(replacement_note)}</blockquote>",
+        "<table bordered striped compact><tr><th>درس</th><th>جلسات مجازی</th><th>جزئیات</th></tr>",
+    ]
+    for row in rows:
+        fallback.extend((
+            f"<b>{html.escape(row['course'])}</b>",
+            f"✅ {html.escape(row['count'])} جلسه مجازی",
+            html.escape(row["detail"]),
+            "",
+        ))
+        rich.append(
+            f"<tr><td><b>{html.escape(row['course'])}</b></td>"
+            f"<td><code>{html.escape(row['count'])}</code> جلسه</td>"
+            f"<td>{html.escape(row['detail'])}</td></tr>"
+        )
+    rich.append("</table>")
+    fallback.append(f"<blockquote>✅ {html.escape(footer)}</blockquote>")
+    rich.append(f"<footer>✅ {html.escape(footer)}</footer>")
+    return ui_module.native_rich_text("\n".join(fallback), "".join(rich))
+
+
 def oral_disease_presentation_notification_text(item: dict[str, Any]):
     if str(item.get("source") or "") != "oral-disease-presentation-schedule":
         return None
@@ -213,6 +272,9 @@ def oral_disease_presentation_notification_text(item: dict[str, Any]):
 
 
 def academic_notification_text(item: dict[str, Any]):
+    virtual_correction = virtual_class_correction_notification_text(item)
+    if virtual_correction is not None:
+        return virtual_correction
     presentation = oral_disease_presentation_notification_text(item)
     if presentation is not None:
         return presentation
