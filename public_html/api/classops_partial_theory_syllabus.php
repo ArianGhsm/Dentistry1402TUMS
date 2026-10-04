@@ -6,7 +6,7 @@ declare(strict_types=1);
  * course syllabus PDF. This file does not define a timetable; it only enriches
  * the existing canonical partial-basics-theory occurrence by Jalali date.
  */
-const CLASSOPS_PARTIAL_THEORY_SYLLABUS_VERSION = '1405-1406-1.pdf.1';
+const CLASSOPS_PARTIAL_THEORY_SYLLABUS_VERSION = '1405-1406-1.pdf.2';
 
 function classops_partial_theory_syllabus(): array
 {
@@ -25,9 +25,9 @@ function classops_partial_theory_syllabus(): array
         'sessions' => [
             ['sessionNumber' => 1, 'sourcePage' => 1, 'sourceDate' => '05/07/01', 'jalaliDate' => '1405/07/01', 'dateAmbiguous' => false, 'title' => 'اپیدمیولوژی، فیزیولوژی و واژه‌شناسی؛ طبقه‌بندی قوس‌های بی‌دندانی', 'instructor' => 'دکتر بهرامی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
             ['sessionNumber' => 2, 'sourcePage' => 1, 'sourceDate' => '05/07/08', 'jalaliDate' => '1405/07/08', 'dateAmbiguous' => false, 'title' => 'پروتز پارسیلی که با کالسپ نگهداری می‌شود', 'instructor' => 'دکتر جوکار', 'references' => ['مک‌کراکن ۲۰۱۶، فصل‌های ۲ و ۳'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
-            ['sessionNumber' => 3, 'sourcePage' => 1, 'sourceDate' => '054/07/15', 'jalaliDate' => null, 'dateAmbiguous' => true, 'title' => 'اتصال‌دهنده اصلی فک بالا و اتصال‌دهنده فرعی', 'instructor' => 'دکتر اسدی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۵'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
-            ['sessionNumber' => 4, 'sourcePage' => 1, 'sourceDate' => '05/07/22', 'jalaliDate' => '1405/07/22', 'dateAmbiguous' => false, 'title' => 'اتصال‌دهنده اصلی فک پایین و اتصال‌دهنده فرعی', 'instructor' => 'دکتر اسدی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۵'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
-            ['sessionNumber' => 5, 'sourcePage' => 1, 'sourceDate' => '05/07/29', 'jalaliDate' => '1405/07/29', 'dateAmbiguous' => false, 'title' => 'تشخیص و طرح درمان', 'instructor' => 'دکتر اسدی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱۳'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
+            ['sessionNumber' => 3, 'sourcePage' => 1, 'sourceDate' => '05/07/15', 'jalaliDate' => '1405/07/15', 'dateAmbiguous' => false, 'title' => 'اتصال‌دهنده اصلی فک بالا و اتصال‌دهنده فرعی', 'instructor' => 'دکتر اسدی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۵'], 'sessionMode' => 'virtual', 'sessionModeLabel' => 'مجازی'],
+            ['sessionNumber' => 4, 'sourcePage' => 1, 'sourceDate' => '05/07/22', 'jalaliDate' => '1405/07/22', 'dateAmbiguous' => false, 'title' => 'اتصال‌دهنده اصلی فک پایین و اتصال‌دهنده فرعی', 'instructor' => 'دکتر اسدی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۵'], 'sessionMode' => 'virtual', 'sessionModeLabel' => 'مجازی'],
+            ['sessionNumber' => 5, 'sourcePage' => 1, 'sourceDate' => '05/07/29', 'jalaliDate' => '1405/07/29', 'dateAmbiguous' => false, 'title' => 'تشخیص و طرح درمان', 'instructor' => 'دکتر اسدی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱۳'], 'sessionMode' => 'virtual', 'sessionModeLabel' => 'مجازی'],
             ['sessionNumber' => 6, 'sourcePage' => 1, 'sourceDate' => '05/08/06', 'jalaliDate' => '1405/08/06', 'dateAmbiguous' => false, 'title' => 'سرویور و اعمال آن', 'instructor' => 'دکتر حاجی محمودی', 'references' => ['استوارت ۲۰۰۸، فصل ۷', 'مک‌کراکن ۲۰۱۶، فصل ۱۱'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
             ['sessionNumber' => 7, 'sourcePage' => 1, 'sourceDate' => '05/08/13', 'jalaliDate' => '1405/08/13', 'dateAmbiguous' => false, 'title' => 'بیومکانیک پروتز پارسیل متحرک', 'instructor' => 'دکتر حاجی محمودی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۴'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
             ['sessionNumber' => 8, 'sourcePage' => 1, 'sourceDate' => '05/08/27', 'jalaliDate' => '1405/08/27', 'dateAmbiguous' => false, 'title' => 'نگهدارنده مستقیم (۱)', 'instructor' => 'دکتر حاجی محمودی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۷'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
@@ -36,7 +36,7 @@ function classops_partial_theory_syllabus(): array
             ['sessionNumber' => 11, 'sourcePage' => 2, 'sourceDate' => '05/09/04', 'jalaliDate' => '1405/09/04', 'dateAmbiguous' => false, 'title' => 'آماده‌سازی دهان برای پروتز پارسیل', 'instructor' => 'دکتر عطری', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱۴'], 'sessionMode' => 'virtual', 'sessionModeLabel' => 'مجازی'],
             ['sessionNumber' => 12, 'sourcePage' => 2, 'sourceDate' => '05/09/11', 'jalaliDate' => '1405/09/11', 'dateAmbiguous' => false, 'title' => 'نگهدارنده غیرمستقیم', 'instructor' => 'دکتر حاجی محمودی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۸'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
             ['sessionNumber' => 13, 'sourcePage' => 2, 'sourceDate' => '05/09/18', 'jalaliDate' => '1405/09/18', 'dateAmbiguous' => false, 'title' => 'رست و جایگاه رست', 'instructor' => 'دکتر بهرامی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۶'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
-            ['sessionNumber' => 14, 'sourcePage' => 2, 'sourceDate' => '05/09/25', 'jalaliDate' => '1405/09/25', 'dateAmbiguous' => false, 'title' => 'آماده‌سازی دندان پایه', 'instructor' => 'دکتر مصطفوی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱۵'], 'sessionMode' => 'in_person', 'sessionModeLabel' => 'حضوری'],
+            ['sessionNumber' => 14, 'sourcePage' => 2, 'sourceDate' => '05/09/25', 'jalaliDate' => '1405/09/25', 'dateAmbiguous' => false, 'title' => 'آماده‌سازی دندان پایه', 'instructor' => 'دکتر مصطفوی', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱۵'], 'sessionMode' => 'virtual', 'sessionModeLabel' => 'مجازی'],
             ['sessionNumber' => 15, 'sourcePage' => 2, 'sourceDate' => '05/09/25', 'jalaliDate' => '1405/09/25', 'dateAmbiguous' => false, 'title' => 'مواد و روش‌های قالبگیری (اولیه و نهایی) در پروتز پارسیل متحرک', 'instructor' => 'دکتر جوکار', 'references' => ['مک‌کراکن ۲۰۱۶، فصل ۱۶'], 'sessionMode' => 'virtual', 'sessionModeLabel' => 'مجازی'],
         ],
     ];

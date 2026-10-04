@@ -285,13 +285,13 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "endodontics-theory-1": {
-    "version": "1405-1406-1.corrected.1",
+    "version": "1405-1406-1.corrected.2",
     "eventSlugs": [
       "endodontics-theory-1"
     ],
     "courseTitle": "اندودانتیکس نظری ۱",
     "sourceCourseTitle": "اندودانتیکس نظری ۱",
-    "sourceFile": "اندودانتیکس نظری ۱.pdf",
+    "sourceFile": "اندو نظری 1 نیمسال اول 1406-1405.pdf",
     "sessions": [
       {
         "sessionNumber": null,
@@ -470,20 +470,21 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "اندودانتیکس در بیماران مسن",
         "instructor": "دکتر صراف",
         "references": [],
-        "sessionMode": "in_person",
-        "sourcePage": 1
+        "sessionMode": "virtual",
+        "sourcePage": 1,
+        "sessionModeLabel": "مجازی (غیرحضوری ـ همیاد)"
       }
     ]
   },
   "diagnostic-dentistry-3": {
-    "version": "1405-1406-1.corrected.2",
+    "version": "1405-1406-1.corrected.3",
     "eventSlugs": [
       "diagnostic-dentistry-3-sun",
       "diagnostic-dentistry-3-mon"
     ],
     "courseTitle": "دندانپزشکی تشخیصی ۳",
     "sourceCourseTitle": "دندانپزشکی تشخیصی ۳",
-    "sourceFile": "دندان‌پزشکی تشخیصی ۳.pdf",
+    "sourceFile": "اصلاحیه واحد دندانپزشکی تشخیصی ۳.pdf",
     "sessions": [
       {
         "sessionNumber": 1,
@@ -556,7 +557,7 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات واکنشی",
         "instructor": "دکتر درخشان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "in_person_quiz",
         "sourcePage": 1,
         "assessmentPart": "میان‌ترم"
       },
@@ -571,9 +572,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات واکنشی",
         "instructor": "دکتر درخشان",
         "references": [],
-        "sessionMode": "in_person_quiz",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 7,
@@ -616,9 +618,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات سفید و قرمز",
         "instructor": "دکتر منصوریان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 10,
@@ -631,9 +634,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات سفید و قرمز",
         "instructor": "دکتر منصوریان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 11,
@@ -646,9 +650,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات سفید و قرمز",
         "instructor": "دکتر منصوریان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 12,
@@ -706,9 +711,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات پیگمانته",
         "instructor": "دکتر شیرازیان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 16,
@@ -721,9 +727,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات پیگمانته",
         "instructor": "دکتر شیرازیان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 17,
@@ -736,9 +743,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات پیگمانته",
         "instructor": "دکتر شیرازیان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "میان‌ترم"
+        "assessmentPart": "میان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 18,
@@ -766,9 +774,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات پیش‌بدخیم",
         "instructor": "دکتر شکیب",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آنلاین)"
       },
       {
         "sessionNumber": 20,
@@ -781,9 +790,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات پیش‌بدخیم",
         "instructor": "دکتر شکیب",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آنلاین)"
       },
       {
         "sessionNumber": 21,
@@ -796,9 +806,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "تظاهرات بالینی ضایعات پیش‌بدخیم",
         "instructor": "دکتر شیخ‌بهایی",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 22,
@@ -811,9 +822,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "تظاهرات بالینی ضایعات پیش‌بدخیم",
         "instructor": "دکتر شیرازیان",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 23,
@@ -826,7 +838,7 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات بدخیم اپیتلیالی",
         "instructor": "دکتر شکیب",
         "references": [],
-        "sessionMode": "conditional_virtual",
+        "sessionMode": "in_person_quiz",
         "sourcePage": 1,
         "assessmentPart": "پایان‌ترم"
       },
@@ -841,9 +853,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات بدخیم اپیتلیالی",
         "instructor": "دکتر شکیب",
         "references": [],
-        "sessionMode": "conditional_virtual",
+        "sessionMode": "virtual",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آنلاین)"
       },
       {
         "sessionNumber": 25,
@@ -856,9 +869,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات بدخیم اپیتلیالی",
         "instructor": "دکتر شکیب",
         "references": [],
-        "sessionMode": "conditional_virtual",
+        "sessionMode": "virtual",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آنلاین)"
       },
       {
         "sessionNumber": 26,
@@ -871,9 +885,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات بدخیم اپیتلیالی",
         "instructor": "دکتر شکیب",
         "references": [],
-        "sessionMode": "in_person_quiz",
+        "sessionMode": "virtual",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آنلاین)"
       },
       {
         "sessionNumber": 27,
@@ -886,9 +901,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "تظاهرات بالینی ضایعات بدخیم اپیتلیالی",
         "instructor": "دکتر کوپایی",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 28,
@@ -901,9 +917,10 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات خوش‌خیم مزانشیمی",
         "instructor": "دکتر مرادزاده",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
         "sourcePage": 1,
-        "assessmentPart": "پایان‌ترم"
+        "assessmentPart": "پایان‌ترم",
+        "sessionModeLabel": "مجازی (آفلاین)"
       },
       {
         "sessionNumber": 29,

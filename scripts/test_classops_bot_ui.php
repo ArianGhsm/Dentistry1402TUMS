@@ -39,13 +39,14 @@ classops_v3_assert(
 
 $syllabus = classops_partial_theory_syllabus();
 classops_v3_assert(count($syllabus['sessions'] ?? []) === 15, 'Partial theory syllabus preserves all 15 PDF sessions');
-$ambiguous = $syllabus['sessions'][2] ?? [];
+$correctedSession3 = $syllabus['sessions'][2] ?? [];
 classops_v3_assert(
-    ($ambiguous['sessionNumber'] ?? null) === 3
-        && ($ambiguous['sourceDate'] ?? '') === '054/07/15'
-        && ($ambiguous['jalaliDate'] ?? null) === null
-        && !empty($ambiguous['dateAmbiguous']),
-    'Suspicious session 3 source date is preserved and intentionally left unmapped'
+    ($correctedSession3['sessionNumber'] ?? null) === 3
+        && ($correctedSession3['sourceDate'] ?? '') === '05/07/15'
+        && ($correctedSession3['jalaliDate'] ?? '') === '1405/07/15'
+        && empty($correctedSession3['dateAmbiguous'])
+        && ($correctedSession3['sessionMode'] ?? '') === 'virtual',
+    'Corrected Partial session 3 date and virtual modality are mapped from the visible PDF table'
 );
 
 $studentNumber = '40211272991';
@@ -201,7 +202,52 @@ $doubleRows = array_values(array_filter(
     static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'مبانی پارسیل نظری'
 ));
 classops_v3_assert(array_column($doubleRows, 'sessionNumber') === [14, 15], 'Sessions 14 and 15 remain distinct on shared date');
-classops_v3_assert(($doubleRows[1]['sessionModeLabel'] ?? '') === 'مجازی', 'Session 15 keeps virtual label');
+classops_v3_assert(
+    ($doubleRows[0]['sessionModeLabel'] ?? '') === 'مجازی'
+        && ($doubleRows[1]['sessionModeLabel'] ?? '') === 'مجازی'
+        && ($doubleRows[0]['location'] ?? 'x') === ''
+        && ($doubleRows[1]['location'] ?? 'x') === '',
+    'Partial sessions 14 and 15 both keep the corrected virtual label and omit a physical room'
+);
+
+$diagnosticOfflineDate = new DateTimeImmutable('2026-10-05 00:00:00', $timezone);
+$diagnosticOfflineRows = array_values(array_filter(
+    classops_bot_ui_term7_records($student, $diagnosticOfflineDate, $state),
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'دندانپزشکی تشخیصی ۳'
+));
+classops_v3_assert(
+    count($diagnosticOfflineRows) === 1
+        && ($diagnosticOfflineRows[0]['sessionNumber'] ?? null) === 6
+        && ($diagnosticOfflineRows[0]['sessionModeLabel'] ?? '') === 'مجازی (آفلاین)'
+        && ($diagnosticOfflineRows[0]['location'] ?? 'x') === '',
+    'Diagnostic 1405/07/13 reaches the bot timeline as offline virtual'
+);
+
+$diagnosticOnlineDate = new DateTimeImmutable('2026-12-07 00:00:00', $timezone);
+$diagnosticOnlineRows = array_values(array_filter(
+    classops_bot_ui_term7_records($student, $diagnosticOnlineDate, $state),
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'دندانپزشکی تشخیصی ۳'
+));
+classops_v3_assert(
+    count($diagnosticOnlineRows) === 1
+        && ($diagnosticOnlineRows[0]['sessionNumber'] ?? null) === 24
+        && ($diagnosticOnlineRows[0]['sessionModeLabel'] ?? '') === 'مجازی (آنلاین)'
+        && str_contains((string) ($diagnosticOnlineRows[0]['title'] ?? ''), 'مجازی (آنلاین)'),
+    'Diagnostic 1405/09/16 reaches the bot timeline with an explicit online label'
+);
+
+$endoVirtualDate = new DateTimeImmutable('2026-11-16 00:00:00', $timezone);
+$endoVirtualRows = array_values(array_filter(
+    classops_bot_ui_term7_records($student, $endoVirtualDate, $state),
+    static fn(array $item): bool => ($item['courseTitle'] ?? '') === 'اندودانتیکس نظری ۱'
+));
+classops_v3_assert(
+    count($endoVirtualRows) === 1
+        && ($endoVirtualRows[0]['sessionNumber'] ?? null) === 15
+        && ($endoVirtualRows[0]['sessionModeLabel'] ?? '') === 'مجازی (غیرحضوری ـ همیاد)'
+        && ($endoVirtualRows[0]['location'] ?? 'x') === '',
+    'Endodontics session 15 reaches the bot timeline with the Hamyaad virtual label'
+);
 
 function classops_v3_cleanup(string $path): void
 {

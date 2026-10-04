@@ -58,3 +58,36 @@ def test_classops_ui_stays_shared_between_telegram_and_bale() -> None:
     assert "run_service(settings=settings, api=api" in bale
     assert "install_classops" not in telegram
     assert "install_classops" not in bale
+
+
+def test_virtual_mode_labels_survive_daily_weekly_monthly_renderers() -> None:
+    items = [
+        {
+            **_partial_item(6, "ضایعات واکنشی"),
+            "title": "دندانپزشکی تشخیصی ۳ — جلسه ۶: ضایعات واکنشی · مجازی (آفلاین)",
+            "courseTitle": "دندانپزشکی تشخیصی ۳",
+            "sessionMode": "offline",
+            "sessionModeLabel": "مجازی (آفلاین)",
+        },
+        {
+            **_partial_item(24, "ضایعات بدخیم اپیتلیالی"),
+            "title": "دندانپزشکی تشخیصی ۳ — جلسه ۲۴: ضایعات بدخیم اپیتلیالی · مجازی (آنلاین)",
+            "courseTitle": "دندانپزشکی تشخیصی ۳",
+            "sessionMode": "virtual",
+            "sessionModeLabel": "مجازی (آنلاین)",
+        },
+        {
+            **_partial_item(15, "اندودانتیکس در بیماران مسن"),
+            "title": "اندودانتیکس نظری ۱ — جلسه ۱۵: اندودانتیکس در بیماران مسن · مجازی (غیرحضوری ـ همیاد)",
+            "courseTitle": "اندودانتیکس نظری ۱",
+            "sessionMode": "virtual",
+            "sessionModeLabel": "مجازی (غیرحضوری ـ همیاد)",
+        },
+    ]
+    day = {"localDate": "2026-12-07", "items": items}
+    for screen in (daily_screen(day), weekly_screen([day], 0), month_screen([day], 0)):
+        rendered = str(screen.text)
+        assert "مجازی (آفلاین)" in rendered
+        assert "مجازی (آنلاین)" in rendered
+        assert "مجازی (غیرحضوری ـ همیاد)" in rendered
+        assert "آمفی" not in rendered

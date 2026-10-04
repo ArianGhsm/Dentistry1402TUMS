@@ -216,6 +216,22 @@ def _resident(item: dict[str, Any]) -> str:
     return _plain(item.get("resident"), 80)
 
 
+def _session_mode_label(item: dict[str, Any]) -> str:
+    mode = str(item.get("sessionMode") or "").strip()
+    if mode in {"", "in_person"}:
+        return ""
+    return _plain(item.get("sessionModeLabel") or "مجازی", 60)
+
+
+def _display_title(item: dict[str, Any], limit: int) -> str:
+    title = _plain(item.get("title") or _meta(item)[1], 240)
+    mode_label = _session_mode_label(item)
+    suffix = f" · {mode_label}" if mode_label else ""
+    if suffix and title.endswith(suffix):
+        title = title[: -len(suffix)].rstrip()
+    return html.escape(_plain(title, limit))
+
+
 def _presentation(item: dict[str, Any]) -> dict[str, str] | None:
     raw = item.get("presentation")
     if not isinstance(raw, dict):
@@ -269,9 +285,11 @@ def _rich_day_table(day: dict[str, Any], *, limit: int | None = None) -> str:
         status_key = str(item.get("status") or "unknown")
         status_suffix = f" · {marker} {html.escape(state)}" if status_key not in {"active", "unknown"} else ""
         presentation_html = _presentation_html(item)
+        mode_label = _session_mode_label(item)
+        mode_html = f" · <b>{html.escape(mode_label)}</b>" if mode_label else ""
         parts.append(
             f"<tr><td><code>{_esc(_row_time(item), 30)}</code></td>"
-            f"<td>{icon} <b>{_esc(item.get('title') or label, 120)}</b><br/>{_esc(label, 40)}{status_suffix}{presentation_html}</td>"
+            f"<td>{icon} <b>{_display_title(item, 120)}</b><br/>{_esc(label, 40)}{mode_html}{status_suffix}{presentation_html}</td>"
             f"<td>{staff_html}</td></tr>"
         )
     parts.append("</table>")
@@ -328,8 +346,10 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
         marker, state = _status(item)
         status_key = str(item.get("status") or "unknown")
         status_suffix = f" · {marker} {html.escape(state)}" if status_key not in {"active", "unknown"} else ""
-        fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 120)}</b>{status_suffix}")
+        fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_display_title(item, 120)}</b>{status_suffix}")
         meta = [label]
+        mode_label = _session_mode_label(item)
+        if mode_label: meta.append(mode_label)
         instructor = _instructor(item)
         if instructor: meta.append("👤 " + instructor)
         resident = _resident(item)
@@ -396,9 +416,12 @@ def weekly_screen(days: list[dict[str, Any]], week_offset: int, *, owner: bool =
             suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
             if resident:
                 suffix += f" · 🩺 رزیدنت: {html.escape(resident)}"
+            mode_label = _session_mode_label(item)
+            if mode_label:
+                suffix += f" · {html.escape(mode_label)}"
             if _presentation(item) is not None:
                 suffix += " · 🎤 ارائه دارید"
-            fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_esc(item.get('title') or label, 90)}</b>{suffix}")
+            fallback.append(f"<code>{html.escape(_row_time(item))}</code>  {icon} <b>{_display_title(item, 90)}</b>{suffix}")
         if len(items) > _WEEKLY_DAY_PREVIEW:
             fallback.append(f"+{to_persian_digits(len(items) - _WEEKLY_DAY_PREVIEW)} مورد دیگر؛ جزئیات در نمای روزانه")
         local = str(day.get("localDate") or "")
@@ -436,9 +459,12 @@ def month_screen(days: list[dict[str, Any]], page: int, *, owner: bool = False) 
                 suffix = f" · 👤 {html.escape(instructor)}" if instructor else ""
                 if resident:
                     suffix += f" · 🩺 رزیدنت: {html.escape(resident)}"
+                mode_label = _session_mode_label(item)
+                if mode_label:
+                    suffix += f" · {html.escape(mode_label)}"
                 if _presentation(item) is not None:
                     suffix += " · 🎤 ارائه دارید"
-                fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_esc(item.get('title') or label, 76)}{suffix}")
+                fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_display_title(item, 76)}{suffix}")
             if len(items) > 4: fallback.append(f"   +{to_persian_digits(len(items) - 4)} مورد دیگر")
             rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>")
             rich.append(_rich_day_table(day, limit=_MONTH_DAY_PREVIEW))

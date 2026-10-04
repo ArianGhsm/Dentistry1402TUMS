@@ -17,6 +17,25 @@ function syllabus_assert(bool $condition, string $message): void
     echo "FAIL: {$message}\n";
 }
 
+function syllabus_virtual_session_numbers(array $sessions): array
+{
+    $numbers = [];
+    foreach ($sessions as $session) {
+        if (!is_array($session) || !in_array((string) ($session['sessionMode'] ?? ''), ['virtual', 'offline'], true)) continue;
+        $sessionNumbers = is_array($session['sessionNumbers'] ?? null) ? $session['sessionNumbers'] : [];
+        if ($sessionNumbers === [] && isset($session['sessionNumber']) && (int) $session['sessionNumber'] > 0) {
+            $sessionNumbers = [(int) $session['sessionNumber']];
+        }
+        foreach ($sessionNumbers as $number) {
+            $number = (int) $number;
+            if ($number > 0) $numbers[$number] = true;
+        }
+    }
+    $result = array_map('intval', array_keys($numbers));
+    sort($result, SORT_NUMERIC);
+    return $result;
+}
+
 function syllabus_event(
     string $slug,
     string $title,
@@ -118,10 +137,17 @@ syllabus_assert(
     'Booklet projection expands multi-session Endodontics rows into individual session buttons'
 );
 
-$partialAmbiguous = $catalog['partial-basics-theory']['sessions'][2] ?? [];
+$partialSession3 = $catalog['partial-basics-theory']['sessions'][2] ?? [];
 syllabus_assert(
-    ($partialAmbiguous['sessionNumber'] ?? null) === 3 && ($partialAmbiguous['dates'] ?? []) === [],
-    'Partial session 3 remains fail-closed because its source date is ambiguous'
+    ($partialSession3['sessionNumber'] ?? null) === 3
+        && ($partialSession3['dates'] ?? []) === ['1405/07/15']
+        && ($partialSession3['dateAmbiguous'] ?? true) === false
+        && ($partialSession3['sessionMode'] ?? '') === 'virtual',
+    'Partial session 3 follows the corrected PDF date and virtual modality'
+);
+syllabus_assert(
+    syllabus_virtual_session_numbers($catalog['partial-basics-theory']['sessions'] ?? []) === [3, 4, 5, 10, 11, 14, 15],
+    'Partial Theory exposes exactly seven virtual sessions from the corrected PDF'
 );
 
 $orth = classops_term7_syllabus_enrich_events([
@@ -150,6 +176,22 @@ syllabus_assert(
         && ($endo[0]['sourceDate'] ?? '') === '1405/08/14',
     'Endodontics preserves sessions 11 and 12 while canonical Monday timing replaces the source-PDF Thursday clock'
 );
+$endoVirtual = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-theory-1', 'اندو نظری ۱', 'آمفی‌تئاتر ۹۰', '13:50', '15:50'),
+], '1405/08/25');
+syllabus_assert(
+    count($endoVirtual) === 1
+        && ($endoVirtual[0]['sessionNumber'] ?? null) === 15
+        && ($endoVirtual[0]['sessionMode'] ?? '') === 'virtual'
+        && ($endoVirtual[0]['sessionModeLabel'] ?? '') === 'مجازی (غیرحضوری ـ همیاد)'
+        && ($endoVirtual[0]['location'] ?? 'x') === '',
+    'Endodontics session 15 preserves the PDF non-presential Hamyaad modality'
+);
+syllabus_assert(
+    syllabus_virtual_session_numbers($catalog['endodontics-theory-1']['sessions'] ?? []) === [15],
+    'Endodontics Theory 1 exposes exactly one virtual session'
+);
+
 $endoSingle = classops_term7_syllabus_enrich_events([
     syllabus_event('endodontics-theory-1', 'اندو نظری ۱', 'آمفی‌تئاتر ۹۰', '13:50', '15:50'),
 ], '1405/07/06');
@@ -187,17 +229,42 @@ syllabus_assert(
         && ($diagnosticByDate['1405/10/07']['instructor'] ?? '') === 'دکتر مرادزاده',
     'Diagnostic merged-cell boundaries preserve the first date of each instructor/topic block'
 );
+syllabus_assert(
+    syllabus_virtual_session_numbers($diagnostic) === [6, 9, 10, 11, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28],
+    'Diagnostic Dentistry 3 exposes exactly sixteen virtual sessions'
+);
 $diagQuiz = classops_term7_syllabus_enrich_events([
+    syllabus_event('diagnostic-dentistry-3-sun', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '07:00', '08:00'),
+], '1405/07/12');
+syllabus_assert(
+    count($diagQuiz) === 1
+        && ($diagQuiz[0]['sessionNumber'] ?? null) === 5
+        && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی',
+    'Diagnostic quiz remains on 1405/07/12 as stated in the corrected PDF'
+);
+$diagOffline = classops_term7_syllabus_enrich_events([
     syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '11:30', '12:30'),
 ], '1405/07/13');
 syllabus_assert(
-    count($diagQuiz) === 1
-        && ($diagQuiz[0]['sessionNumber'] ?? null) === 6
-        && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی'
-        && ($diagQuiz[0]['start'] ?? '') === '11:30'
-        && ($diagQuiz[0]['end'] ?? '') === '12:30'
-        && ($diagQuiz[0]['timeSource'] ?? '') === 'academic-term7',
-    'Diagnostic Monday metadata preserves the canonical 11:30-12:30 timetable clock'
+    count($diagOffline) === 1
+        && ($diagOffline[0]['sessionNumber'] ?? null) === 6
+        && ($diagOffline[0]['sessionMode'] ?? '') === 'offline'
+        && ($diagOffline[0]['sessionModeLabel'] ?? '') === 'مجازی (آفلاین)'
+        && ($diagOffline[0]['location'] ?? 'x') === ''
+        && ($diagOffline[0]['start'] ?? '') === '11:30'
+        && ($diagOffline[0]['end'] ?? '') === '12:30',
+    'Diagnostic 1405/07/13 is offline virtual while preserving the canonical timetable clock'
+);
+$diagOnline = classops_term7_syllabus_enrich_events([
+    syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '11:30', '12:30'),
+], '1405/09/16');
+syllabus_assert(
+    count($diagOnline) === 1
+        && ($diagOnline[0]['sessionNumber'] ?? null) === 24
+        && ($diagOnline[0]['sessionMode'] ?? '') === 'virtual'
+        && ($diagOnline[0]['sessionModeLabel'] ?? '') === 'مجازی (آنلاین)'
+        && str_contains((string) ($diagOnline[0]['title'] ?? ''), 'مجازی (آنلاین)'),
+    'Diagnostic online modality remains explicit in the final user-facing title'
 );
 $timingOwners = array_filter(
     $catalog,
