@@ -41,7 +41,7 @@ css = CSS.read_text(encoding="utf-8")
 
 check('/assets/site/styles/buy.css' in page, "dedicated page reuses mature buy stylesheet")
 check(page.index('/assets/site/styles/buy.css') < page.index('/assets/site/styles/endosim.css'), "feature overrides load after shared buy primitives")
-for label in ("همه", "پلاگر", "دسته بیستوری", "فرز"):
+for label in ("همه", "ابزار", "Diamond", "Carbide"):
     check(f">{label}<" in page, f"dedicated filter exists: {label}")
 check("dent1402_buy_cart_items" in js, "dedicated page shares the global cart source of truth")
 check('CATEGORY = "endodontic_tools"' in js, "dedicated renderer reads the new endodontic-tools category")
@@ -51,7 +51,13 @@ check('slug.indexOf(RETIRED_PREFIX)' in js, "stale legacy tooth selections are c
 check(".endo-tools-feed" in css and "grid-template-columns: 1fr !important" in css, "mobile catalog is a single readable row stream")
 check('data-buy-category="endodontic_tools"' in general, "general buy catalog exposes the new category")
 check("ابزارهای منتخب اندودانتیکس" in general, "general buy entry points to the replacement catalog")
-check("همگام‌سازی ۸ محصول ابزار اندو" in owner, "owner view describes the eight-product catalog import")
+check("همگام‌سازی ۳۸۸ محصول ابزار اندو" in owner, "owner view describes the full catalog import")
+check('id="endosim-more"' in page, "dedicated page paginates the large bur catalog")
+check('visibleLimit: 30' in js, "dedicated renderer limits the initial catalog density")
+check('state.filter === "core"' in js, "core-tool filter stays compact instead of crowding the mobile category strip")
+check('titleDirection = isBur ? \' dir="ltr"\'' in js, "bur catalog names render left-to-right without RTL reordering")
+check('itemCategory(item) === "endodontic_tools"' in (ROOT / "public_html" / "assets" / "site" / "scripts" / "buy.js").read_text(encoding="utf-8"), "generic market suppresses the specialized endodontic catalog dump")
+check('window.location.href = "/buy/endosim/"' in (ROOT / "public_html" / "assets" / "site" / "scripts" / "buy.js").read_text(encoding="utf-8"), "generic market routes endodontic-tools users to the dedicated catalog")
 for path in (PAGE, OWNER):
     shown = visible_text(path)
     check("اندوسیم" not in shown and "Endosim" not in shown, f"no legacy brand leakage in visible text: {path.relative_to(ROOT)}")

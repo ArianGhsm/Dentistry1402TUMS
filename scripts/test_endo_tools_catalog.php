@@ -26,33 +26,60 @@ function endo_tools_assert(bool $condition, string $label): void
 }
 
 $catalog = endo_tools_catalog();
-endo_tools_assert(count($catalog) === 8, 'catalog contains exactly eight active products');
+endo_tools_assert(count($catalog) === 388, 'catalog contains six core tools plus every priced bur variant');
 
 $prices = [];
 $slugs = [];
+$diamondCount = 0;
+$carbideCount = 0;
+$taiwanCount = 0;
+$belgiumCount = 0;
 foreach ($catalog as $product) {
     $slug = (string) ($product['slug'] ?? '');
     $slugs[] = $slug;
     $prices[$slug] = (int) ($product['price'] ?? 0);
-    endo_tools_assert(str_starts_with($slug, ENDO_TOOLS_SLUG_PREFIX), "new catalog slug uses replacement prefix: {$slug}");
-    endo_tools_assert(!str_starts_with($slug, ENDOSIM_SLUG_PREFIX), "new catalog excludes legacy tooth slug: {$slug}");
+    endo_tools_assert(str_starts_with($slug, ENDO_TOOLS_SLUG_PREFIX), "catalog slug uses replacement prefix: {$slug}");
+    endo_tools_assert(!str_starts_with($slug, ENDOSIM_SLUG_PREFIX), "catalog excludes legacy tooth slug: {$slug}");
     $image = (string) ($product['heroImage'] ?? '');
     endo_tools_assert($image !== '' && is_file(__DIR__ . '/../public_html' . $image), "product image exists: {$slug}");
+
+    $kind = (string) ($product['kind'] ?? '');
+    if ($kind === 'Diamond Burs') {
+        $diamondCount++;
+    } elseif ($kind === 'Carbide Burs') {
+        $carbideCount++;
+    }
+    if (str_ends_with($slug, '-taiwan')) {
+        $taiwanCount++;
+        if ($kind === 'Diamond Burs' || $kind === 'Carbide Burs') {
+            endo_tools_assert((int) ($product['price'] ?? 0) === 2050000, "Taiwan bur price is 205,000 toman: {$slug}");
+        }
+    } elseif (str_ends_with($slug, '-belgium')) {
+        $belgiumCount++;
+        if ($kind === 'Diamond Burs' || $kind === 'Carbide Burs') {
+            endo_tools_assert((int) ($product['price'] ?? 0) === 2450000, "Belgium bur price is 245,000 toman: {$slug}");
+        }
+    }
 }
 
-$expectedPrices = [
+endo_tools_assert(count(array_unique($slugs)) === count($slugs), 'all catalog slugs are unique');
+endo_tools_assert($diamondCount === 298, '149 FG Diamond Bur codes/sizes are available in both Taiwan and Belgium variants');
+endo_tools_assert($carbideCount === 84, '42 Carbide Bur codes/sizes are available in both Taiwan and Belgium variants');
+endo_tools_assert($taiwanCount === 191, 'all 191 catalog bur specs have a Taiwan variant');
+endo_tools_assert($belgiumCount === 191, 'all 191 catalog bur specs have a Belgium variant');
+endo_tools_assert(count(array_filter($prices, static fn(int $price): bool => $price > 0)) === 388, 'every active catalog product has a positive price');
+
+$coreExpected = [
     'endo-tool-fine-plugger-double' => 7450000,
     'endo-tool-fine-plugger-single' => 7850000,
     'endo-tool-fine-plugger-single-premium' => 9300000,
     'endo-tool-scalpel-handle-3-black' => 2900000,
     'endo-tool-scalpel-handle-3' => 4000000,
     'endo-tool-scalpel-handle-3-premium' => 4750000,
-    'endo-tool-safe-end-bur-508-taiwan' => 2050000,
-    'endo-tool-safe-end-bur-508-belgium' => 2450000,
 ];
-endo_tools_assert($prices === $expectedPrices, 'all eight prices include the requested ten-thousand-toman increment');
-
-endo_tools_assert(count(array_filter($prices, static fn(int $price): bool => $price > 0)) === 8, 'every active catalog product has a positive price');
+foreach ($coreExpected as $slug => $expectedPrice) {
+    endo_tools_assert(($prices[$slug] ?? 0) === $expectedPrice, "core tool price remains correct: {$slug}");
+}
 
 $premiumScalpel = null;
 foreach ($catalog as $product) {
@@ -74,15 +101,18 @@ foreach ($catalog as $product) {
         break;
     }
 }
+endo_tools_assert(is_array($bur), 'Safe End catalog item exists');
+endo_tools_assert(str_starts_with((string) ($bur['title'] ?? ''), 'Safe End 508'), 'Safe End name remains English exactly as catalog terminology');
+endo_tools_assert(!str_contains((string) ($bur['title'] ?? ''), 'ایمن انتهایی'), 'Safe End title is not translated to Persian');
 $burSpecs = [];
 foreach (($bur['specifications'] ?? []) as $spec) {
     $burSpecs[(string) ($spec['label'] ?? '')] = (string) ($spec['value'] ?? '');
 }
-endo_tools_assert(($burSpecs['شکل'] ?? '') === 'ایمن انتهایی ۵۰۸', 'bur shape matches catalog');
-endo_tools_assert(($burSpecs['سایز'] ?? '') === '۰۱۶', 'bur size matches catalog');
-endo_tools_assert(($burSpecs['طول سر'] ?? '') === '۹ میلی‌متر', 'bur head length matches catalog');
-endo_tools_assert(($burSpecs['کد مرجع'] ?? '') === 'SD161', 'bur order code matches catalog');
-
+endo_tools_assert(($burSpecs['شکل'] ?? '') === '508', 'Safe End shape matches catalog');
+endo_tools_assert(($burSpecs['سایز'] ?? '') === '016', 'Safe End size matches catalog');
+endo_tools_assert(($burSpecs['طول سر'] ?? '') === '9.0 mm', 'Safe End head length matches catalog');
+endo_tools_assert(($burSpecs['کد سفارش'] ?? '') === 'SD161', 'Safe End order code matches catalog');
+endo_tools_assert(($burSpecs['بسته'] ?? '') === '۵ عددی', 'Safe End is sold as a five-piece pack');
 $historicalOrder = [
     'id' => 44,
     'item_id' => 12,
@@ -121,7 +151,7 @@ $store = [
 ];
 
 $first = endo_tools_import_into_store($store);
-endo_tools_assert(($first['created'] ?? -1) === 8, 'first import creates eight new products');
+endo_tools_assert(($first['created'] ?? -1) === 388, 'first import creates all 388 active catalog products');
 endo_tools_assert(($first['updated'] ?? -1) === 0, 'first import does not report updates');
 endo_tools_assert(($first['retired'] ?? -1) === 2, 'first import retires legacy tooth and stale tool');
 endo_tools_assert(($store['orders'][0] ?? null) === $historicalOrder, 'historical order record is preserved');
@@ -139,9 +169,15 @@ foreach ($slugs as $slug) {
     endo_tools_assert(($store['items'][$index]['category'] ?? '') === ENDO_TOOLS_CATEGORY, "new product has expected category: {$slug}");
 }
 
+$safeEndIndex = payments_find_item_index_by_slug($store, 'endo-tool-safe-end-bur-508-taiwan');
+endo_tools_assert(
+    $safeEndIndex >= 0 && str_contains((string) ($store['items'][$safeEndIndex]['support_note'] ?? ''), 'مطابق کاتالوگ'),
+    'imported bur keeps catalog-verification support metadata'
+);
+
 $second = endo_tools_import_into_store($store);
 endo_tools_assert(($second['created'] ?? -1) === 0, 'second import is idempotent for created products');
-endo_tools_assert(($second['updated'] ?? -1) === 8, 'second import updates exactly eight catalog products');
+endo_tools_assert(($second['updated'] ?? -1) === 388, 'second import updates exactly all 388 catalog products');
 endo_tools_assert(($second['retired'] ?? -1) === 0, 'second import does not retire products twice');
 endo_tools_assert(($store['orders'][0] ?? null) === $historicalOrder, 'reimport still preserves historical orders');
 
