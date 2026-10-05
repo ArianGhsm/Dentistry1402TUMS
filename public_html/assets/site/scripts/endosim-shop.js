@@ -7,7 +7,8 @@
     var state = {
         items: [],
         query: "",
-        filter: "all"
+        filter: "all",
+        visibleLimit: 30
     };
 
     function $(id) {
@@ -141,7 +142,11 @@
     function visibleItems() {
         var query = String(state.query || "").trim().toLowerCase();
         return state.items.filter(function (item) {
-            if (state.filter !== "all" && itemKind(item) !== state.filter) {
+            var kind = itemKind(item);
+            if (state.filter === "core" && (kind === "Diamond Burs" || kind === "Carbide Burs")) {
+                return false;
+            }
+            if (state.filter !== "all" && state.filter !== "core" && kind !== state.filter) {
                 return false;
             }
             if (query && itemSearchText(item).indexOf(query) < 0) {
@@ -170,10 +175,12 @@
         var tags = tagValues(item).map(function (value) {
             return '<span class="endo-tools-tag">' + text(value) + "</span>";
         }).join("");
-        var code = specValue(item, "کد مرجع");
+        var code = specValue(item, "کد سفارش") || specValue(item, "کد مرجع");
         var size = specValue(item, "سایز");
         var detail = [code ? ("کد " + code) : "", size ? ("سایز " + size) : ""].filter(Boolean).join(" · ");
         var itemUrl = "/buy/item/?slug=" + encodeURIComponent(slug);
+        var isBur = itemKind(item) === "Diamond Burs" || itemKind(item) === "Carbide Burs";
+        var titleDirection = isBur ? ' dir="ltr"' : "";
 
         return [
             '<article class="buy-item-card endo-tools-card' + (qty > 0 ? " is-selected" : "") + '" data-endosim-card="' + text(slug) + '">',
@@ -182,8 +189,8 @@
             qty > 0 ? '      <span class="buy-status is-active">در سبد</span>' : '      <span class="buy-status is-muted">قابل سفارش</span>',
             '      <span class="buy-kicker">' + text(itemKind(item)) + "</span>",
             "    </div>",
-            '    <a href="' + itemUrl + '"><h3 class="buy-item-card__title">' + text(item.title || "محصول") + "</h3></a>",
-            '    <p class="buy-item-card__desc">' + text(item.shortDescription || "") + "</p>",
+            '    <a href="' + itemUrl + '"><h3 class="buy-item-card__title"' + titleDirection + '>' + text(item.title || "محصول") + "</h3></a>",
+            '    <p class="buy-item-card__desc" dir="auto">' + text(item.shortDescription || "") + "</p>",
             '    <div class="endo-tools-tags">' + tags + "</div>",
             detail ? '    <div class="endo-tools-code" dir="rtl">' + text(detail) + "</div>" : "",
             '    <div class="endo-tools-card__purchase">',
@@ -209,12 +216,19 @@
         var status = $("endosim-status");
         if (!root || !status) return;
         var items = visibleItems();
+        var visible = items.slice(0, state.visibleLimit);
+        var more = $("endosim-more");
         status.textContent = faNumber(items.length) + " محصول";
         if (!items.length) {
             root.innerHTML = '<div class="buy-empty endo-tools-empty">محصولی با این جست‌وجو یا فیلتر پیدا نشد.</div>';
+            if (more) more.hidden = true;
             return;
         }
-        root.innerHTML = items.map(renderCard).join("");
+        root.innerHTML = visible.map(renderCard).join("");
+        if (more) {
+            more.hidden = visible.length >= items.length;
+            more.textContent = "نمایش " + faNumber(Math.min(30, items.length - visible.length)) + " مورد بعدی";
+        }
     }
 
     function syncCard(slug) {
@@ -310,6 +324,7 @@
         if (search) {
             search.addEventListener("input", function () {
                 state.query = search.value || "";
+                state.visibleLimit = 30;
                 if (clear) clear.hidden = !state.query;
                 renderList();
             });
@@ -322,6 +337,7 @@
                     search.focus();
                 }
                 clear.hidden = true;
+                state.visibleLimit = 30;
                 renderList();
             });
         }
@@ -332,9 +348,18 @@
                 var button = event.target.closest("[data-endosim-filter]");
                 if (!button) return;
                 state.filter = button.getAttribute("data-endosim-filter") || "all";
+                state.visibleLimit = 30;
                 Array.prototype.slice.call(filters.querySelectorAll("[data-endosim-filter]")).forEach(function (node) {
                     node.classList.toggle("is-active", node === button);
                 });
+                renderList();
+            });
+        }
+
+        var more = $("endosim-more");
+        if (more) {
+            more.addEventListener("click", function () {
+                state.visibleLimit += 30;
                 renderList();
             });
         }

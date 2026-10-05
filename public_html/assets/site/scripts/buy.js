@@ -652,6 +652,9 @@
     }
 
     function matchesFilters(item) {
+        if (itemCategory(item) === "endodontic_tools") {
+            return false;
+        }
         var query = state.query.trim().toLowerCase();
         if (query && itemText(item).indexOf(query) < 0) {
             return false;
@@ -774,7 +777,12 @@
             if (button.dataset.buyBound) return;
             button.dataset.buyBound = "1";
             button.addEventListener("click", function () {
-                state.category = String(button.dataset.buyCategory || "all");
+                var category = String(button.dataset.buyCategory || "all");
+                if (category === "endodontic_tools") {
+                    window.location.href = "/buy/endosim/";
+                    return;
+                }
+                state.category = category;
                 renderList(state.items);
             });
         });

@@ -305,3 +305,18 @@ body.endosim-page {
         grid-template-columns: minmax(0, 1fr) 92px !important;
     }
 }
+
+.endo-tools-more-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+}
+
+.endo-tools-more-wrap .buy-secondary-btn {
+    min-width: min(100%, 260px);
+}
+
+.endo-tools-card .buy-item-card__title[dir="ltr"] {
+    text-align: left;
+    unicode-bidi: isolate;
+}

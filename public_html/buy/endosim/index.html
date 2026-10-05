@@ -23,7 +23,7 @@
             </div>
             <div class="site-info">
                 <h1>ابزار اندودانتیکس</h1>
-                <p>پلاگر، دسته بیستوری و فرزهای منتخب</p>
+                <p>پلاگر، بیستوری و کاتالوگ کامل فرزها</p>
             </div>
         </div>
         <div class="header-actions">
@@ -36,24 +36,24 @@
         <section class="endo-tools-intro" aria-label="معرفی سفارش">
             <div>
                 <span class="buy-kicker">سفارش گروهی ابزار اندو</span>
-                <h2>ابزارهای موردنیاز را یکجا انتخاب کنید</h2>
-                <p>قیمت هر محصول نهایی است. تعداد را روی همان ردیف تنظیم کنید؛ انتخاب‌ها مستقیماً در سبد خرید مشترک سایت ذخیره می‌شوند.</p>
+                <h2>ابزار و فرزهای کاتالوگ را یکجا انتخاب کنید</h2>
+                <p>نام فرزها، Size و Order Code مطابق خود کاتالوگ و بدون ترجمه ثبت شده‌اند. تعداد را روی همان ردیف تنظیم کنید؛ انتخاب‌ها مستقیماً در سبد خرید مشترک سایت ذخیره می‌شوند.</p>
             </div>
             <a class="buy-primary-btn" href="/buy/cart/">مشاهده سبد خرید</a>
         </section>
 
-        <section class="buy-trust-strip endo-tools-reference" aria-label="مشخصات فرز">
+        <section class="buy-trust-strip endo-tools-reference" aria-label="مشخصات کاتالوگ فرز">
             <div>
-                <strong>کد فرز با کاتالوگ ارسالی تطبیق داده شد</strong>
-                <span>فرز ایمن انتهایی ۵۰۸، سایز ۰۱۶، طول سر ۹ میلی‌متر، کد مرجع <bdi dir="ltr">SD161</bdi>؛ هر سفارش فرز یک بسته ۵ عددی است.</span>
+                <strong>کل بخش فرزهای کاتالوگ وارد شده است</strong>
+                <span>۱۴۹ گزینه FG Diamond Burs و ۴۲ گزینه Carbide Burs؛ هر کد/سایز در دو مدل Taiwan و Belgium و به‌صورت بسته ۵ عددی قابل سفارش است.</span>
             </div>
-            <span class="endo-tools-reference__badge">بسته ۵ عددی</span>
+            <span class="endo-tools-reference__badge">۱۹۱ کد/سایز</span>
         </section>
 
         <section class="buy-market-head" aria-label="جست‌وجوی ابزارها">
             <label class="buy-search">
                 <span class="buy-search__icon" aria-hidden="true"></span>
-                <input id="endosim-search" type="search" autocomplete="off" placeholder="جست‌وجو در ابزارها، مدل یا کد فرز">
+                <input id="endosim-search" type="search" autocomplete="off" placeholder="جست‌وجو با نام، Size یا Order Code">
             </label>
             <button id="endosim-clear-search" class="buy-icon-btn" type="button" aria-label="پاک کردن جست‌وجو" hidden>
                 <span aria-hidden="true">×</span>
@@ -65,17 +65,17 @@
                 <span class="buy-category__icon buy-category__icon--all" aria-hidden="true"></span>
                 <span>همه</span>
             </button>
-            <button class="buy-category" type="button" data-endosim-filter="پلاگر">
+            <button class="buy-category" type="button" data-endosim-filter="core">
                 <span class="buy-category__icon buy-category__icon--order" aria-hidden="true"></span>
-                <span>پلاگر</span>
+                <span>ابزار</span>
             </button>
-            <button class="buy-category" type="button" data-endosim-filter="دسته بیستوری">
-                <span class="buy-category__icon buy-category__icon--event" aria-hidden="true"></span>
-                <span>دسته بیستوری</span>
-            </button>
-            <button class="buy-category" type="button" data-endosim-filter="فرز">
+            <button class="buy-category" type="button" data-endosim-filter="Diamond Burs">
                 <span class="buy-category__icon buy-category__icon--class" aria-hidden="true"></span>
-                <span>فرز</span>
+                <span>Diamond</span>
+            </button>
+            <button class="buy-category" type="button" data-endosim-filter="Carbide Burs">
+                <span class="buy-category__icon buy-category__icon--class" aria-hidden="true"></span>
+                <span>Carbide</span>
             </button>
         </section>
 
@@ -90,6 +90,9 @@
             <div id="endosim-grid" class="buy-feed endo-tools-feed" aria-live="polite">
                 <div class="buy-empty">در حال بارگذاری محصولات…</div>
             </div>
+            <div class="endo-tools-more-wrap">
+                <button id="endosim-more" class="buy-secondary-btn" type="button" hidden>نمایش موارد بیشتر</button>
+            </div>
         </section>
 
         <section class="buy-info-grid endo-tools-notes" aria-label="راهنمای سفارش">
@@ -98,8 +101,8 @@
                 <p>مبالغ این صفحه به تومان نمایش داده می‌شوند. درگاه پرداخت مبلغ متناظر را طبق استاندارد سیستم به ریال ثبت می‌کند.</p>
             </article>
             <article>
-                <h3>فرزها</h3>
-                <p>مدل تایوانی و بلژیکی هر دو با هندسه یکسان ثبت شده‌اند؛ تفاوت آن‌ها در رده ساخت و قیمت است.</p>
+                <h3>قیمت فرزها</h3>
+                <p>تمام فرزهای کاتالوگ برای بسته ۵ عددی قیمت‌گذاری شده‌اند: Taiwan برابر ۲۰۵٬۰۰۰ تومان و Belgium برابر ۲۴۵٬۰۰۰ تومان.</p>
             </article>
             <article>
                 <h3>تحویل</h3>
