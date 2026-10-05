@@ -97,7 +97,8 @@ function payments_item_categories(): array
         'consumables' => 'اقلام مصرفی',
         'event_registration' => 'ثبت‌نام رویداد',
         'educational_package' => 'بسته آموزشی',
-        'endodontic_models' => 'دندان آموزشی اندو (اندوسیم)',
+        'endodontic_tools' => 'ابزار اندودانتیکس',
+        'endodontic_models' => 'دندان آموزشی اندو (آرشیو)',
         'group_order' => 'سفارش گروهی',
     ];
 }

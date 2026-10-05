@@ -236,7 +236,7 @@
                         addedAt: String(entry && entry.addedAt || "")
                     };
                 }).filter(function (entry) {
-                    return entry.slug;
+                    return entry.slug && entry.slug.indexOf("endosim-") !== 0;
                 });
             }
         } catch (_error) {
@@ -611,6 +611,10 @@
                 return "ثبت‌نام رویداد";
             case "educational_package":
                 return "بسته آموزشی";
+            case "endodontic_tools":
+                return "ابزار اندودانتیکس";
+            case "endodontic_models":
+                return "دندان آموزشی اندو (آرشیو)";
             case "group_order":
                 return "سفارش گروهی";
             default:

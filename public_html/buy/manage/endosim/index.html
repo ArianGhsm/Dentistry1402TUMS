@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ایمپورت کاتالوگ اندوسیم | مدیریت خرید</title>
-    <meta name="description" content="افزودن یا به‌روزرسانی یک‌کلیکی ۲۶ محصول دندان آموزشی اندوسیم در کاتالوگ فروشگاه.">
+    <title>کاتالوگ ابزار اندودانتیکس | مدیریت خرید</title>
+    <meta name="description" content="همگام‌سازی کاتالوگ ابزار اندودانتیکس با فروشگاه و خارج‌کردن محصولات قدیمی از فروش.">
     <meta name="theme-color" content="#eef2f7">
     <link rel="icon" type="image/png" href="/assets/images/favicon.png">
     <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
-    <link rel="stylesheet" href="/assets/site/styles/endosim.css?v=20260812-sitewide-mature1">
+    <link rel="stylesheet" href="/assets/site/styles/buy.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/endosim.css?v=20261005-endo-tools">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260812-phase4b">
 </head>
-<body class="endosim-page">
+<body class="buy-page endosim-page">
     <div class="background-overlay" aria-hidden="true"></div>
     <header class="site-header">
         <div class="logo-area">
             <div class="logo-circle"><img src="/assets/images/logo.png?v=20260722-200509" alt="لوگو"></div>
             <div class="site-info">
-                <h1>ایمپورت کاتالوگ اندوسیم</h1>
-                <p>افزودن/به‌روزرسانی محصولات روی هاست</p>
+                <h1>کاتالوگ ابزار اندودانتیکس</h1>
+                <p>همگام‌سازی محصولات فروشگاه</p>
             </div>
         </div>
         <div class="header-actions">
@@ -28,22 +29,27 @@
         </div>
     </header>
 
-    <main class="endosim-shell" style="max-width:680px;padding-bottom:60px;">
-        <section class="endosim-hero">
-            <span class="endosim-hero__kicker">مالک</span>
-            <h2 class="endosim-hero__title">بارگذاری ۲۶ محصول اندوسیم</h2>
-            <p class="endosim-hero__lead">
-                با زدن دکمه زیر، هر ۲۶ دندان آموزشی با کد، تصویر، مشخصات و قیمت نهایی (ریال) به کاتالوگ
-                فروشگاه اضافه یا به‌روزرسانی می‌شود. این عملیات امن و idempotent است؛ سفارش‌های قبلی دست‌نخورده می‌مانند
-                و اجرای چندباره مشکلی ایجاد نمی‌کند.
-            </p>
+    <main class="buy-shell" style="max-width:720px;padding-bottom:60px;">
+        <section class="endo-tools-intro">
+            <div>
+                <span class="buy-kicker">مالک</span>
+                <h2>همگام‌سازی ۶ محصول ابزار اندو</h2>
+                <p>این عملیات ۶ محصول جدید را ایجاد یا به‌روزرسانی می‌کند و دندان‌های آموزشی قدیمی را بدون حذف سوابق سفارش، از فروش خارج می‌کند.</p>
+            </div>
         </section>
-
-        <section class="endosim-summary" style="margin-top:20px;">
-            <button type="button" id="endosim-import-btn" class="endosim-pay" style="width:100%;">
-                افزودن / به‌روزرسانی کاتالوگ اندوسیم
-            </button>
-            <p class="endosim-feedback" id="endosim-import-feedback" role="alert" style="margin-top:14px;"></p>
+        <section class="buy-trust-strip" style="margin-top:14px;">
+            <div>
+                <strong>سوابق خرید قبلی حفظ می‌شوند</strong>
+                <span>محصولات قدیمی فقط غیرفعال می‌شوند؛ شناسه‌ها و سفارش‌های تاریخی دست‌نخورده می‌مانند.</span>
+            </div>
+        </section>
+        <section class="buy-info-grid" style="grid-template-columns:1fr;margin-top:14px;">
+            <article>
+                <h3>منبع فعلی</h3>
+                <p>۳ مدل پلاگر، دسته بیستوری شماره ۳ و دو مدل بسته ۵ عددی فرز ایمن انتهایی ۵۰۸ با کد مرجع <bdi>SD161</bdi>.</p>
+                <button type="button" id="endosim-import-btn" class="buy-primary-btn" style="width:100%;margin-top:12px;">همگام‌سازی کاتالوگ ابزار اندو</button>
+                <p class="buy-feedback" id="endosim-import-feedback" role="alert" style="margin-top:12px;"></p>
+            </article>
         </section>
     </main>
 
@@ -55,12 +61,12 @@
         var feedback = document.getElementById("endosim-import-feedback");
         function setFeedback(message, kind) {
             feedback.textContent = message || "";
-            feedback.className = "endosim-feedback" + (kind ? " " + kind : "");
+            feedback.className = "buy-feedback" + (kind ? " " + kind : "");
         }
         btn.addEventListener("click", function () {
             btn.disabled = true;
             var original = btn.textContent;
-            btn.textContent = "در حال بارگذاری…";
+            btn.textContent = "در حال همگام‌سازی…";
             setFeedback("در حال ارتباط با سرور…", "");
             fetch("/api/payments_api.php", {
                 method: "POST",
@@ -69,12 +75,11 @@
                     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                     "Accept": "application/json"
                 },
-                body: new URLSearchParams({ action: "ownerImportEndosim" })
+                body: new URLSearchParams({ action: "ownerImportEndoTools" })
             }).then(function (response) {
-                return response.text().then(function (body) {
-                    var payload = null;
-                    try { payload = JSON.parse(body); } catch (_e) { payload = null; }
-                    if (!payload) payload = { success: false, error: "پاسخ نامعتبر از سرور." };
+                return response.json().catch(function () {
+                    return { success: false, error: "پاسخ نامعتبر از سرور." };
+                }).then(function (payload) {
                     payload.httpStatus = response.status;
                     return payload;
                 });
@@ -86,10 +91,10 @@
                     return;
                 }
                 if (!payload.success) {
-                    setFeedback(payload.error || "بارگذاری انجام نشد.", "is-error");
+                    setFeedback(payload.error || "همگام‌سازی انجام نشد.", "is-error");
                     return;
                 }
-                setFeedback(payload.message || "کاتالوگ با موفقیت بارگذاری شد.", "is-success");
+                setFeedback(payload.message || "کاتالوگ با موفقیت همگام شد.", "is-success");
             }).catch(function () {
                 btn.disabled = false;
                 btn.textContent = original;

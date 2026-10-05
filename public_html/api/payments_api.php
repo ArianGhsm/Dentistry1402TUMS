@@ -3346,20 +3346,21 @@ if ($action === 'ownerItems') {
     ]);
 }
 
-if ($action === 'ownerImportEndosim') {
+if ($action === 'ownerImportEndoTools' || $action === 'ownerImportEndosim') {
     payments_api_require_method(['POST']);
     dent_require_owner();
 
     $summary = payments_with_store_lock(static function (array &$store): array {
-        return endosim_import_into_store($store);
+        return endo_tools_import_into_store($store);
     });
 
     dent_json_response([
         'success' => true,
         'summary' => $summary,
-        'message' => 'کاتالوگ اندوسیم به‌روزرسانی شد: '
+        'message' => 'کاتالوگ ابزار اندودانتیکس به‌روزرسانی شد: '
             . (int) ($summary['created'] ?? 0) . ' محصول جدید، '
-            . (int) ($summary['updated'] ?? 0) . ' محصول به‌روزرسانی‌شده.',
+            . (int) ($summary['updated'] ?? 0) . ' محصول به‌روزرسانی‌شده و '
+            . (int) ($summary['retired'] ?? 0) . ' محصول قدیمی از فروش خارج شد.',
     ]);
 }
 
