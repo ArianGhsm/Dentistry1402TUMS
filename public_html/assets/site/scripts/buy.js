@@ -1536,9 +1536,121 @@
                 '    <h3><a href="' + href + '">' + text(item.title || "بدون عنوان") + "</a></h3>",
                 '    <p>' + text(item.shortDescription || "—") + "</p>",
                 '    <strong>' + text(money(lineAmount)) + "</strong>",
-               
-…[sentinelx: truncated 6620 bytes]…
-="buy_cart_gateway" value="' + text(entry.key) + '"' + (checked ? " checked" : "") + (disabled ? " disabled" : "") + ">",
+                '    <div class="buy-cart-quantity" aria-label="تعداد">',
+                '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Number(entry.quantity || 1) - 1)) + '">−</button>',
+                '      <span>' + text(Number(entry.quantity || 1).toLocaleString("fa-IR")) + "</span>",
+                '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Math.min(99, Number(entry.quantity || 1) + 1))) + '">＋</button>',
+                "    </div>",
+                '    <div class="buy-cart-card__actions">',
+                '      <a class="buy-secondary-btn" href="' + href + '">مشاهده آیتم</a>',
+                '      <button class="buy-secondary-btn" type="button" data-buy-cart-remove="' + text(entry.slug) + '">حذف از سبد</button>',
+                "    </div>",
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+        renderCartCheckout(items);
+    }
+
+    function renderCartLineFields(lines, checkoutData) {
+        var data = checkoutData || readCheckoutData();
+        var extraBySlug = data.lineExtraFormData && typeof data.lineExtraFormData === "object" ? data.lineExtraFormData : {};
+        var rows = [];
+        (Array.isArray(lines) ? lines : []).forEach(function (line) {
+            var fields = Array.isArray(line.requiredFields) ? line.requiredFields : [];
+            if (!fields.length) {
+                return;
+            }
+            rows.push('<section class="buy-cart-line-fields"><h4>' + text(line.title || "آیتم") + "</h4>");
+            fields.forEach(function (field) {
+                var name = String(field.name || "").trim();
+                if (!name) {
+                    return;
+                }
+                var label = String(field.label || name);
+                var required = !!field.required;
+                var maxLength = Math.max(10, Math.min(1000, Number(field.maxLength || 140)));
+                var value = String((extraBySlug[line.slug] && extraBySlug[line.slug][name]) || "");
+                var attrs = [
+                    'data-cart-line-field="true"',
+                    'data-slug="' + text(line.slug || "") + '"',
+                    'data-field-name="' + text(name) + '"',
+                    'data-field-label="' + text(label) + '"',
+                    'data-field-required="' + (required ? "1" : "0") + '"'
+                ];
+                var type = String(field.type || "text");
+                var control = "";
+                if (type === "textarea") {
+                    control = '<textarea ' + attrs.join(" ") + ' maxlength="' + text(String(maxLength)) + '">' + text(value) + "</textarea>";
+                } else if (type === "select" && Array.isArray(field.options)) {
+                    var options = ['<option value="">انتخاب کنید</option>'];
+                    field.options.forEach(function (option) {
+                        var selected = String(option) === value ? " selected" : "";
+                        options.push('<option value="' + text(option) + '"' + selected + ">" + text(option) + "</option>");
+                    });
+                    control = '<select ' + attrs.join(" ") + ">" + options.join("") + "</select>";
+                } else {
+                    var inputType = type === "tel" ? "tel" : (type === "number" ? "number" : "text");
+                    var digitAttrs = (inputType === "tel" || inputType === "number") ? ' inputmode="numeric" data-digit-locale="latin"' : "";
+                    control = '<input ' + attrs.join(" ") + ' type="' + text(inputType) + '"' + digitAttrs + ' maxlength="' + text(String(maxLength)) + '" value="' + text(value) + '">';
+                }
+                rows.push([
+                    '<label class="buy-form__field">',
+                    '  <span>' + text(label) + (required ? " *" : "") + "</span>",
+                    control,
+                    "</label>"
+                ].join(""));
+            });
+            rows.push("</section>");
+        });
+        return rows.join("");
+    }
+
+    function readLineExtrasFrom(root) {
+        var output = {};
+        Array.prototype.slice.call(root ? root.querySelectorAll("[data-cart-line-field='true']") : []).forEach(function (field) {
+            var slug = String(field.dataset.slug || "").trim();
+            var name = String(field.dataset.fieldName || "").trim();
+            if (!slug || !name) {
+                return;
+            }
+            if (!output[slug]) {
+                output[slug] = {};
+            }
+            output[slug][name] = String(field.value || "").trim();
+        });
+        return output;
+    }
+
+    function renderCartGateways(bundle) {
+        var normalized = normalizeGatewayBundle(bundle || {});
+        var enabledCount = normalized.gateways.filter(function (entry) { return entry.isEnabled; }).length;
+        if (!normalized.gateways.length) {
+            return '<div class="buy-empty">درگاه پرداختی برای این سبد تعریف نشده است.</div>';
+        }
+        var selectedOnce = false;
+        var firstEnabled = normalized.gateways.find(function (entry) { return entry.isEnabled; });
+        var fallbackKey = firstEnabled ? firstEnabled.key : "";
+        var savedGateway = String(readCheckoutData().gateway || "").trim().toLowerCase();
+        return [
+            '<div id="buy-cart-gateway-options" class="buy-gateway__list">',
+            normalized.gateways.map(function (entry, index) {
+                var inputId = "buy-cart-gateway-" + entry.key + "-" + String(index);
+                var disabled = !entry.isEnabled;
+                var checked = false;
+                if (!disabled && !selectedOnce && savedGateway && entry.key === savedGateway) {
+                    checked = true;
+                    selectedOnce = true;
+                } else if (!disabled && !selectedOnce && normalized.defaultKey && entry.key === normalized.defaultKey) {
+                    checked = true;
+                    selectedOnce = true;
+                } else if (!disabled && !selectedOnce && (!normalized.defaultKey || normalized.defaultKey !== fallbackKey) && entry.key === fallbackKey) {
+                    checked = true;
+                    selectedOnce = true;
+                }
+                return [
+                    '<label class="buy-gateway-option' + (disabled ? " is-disabled" : "") + '" for="' + text(inputId) + '">',
+                    '  <input id="' + text(inputId) + '" type="radio" name="buy_cart_gateway" value="' + text(entry.key) + '"' + (checked ? " checked" : "") + (disabled ? " disabled" : "") + ">",
                     '  <span class="buy-gateway-option__radio" aria-hidden="true"></span>',
                     '  <span class="buy-gateway-option__copy">',
                     '    <strong class="buy-gateway-option__title">' + text(entry.label || "پرداخت آنلاین") + "</strong>",
