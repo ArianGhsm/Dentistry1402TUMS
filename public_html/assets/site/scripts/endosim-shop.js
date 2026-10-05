@@ -1,20 +1,13 @@
 (function () {
     "use strict";
 
-    var CATEGORY = "endodontic_models";
-    var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object"
-        ? window.Dent1402Site
-        : null;
-
+    var CATEGORY = "endodontic_tools";
+    var CART_KEY = "dent1402_buy_cart_items";
+    var RETIRED_PREFIX = "endosim-";
     var state = {
         items: [],
-        quantities: {},      // slug -> quantity
         query: "",
-        filter: "all",
-        gateways: [],
-        defaultGateway: "",
-        quoteLoading: false,
-        submitting: false
+        filter: "all"
     };
 
     function $(id) {
@@ -22,247 +15,206 @@
     }
 
     function text(value) {
-        return String(value == null ? "" : value).replace(/[&<>"]/g, function (ch) {
-            switch (ch) {
-                case "&": return "&amp;";
-                case "<": return "&lt;";
-                case ">": return "&gt;";
-                case "\"": return "&quot;";
-                default: return ch;
-            }
+        return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
+            if (char === "&") return "&amp;";
+            if (char === "<") return "&lt;";
+            if (char === ">") return "&gt;";
+            if (char.charCodeAt(0) === 34) return "&quot;";
+            return char;
         });
-    }
-
-    function money(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
     }
 
     function faNumber(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR");
+        return Number(value || 0).toLocaleString("fa-IR");
     }
 
-    function normalizeDigits(value) {
-        if (siteApi && typeof siteApi.normalizeDigits === "function") {
-            return siteApi.normalizeDigits(value);
-        }
-        return String(value || "")
-            .replace(/[۰-۹]/g, function (ch) {
-                return String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch));
-            })
-            .replace(/[٠-٩]/g, function (ch) {
-                return String("٠١٢٣٤٥٦٧٨٩".indexOf(ch));
-            });
+    function moneyToman(rial) {
+        return Math.round(Math.max(0, Number(rial) || 0) / 10).toLocaleString("fa-IR") + " تومان";
     }
 
-    function normalizePhone(value) {
-        if (siteApi && typeof siteApi.normalizePhone === "function") {
-            return siteApi.normalizePhone(value);
-        }
-        var digits = normalizeDigits(value).replace(/\D+/g, "");
-        if (!digits) return "";
-        if (digits.indexOf("0098") === 0) digits = digits.slice(4);
-        else if (digits.indexOf("98") === 0) digits = digits.slice(2);
-        if (digits.length === 10 && digits.charAt(0) === "9") digits = "0" + digits;
-        return digits;
-    }
-
-    function parseJsonResponse(response) {
-        if (siteApi && typeof siteApi.parseJsonResponse === "function") {
-            return siteApi.parseJsonResponse(response);
-        }
-        return response.text().then(function (body) {
-            var payload = null;
-            if (body) {
-                try { payload = JSON.parse(body); } catch (_e) { payload = null; }
-            }
-            if (!payload || typeof payload !== "object") {
-                payload = { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
-            }
-            payload.httpStatus = response.status;
-            return payload;
-        });
-    }
-
-    function networkErrorResponse() {
-        return {
-            success: false,
-            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
-            httpStatus: 0
-        };
-    }
-
-    function apiGet(action, params) {
-        var query = new URLSearchParams(Object.assign({ action: action }, params || {}));
-        return fetch("/api/payments_api.php?" + query.toString(), {
+    function apiGet(action) {
+        return fetch("/api/payments_api.php?action=" + encodeURIComponent(action), {
             method: "GET",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJsonResponse).catch(networkErrorResponse);
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
+            }).then(function (payload) {
+                payload.httpStatus = response.status;
+                return payload;
+            });
+        }).catch(function () {
+            return { success: false, error: "ارتباط با سرور برقرار نشد.", httpStatus: 0 };
+        });
     }
 
-    function apiPost(action, payload) {
-        return fetch("/api/payments_api.php", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "Accept": "application/json"
-            },
-            body: new URLSearchParams(Object.assign({ action: action }, payload || {}))
-        }).then(parseJsonResponse).catch(networkErrorResponse);
+    function specifications(item) {
+        return Array.isArray(item && item.specifications) ? item.specifications : [];
     }
 
-    function isUnauthorized(payload) {
-        return !!(payload && (payload.loggedOut || payload.httpStatus === 401));
+    function specValue(item, label) {
+        var found = specifications(item).find(function (row) {
+            return String(row && row.label || "") === label;
+        });
+        return found ? String(found.value || "") : "";
     }
 
-    function redirectToLogin() {
-        var returnTo = window.location.pathname + window.location.search;
-        window.location.href = "/account/?returnTo=" + encodeURIComponent(returnTo);
+    function itemKind(item) {
+        return specValue(item, "دسته") || "ابزار";
     }
 
-    // ---- quantity helpers ----
+    function itemSearchText(item) {
+        return [
+            item && item.title,
+            item && item.shortDescription,
+            item && item.fullDescription,
+            specifications(item).map(function (row) {
+                return String(row.label || "") + " " + String(row.value || "");
+            }).join(" ")
+        ].join(" ").toLowerCase();
+    }
 
-    function maxQtyFor(item) {
-        return Math.max(1, Math.min(99, Number(item && item.maxQuantityPerOrder) || 1));
+    function readCart() {
+        try {
+            var parsed = JSON.parse(window.localStorage.getItem(CART_KEY) || "[]");
+            if (!Array.isArray(parsed)) return [];
+            var changed = false;
+            var items = parsed.map(function (entry) {
+                var slug = String(entry && entry.slug || "").trim();
+                var quantity = Math.max(1, Math.min(99, Number(entry && entry.quantity) || 1));
+                if (slug.indexOf(RETIRED_PREFIX) === 0) {
+                    changed = true;
+                    return null;
+                }
+                return {
+                    slug: slug,
+                    quantity: quantity,
+                    addedAt: String(entry && entry.addedAt || "")
+                };
+            }).filter(function (entry) {
+                return entry && entry.slug;
+            });
+            if (changed) {
+                window.localStorage.setItem(CART_KEY, JSON.stringify(items));
+            }
+            return items;
+        } catch (_error) {
+            return [];
+        }
+    }
+
+    function writeCart(items) {
+        try {
+            window.localStorage.setItem(CART_KEY, JSON.stringify(items || []));
+        } catch (_error) {
+            // Checkout remains available from the generic item page if storage is unavailable.
+        }
     }
 
     function quantityFor(slug) {
-        return Math.max(0, Number(state.quantities[slug]) || 0);
-    }
-
-    function setQuantity(slug, qty) {
-        var item = findItem(slug);
-        if (!item) return;
-        var max = maxQtyFor(item);
-        var next = Math.max(0, Math.min(max, Math.floor(Number(qty) || 0)));
-        if (next <= 0) {
-            delete state.quantities[slug];
-        } else {
-            state.quantities[slug] = next;
-        }
-    }
-
-    function findItem(slug) {
-        for (var i = 0; i < state.items.length; i++) {
-            if (state.items[i].slug === slug) return state.items[i];
-        }
-        return null;
-    }
-
-    function selectedLines() {
-        var lines = [];
-        state.items.forEach(function (item) {
-            var qty = quantityFor(item.slug);
-            if (qty > 0) {
-                lines.push({ item: item, quantity: qty, amount: qty * (Number(item.price) || 0) });
-            }
+        var entry = readCart().find(function (row) {
+            return row.slug === slug;
         });
-        return lines;
+        return entry ? Number(entry.quantity || 0) : 0;
     }
 
-    function provisionalTotal() {
-        return selectedLines().reduce(function (sum, line) { return sum + line.amount; }, 0);
-    }
-
-    function totalCount() {
-        return selectedLines().reduce(function (sum, line) { return sum + line.quantity; }, 0);
-    }
-
-    // ---- rendering ----
-
-    function specValue(item, label) {
-        var specs = Array.isArray(item.specifications) ? item.specifications : [];
-        for (var i = 0; i < specs.length; i++) {
-            if (specs[i] && String(specs[i].label) === label) {
-                return String(specs[i].value || "");
-            }
+    function setQuantity(slug, quantity) {
+        var clean = String(slug || "").trim();
+        if (!clean) return;
+        var next = Math.max(0, Math.min(99, Number(quantity) || 0));
+        var rows = readCart().filter(function (entry) {
+            return entry.slug !== clean;
+        });
+        if (next > 0) {
+            rows.unshift({
+                slug: clean,
+                quantity: next,
+                addedAt: new Date().toISOString()
+            });
         }
-        return "";
+        writeCart(rows);
+        syncCard(clean);
+        renderCartDock();
     }
 
-    function matchesFilter(item) {
-        if (state.filter !== "all") {
-            var jaw = specValue(item, "فک");
-            var type = specValue(item, "نوع دندان") + " " + specValue(item, "مشخصه");
-            if (state.filter === "شیری") {
-                if (type.indexOf("شیری") === -1) return false;
-            } else if (jaw.indexOf(state.filter) === -1) {
+    function visibleItems() {
+        var query = String(state.query || "").trim().toLowerCase();
+        return state.items.filter(function (item) {
+            if (state.filter !== "all" && itemKind(item) !== state.filter) {
                 return false;
             }
-        }
-        if (state.query) {
-            var haystack = (item.title + " " + item.shortDescription + " " +
-                specValue(item, "کد محصول")).toLowerCase();
-            if (haystack.indexOf(state.query) === -1) return false;
-        }
-        return true;
+            if (query && itemSearchText(item).indexOf(query) < 0) {
+                return false;
+            }
+            return true;
+        });
     }
 
-    function cardMarkup(item) {
-        var code = specValue(item, "کد محصول");
-        var qty = quantityFor(item.slug);
-        var chips = [specValue(item, "فک"), specValue(item, "مشخصه")]
-            .filter(function (v) { return v; })
-            .map(function (v) { return '<span class="endosim-card__chip">' + text(v) + "</span>"; })
-            .join("");
+    function tagValues(item) {
+        var values = [];
+        var kind = itemKind(item);
+        var model = specValue(item, "مدل") || specValue(item, "رده") || specValue(item, "ساختار");
+        var pack = specValue(item, "بسته");
+        [kind, model, pack].forEach(function (value) {
+            var clean = String(value || "").trim();
+            if (clean && values.indexOf(clean) < 0) values.push(clean);
+        });
+        return values.slice(0, 3);
+    }
+
+    function renderCard(item) {
+        var slug = String(item.slug || "");
+        var qty = quantityFor(slug);
+        var image = String(item.heroImage || "").trim();
+        var tags = tagValues(item).map(function (value) {
+            return '<span class="endo-tools-tag">' + text(value) + "</span>";
+        }).join("");
+        var code = specValue(item, "کد مرجع");
+        var size = specValue(item, "سایز");
+        var detail = [code ? ("کد " + code) : "", size ? ("سایز " + size) : ""].filter(Boolean).join(" · ");
+        var itemUrl = "/buy/item/?slug=" + encodeURIComponent(slug);
+
         return [
-            '<article class="endosim-card' + (qty > 0 ? " is-selected" : "") + '" data-endosim-card="' + text(item.slug) + '">',
-            '  <div class="endosim-card__media">',
-            '    <img loading="lazy" src="' + text(item.heroImage) + '" alt="' + text(item.title) + '">',
-            code ? '    <span class="endosim-card__code">' + text(code) + "</span>" : "",
-            '  </div>',
-            '  <div class="endosim-card__body">',
-            '    <h3 class="endosim-card__title">' + text(item.title) + "</h3>",
-            '    <div class="endosim-card__chips">' + chips + "</div>",
-            '    <div class="endosim-card__price">' + text(money(item.price)) + "</div>",
-            '  </div>',
-            '  <div class="endosim-card__stepper" data-endosim-stepper="' + text(item.slug) + '">',
-            '    <button type="button" class="endosim-step" data-endosim-dec aria-label="کاهش">−</button>',
-            '    <input class="endosim-qty" type="text" inputmode="numeric" value="' + faNumber(qty) + '" aria-label="تعداد ' + text(item.title) + '">',
-            '    <button type="button" class="endosim-step" data-endosim-inc aria-label="افزایش">+</button>',
-            '  </div>',
+            '<article class="buy-item-card endo-tools-card' + (qty > 0 ? " is-selected" : "") + '" data-endosim-card="' + text(slug) + '">',
+            '  <div class="buy-item-card__body">',
+            '    <div class="buy-item-card__top">',
+            qty > 0 ? '      <span class="buy-status is-active">در سبد</span>' : '      <span class="buy-status is-muted">قابل سفارش</span>',
+            '      <span class="buy-kicker">' + text(itemKind(item)) + "</span>",
+            "    </div>",
+            '    <a href="' + itemUrl + '"><h3 class="buy-item-card__title">' + text(item.title || "محصول") + "</h3></a>",
+            '    <p class="buy-item-card__desc">' + text(item.shortDescription || "") + "</p>",
+            '    <div class="endo-tools-tags">' + tags + "</div>",
+            detail ? '    <div class="endo-tools-code" dir="rtl">' + text(detail) + "</div>" : "",
+            '    <div class="endo-tools-card__purchase">',
+            '      <strong class="buy-item-card__price endo-tools-price">' + text(moneyToman(item.price)) + "</strong>",
+            '      <div class="endo-tools-stepper" data-endosim-stepper="' + text(slug) + '">',
+            '        <button type="button" data-endosim-dec aria-label="کاهش تعداد">−</button>',
+            '        <span class="endo-tools-qty" aria-label="تعداد انتخاب‌شده">' + faNumber(qty) + "</span>",
+            '        <button type="button" data-endosim-inc aria-label="افزایش تعداد">+</button>',
+            "      </div>",
+            "    </div>",
+            "  </div>",
+            '  <a class="buy-item-card__hero endo-tools-card__hero" href="' + itemUrl + '" aria-label="مشاهده جزئیات ' + text(item.title || "محصول") + '">',
+            image
+                ? '    <img src="' + text(image) + '" alt="' + text(item.title || "تصویر محصول") + '" loading="lazy">'
+                : '    <span class="endo-tools-card__placeholder" aria-hidden="true"></span>',
+            "  </a>",
             "</article>"
         ].join("");
     }
 
-    function renderGrid() {
-        var grid = $("endosim-grid");
+    function renderList() {
+        var root = $("endosim-grid");
         var status = $("endosim-status");
-        if (!grid) return;
-
-        var visible = state.items.filter(matchesFilter);
-        if (!state.items.length) {
-            status.hidden = false;
-            status.textContent = "هنوز محصولی ثبت نشده است.";
-            grid.innerHTML = "";
+        if (!root || !status) return;
+        var items = visibleItems();
+        status.textContent = faNumber(items.length) + " محصول";
+        if (!items.length) {
+            root.innerHTML = '<div class="buy-empty endo-tools-empty">محصولی با این جست‌وجو یا فیلتر پیدا نشد.</div>';
             return;
         }
-        if (!visible.length) {
-            status.hidden = false;
-            status.textContent = "موردی با این جست‌وجو پیدا نشد.";
-            grid.innerHTML = "";
-            return;
-        }
-        status.hidden = true;
-        grid.innerHTML = visible.map(cardMarkup).join("");
-    }
-
-    function renderBar() {
-        var bar = $("endosim-bar");
-        if (!bar) return;
-        var count = totalCount();
-        var cta = $("endosim-bar-cta");
-        $("endosim-bar-count").textContent = faNumber(count) + " قلم";
-        $("endosim-bar-total").textContent = money(provisionalTotal());
-        if (count > 0) {
-            bar.hidden = false;
-            bar.dataset.empty = "false";
-            if (cta) cta.disabled = false;
-        } else {
-            bar.dataset.empty = "true";
-            if (cta) cta.disabled = true;
-        }
+        root.innerHTML = items.map(renderCard).join("");
     }
 
     function syncCard(slug) {
@@ -270,280 +222,158 @@
         if (!card) return;
         var qty = quantityFor(slug);
         card.classList.toggle("is-selected", qty > 0);
-        var input = card.querySelector(".endosim-qty");
-        if (input) input.value = faNumber(qty);
+        var qtyNode = card.querySelector(".endo-tools-qty");
+        if (qtyNode) qtyNode.textContent = faNumber(qty);
+        var stateNode = card.querySelector(".buy-status");
+        if (stateNode) {
+            stateNode.textContent = qty > 0 ? "در سبد" : "قابل سفارش";
+            stateNode.className = "buy-status " + (qty > 0 ? "is-active" : "is-muted");
+        }
+    }
+
+    function renderCartDock() {
+        var dock = $("endosim-cart-dock");
+        if (!dock) return;
+        var bySlug = {};
+        state.items.forEach(function (item) {
+            bySlug[String(item.slug || "")] = item;
+        });
+        var count = 0;
+        var total = 0;
+        readCart().forEach(function (entry) {
+            var item = bySlug[entry.slug];
+            if (!item) return;
+            count += Number(entry.quantity || 0);
+            total += Number(item.price || 0) * Number(entry.quantity || 0);
+        });
+        dock.hidden = count <= 0;
+        $("endosim-cart-count").textContent = faNumber(count) + " عدد انتخاب شده";
+        $("endosim-cart-total").textContent = moneyToman(total);
     }
 
     function cssEscape(value) {
         if (window.CSS && typeof window.CSS.escape === "function") {
-            return window.CSS.escape(value);
+            return window.CSS.escape(String(value || ""));
         }
-        return String(value).replace(/["\\]/g, "\\$&");
+        return String(value || "").replace(/["\\]/g, "\\$&");
     }
 
-    // ---- checkout ----
-
-    function fillIdentityNote() {
-        var note = $("endosim-identity-note");
-        if (!note) return;
+    function showLoginRequired() {
+        var main = document.querySelector("main.buy-shell");
+        if (!main || !window.Dent1402Auth || typeof window.Dent1402Auth.renderLoginRequiredGuard !== "function") {
+            return;
+        }
         var auth = window.Dent1402Auth;
-        var user = auth && typeof auth.getCurrentUser === "function" ? auth.getCurrentUser() : null;
-        var name = user && user.name ? String(user.name).trim() : "";
-        note.textContent = name
-            ? "سفارش به نام «" + name + "» ثبت می‌شود."
-            : "سفارش به نام حساب شما ثبت می‌شود.";
-    }
-
-    function openCheckout() {
-        if (!selectedLines().length) return;
-        var modal = $("endosim-checkout");
-        if (!modal) return;
-        modal.hidden = false;
-        document.body.classList.add("endosim-modal-open");
-        setFeedback("", "");
-        fillIdentityNote();
-        refreshQuote();
-    }
-
-    function closeCheckout() {
-        var modal = $("endosim-checkout");
-        if (!modal) return;
-        modal.hidden = true;
-        document.body.classList.remove("endosim-modal-open");
-    }
-
-    function setFeedback(message, kind) {
-        var node = $("endosim-feedback");
-        if (!node) return;
-        node.textContent = message || "";
-        node.className = "endosim-feedback" + (kind ? " " + kind : "");
-    }
-
-    function cartItemsPayload() {
-        return selectedLines().map(function (line) {
-            return { slug: line.item.slug, quantity: line.quantity };
-        });
-    }
-
-    function renderSummary(quote) {
-        var node = $("endosim-summary");
-        if (!node) return;
-        var lines = quote && Array.isArray(quote.lines) ? quote.lines : [];
-        var rows = lines.map(function (line) {
-            return [
-                '<div class="endosim-summary__row">',
-                '  <span>' + text(line.title) + " × " + faNumber(line.quantity) + "</span>",
-                '  <strong>' + text(money(line.amount)) + "</strong>",
-                "</div>"
-            ].join("");
-        }).join("");
-        var total = quote ? quote.amount : provisionalTotal();
-        node.innerHTML = rows +
-            '<div class="endosim-summary__total"><span>مبلغ قابل پرداخت</span><strong>' +
-            text(money(total)) + "</strong></div>";
-    }
-
-    function renderGateways() {
-        var fieldset = $("endosim-gateways");
-        var empty = $("endosim-gateways-empty");
-        if (!fieldset) return;
-        var enabled = state.gateways.filter(function (g) { return g && g.isEnabled; });
-        Array.prototype.slice.call(fieldset.querySelectorAll(".endosim-gateway")).forEach(function (n) {
-            n.parentNode.removeChild(n);
-        });
-        if (!enabled.length) {
-            if (empty) {
-                empty.hidden = false;
-                empty.textContent = "درگاه پرداخت فعالی موجود نیست.";
-            }
-            return;
+        var loginUrl = typeof auth.loginUrl === "function"
+            ? auth.loginUrl(window.location.pathname + window.location.search + window.location.hash)
+            : "/account/";
+        main.innerHTML = '<section class="buy-auth-required">' + auth.renderLoginRequiredGuard({
+            loginHref: loginUrl,
+            fallbackHref: "/buy/",
+            primaryClass: "buy-primary-btn",
+            secondaryClass: "buy-secondary-btn"
+        }) + "</section>";
+        if (typeof auth.enhanceLoginGuards === "function") {
+            auth.enhanceLoginGuards(main);
         }
-        if (empty) empty.hidden = true;
-        var chosen = state.defaultGateway && enabled.some(function (g) { return g.key === state.defaultGateway; })
-            ? state.defaultGateway
-            : enabled[0].key;
-        enabled.forEach(function (gateway) {
-            var label = document.createElement("label");
-            label.className = "endosim-gateway";
-            label.innerHTML = [
-                '<input type="radio" name="endosim_gateway" value="' + text(gateway.key) + '"' +
-                    (gateway.key === chosen ? " checked" : "") + ">",
-                '<span class="endosim-gateway__icon">' + text(gateway.icon || "💳") + "</span>",
-                '<span class="endosim-gateway__label">' + text(gateway.label || gateway.provider || gateway.key) + "</span>"
-            ].join("");
-            fieldset.appendChild(label);
-        });
     }
 
-    function refreshQuote() {
-        var lines = cartItemsPayload();
-        if (!lines.length) return;
-        state.quoteLoading = true;
-        renderSummary(null);
-        apiPost("quoteCart", { items: JSON.stringify(lines) }).then(function (response) {
-            state.quoteLoading = false;
-            if (isUnauthorized(response)) { redirectToLogin(); return; }
-            if (!response || !response.success || !response.quote) {
-                setFeedback((response && response.error) || "محاسبه سبد ممکن نشد.", "is-error");
-                return;
-            }
-            if (response.paymentGateways) {
-                state.gateways = Array.isArray(response.paymentGateways.gateways)
-                    ? response.paymentGateways.gateways : [];
-                state.defaultGateway = String(response.paymentGateways.defaultKey || "");
-            }
-            renderSummary(response.quote);
-            renderGateways();
-        });
-    }
-
-    function submitOrder(event) {
-        event.preventDefault();
-        if (state.submitting) return;
-
-        var lines = cartItemsPayload();
-        if (!lines.length) { setFeedback("سبد خرید خالی است.", "is-error"); return; }
-        var selected = document.querySelector('input[name="endosim_gateway"]:checked');
-        if (!selected) { setFeedback("روش پرداخت را انتخاب کنید.", "is-error"); return; }
-
-        state.submitting = true;
-        var payBtn = $("endosim-pay");
-        if (payBtn) { payBtn.disabled = true; payBtn.textContent = "در حال انتقال به درگاه…"; }
-        setFeedback("در حال ایجاد سفارش…", "");
-
-        apiPost("createCartOrder", {
-            items: JSON.stringify(lines),
-            extraFormData: JSON.stringify({ source: "endosim" }),
-            gateway: String(selected.value || "").trim()
-        }).then(function (response) {
-            if (isUnauthorized(response)) { redirectToLogin(); return; }
-            if (!response || !response.success || !response.redirectUrl) {
-                state.submitting = false;
-                if (payBtn) { payBtn.disabled = false; payBtn.textContent = "پرداخت مبلغ کل"; }
-                setFeedback((response && response.error) || "ایجاد سفارش انجام نشد.", "is-error");
-                return;
-            }
-            window.location.href = response.redirectUrl;
-        });
-    }
-
-    // ---- events ----
-
-    function onGridClick(event) {
-        var stepper = event.target.closest("[data-endosim-stepper]");
-        if (!stepper) return;
-        var slug = stepper.getAttribute("data-endosim-stepper");
-        if (event.target.closest("[data-endosim-inc]")) {
-            setQuantity(slug, quantityFor(slug) + 1);
-        } else if (event.target.closest("[data-endosim-dec]")) {
-            setQuantity(slug, quantityFor(slug) - 1);
-        } else {
-            return;
-        }
-        syncCard(slug);
-        renderBar();
-    }
-
-    function onGridInput(event) {
-        var input = event.target.closest(".endosim-qty");
-        if (!input) return;
-        var stepper = input.closest("[data-endosim-stepper]");
-        if (!stepper) return;
-        var slug = stepper.getAttribute("data-endosim-stepper");
-        var raw = normalizeDigits(input.value).replace(/\D+/g, "");
-        setQuantity(slug, raw);
-        renderBar();
-    }
-
-    function onGridBlur(event) {
-        var input = event.target.closest && event.target.closest(".endosim-qty");
-        if (!input) return;
-        var stepper = input.closest("[data-endosim-stepper]");
-        if (!stepper) return;
-        syncCard(stepper.getAttribute("data-endosim-stepper"));
-    }
-
-    function bindEvents() {
+    function bindControls() {
         var grid = $("endosim-grid");
         if (grid) {
-            grid.addEventListener("click", onGridClick);
-            grid.addEventListener("input", onGridInput);
-            grid.addEventListener("blur", onGridBlur, true);
+            grid.addEventListener("error", function (event) {
+                var image = event.target;
+                if (!image || image.tagName !== "IMG" || !image.closest(".endo-tools-card__hero")) {
+                    return;
+                }
+                var placeholder = document.createElement("span");
+                placeholder.className = "endo-tools-card__placeholder";
+                placeholder.setAttribute("aria-hidden", "true");
+                image.replaceWith(placeholder);
+            }, true);
+
+            grid.addEventListener("click", function (event) {
+                var stepper = event.target.closest("[data-endosim-stepper]");
+                if (!stepper) return;
+                var slug = stepper.getAttribute("data-endosim-stepper") || "";
+                var current = quantityFor(slug);
+                if (event.target.closest("[data-endosim-inc]")) {
+                    setQuantity(slug, current + 1);
+                } else if (event.target.closest("[data-endosim-dec]")) {
+                    setQuantity(slug, current - 1);
+                }
+            });
         }
 
         var search = $("endosim-search");
+        var clear = $("endosim-clear-search");
         if (search) {
             search.addEventListener("input", function () {
-                state.query = normalizeDigits(search.value || "").trim().toLowerCase();
-                renderGrid();
+                state.query = search.value || "";
+                if (clear) clear.hidden = !state.query;
+                renderList();
+            });
+        }
+        if (clear) {
+            clear.addEventListener("click", function () {
+                state.query = "";
+                if (search) {
+                    search.value = "";
+                    search.focus();
+                }
+                clear.hidden = true;
+                renderList();
             });
         }
 
         var filters = $("endosim-filters");
         if (filters) {
             filters.addEventListener("click", function (event) {
-                var btn = event.target.closest("[data-endosim-filter]");
-                if (!btn) return;
-                state.filter = btn.getAttribute("data-endosim-filter") || "all";
-                Array.prototype.slice.call(filters.querySelectorAll("[data-endosim-filter]")).forEach(function (n) {
-                    n.classList.toggle("is-active", n === btn);
+                var button = event.target.closest("[data-endosim-filter]");
+                if (!button) return;
+                state.filter = button.getAttribute("data-endosim-filter") || "all";
+                Array.prototype.slice.call(filters.querySelectorAll("[data-endosim-filter]")).forEach(function (node) {
+                    node.classList.toggle("is-active", node === button);
                 });
-                renderGrid();
+                renderList();
             });
         }
 
-        var cta = $("endosim-bar-cta");
-        if (cta) cta.addEventListener("click", openCheckout);
-
-        var modal = $("endosim-checkout");
-        if (modal) {
-            modal.addEventListener("click", function (event) {
-                if (event.target.closest("[data-endosim-close]")) {
-                    closeCheckout();
-                }
-            });
-        }
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape") closeCheckout();
-        });
-
-        var form = $("endosim-form");
-        if (form) form.addEventListener("submit", submitOrder);
-    }
-
-    function loadItems() {
-        apiGet("listPublicItems", {}).then(function (response) {
-            if (isUnauthorized(response)) { redirectToLogin(); return; }
-            var status = $("endosim-status");
-            if (!response || !response.success || !Array.isArray(response.items)) {
-                if (status) {
-                    status.hidden = false;
-                    status.textContent = (response && response.error) || "بارگذاری محصولات ممکن نشد.";
-                }
-                return;
-            }
-            state.items = response.items.filter(function (item) {
-                return item && item.category === CATEGORY;
-            }).sort(function (a, b) {
-                var ca = "";
-                var cb = "";
-                (a.specifications || []).forEach(function (s) { if (s.label === "کد محصول") ca = String(s.value); });
-                (b.specifications || []).forEach(function (s) { if (s.label === "کد محصول") cb = String(s.value); });
-                return ca.localeCompare(cb);
-            });
-            renderGrid();
-            renderBar();
+        window.addEventListener("storage", function (event) {
+            if (event.key !== CART_KEY) return;
+            renderList();
+            renderCartDock();
         });
     }
 
     function init() {
-        bindEvents();
-        loadItems();
+        bindControls();
+        apiGet("listPublicItems").then(function (payload) {
+            if (!payload || !payload.success) {
+                $("endosim-status").textContent = "بارگذاری انجام نشد";
+                $("endosim-grid").innerHTML = '<div class="buy-empty endo-tools-empty">' +
+                    text(payload && payload.error || "دریافت فهرست محصولات انجام نشد.") +
+                    "</div>";
+                return;
+            }
+            state.items = (Array.isArray(payload.items) ? payload.items : []).filter(function (item) {
+                return String(item && item.category || "") === CATEGORY;
+            });
+            renderList();
+            renderCartDock();
+        });
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init, { once: true });
-    } else {
+    var auth = window.Dent1402Auth;
+    if (!auth || typeof auth.ready !== "function") {
         init();
+        return;
     }
+    auth.ready().then(function (detail) {
+        if (!detail || !detail.loggedIn) {
+            showLoginRequired();
+            return;
+        }
+        init();
+    }).catch(showLoginRequired);
 })();

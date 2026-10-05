@@ -3,125 +3,182 @@
 declare(strict_types=1);
 
 /**
- * Shared catalog definition for the Endosim endodontic training-tooth shop.
+ * Source of truth for the endodontic-tools group order.
  *
- * Prices are stored in rials, like the rest of the payments store. The source
- * price list is in toman; the agreed retail formula is:
- *     final_toman = round(base_toman * 0.85) + 15000
- *     price_rial  = final_toman * 10
+ * Public prices are supplied in toman by the seller, but the payments store
+ * persists rials. Every price below already includes the requested
+ * 10,000-toman retail increment.
  *
- * Distinct price tiers from the price list:
- *     325,000 toman -> 291,250 toman -> 2,912,500 rial
- *     350,000 toman -> 312,500 toman -> 3,125,000 rial
- *     390,000 toman -> 346,500 toman -> 3,465,000 rial
- *     455,000 toman -> 401,750 toman -> 4,017,500 rial
- *
- * Images live as static assets under /assets/images/buy/endosim/<lowercase-code>.png
- * which satisfies payments_api_validate_uploaded_image_url().
+ * The legacy Endosim tooth catalog used this file and its import action.
+ * Compatibility aliases are intentionally kept so old owner links do not
+ * resurrect the retired tooth products.
  */
 
+const ENDO_TOOLS_CATEGORY = 'endodontic_tools';
+const ENDO_TOOLS_SLUG_PREFIX = 'endo-tool-';
 const ENDOSIM_CATEGORY = 'endodontic_models';
 const ENDOSIM_SLUG_PREFIX = 'endosim-';
 
-function endosim_catalog(): array
+function endo_tools_catalog(): array
 {
-    $tierA = 2912500; // 291,250 toman
-    $tierB = 3125000; // 312,500 toman
-    $tierC = 3465000; // 346,500 toman
-    $tierD = 4017500; // 401,750 toman
-
-    // [code, title, jaw, tooth, detail, priceRial]
-    $rows = [
-        ['CT-1UL-G100', 'دندان سنترال ماگزیلا — استریت', 'ماگزیلا (فک بالا)', 'سنترال', 'استریت', $tierA],
-        ['CT-1UL-G110', 'دندان سنترال ماگزیلا — کرودار', 'ماگزیلا (فک بالا)', 'سنترال', 'کرودار', $tierA],
-        ['CT-1UL-G101', 'دندان سنترال ماگزیلا — اپن اپکس', 'ماگزیلا (فک بالا)', 'سنترال', 'اپن اپکس', $tierA],
-        ['CT-1LL-G100', 'دندان سنترال مندیبل — تک‌کاناله', 'مندیبل (فک پایین)', 'سنترال', '۱ کانال', $tierA],
-        ['CT-1LL-G400', 'دندان سنترال مندیبل — دو‌کاناله (تایپ ۴ ورتوچی)', 'مندیبل (فک پایین)', 'سنترال', '۲ کانال، تایپ ۴ ورتوچی', $tierA],
-        ['CT-2LL-G300', 'دندان لترال مندیبل — تایپ ۳ ورتوچی', 'مندیبل (فک پایین)', 'لترال', 'تایپ ۳ ورتوچی', $tierA],
-        ['CT-3LL-G100', 'دندان کانین مندیبل — طول ۲۶ میلی‌متر', 'مندیبل (فک پایین)', 'کانین', 'طول ۲۶mm', $tierA],
-        ['CT-4LL-G500', 'دندان پرمولر اول مندیبل — تایپ ۵ ورتوچی', 'مندیبل (فک پایین)', 'پرمولر اول', 'تایپ ۵ ورتوچی', $tierB],
-        ['CT-4LL-G610', 'دندان پرمولر اول مندیبل — تایپ ۶ ورتوچی', 'مندیبل (فک پایین)', 'پرمولر اول', 'تایپ ۶ ورتوچی', $tierB],
-        ['CT-4UL-G400', 'دندان پرمولر اول ماگزیلا — دو ریشه (تایپ ۴ ورتوچی)', 'ماگزیلا (فک بالا)', 'پرمولر اول', '۲ ریشه، تایپ ۴ ورتوچی', $tierB],
-        ['CT-5LL-G100', 'دندان پرمولر دوم مندیبل — تک‌کاناله', 'مندیبل (فک پایین)', 'پرمولر دوم', '۱ کانال', $tierB],
-        ['CT-4LL-G800', 'دندان پرمولر اول مندیبل — سه‌کاناله', 'مندیبل (فک پایین)', 'پرمولر اول', '۳ کانال', $tierC],
-        ['CT-4UL-G800', 'دندان پرمولر اول ماگزیلا — مینی‌مولر (سه‌کاناله)', 'ماگزیلا (فک بالا)', 'پرمولر اول (مینی‌مولر)', '۳ کانال', $tierC],
-        ['CT-5UL-G110', 'دندان پرمولر دوم ماگزیلا — دبل کرو (S curve)', 'ماگزیلا (فک بالا)', 'پرمولر دوم', 'دبل کرو (S curve)', $tierB],
-        ['CT-5UL-G120', 'دندان پرمولر دوم ماگزیلا — کرو شدید (بالای ۴۰ درجه)', 'ماگزیلا (فک بالا)', 'پرمولر دوم', 'کرو شدید، بالای ۴۰°', $tierB],
-        ['CT-6LL-G100', 'دندان مولر اول مندیبل — استریت (سه‌کاناله)', 'مندیبل (فک پایین)', 'مولر اول', 'استریت، ۳ کانال', $tierC],
-        ['CT-6LL-G110', 'دندان مولر اول مندیبل — کرو مزیالی (سه‌کاناله)', 'مندیبل (فک پایین)', 'مولر اول', 'کرو مزیالی، ۳ کانال', $tierC],
-        ['CT-6LL-G400', 'دندان مولر اول مندیبل — استریت (چهارکاناله)', 'مندیبل (فک پایین)', 'مولر اول', 'استریت، ۴ کانال', $tierC],
-        ['CT-6LL-G120', 'دندان مولر اول مندیبل — کرو hook (چهارکاناله)', 'مندیبل (فک پایین)', 'مولر اول', 'کرو hook، ۴ کانال', $tierD],
-        ['CT-6LL-G910', 'دندان مولر اول مندیبل — Radix (چهارکاناله)', 'مندیبل (فک پایین)', 'مولر اول', 'Radix، ۴ کانال', $tierD],
-        ['CT-6UL-G100', 'دندان مولر اول ماگزیلا — سه‌کاناله', 'ماگزیلا (فک بالا)', 'مولر اول', '۳ کانال', $tierC],
-        ['CT-6UL-G400', 'دندان مولر اول ماگزیلا — چهارکاناله (دارای MB2)', 'ماگزیلا (فک بالا)', 'مولر اول', '۴ کانال، دارای MB2', $tierC],
-        ['CT-DUL-G100', 'مولر اول شیری فک بالا (D ماگزیلا)', 'ماگزیلا (فک بالا)', 'مولر اول شیری (D)', 'دندان شیری', $tierA],
-        ['CT-EUL-G100', 'مولر دوم شیری فک بالا (E ماگزیلا)', 'ماگزیلا (فک بالا)', 'مولر دوم شیری (E)', 'دندان شیری', $tierA],
-        ['CT-DLL-G100', 'مولر اول شیری فک پایین (D مندیبل)', 'مندیبل (فک پایین)', 'مولر اول شیری (D)', 'دندان شیری', $tierA],
-        ['CT-ELL-G100', 'مولر دوم شیری فک پایین (E مندیبل)', 'مندیبل (فک پایین)', 'مولر دوم شیری (E)', 'دندان شیری', $tierA],
-    ];
-
-    $catalog = [];
-    foreach ($rows as $row) {
-        [$code, $title, $jaw, $tooth, $detail, $priceRial] = $row;
-        $slug = ENDOSIM_SLUG_PREFIX . strtolower($code);
-        $imageName = strtolower($code) . '.png';
-        $catalog[] = [
-            'code' => $code,
-            'slug' => $slug,
-            'title' => $title,
-            'jaw' => $jaw,
-            'tooth' => $tooth,
-            'detail' => $detail,
-            'price' => $priceRial,
-            'heroImage' => '/assets/images/buy/endosim/' . $imageName,
-            'shortDescription' => $tooth . ' • ' . $jaw . ' • ' . $detail,
+    return [
+        [
+            'slug' => 'endo-tool-fine-plugger-double',
+            'title' => 'پلاگر با نوک ظریف — دوسر',
+            'kind' => 'پلاگر',
+            'price' => 7450000,
+            'heroImage' => '/assets/images/buy/endo-tools/plugger-double.svg',
+            'shortDescription' => 'مدل اقتصادی و دانشجویی؛ دوسر با نوک ظریف برای استفاده روزمره.',
+            'fullDescription' => 'پلاگر دوسر با نوک ظریف، از مدل‌های اقتصادی و دانشجویی معرفی‌شده در فهرست فروشنده.',
             'specifications' => [
-                ['label' => 'کد محصول', 'value' => $code],
-                ['label' => 'فک', 'value' => $jaw],
-                ['label' => 'نوع دندان', 'value' => $tooth],
-                ['label' => 'مشخصه', 'value' => $detail],
-                ['label' => 'برند', 'value' => 'اندوسیم (Endosim)'],
+                ['label' => 'دسته', 'value' => 'پلاگر'],
+                ['label' => 'ساختار', 'value' => 'دوسر'],
+                ['label' => 'رده', 'value' => 'اقتصادی و دانشجویی'],
             ],
-        ];
-    }
-
-    return $catalog;
+            'maxQuantity' => 10,
+        ],
+        [
+            'slug' => 'endo-tool-fine-plugger-single',
+            'title' => 'پلاگر با نوک ظریف — تک‌سر',
+            'kind' => 'پلاگر',
+            'price' => 7850000,
+            'heroImage' => '/assets/images/buy/endo-tools/plugger-single.svg',
+            'shortDescription' => 'مدل تک‌سر با کیفیت قابل قبول برای استفاده روزمره.',
+            'fullDescription' => 'پلاگر تک‌سر با نوک ظریف؛ یک رده بالاتر از مدل اقتصادی و مناسب استفاده روزمره.',
+            'specifications' => [
+                ['label' => 'دسته', 'value' => 'پلاگر'],
+                ['label' => 'ساختار', 'value' => 'تک‌سر'],
+                ['label' => 'رده', 'value' => 'روزمره'],
+            ],
+            'maxQuantity' => 10,
+        ],
+        [
+            'slug' => 'endo-tool-fine-plugger-single-premium',
+            'title' => 'پلاگر با نوک ظریف — تک‌سر رده بالاتر',
+            'kind' => 'پلاگر',
+            'price' => 9300000,
+            'heroImage' => '/assets/images/buy/endo-tools/plugger-single.svg',
+            'shortDescription' => 'مدل تک‌سر رده بالاتر برای کسانی که کیفیت ساخت بالاتری می‌خواهند.',
+            'fullDescription' => 'مدل تک‌سر رده بالاتر از گزینه‌های معرفی‌شده در فهرست فروشنده.',
+            'specifications' => [
+                ['label' => 'دسته', 'value' => 'پلاگر'],
+                ['label' => 'ساختار', 'value' => 'تک‌سر'],
+                ['label' => 'رده', 'value' => 'بالاتر'],
+            ],
+            'maxQuantity' => 10,
+        ],
+        [
+            'slug' => 'endo-tool-scalpel-handle-3',
+            'title' => 'دسته بیستوری شماره ۳',
+            'kind' => 'دسته بیستوری',
+            'price' => 4000000,
+            'heroImage' => '/assets/images/buy/endo-tools/scalpel-handle-3.svg',
+            'shortDescription' => 'مدل منتخب شماره ۳ برای سفارش دانشجویی.',
+            'fullDescription' => 'دسته بیستوری شماره ۳، مدل منتخب دانشجویی از فهرست فروشنده.',
+            'specifications' => [
+                ['label' => 'دسته', 'value' => 'دسته بیستوری'],
+                ['label' => 'شماره', 'value' => '۳'],
+                ['label' => 'مدل', 'value' => 'منتخب دانشجویی'],
+            ],
+            'maxQuantity' => 10,
+        ],
+        [
+            'slug' => 'endo-tool-safe-end-bur-508-taiwan',
+            'title' => 'فرز ایمن انتهایی ۵۰۸ — مدل تایوانی',
+            'kind' => 'فرز',
+            'price' => 2050000,
+            'heroImage' => '/assets/images/buy/endo-tools/bur-safe-end-508.png',
+            'shortDescription' => 'بسته ۵ عددی؛ سایز ۰۱۶، طول سر ۹ میلی‌متر، کد مرجع کاتالوگ SD161.',
+            'fullDescription' => 'فرز ایمن انتهایی برای تکمیل دیواره‌های دسترسی اندودانتیک با کاهش خطر آسیب به کف اتاقک. مشخصات هندسی از کاتالوگ ارسالی تطبیق داده شده است.',
+            'specifications' => [
+                ['label' => 'دسته', 'value' => 'فرز'],
+                ['label' => 'مدل', 'value' => 'تایوانی'],
+                ['label' => 'بسته', 'value' => '۵ عددی'],
+                ['label' => 'شکل', 'value' => 'ایمن انتهایی ۵۰۸'],
+                ['label' => 'سایز', 'value' => '۰۱۶'],
+                ['label' => 'طول سر', 'value' => '۹ میلی‌متر'],
+                ['label' => 'کد مرجع', 'value' => 'SD161'],
+            ],
+            'maxQuantity' => 10,
+        ],
+        [
+            'slug' => 'endo-tool-safe-end-bur-508-belgium',
+            'title' => 'فرز ایمن انتهایی ۵۰۸ — مدل بلژیکی',
+            'kind' => 'فرز',
+            'price' => 2450000,
+            'heroImage' => '/assets/images/buy/endo-tools/bur-safe-end-508.png',
+            'shortDescription' => 'بسته ۵ عددی؛ سایز ۰۱۶، طول سر ۹ میلی‌متر، کد مرجع کاتالوگ SD161.',
+            'fullDescription' => 'فرز ایمن انتهایی برای تکمیل دیواره‌های دسترسی اندودانتیک با کاهش خطر آسیب به کف اتاقک. مدل بلژیکی طبق بازخورد فروشنده کیفیت بالاتری دارد.',
+            'specifications' => [
+                ['label' => 'دسته', 'value' => 'فرز'],
+                ['label' => 'مدل', 'value' => 'بلژیکی'],
+                ['label' => 'بسته', 'value' => '۵ عددی'],
+                ['label' => 'شکل', 'value' => 'ایمن انتهایی ۵۰۸'],
+                ['label' => 'سایز', 'value' => '۰۱۶'],
+                ['label' => 'طول سر', 'value' => '۹ میلی‌متر'],
+                ['label' => 'کد مرجع', 'value' => 'SD161'],
+            ],
+            'maxQuantity' => 10,
+        ],
+    ];
 }
 
-/**
- * Idempotently upsert the Endosim catalog into a payments store array (in place).
- * Existing items are matched by slug; their id, created_at and sold_count are
- * preserved so historical orders stay intact. Returns a {created, updated, total}
- * summary. Requires payments_store.php to be loaded for the helper functions.
- */
-function endosim_import_into_store(array &$store): array
+function endo_tools_import_into_store(array &$store): array
 {
-    $catalog = endosim_catalog();
-    $deliveryNote = 'تحویل حضوری در محدوده دانشکده دندانپزشکی دانشگاه علوم پزشکی تهران هماهنگ می‌شود.';
+    $catalog = endo_tools_catalog();
     if (!is_array($store['items'] ?? null)) {
         $store['items'] = [];
     }
 
+    $now = dent_iso_now();
+    $activeSlugs = [];
+    foreach ($catalog as $product) {
+        $slug = payments_clean_slug((string) ($product['slug'] ?? ''));
+        if ($slug !== '') {
+            $activeSlugs[$slug] = true;
+        }
+    }
+
+    $retired = 0;
+    foreach ($store['items'] as $index => $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $slug = payments_clean_slug((string) ($item['slug'] ?? ''));
+        $category = (string) ($item['category'] ?? '');
+        $isLegacyTooth = $category === ENDOSIM_CATEGORY || str_starts_with($slug, ENDOSIM_SLUG_PREFIX);
+        $isStaleTool = (
+            $category === ENDO_TOOLS_CATEGORY
+            || str_starts_with($slug, ENDO_TOOLS_SLUG_PREFIX)
+        ) && !isset($activeSlugs[$slug]);
+
+        if (($isLegacyTooth || $isStaleTool)
+            && (string) ($item['status'] ?? '') === PAYMENTS_ITEM_STATUS_ACTIVE
+        ) {
+            $store['items'][$index]['status'] = PAYMENTS_ITEM_STATUS_INACTIVE;
+            $store['items'][$index]['updated_at'] = $now;
+            $retired++;
+        }
+    }
+
     $created = 0;
     $updated = 0;
-    $now = dent_iso_now();
+    $deliveryNote = 'تحویل حضوری در محدوده دانشکده دندانپزشکی دانشگاه علوم پزشکی تهران هماهنگ می‌شود.';
 
     foreach ($catalog as $product) {
         $slug = payments_clean_slug((string) ($product['slug'] ?? ''));
-        if ($slug === '') {
-            continue;
-        }
         $price = max(0, (int) ($product['price'] ?? 0));
-        if ($price <= 0) {
+        if ($slug === '' || $price <= 0) {
             continue;
         }
 
         $payload = [
             'slug' => $slug,
-            'category' => ENDOSIM_CATEGORY,
+            'category' => ENDO_TOOLS_CATEGORY,
             'title' => (string) ($product['title'] ?? ''),
             'short_description' => (string) ($product['shortDescription'] ?? ''),
-            'full_description' => '',
+            'full_description' => (string) ($product['fullDescription'] ?? ''),
             'hero_image' => (string) ($product['heroImage'] ?? ''),
             'gallery' => [],
             'specifications' => payments_normalize_specifications($product['specifications'] ?? []),
@@ -130,18 +187,20 @@ function endosim_import_into_store(array &$store): array
             'starts_at' => '',
             'expires_at' => '',
             'capacity' => null,
-            'max_quantity_per_order' => 20,
-            'required_fields' => [],
-            'audience_note' => '',
+            'max_quantity_per_order' => max(1, min(99, (int) ($product['maxQuantity'] ?? 10))),
+            'required_fields' => payments_normalize_required_fields_loose($product['requiredFields'] ?? []),
+            'audience_note' => 'دانشجویان دندانپزشکی',
             'delivery_note' => $deliveryNote,
-            'support_note' => '',
+            'support_note' => (string) (($product['kind'] ?? '') === 'فرز'
+                ? 'کد فرز پیش از ثبت سفارش بر اساس کاتالوگ ارسالی تطبیق داده شده است.'
+                : ''),
             'allow_cancellation' => false,
             'discount_codes' => [],
             'rating_average' => 0,
             'rating_count' => 0,
             'reviews' => [],
             'success_message' => 'سفارش شما با موفقیت ثبت شد. برای هماهنگی تحویل با شما تماس می‌گیریم.',
-            'failure_message' => 'پرداخت شما ناموفق بود. در صورت کسر وجه، مبلغ طی ۷۲ ساعت بازمی‌گردد.',
+            'failure_message' => 'پرداخت شما ناموفق بود. در صورت کسر وجه، مبلغ طبق روال درگاه بازمی‌گردد.',
             'updated_at' => $now,
         ];
 
@@ -163,5 +222,21 @@ function endosim_import_into_store(array &$store): array
         $created++;
     }
 
-    return ['created' => $created, 'updated' => $updated, 'total' => count($catalog)];
+    return [
+        'created' => $created,
+        'updated' => $updated,
+        'retired' => $retired,
+        'total' => count($catalog),
+    ];
+}
+
+// Compatibility aliases for the historical route/import action.
+function endosim_catalog(): array
+{
+    return endo_tools_catalog();
+}
+
+function endosim_import_into_store(array &$store): array
+{
+    return endo_tools_import_into_store($store);
 }
