@@ -26,7 +26,7 @@ function endo_tools_assert(bool $condition, string $label): void
 }
 
 $catalog = endo_tools_catalog();
-endo_tools_assert(count($catalog) === 6, 'catalog contains exactly six replacement products');
+endo_tools_assert(count($catalog) === 8, 'catalog contains exactly eight active products');
 
 $prices = [];
 $slugs = [];
@@ -44,11 +44,28 @@ $expectedPrices = [
     'endo-tool-fine-plugger-double' => 7450000,
     'endo-tool-fine-plugger-single' => 7850000,
     'endo-tool-fine-plugger-single-premium' => 9300000,
+    'endo-tool-scalpel-handle-3-black' => 2900000,
     'endo-tool-scalpel-handle-3' => 4000000,
+    'endo-tool-scalpel-handle-3-premium' => 4750000,
     'endo-tool-safe-end-bur-508-taiwan' => 2050000,
     'endo-tool-safe-end-bur-508-belgium' => 2450000,
 ];
-endo_tools_assert($prices === $expectedPrices, 'all six prices include the requested ten-thousand-toman increment');
+endo_tools_assert($prices === $expectedPrices, 'all eight prices include the requested ten-thousand-toman increment');
+
+endo_tools_assert(count(array_filter($prices, static fn(int $price): bool => $price > 0)) === 8, 'every active catalog product has a positive price');
+
+$premiumScalpel = null;
+foreach ($catalog as $product) {
+    if (($product['slug'] ?? '') === 'endo-tool-scalpel-handle-3-premium') {
+        $premiumScalpel = $product;
+        break;
+    }
+}
+endo_tools_assert(is_array($premiumScalpel), 'premium scalpel product exists');
+endo_tools_assert(count($premiumScalpel['gallery'] ?? []) === 1, 'premium scalpel keeps its second real product image');
+foreach (($premiumScalpel['gallery'] ?? []) as $image) {
+    endo_tools_assert(is_file(__DIR__ . '/../public_html' . $image), 'premium scalpel gallery image exists');
+}
 
 $bur = null;
 foreach ($catalog as $product) {
@@ -104,7 +121,7 @@ $store = [
 ];
 
 $first = endo_tools_import_into_store($store);
-endo_tools_assert(($first['created'] ?? -1) === 6, 'first import creates six new products');
+endo_tools_assert(($first['created'] ?? -1) === 8, 'first import creates eight new products');
 endo_tools_assert(($first['updated'] ?? -1) === 0, 'first import does not report updates');
 endo_tools_assert(($first['retired'] ?? -1) === 2, 'first import retires legacy tooth and stale tool');
 endo_tools_assert(($store['orders'][0] ?? null) === $historicalOrder, 'historical order record is preserved');
@@ -124,7 +141,7 @@ foreach ($slugs as $slug) {
 
 $second = endo_tools_import_into_store($store);
 endo_tools_assert(($second['created'] ?? -1) === 0, 'second import is idempotent for created products');
-endo_tools_assert(($second['updated'] ?? -1) === 6, 'second import updates exactly six catalog products');
+endo_tools_assert(($second['updated'] ?? -1) === 8, 'second import updates exactly eight catalog products');
 endo_tools_assert(($second['retired'] ?? -1) === 0, 'second import does not retire products twice');
 endo_tools_assert(($store['orders'][0] ?? null) === $historicalOrder, 'reimport still preserves historical orders');
 
