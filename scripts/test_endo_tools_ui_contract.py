@@ -51,7 +51,7 @@ check('slug.indexOf(RETIRED_PREFIX)' in js, "stale legacy tooth selections are c
 check(".endo-tools-feed" in css and "grid-template-columns: 1fr !important" in css, "mobile catalog is a single readable row stream")
 check('data-buy-category="endodontic_tools"' in general, "general buy catalog exposes the new category")
 check("ابزارهای منتخب اندودانتیکس" in general, "general buy entry points to the replacement catalog")
-check("همگام‌سازی ۶ محصول ابزار اندو" in owner, "owner view describes the six-product replacement import")
+check("همگام‌سازی ۸ محصول ابزار اندو" in owner, "owner view describes the eight-product catalog import")
 for path in (PAGE, OWNER):
     shown = visible_text(path)
     check("اندوسیم" not in shown and "Endosim" not in shown, f"no legacy brand leakage in visible text: {path.relative_to(ROOT)}")
