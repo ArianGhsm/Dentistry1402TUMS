@@ -57,6 +57,25 @@ class KeyboardInvariantTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_edit_with_reply_keyboard_sends_new_message_instead_of_editing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            delegate = CapturingApi()
+            try:
+                api = KeyboardInvariantApi(delegate, state)
+                reply = {
+                    "keyboard": [[{"text": "کد یک‌بارمصرف سایت"}]],
+                    "resize_keyboard": True,
+                }
+                result = api.edit(20, 7, "احراز هویت", reply)
+                self.assertEqual(result, {"message_id": 1})
+                self.assertEqual(delegate.sent, [(20, "احراز هویت", reply)])
+                self.assertTrue(
+                    state.reply_keyboard_needs_removal(20, KEYBOARD_CLEANUP_VERSION)
+                )
+            finally:
+                state.close()
+
     def test_failed_cleanup_blocks_inline_transition_and_remains_retryable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")

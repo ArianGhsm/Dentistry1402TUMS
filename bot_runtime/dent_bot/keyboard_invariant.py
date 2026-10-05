@@ -39,12 +39,16 @@ class KeyboardInvariantApi:
         return dict(self._delegate.send(chat_id, text, reply_markup) or {})
 
     def edit(self, chat_id: int, message_id: int, text: str, reply_markup: dict) -> dict:
-        if not self._has_reply_keyboard(reply_markup):
-            self._ensure_removed(chat_id)
-        result = dict(self._delegate.edit(chat_id, message_id, text, reply_markup) or {})
         if self._has_reply_keyboard(reply_markup):
+            # Telegram accepts ReplyKeyboardMarkup only on sendMessage, not
+            # editMessageText. Route this transition through send so auth/error
+            # gates cannot turn a recoverable access state into a callback
+            # exception. Bale keeps the same semantic behavior.
+            result = dict(self._delegate.send(chat_id, text, reply_markup) or {})
             self._state.mark_reply_keyboard_active(chat_id)
-        return result
+            return result
+        self._ensure_removed(chat_id)
+        return dict(self._delegate.edit(chat_id, message_id, text, reply_markup) or {})
 
     def remove_reply_keyboard(self, chat_id: int, text: str = "") -> dict:
         # Callers may defensively request cleanup on every /start or /menu.
