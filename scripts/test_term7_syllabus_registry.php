@@ -170,6 +170,34 @@ syllabus_assert(
         && ($orthCatalogSession3['sessionOverrideReason'] ?? '') !== '',
     'Orthodontics one-off modality is explicit and traceable in the canonical catalog'
 );
+syllabus_assert(
+    syllabus_virtual_session_numbers($catalog['orthodontics-theory-1']['sessions'] ?? []) === [1, 3, 4, 6, 9, 10, 13, 14, 16],
+    'Orthodontics exposes exactly the nine virtual sessions in the corrected PDF'
+);
+$orthVirtual10 = classops_term7_syllabus_enrich_events([
+    syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱', 'آمفی‌تئاتر ۹۰', '12:40', '13:40'),
+], '1405/08/25');
+syllabus_assert(
+    count($orthVirtual10) === 1
+        && ($orthVirtual10[0]['sessionNumber'] ?? null) === 10
+        && ($orthVirtual10[0]['sessionMode'] ?? '') === 'virtual'
+        && ($orthVirtual10[0]['location'] ?? 'x') === ''
+        && ($orthVirtual10[0]['start'] ?? '') === '12:40'
+        && ($orthVirtual10[0]['end'] ?? '') === '13:40',
+    'Orthodontics session 10 follows the corrected PDF virtual modality and keeps the timetable clock'
+);
+$orthVirtual16 = classops_term7_syllabus_enrich_events([
+    syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱', 'آمفی‌تئاتر ۹۰', '12:40', '13:40'),
+], '1405/10/06');
+syllabus_assert(
+    count($orthVirtual16) === 1
+        && ($orthVirtual16[0]['sessionNumber'] ?? null) === 16
+        && ($orthVirtual16[0]['sessionMode'] ?? '') === 'virtual'
+        && ($orthVirtual16[0]['location'] ?? 'x') === ''
+        && ($orthVirtual16[0]['start'] ?? '') === '12:40'
+        && ($orthVirtual16[0]['end'] ?? '') === '13:40',
+    'Orthodontics session 16 follows the corrected PDF virtual modality and keeps the timetable clock'
+);
 
 $orth = classops_term7_syllabus_enrich_events([
     syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱'),
@@ -490,6 +518,41 @@ syllabus_assert(
         && ($healthTheory[1]['start'] ?? '') === '07:00'
         && ($healthTheory[1]['end'] ?? '') === '08:00',
     'Oral Health Theory preserves the canonical timetable clock and omits physical room for offline content'
+);
+syllabus_assert(
+    syllabus_virtual_session_numbers($catalog['oral-health-theory-2']['sessions'] ?? []) === [6, 8, 9, 10, 14, 16]
+        && ($catalog['oral-health-theory-2']['modalityCorrectionSource'] ?? '') === 'نامه گروه آموزش سلامت دهان و دندان مورخ ۱۴۰۵/۰۷/۱۴',
+    'Oral Health Theory records the letter-backed virtual sessions in the canonical catalog'
+);
+$healthTheoryVirtual8 = classops_term7_syllabus_enrich_events([
+    syllabus_event('oral-health-theory-2', 'سلامت دهان نظری ۲', 'آمفی‌تئاتر ۹۰', '07:00', '08:00'),
+], '1405/08/12');
+syllabus_assert(
+    count($healthTheoryVirtual8) === 1
+        && ($healthTheoryVirtual8[0]['sessionNumber'] ?? null) === 8
+        && ($healthTheoryVirtual8[0]['sessionTitle'] ?? '') === 'درمان‌های محافظه‌کارانه'
+        && ($healthTheoryVirtual8[0]['instructor'] ?? '') === 'دکتر افسانه پاکدامن'
+        && ($healthTheoryVirtual8[0]['sessionMode'] ?? '') === 'virtual'
+        && ($healthTheoryVirtual8[0]['location'] ?? 'x') === ''
+        && ($healthTheoryVirtual8[0]['start'] ?? '') === '07:00'
+        && ($healthTheoryVirtual8[0]['end'] ?? '') === '08:00',
+    'Oral Health Theory session 8 is virtual on 1405/08/12 with the letter-backed title and instructor'
+);
+$healthTheoryVirtual9 = classops_term7_syllabus_enrich_events([
+    syllabus_event('oral-health-theory-2', 'سلامت دهان نظری ۲', 'آمفی‌تئاتر ۹۰', '07:00', '08:00'),
+], '1405/08/19');
+syllabus_assert(
+    count($healthTheoryVirtual9) === 2
+        && ($healthTheoryVirtual9[0]['sessionNumber'] ?? null) === 9
+        && ($healthTheoryVirtual9[0]['sessionTitle'] ?? '') === 'پیشگیری از صدمات تروماتیک دندانی'
+        && ($healthTheoryVirtual9[0]['instructor'] ?? '') === 'دکتر سمانه رازقی'
+        && ($healthTheoryVirtual9[0]['sessionMode'] ?? '') === 'virtual'
+        && ($healthTheoryVirtual9[0]['location'] ?? 'x') === ''
+        && ($healthTheoryVirtual9[0]['start'] ?? '') === '07:00'
+        && ($healthTheoryVirtual9[0]['end'] ?? '') === '08:00'
+        && ($healthTheoryVirtual9[1]['sessionNumber'] ?? null) === 10
+        && ($healthTheoryVirtual9[1]['sessionMode'] ?? '') === 'offline',
+    'Oral Health Theory 1405/08/19 keeps session 9 virtual plus the existing offline session 10'
 );
 
 $entVirtual = classops_term7_syllabus_enrich_events([
