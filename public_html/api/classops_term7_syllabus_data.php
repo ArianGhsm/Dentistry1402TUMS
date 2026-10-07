@@ -15,13 +15,13 @@ function classops_term7_syllabus_source_catalog(): array
     $catalog = json_decode(<<<'JSON'
 {
   "orthodontics-theory-1": {
-    "version": "1405-1406-1.corrected.1",
+    "version": "1405-1406-1.corrected.2",
     "eventSlugs": [
       "orthodontics-theory-1"
     ],
     "courseTitle": "ارتودنسی نظری ۱",
     "sourceCourseTitle": "ارتودنسی نظری ۱",
-    "sourceFile": "ارتودانتیکس نظری ۱.pdf",
+    "sourceFile": "اصلاحیه ارتو نظری ۱.pdf",
     "courseCoordinator": "دکتر احمد سوداگر",
     "sessions": [
       {
@@ -70,7 +70,7 @@ function classops_term7_syllabus_source_catalog(): array
           "Bishara SE. Textbook of Orthodontics",
           "Enlow DH, Hans MG. Essentials of Facial Growth"
         ],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1
       },
       {
@@ -176,7 +176,7 @@ function classops_term7_syllabus_source_catalog(): array
         "references": [
           "Proffit WR, Fields HW, Sarver DM. Contemporary Orthodontics. St Louis: Mosby"
         ],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1
       },
       {
@@ -279,7 +279,7 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "اتیولوژی مال‌اکلوژن‌ها",
         "instructor": "دکتر تنباکوچی",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 2
       }
     ]
@@ -1814,13 +1814,14 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "oral-health-theory-2": {
-    "version": "1405-1406-1.corrected.1",
+    "version": "1405-1406-1.corrected.2",
     "eventSlugs": [
       "oral-health-theory-2"
     ],
     "courseTitle": "سلامت دهان نظری ۲",
     "sourceCourseTitle": "سلامت نظری ۲",
     "sourceFile": "سلامت دهان نظری ۲.pdf",
+    "modalityCorrectionSource": "نامه گروه آموزش سلامت دهان و دندان مورخ ۱۴۰۵/۰۷/۱۴",
     "courseCoordinator": "دکتر محمدرضا خامی",
     "sessions": [
       {
@@ -1955,7 +1956,7 @@ function classops_term7_syllabus_source_catalog(): array
           "اسلایدهای مدرس",
           "رفرنس مکمل: کتاب ملی"
         ],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1
       },
       {
@@ -1972,7 +1973,7 @@ function classops_term7_syllabus_source_catalog(): array
           "اسلایدهای مدرس",
           "رفرنس مکمل: کتاب ملی"
         ],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1
       },
       {
