@@ -12,7 +12,7 @@ require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.10';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.11';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -456,6 +456,7 @@ function dent_term7_theory_events(array $events, string $jalaliDate = ''): array
         $activeThrough = trim((string) ($event['activeThrough'] ?? ''));
         if ($jalaliDate !== '' && $activeFrom !== '' && strcmp($jalaliDate, $activeFrom) < 0) continue;
         if ($jalaliDate !== '' && $activeThrough !== '' && strcmp($jalaliDate, $activeThrough) > 0) continue;
+        if ($jalaliDate !== '' && classops_term7_syllabus_theory_occurrence_cancelled((string) ($event['slug'] ?? ''), $jalaliDate)) continue;
         $event['eventType'] = 'theory';
         $event['source'] = 'official-theory-schedule';
         $out[] = $event;
