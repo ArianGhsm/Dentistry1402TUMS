@@ -441,7 +441,7 @@ try {
     $statusPayload = dent_bot_term7_status(['studentNumber' => '40211272003', 'role' => 'owner', 'cohortKey' => DENT_TERM7_COHORT]);
     term7_assert(
         ($statusPayload['contractVersion'] ?? '') === DENT_TERM7_CONTRACT
-            && ($statusPayload['scheduleVersion'] ?? '') === '1405-1406.10'
+            && ($statusPayload['scheduleVersion'] ?? '') === DENT_TERM7_SCHEDULE_VERSION
             && ($statusPayload['mondayEndo']['start'] ?? '') === '13:50'
             && ($statusPayload['mondayEndo']['end'] ?? '') === '15:50'
             && ($statusPayload['timePolicy']['practicalMorning'] ?? []) === ['start' => '08:15', 'end' => '11:15']
