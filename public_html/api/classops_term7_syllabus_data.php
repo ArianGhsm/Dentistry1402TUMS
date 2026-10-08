@@ -477,7 +477,8 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "diagnostic-dentistry-3": {
-    "version": "1405-1406-1.corrected.3",
+    "version": "1405-1406-1.corrected.4",
+    "oneOffCancelledTheoryDates": ["1405/07/19"],
     "eventSlugs": [
       "diagnostic-dentistry-3-sun",
       "diagnostic-dentistry-3-mon"
@@ -583,12 +584,16 @@ function classops_term7_syllabus_source_catalog(): array
           7
         ],
         "dates": [
-          "1405/07/19"
+          "1405/07/20"
         ],
+        "sourceDate": "1405/07/19",
+        "rescheduleReason": "انتقال استثنایی جلسه حضوری یکشنبه به دوشنبه به جای کلاس حضوری دکتر منصوریان",
+        "oneOffStart": "11:45",
+        "oneOffEndUnconfirmed": true,
         "title": "ضایعات واکنشی",
         "instructor": "دکتر درخشان",
         "references": [],
-        "sessionMode": "flipped",
+        "sessionMode": "in_person",
         "sourcePage": 1,
         "assessmentPart": "میان‌ترم"
       },
@@ -603,7 +608,9 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات سفید و قرمز",
         "instructor": "دکتر منصوریان",
         "references": [],
-        "sessionMode": "in_person",
+        "oneOffTimeUnconfirmed": true,
+        "rescheduleReason": "مجازی شدن استثنایی کلاس روز دوشنبه؛ زمان و آنلاین یا آفلاین بودن اعلام نشده",
+        "sessionMode": "virtual",
         "sourcePage": 1,
         "assessmentPart": "میان‌ترم"
       },
