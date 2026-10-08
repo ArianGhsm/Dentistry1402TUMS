@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/public_html/api/classops_term7_syllabus.php';
+require_once dirname(__DIR__) . '/public_html/api/academic_term7.php';
 
 $checks = 0;
 $failures = 0;
@@ -279,8 +280,8 @@ syllabus_assert(
     'Diagnostic merged-cell boundaries preserve the first date of each instructor/topic block'
 );
 syllabus_assert(
-    syllabus_virtual_session_numbers($diagnostic) === [6, 9, 10, 11, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28],
-    'Diagnostic Dentistry 3 exposes exactly sixteen virtual sessions'
+    syllabus_virtual_session_numbers($diagnostic) === [6, 8, 9, 10, 11, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28],
+    'Diagnostic Dentistry 3 exposes exactly seventeen virtual sessions after the one-off change'
 );
 $diagQuiz = classops_term7_syllabus_enrich_events([
     syllabus_event('diagnostic-dentistry-3-sun', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '07:00', '08:00'),
@@ -290,6 +291,32 @@ syllabus_assert(
         && ($diagQuiz[0]['sessionNumber'] ?? null) === 5
         && ($diagQuiz[0]['sessionModeLabel'] ?? '') === 'حضوری + کوییز کلاسی',
     'Diagnostic quiz remains on 1405/07/12 as stated in the corrected PDF'
+);
+$diagnosticSunMoved = dent_term7_enriched_event_groups(dent_term7_resolve_jalali('1405/07/19', 7, []));
+syllabus_assert(
+    count(array_filter($diagnosticSunMoved['theory'], static fn(array $event): bool =>
+        str_starts_with((string) ($event['slug'] ?? ''), 'diagnostic-dentistry-3'))) === 0,
+    'One-off Diagnostic 3 move removes the 19 Mehr Sunday theory class'
+);
+$diagnosticMonMoved = dent_term7_enriched_event_groups(dent_term7_resolve_jalali('1405/07/20', 1, []));
+$movedRows = array_values(array_filter($diagnosticMonMoved['theory'], static fn(array $event): bool =>
+    ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'));
+syllabus_assert(
+    count($movedRows) === 2
+        && ($movedRows[0]['sessionNumber'] ?? null) === 7
+        && ($movedRows[0]['instructor'] ?? '') === 'دکتر درخشان'
+        && ($movedRows[0]['sessionMode'] ?? '') === 'in_person'
+        && ($movedRows[0]['sourceDate'] ?? '') === '1405/07/19'
+        && ($movedRows[0]['start'] ?? '') === '11:45'
+        && ($movedRows[0]['end'] ?? 'x') === ''
+        && ($movedRows[0]['location'] ?? '') === 'آمفی‌تئاتر ۹۰'
+        && ($movedRows[1]['sessionNumber'] ?? null) === 8
+        && ($movedRows[1]['instructor'] ?? '') === 'دکتر منصوریان'
+        && ($movedRows[1]['sessionMode'] ?? '') === 'virtual'
+        && ($movedRows[1]['start'] ?? 'x') === ''
+        && ($movedRows[1]['end'] ?? 'x') === ''
+        && ($movedRows[1]['location'] ?? 'x') === '',
+    'Diagnostic 3 one-off Monday keeps 11:45 in-person Derakhshan plus virtual Mansourian with unconfirmed timing'
 );
 $diagOffline = classops_term7_syllabus_enrich_events([
     syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '11:30', '12:30'),
