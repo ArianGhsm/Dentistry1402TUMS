@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.13';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.14';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -211,6 +211,17 @@ function classops_term7_syllabus_source_occurrence_decision(
 }
 
 
+function classops_term7_syllabus_theory_occurrence_cancelled(string $eventSlug, string $jalaliDate): bool
+{
+    $mapping = classops_term7_syllabus_course_for_slug($eventSlug);
+    if ($mapping === null) return false;
+    $course = $mapping['course'];
+    $dates = is_array($course['oneOffCancelledTheoryDates'] ?? null)
+        ? $course['oneOffCancelledTheoryDates']
+        : [];
+    return in_array($jalaliDate, $dates, true);
+}
+
 function classops_term7_syllabus_session_label(array $session): string
 {
     $explicit = trim((string) ($session['sessionLabel'] ?? ''));
@@ -269,6 +280,17 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             $copy['sessionMode'] = $mode;
             $copy['sessionModeLabel'] = $modeLabel;
             $copy['timeSource'] = 'academic-term7';
+            if (isset($session['oneOffStart'])) {
+                $copy['start'] = (string) $session['oneOffStart'];
+                if (!empty($session['oneOffEndUnconfirmed'])) $copy['end'] = '';
+                $copy['timeSource'] = 'one-off-academic-notice';
+            }
+            if (!empty($session['oneOffTimeUnconfirmed'])) {
+                $copy['start'] = '';
+                $copy['end'] = '';
+                $copy['timeSource'] = 'one-off-time-unconfirmed';
+            }
+            if (isset($session['rescheduleReason'])) $copy['rescheduleReason'] = (string) $session['rescheduleReason'];
             $copy['segments'] = is_array($session['segments'] ?? null) ? $session['segments'] : [];
             $copy['sourceFile'] = (string) ($course['sourceFile'] ?? '');
             $copy['sourcePage'] = max(0, (int) ($session['sourcePage'] ?? 0));
