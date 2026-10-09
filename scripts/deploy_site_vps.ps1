@@ -414,7 +414,7 @@ backup="/var/backups/dentistry1402/site-data/dent-site-data-$(date -u +%Y%m%dT%H
 install -d -o root -g root -m 0700 "$backup"
 printf 'previous=%s\ntarget=%s\n' "$previous" "$sha" > "$backup/runtime-pointers.txt"
 tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage
-sha256sum "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" > "$backup/SHA256SUMS"
+(cd "$backup" && sha256sum runtime-pointers.txt storage.tar.gz > SHA256SUMS)
 (cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)
 chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
 echo "SITE_DATA_BACKUP=$backup"
@@ -540,7 +540,7 @@ echo SITE_VPS_DEPLOY_OK
     $remoteCode = $LASTEXITCODE
     foreach ($line in $remoteOutput) { Write-Output $line }
     foreach ($line in $remoteOutput) {
-        if ([string]$line -match '^SITE_DATA_BACKUP=(/var/backups/[A-Za-z0-9._-]+)$') {
+        if ([string]$line -match '^SITE_DATA_BACKUP=(/var/backups/dentistry1402/site-data/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12})$') {
             $dataBackupPath = $Matches[1]
         }
     }

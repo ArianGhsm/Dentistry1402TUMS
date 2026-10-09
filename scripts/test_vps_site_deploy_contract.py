@@ -36,6 +36,7 @@ for needle in [
     "SITE_DATA_BACKUP=",
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
+    "sha256sum runtime-pointers.txt storage.tar.gz > SHA256SUMS",
     "backup-retention --migrate-legacy",
     "'ops/site-vps/backup_retention.py'",
     "'ops/site-vps/dentistry1402-backup-retention.service'",
@@ -65,6 +66,7 @@ assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in
 assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
 assert "backup=\"/var/backups/dentistry1402/site-data/dent-site-data-" in DEPLOY, 'site-data backups must use Dentistry-isolated storage'
+assert "^SITE_DATA_BACKUP=(/var/backups/dentistry1402/site-data/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12})$" in DEPLOY, 'backup output parser must accept only canonical new site-data paths'
 assert "count==12" in DEPLOY, 'backup service bundle must have a fixed, reviewed allowlist'
 assert DEPLOY.index('(cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('backup-retention --migrate-legacy'), (
     'the verified pre-switch site-data snapshot must exist before retention migrates or prunes backups'
