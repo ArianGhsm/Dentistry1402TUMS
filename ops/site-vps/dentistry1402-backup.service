@@ -18,5 +18,5 @@ ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
-ReadOnlyPaths=/srv/dentistry1402 /var/lib/integrated-dent /etc/integrated-dent /etc/nginx/sites-available /etc/php/8.3/fpm/pool.d
+ReadOnlyPaths=/srv/dentistry1402 /var/lib/integrated-dent /etc/integrated-dent /etc/nginx/sites-available /etc/php/8.3/fpm/pool.d /etc/letsencrypt
 ReadWritePaths=/var/backups/dentistry1402-runtime

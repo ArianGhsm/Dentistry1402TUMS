@@ -226,8 +226,6 @@ systemctl is-active --quiet nginx
 systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
-systemctl is-active --quiet dentistry1402-bale-database-backup.timer
-test -x /usr/local/lib/dentistry1402/send-bale-database-backup
 for url in \
   'https://dentistry1402tums.ir/' \
   'https://dentistry1402tums.ir/chat/' \
@@ -281,20 +279,21 @@ cd /opt/integrated-dent/bale/current
     & tar -C $projectRoot -czf $bundle public_html
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $bundle -PathType Leaf)) { throw 'Site code bundle creation failed.' }
     $bundleHash = Get-Sha256 -Path $bundle
-    $opsBundle = Join-Path $temporaryRoot 'bale-database-backup-ops.tar.gz'
+    $opsBundle = Join-Path $temporaryRoot 'bale-recovery-ops.tar.gz'
     $opsFiles = @(
         'ops/site-vps/send-bale-database-backup.py',
         'ops/site-vps/dentistry1402-bale-database-backup.service',
-        'ops/site-vps/dentistry1402-bale-database-backup.timer'
+        'ops/site-vps/dentistry1402-bale-database-backup.timer',
+        'ops/site-vps/dentistry1402-recovery-recipient.pub'
     )
     & tar -C $projectRoot -czf $opsBundle @opsFiles
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $opsBundle -PathType Leaf)) { throw 'Bale database backup service bundle creation failed.' }
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $opsBundle -PathType Leaf)) { throw 'Bale recovery backup service bundle creation failed.' }
     $opsBundleHash = Get-Sha256 -Path $opsBundle
     $remotePrefix = "/tmp/dent-site-$runId"
     & scp @scpOptions $bundle "${script:target}:${remotePrefix}.tar.gz"
     if ($LASTEXITCODE -ne 0) { throw 'Site code transfer failed.' }
     & scp @scpOptions $opsBundle "${script:target}:${remotePrefix}.ops.tar.gz"
-    if ($LASTEXITCODE -ne 0) { throw 'Bale database backup service bundle transfer failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Bale recovery backup service bundle transfer failed.' }
 
     $installerPath = Join-Path $temporaryRoot 'install.sh'
     $installer = @'
@@ -346,9 +345,10 @@ tar -tzf "$ops_bundle" | awk '
   BEGIN { ok=1; count=0 }
   $0=="ops/site-vps/send-bale-database-backup.py" ||
   $0=="ops/site-vps/dentistry1402-bale-database-backup.service" ||
-  $0=="ops/site-vps/dentistry1402-bale-database-backup.timer" { count++; next }
+  $0=="ops/site-vps/dentistry1402-bale-database-backup.timer" ||
+  $0=="ops/site-vps/dentistry1402-recovery-recipient.pub" { count++; next }
   { ok=0 }
-  END { exit ok && count==3 ? 0 : 1 }
+  END { exit ok && count==4 ? 0 : 1 }
 '
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
@@ -393,6 +393,15 @@ if test "${#site_backups[@]}" -gt 5; then
   done
 fi
 echo "SITE_DATA_BACKUPS_RETAINED=$(find /var/backups -maxdepth 1 -mindepth 1 -type d -name 'dent-site-data-????????T??????Z-????????????' | wc -l)"
+
+# Install the encryption dependency only after the pre-release site-data backup
+# has been verified, then the exact sender bundle below can be activated.
+if ! command -v age >/dev/null 2>&1; then
+  command -v apt-get >/dev/null 2>&1 || { echo "age is required and apt-get is unavailable" >&2; exit 79; }
+  apt-get update -qq
+  DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y age
+fi
+age --version >/dev/null
 
 validate_release() {
   candidate="$1"
@@ -456,7 +465,7 @@ set +a
 cd /opt/integrated-dent/bale/current
 /usr/bin/python3 -m dent_bot.bale_health | grep -q '"ready": true'
 
-# Install only the exact, checksum-verified database sender bundle. Its timer
+# Install only the exact, checksum-verified recovery sender bundle. Its timer
 # runs after the existing runtime snapshot timer and writes only to Dentistry's
 # private backup directory.
 test -f /etc/integrated-dent/bale-bot.env
@@ -467,10 +476,16 @@ tar -xzf "$ops_bundle" -C "$ops_stage"
 test -f "$ops_stage/ops/site-vps/send-bale-database-backup.py"
 test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service"
 test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer"
-install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime/bale-database
+test -f "$ops_stage/ops/site-vps/dentistry1402-recovery-recipient.pub"
+grep -Eq '^ssh-ed25519[[:space:]]+[A-Za-z0-9+/=]+([[:space:]].*)?$' "$ops_stage/ops/site-vps/dentistry1402-recovery-recipient.pub"
+install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime/bale-recovery
 install -o root -g root -m 0755 "$ops_stage/ops/site-vps/send-bale-database-backup.py" /usr/local/lib/dentistry1402/send-bale-database-backup
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-recovery-recipient.pub" /usr/local/lib/dentistry1402/dentistry1402-recovery-recipient.pub
 install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service" /etc/systemd/system/dentistry1402-bale-database-backup.service
 install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer" /etc/systemd/system/dentistry1402-bale-database-backup.timer
+test -x /usr/local/lib/dentistry1402/send-bale-database-backup
+test -r /usr/local/lib/dentistry1402/dentistry1402-recovery-recipient.pub
+command -v age >/dev/null
 systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.service /etc/systemd/system/dentistry1402-bale-database-backup.timer
 systemctl daemon-reload
 systemctl enable --now dentistry1402-bale-database-backup.timer

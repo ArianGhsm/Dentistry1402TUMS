@@ -1,5 +1,5 @@
 [Unit]
-Description=Verified Dentistry1402 database backup to the configured Bale owner
+Description=Encrypted verified Dentistry1402 recovery backup to the configured Bale owner
 After=network-online.target local-fs.target
 Wants=network-online.target
 
@@ -22,4 +22,7 @@ RestrictSUIDSGID=true
 LockPersonality=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 ReadOnlyPaths=/var/backups/dentistry1402-runtime /etc/integrated-dent
-ReadWritePaths=/var/backups/dentistry1402-runtime/bale-database
+RuntimeDirectory=dentistry1402-bale-recovery
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=no
+ReadWritePaths=/run/dentistry1402-bale-recovery /var/backups/dentistry1402-runtime/bale-recovery
