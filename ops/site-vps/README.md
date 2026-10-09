@@ -154,11 +154,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 `
 | 🧹 Session clean | هر ساعت در دقیقه‌های `:14` و `:44` | فقط sessionهای منقضی؛ فایل باز PHP-FPM محافظت می‌شود |
 | 💾 Runtime backup | هر روز `03:20` + حداکثر ۵ دقیقه delay تصادفی | snapshot + checksum + JSON/SQLite verification |
 | 📤 Bale database backup | هر روز `03:35` + حداکثر ۵ دقیقه delay تصادفی | فقط JSON/SQLiteهای سایت و دیتابیس‌های ربات را به Bale مالک می‌فرستد |
-| 🧹 Backup retention | هر ساعت + حداکثر ۵ دقیقه delay تصادفی | سقف پنج بکاپ مجموع پروژه؛ پس از jobهای بکاپ و deploy هم اجرا می‌شود |
+| 🧹 Backup retention | یک ساعت پس از فعال‌سازی، سپس هر ساعت + حداکثر ۵ دقیقه delay تصادفی | سقف پنج بکاپ مجموع پروژه؛ پس از jobهای بکاپ هم اجرا می‌شود؛ deploy فقط migration انجام می‌دهد |
 | 📦 Housekeeping | هر روز `04:10` + حداکثر ۵ دقیقه delay | retention releaseها بدون حذف active/in-use |
 | 🧪 Restore drill | یکشنبهٔ اول ماه `04:45` + حداکثر ۱۰ دقیقه delay | restore کامل در محیط isolated و loopback-only |
 
-timerها `Persistent=true` هستند؛ missed run بعد از بازگشت host می‌تواند اجرا شود.
+timerهای بکاپ با `Persistent=true` اجرا می‌شوند؛ retention اولین اجرا را یک ساعت پس از فعال‌سازی زمان‌بندی می‌کند تا deploy خودش حذف را شروع نکند.
 
 ## 💾 Backup contract
 
@@ -192,7 +192,7 @@ timer ارسال ساعت `03:35` تهران اجرا می‌شود؛ یعنی �
 
 سرویس از همان `DENT_BALE_BOT_TOKEN` و `DENT_BALE_OWNER_ID` موجود در `/etc/integrated-dent/bale-bot.env` استفاده می‌کند و هویت یا token تازه‌ای نمی‌سازد. مالک باید قبلاً گفت‌وگو را با ربات بله شروع کرده باشد. در صورت خطای snapshot یا ارسال، سرویس تلاش می‌کند در همان گفت‌وگوی مالک پیام خطا بفرستد و جزئیات را در journal ثبت می‌کند.
 
-مسیر انتشار canonical در `scripts/deploy_site_vps.ps1` فایل‌های دقیق backup و retention را در یک bundle مجزا hash-check می‌کند، helper را نصب می‌کند، snapshotهای کامل legacy را بدون کپی به `/var/backups/dentistry1402/` منتقل می‌کند و سقف پنج‌تایی را اعمال می‌کند. `install-site.sh` نیز همین مسیر را برای bootstrap نصب تازه دارد. افزودن فایل‌ها به مخزن به‌تنهایی وضعیت production را تغییر نمی‌دهد؛ اجرا پس از release exact-SHA فعال می‌شود.
+مسیر انتشار canonical در `scripts/deploy_site_vps.ps1` فایل‌های دقیق backup و retention را در یک bundle مجزا hash-check می‌کند، consumerهای جدید را نصب می‌کند و snapshotهای کامل legacy را بدون کپی به `/var/backups/dentistry1402/` منتقل می‌کند. این migration-only مرحله فایل‌های `shared/server-only` را prune نمی‌کند. بعد از موفقیت release gate، اجرای جداگانهٔ سرویس retention سقف پنج‌تایی را اعمال می‌کند؛ timer و اجرای پس از backupها ادامهٔ خودکار را انجام می‌دهند. `install-site.sh` نیز migration را برای bootstrap نصب تازه انجام می‌دهد.
 
 ## 🧪 Restore drill
 

@@ -37,7 +37,7 @@ for needle in [
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
     "sha256sum runtime-pointers.txt storage.tar.gz > SHA256SUMS",
-    "backup-retention --migrate-legacy",
+    "backup-retention --migrate-legacy --migrate-only",
     "'ops/site-vps/backup_retention.py'",
     "'ops/site-vps/dentistry1402-backup-retention.service'",
     "'ops/site-vps/dentistry1402-backup-retention.timer'",
@@ -69,7 +69,13 @@ assert "backup=\"/var/backups/dentistry1402/site-data/dent-site-data-" in DEPLOY
 assert "^SITE_DATA_BACKUP=(/var/backups/dentistry1402/site-data/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12})$" in DEPLOY, 'backup output parser must accept only canonical new site-data paths'
 assert "count==12" in DEPLOY, 'backup service bundle must have a fixed, reviewed allowlist'
 assert DEPLOY.index('(cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('backup-retention --migrate-legacy'), (
-    'the verified pre-switch site-data snapshot must exist before retention migrates or prunes backups'
+    'the verified pre-switch site-data snapshot must exist before legacy backups are migrated'
+)
+assert DEPLOY.index('install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup-runtime.sh"') < DEPLOY.index(
+    'backup-retention --migrate-legacy --migrate-only'
+), 'new backup consumers must be installed before legacy archives move'
+assert 'systemctl start dentistry1402-backup-retention.service' not in DEPLOY, (
+    'the canonical website deploy must not trigger pruning of protected server-only recovery data'
 )
 assert 'Set-Content -LiteralPath $installerPath -Value $installer -Encoding UTF8' not in DEPLOY, 'remote shell installer must be UTF-8 without BOM'
 assert 'deploy_public_html.ps1' not in GATE, 'release gate must not route production through retired cPanel/FTP deployer'

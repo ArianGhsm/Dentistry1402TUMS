@@ -20,13 +20,18 @@ recovery artifacts are recognized only under
 `/srv/dentistry1402/shared/server-only/backups`.
 
 The retention helper checks archive SHA-256 sidecars and site-data manifests
-before moving or deleting complete automatic sets. It preserves the newest
-available set from each family before filling the remaining slots by timestamp.
-Moves from legacy paths use same-filesystem rename, not a duplicate copy. The
-helper uses an exclusive lock so scheduled cleanup and deployment migration
-cannot prune concurrently. A separate hourly systemd timer enforces the cap;
-the runtime and Bale backup services trigger it when they stop, including a
-failed Bale send after a verified package was created.
+before moving or deleting complete automatic sets. It accepts the exact
+absolute checksum paths written by the previous site deployer and basename
+entries from the new writer. It preserves the newest available set from each
+family before filling the remaining slots by timestamp. Moves from legacy
+paths use same-filesystem rename, not a duplicate copy. Incomplete sets and
+unknown files remain in place. The helper uses an exclusive lock so scheduled
+cleanup and deployment migration cannot race. The deployer installs the new
+backup, restore and Bale consumers before migrating archive paths; its
+migration-only call does not prune protected `shared/server-only` data. A
+separate systemd timer starts its first hourly run one hour after activation,
+and the runtime and Bale backup services trigger retention after a verified
+backup is created.
 
 ## Implementation state
 
@@ -37,10 +42,13 @@ and review, then use the exact merged `origin/main` SHA through
 `scripts/run_release_gate.ps1` / `scripts/deploy_site_vps.ps1`.
 
 The release gate first creates and verifies a new site-data recovery snapshot,
-temporarily pauses only the Dentistry runtime and Bale backup timers, checks
-that neither job is active, migrates complete legacy snapshots in place, and
-applies shared retention. Its exit handler restarts the timers if the release
-fails. The installer performs the same idempotent migration for bootstrap
+temporarily pauses the Dentistry runtime, Bale and retention timers, and checks
+that none of their services is active. After live release checks, it installs
+the new backup consumers and migrates complete legacy snapshots in place. The
+deployer does not prune recovery artifacts under `shared/server-only`; the
+separate retention service applies the five-set cap after the release gate has
+completed. Its exit handler restarts timers that were active before a failed
+release. The installer performs the same idempotent migration for bootstrap
 installs. No operation writes into `/srv/dentistry1402/current` directly.
 
 ## Validation recorded for this branch

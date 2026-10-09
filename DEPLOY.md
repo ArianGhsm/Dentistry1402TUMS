@@ -10,9 +10,10 @@
 - **Retention:** Dentistry keeps at most five newest complete backup sets in
   total across runtime, website-data, Bale database packages, and dated manual
   recovery artifacts. The root-only retention service validates automatic
-  backup checksums before pruning, migrates legacy paths in place, and is
-  triggered after backup jobs plus hourly. Other projects' backup namespaces
-  are outside its write scope.
+  backup checksums before pruning and is triggered after backup jobs plus
+  hourly. The website deployer migrates legacy paths only; it does not prune
+  `shared/server-only`. Other projects' backup namespaces are outside its
+  write scope.
 
 The website no longer deploys to cPanel/FTP. The retired main-site cPanel/FTP deployer scripts have been removed from the working tree; Git history is forensic evidence only and must not be restored as an operational release path.
 

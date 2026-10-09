@@ -325,10 +325,12 @@ activated=0
 backup=''
 runtime_backup_timer_was_active=0
 bale_backup_timer_was_active=0
+retention_timer_was_active=0
 
 cleanup() {
   if test "$runtime_backup_timer_was_active" = 1; then systemctl start dentistry1402-backup.timer || true; fi
   if test "$bale_backup_timer_was_active" = 1; then systemctl start dentistry1402-bale-database-backup.timer || true; fi
+  if test "$retention_timer_was_active" = 1; then systemctl start dentistry1402-backup-retention.timer || true; fi
   rm -rf -- "$incoming"
   if test -n "$ops_stage"; then rm -rf -- "$ops_stage"; fi
   rm -f -- "$bundle" "$ops_bundle" "${prefix}.install.sh"
@@ -406,7 +408,11 @@ if systemctl is-active --quiet dentistry1402-bale-database-backup.timer; then
   bale_backup_timer_was_active=1
   systemctl stop dentistry1402-bale-database-backup.timer
 fi
-if systemctl is-active --quiet dentistry1402-backup.service || systemctl is-active --quiet dentistry1402-bale-database-backup.service; then
+if systemctl is-active --quiet dentistry1402-backup-retention.timer; then
+  retention_timer_was_active=1
+  systemctl stop dentistry1402-backup-retention.timer
+fi
+if systemctl is-active --quiet dentistry1402-backup.service || systemctl is-active --quiet dentistry1402-bale-database-backup.service || systemctl is-active --quiet dentistry1402-backup-retention.service; then
   echo "A Dentistry backup service is still active; retry after it completes." >&2
   exit 75
 fi
@@ -418,7 +424,6 @@ tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage
 (cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)
 chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
 echo "SITE_DATA_BACKUP=$backup"
-/usr/local/lib/dentistry1402/backup-retention --migrate-legacy
 
 validate_release() {
   candidate="$1"
@@ -524,7 +529,7 @@ systemd-analyze verify \
   /etc/systemd/system/dentistry1402-bale-database-backup.service \
   /etc/systemd/system/dentistry1402-bale-database-backup.timer
 systemctl daemon-reload
-systemctl start dentistry1402-backup-retention.service
+/usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only
 systemctl enable --now dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer
 systemctl is-active --quiet dentistry1402-backup-retention.timer
 systemctl is-active --quiet dentistry1402-bale-database-backup.timer

@@ -101,8 +101,7 @@ nginx -t
 systemctl daemon-reload
 systemctl reload php8.3-fpm
 systemctl reload nginx
-/usr/local/lib/dentistry1402/backup-retention --migrate-legacy
-systemctl start dentistry1402-backup-retention.service
+/usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only
 systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer
 systemctl start dentistry1402-session-clean.service
 

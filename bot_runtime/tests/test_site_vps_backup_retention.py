@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -51,6 +52,14 @@ def make_site(root: Path, date: str) -> Path:
         lines.append(f"{digest}  {name}")
     (path / "SHA256SUMS").write_text("\n".join(lines) + "\n", encoding="ascii")
     return path
+
+
+def rewrite_site_sums_as_legacy_absolute(path: Path) -> None:
+    rows = []
+    for name in ("runtime-pointers.txt", "storage.tar.gz"):
+        digest = hashlib.sha256((path / name).read_bytes()).hexdigest()
+        rows.append(f"{digest}  {retention.BACKUPS_ROOT / path.name / name}")
+    (path / "SHA256SUMS").write_text("\n".join(rows) + "\n", encoding="ascii")
 
 
 class DentistryBackupRetentionTests(unittest.TestCase):
@@ -190,6 +199,64 @@ class DentistryBackupRetentionTests(unittest.TestCase):
             retention._verify_sidecar(first_target)
             retention._verify_sidecar(second_target)
 
+    def test_site_data_verifier_accepts_exact_legacy_absolute_checksum_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            site = make_site(Path(directory), stamp(1))
+            rewrite_site_sums_as_legacy_absolute(site)
+            retention._verify_site_data(site)
+            self.assertEqual(set(retention._site_checksum_map(site)), {"runtime-pointers.txt", "storage.tar.gz"})
+
+    def test_site_data_verifier_rejects_unexpected_absolute_checksum_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            site = make_site(Path(directory), stamp(1))
+            sums = (site / "SHA256SUMS").read_text(encoding="ascii").splitlines()
+            sums[0] = f"{sums[0].split()[0]}  /tmp/unrelated/runtime-pointers.txt"
+            (site / "SHA256SUMS").write_text("\n".join(sums) + "\n", encoding="ascii")
+            with self.assertRaises(retention.RetentionError):
+                retention._verify_site_data(site)
+
+    def test_migration_leaves_incomplete_archive_and_site_sets_untouched(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_root = root / "legacy" / "dentistry1402-runtime"
+            legacy_bale = legacy_root / "bale-database"
+            legacy_bale.mkdir(parents=True)
+            runtime = legacy_root / f"dentistry1402-runtime-{stamp(1)}.tar.gz"
+            runtime.write_bytes(b"unfinished archive without sidecar")
+            orphan_sidecar = legacy_bale / f"dentistry1402-database-{stamp(2)}.tar.gz.sha256"
+            orphan_sidecar.write_text("incomplete", encoding="ascii")
+            site = root / "legacy" / f"dent-site-data-{stamp(3)}-abcdef123456"
+            site.mkdir()
+            runtime_root = root / "project" / "runtime"
+            site_root = root / "project" / "site-data"
+            bale_root = root / "project" / "bale-database"
+
+            migrated = retention.migrate_legacy(
+                backups_root=root / "legacy",
+                runtime_root=runtime_root,
+                site_root=site_root,
+                bale_root=bale_root,
+                legacy_runtime_root=legacy_root,
+            )
+
+            self.assertEqual(migrated, 0)
+            self.assertTrue(runtime.is_file())
+            self.assertTrue(orphan_sidecar.is_file())
+            self.assertTrue(site.is_dir())
+            self.assertFalse((runtime_root / runtime.name).exists())
+            self.assertFalse((site_root / site.name).exists())
+
+    def test_migrate_only_does_not_prune_protected_recovery_data(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            lock_path = Path(directory) / "retention.lock"
+            with mock.patch.object(retention, "LOCK_PATH", lock_path), \
+                 mock.patch.object(retention, "migrate_legacy", return_value=4) as migrate, \
+                 mock.patch.object(retention, "prune_backups") as prune, \
+                 mock.patch.object(sys, "argv", ["backup-retention", "--migrate-legacy", "--migrate-only"]):
+                self.assertEqual(retention.main(), 0)
+            migrate.assert_called_once_with()
+            prune.assert_not_called()
+
     def test_service_scope_and_installation_cover_all_producers(self) -> None:
         retention_service = (OPS / "dentistry1402-backup-retention.service").read_text(encoding="utf-8")
         timer = (OPS / "dentistry1402-backup-retention.timer").read_text(encoding="utf-8")
@@ -199,13 +266,20 @@ class DentistryBackupRetentionTests(unittest.TestCase):
         deployer = (ROOT / "scripts" / "deploy_site_vps.ps1").read_text(encoding="utf-8")
         self.assertIn("ReadWritePaths=/var/backups/dentistry1402 /srv/dentistry1402/shared/server-only/backups", retention_service)
         self.assertNotIn("ReadWritePaths=/var/backups\n", retention_service)
-        self.assertIn("OnCalendar=hourly", timer)
+        self.assertIn("OnActiveSec=1h", timer)
+        self.assertIn("OnUnitInactiveSec=1h", timer)
         self.assertIn("ExecStopPost=/usr/bin/systemctl start dentistry1402-backup-retention.service", runtime_service)
         self.assertIn("ExecStopPost=/usr/bin/systemctl start dentistry1402-backup-retention.service", bale_service)
         self.assertIn("backup_retention.py", installer)
         self.assertIn("dentistry1402-backup-retention.timer", installer)
+        self.assertIn("--migrate-legacy --migrate-only", installer)
+        self.assertNotIn("systemctl start dentistry1402-backup-retention.service", installer)
         self.assertIn("count==12", deployer)
         self.assertIn("/var/backups/dentistry1402/site-data/", deployer)
+        install_consumers = deployer.index('install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup-runtime.sh"')
+        migrate_archives = deployer.index("backup-retention --migrate-legacy --migrate-only")
+        self.assertLess(install_consumers, migrate_archives)
+        self.assertNotIn("systemctl start dentistry1402-backup-retention.service", deployer)
 
 
 if __name__ == "__main__":

@@ -97,12 +97,20 @@ def _verify_site_data(path: Path) -> None:
     if {entry.name for entry in entries} != expected or any(entry.is_symlink() or not entry.is_file() for entry in entries):
         raise RetentionError("site-data backup has unexpected contents")
     checksums: dict[str, str] = {}
+    allowed_paths = {
+        name: {name, str(path / name), str(BACKUPS_ROOT / path.name / name)}
+        for name in ("runtime-pointers.txt", "storage.tar.gz")
+    }
     try:
         for line in (path / "SHA256SUMS").read_text(encoding="ascii").splitlines():
-            match = re.fullmatch(r"([0-9a-fA-F]{64})  ([A-Za-z0-9._-]+)", line)
-            if match is None or match.group(2) in checksums:
+            match = re.fullmatch(r"([0-9a-fA-F]{64})  (.+)", line)
+            if match is None:
                 raise RetentionError("site-data checksum manifest is malformed")
-            checksums[match.group(2)] = match.group(1).lower()
+            digest, recorded_path = match.groups()
+            matched_name = next((name for name, allowed in allowed_paths.items() if recorded_path in allowed), None)
+            if matched_name is None or matched_name in checksums:
+                raise RetentionError("site-data checksum manifest has an unexpected path")
+            checksums[matched_name] = digest.lower()
     except (OSError, UnicodeError) as error:
         raise RetentionError("site-data checksum manifest is unreadable") from error
     if set(checksums) != {"runtime-pointers.txt", "storage.tar.gz"}:
@@ -246,11 +254,19 @@ def prune_backups(
 def _site_checksum_map(path: Path) -> dict[str, str]:
     _verify_site_data(path)
     result: dict[str, str] = {}
+    allowed_paths = {
+        name: {name, str(path / name), str(BACKUPS_ROOT / path.name / name)}
+        for name in ("runtime-pointers.txt", "storage.tar.gz")
+    }
     for line in (path / "SHA256SUMS").read_text(encoding="ascii").splitlines():
-        match = re.fullmatch(r"([0-9a-fA-F]{64})  ([A-Za-z0-9._-]+)", line)
+        match = re.fullmatch(r"([0-9a-fA-F]{64})  (.+)", line)
         if match is None:
             raise RetentionError("site-data checksum manifest is malformed")
-        result[match.group(2)] = match.group(1).lower()
+        recorded_path = match.group(2)
+        for name, allowed in allowed_paths.items():
+            if recorded_path in allowed:
+                result[name] = match.group(1).lower()
+                break
     return result
 
 
@@ -263,6 +279,8 @@ def _move_archive_pair(source: Path, target: Path) -> bool:
 
     if source.is_file():
         usable_sidecar = source_sidecar if source_sidecar.is_file() else target_sidecar
+        if not usable_sidecar.is_file():
+            return False
         _verify_sidecar(source, usable_sidecar)
         if target.exists():
             if target_sidecar.is_file():
@@ -343,7 +361,10 @@ def migrate_legacy(
         for source in sorted(backups_root.iterdir()):
             if not SITE_NAME.fullmatch(source.name) or source.is_symlink() or not source.is_dir():
                 continue
-            _verify_site_data(source)
+            try:
+                _verify_site_data(source)
+            except RetentionError:
+                continue
             target = site_root / source.name
             if target.exists():
                 if _site_checksum_map(source) != _site_checksum_map(target):
@@ -365,16 +386,23 @@ def main() -> int:
             msvcrt.locking(lock.fileno(), msvcrt.LK_LOCK, 1)
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument("--migrate-legacy", action="store_true")
+        parser.add_argument("--migrate-only", action="store_true")
         args = parser.parse_args()
+        if args.migrate_only and not args.migrate_legacy:
+            parser.error("--migrate-only requires --migrate-legacy")
         if args.migrate_legacy:
             migrated = migrate_legacy()
         else:
             migrated = 0
-        before, after = prune_backups()
+        if args.migrate_only:
+            before = after = 0
+        else:
+            before, after = prune_backups()
         if fcntl is None:  # pragma: no cover - exercised on Windows development hosts
             lock.seek(0)
             msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
-    print(f"DENTISTRY_BACKUP_RETENTION_OK before={before} after={after} migrated={migrated} limit={KEEP_TOTAL}")
+    operation = "MIGRATE" if args.migrate_only else "RETENTION"
+    print(f"DENTISTRY_BACKUP_{operation}_OK before={before} after={after} migrated={migrated} limit={KEEP_TOTAL}")
     return 0
 
 
