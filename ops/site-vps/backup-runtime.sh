@@ -54,6 +54,15 @@ tar -C /srv/dentistry1402/shared/server-only \
 if [[ -d /srv/dentistry1402/shared/tls ]]; then
   cp -a /srv/dentistry1402/shared/tls/. "$stage/payload/site-tls/"
 fi
+letsencrypt_live=/etc/letsencrypt/live/dentistry1402tums.ir
+if [[ -f "$letsencrypt_live/fullchain.pem" && -f "$letsencrypt_live/privkey.pem" ]]; then
+  cp -L -- "$letsencrypt_live/fullchain.pem" "$stage/payload/site-tls/letsencrypt-fullchain.pem"
+  cp -L -- "$letsencrypt_live/privkey.pem" "$stage/payload/site-tls/letsencrypt-privkey.pem"
+  chmod 0600 "$stage/payload/site-tls/letsencrypt-fullchain.pem" "$stage/payload/site-tls/letsencrypt-privkey.pem"
+else
+  echo "active Let's Encrypt certificate or private key is missing" >&2
+  exit 2
+fi
 
 # SQLite databases are copied transactionally with sqlite's backup API rather
 # than by copying live database/WAL files.
@@ -67,13 +76,14 @@ done < <(find /var/lib/integrated-dent -type f -name '*.sqlite3' -print0 2>/dev/
 if [[ -d /etc/integrated-dent ]]; then
   cp -a /etc/integrated-dent/. "$stage/payload/integrated-dent-etc/"
 fi
-for config in \
-  /etc/nginx/sites-available/dentistry1402.conf \
-  /etc/php/8.3/fpm/pool.d/dentistry1402.conf; do
-  if [[ -f "$config" ]]; then
-    cp -a "$config" "$stage/payload/system-config/"
-  fi
-done
+if [[ -f /etc/nginx/sites-available/dentistry1402.conf ]]; then
+  cp -a /etc/nginx/sites-available/dentistry1402.conf \
+    "$stage/payload/system-config/nginx-dentistry1402.conf"
+fi
+if [[ -f /etc/php/8.3/fpm/pool.d/dentistry1402.conf ]]; then
+  cp -a /etc/php/8.3/fpm/pool.d/dentistry1402.conf \
+    "$stage/payload/system-config/php-fpm-dentistry1402.conf"
+fi
 
 {
   printf 'snapshot=%s\n' "$snapshot"

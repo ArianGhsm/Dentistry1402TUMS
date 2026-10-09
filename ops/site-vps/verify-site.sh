@@ -71,7 +71,9 @@ done
 
 test -d /var/backups/dentistry1402-runtime
 test "$(stat -c %a /var/backups/dentistry1402-runtime)" = 700
-test "$(stat -c %a /var/backups/dentistry1402-runtime/bale-database)" = 700
+test "$(stat -c %a /var/backups/dentistry1402-runtime/bale-recovery)" = 700
+command -v age >/dev/null
+test -r /usr/local/lib/dentistry1402/dentistry1402-recovery-recipient.pub
 
 curl --fail --silent --show-error --output /dev/null https://dentistry1402tums.ir/
 curl --fail --silent --show-error --output /dev/null 'https://dentistry1402tums.ir/api/auth_api.php?action=me'

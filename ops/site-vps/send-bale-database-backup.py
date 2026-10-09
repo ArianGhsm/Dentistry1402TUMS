@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Send a verified, database-only Dentistry snapshot to the configured Bale owner."""
+"""Send an encrypted, verified Dentistry recovery snapshot to the configured Bale owner."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import sqlite3
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -22,10 +23,13 @@ from pathlib import Path, PurePosixPath
 
 
 BACKUP_ROOT = Path("/var/backups/dentistry1402-runtime")
-OUTBOX = BACKUP_ROOT / "bale-database"
+OUTBOX = BACKUP_ROOT / "bale-recovery"
+RUNTIME_TMP = Path("/run/dentistry1402-bale-recovery")
+RECIPIENT_FILE = Path("/usr/local/lib/dentistry1402/dentistry1402-recovery-recipient.pub")
 ARCHIVE_PATTERN = re.compile(r"^dentistry1402-runtime-(\d{8}T\d{6}Z)\.tar\.gz$")
 PART_BYTES = 19_000_000
 MAX_AGE = dt.timedelta(hours=26)
+MAX_OPERATIONAL_FILE_BYTES = 8_000_000
 KEEP_PACKAGES = 7
 BALE_API = "https://tapi.bale.ai"
 
@@ -113,6 +117,27 @@ def _database_category(member: tarfile.TarInfo) -> tuple[str, PurePosixPath] | N
     return None
 
 
+def _operational_member(member: tarfile.TarInfo) -> tuple[PurePosixPath, PurePosixPath] | None:
+    sources = (
+        ("payload/site-server-only/", PurePosixPath("operations", "site-server-only")),
+        ("payload/site-tls/", PurePosixPath("operations", "site-tls")),
+        ("payload/integrated-dent-etc/", PurePosixPath("operations", "integrated-dent-etc")),
+        ("payload/system-config/", PurePosixPath("operations", "system-config")),
+        ("metadata/", PurePosixPath("operations", "metadata")),
+    )
+    excluded_parts = {"logs", "sessions", "tmp", "backups", "uploads", "cache", "__pycache__"}
+    for prefix, destination in sources:
+        relative = _relative_regular_member(member, prefix)
+        if relative is None:
+            continue
+        if any(part.lower() in excluded_parts for part in relative.parts):
+            return None
+        if member.size > MAX_OPERATIONAL_FILE_BYTES:
+            raise BackupError("an operational file in the runtime snapshot exceeds the size limit")
+        return destination / relative, relative
+    return None
+
+
 def _validate_data_file(path: Path) -> None:
     suffix = path.suffix.lower()
     if suffix == ".json":
@@ -141,35 +166,48 @@ def _validate_data_file(path: Path) -> None:
             raise BackupError("a database in the runtime snapshot failed quick_check")
 
 
-def build_database_package(
+def build_recovery_package(
     archive: Path,
     created_at: dt.datetime,
-    outbox: Path,
+    workdir: Path,
 ) -> tuple[Path, str, int, int]:
     verify_snapshot_checksum(archive)
-    outbox.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(outbox, 0o700)
+    workdir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.chmod(workdir, 0o700)
     stamp = created_at.strftime("%Y%m%dT%H%M%SZ")
-    package = outbox / f"dentistry1402-database-{stamp}.tar.gz"
-    partial = outbox / f".{package.name}.partial"
-    staging = Path(tempfile.mkdtemp(prefix=".stage.", dir=outbox))
+    package = workdir / f"dentistry1402-recovery-{stamp}.tar.gz"
+    partial = workdir / f".{package.name}.partial"
+    staging = Path(tempfile.mkdtemp(prefix=".stage.", dir=workdir))
     entries: list[tuple[str, Path, str, int]] = []
-    counts = {"site": 0, "bots": 0}
+    counts = {"site": 0, "bots": 0, "operations": 0}
+    required_operations = {
+        "operations/site-server-only/.env",
+        "operations/integrated-dent-etc/dent-bot.env",
+        "operations/integrated-dent-etc/bale-bot.env",
+        "operations/system-config/nginx-dentistry1402.conf",
+        "operations/system-config/php-fpm-dentistry1402.conf",
+        "operations/metadata/runtime-pointers.txt",
+    }
     try:
         try:
             with tarfile.open(archive, mode="r:gz") as source:
                 for member in source:
                     selected = _database_category(member)
-                    if selected is None:
+                    operational = _operational_member(member)
+                    if selected is None and operational is None:
                         continue
-                    category, relative = selected
-                    target = staging / "data" / ("site" if category == "site" else "bots")
-                    for part in relative.parts:
-                        target = target / part
+                    if selected is not None:
+                        category, relative = selected
+                        destination = PurePosixPath("data", "site" if category == "site" else "bots", *relative.parts)
+                    else:
+                        assert operational is not None
+                        destination, relative = operational
+                        category = "operations"
+                    target = staging.joinpath(*destination.parts)
                     target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
                     source_file = source.extractfile(member)
                     if source_file is None:
-                        raise BackupError("a database file could not be read from the runtime snapshot")
+                        raise BackupError("a recovery file could not be read from the runtime snapshot")
                     copied_size = 0
                     with source_file, target.open("xb") as output:
                         while True:
@@ -179,24 +217,26 @@ def build_database_package(
                             output.write(chunk)
                             copied_size += len(chunk)
                     if copied_size != member.size:
-                        raise BackupError("a database file in the runtime snapshot was truncated")
+                        raise BackupError("a recovery file in the runtime snapshot was truncated")
                     os.chmod(target, 0o600)
-                    _validate_data_file(target)
-                    arcname = PurePosixPath("data", "site" if category == "site" else "bots", *relative.parts).as_posix()
+                    if category != "operations":
+                        _validate_data_file(target)
+                    arcname = destination.as_posix()
                     entries.append((category, target, arcname, member.size))
                     counts[category] += 1
         except (OSError, tarfile.TarError) as error:
             raise BackupError("the runtime snapshot archive could not be read") from error
 
-        if counts["site"] == 0 or counts["bots"] == 0:
-            raise BackupError("the runtime snapshot is missing website data or bot databases")
+        included_operations = {arcname for category, _path, arcname, _size in entries if category == "operations"}
+        if counts["site"] == 0 or counts["bots"] == 0 or not required_operations.issubset(included_operations):
+            raise BackupError("the runtime snapshot is missing required data or operational settings")
 
         manifest_lines = [
-            "Dentistry1402 database-only backup",
+            "Dentistry1402 encrypted recovery backup",
             f"source_snapshot={archive.name}",
             f"snapshot_created_utc={created_at.strftime('%Y-%m-%dT%H:%M:%SZ')}",
-            "included=website JSON/JSONL/SQLite stores and all bot SQLite databases",
-            "excluded=PDFs, images, logs, keys, credentials, TLS and server configuration",
+            "included=website JSON/JSONL/SQLite stores; bot SQLite databases; durable env/secrets; TLS files; Nginx/PHP-FPM config; active release and service metadata",
+            "excluded=PDFs, images, uploads, logs, sessions, tmp files and nested backup archives",
             "",
         ]
         for _category, path, arcname, size in sorted(entries, key=lambda item: item[2]):
@@ -214,16 +254,16 @@ def build_database_package(
         with tarfile.open(partial, mode="r:gz") as check:
             checked = check.getmembers()
             if {member.name for member in checked} != expected_members:
-                raise BackupError("database package manifest verification failed")
+                raise BackupError("recovery package manifest verification failed")
             if any(not member.isfile() for member in checked):
-                raise BackupError("database package contains a non-file entry")
+                raise BackupError("recovery package contains a non-file entry")
             expected_hashes = {arcname: (_sha256(path), size) for _category, path, arcname, size in entries}
             for member in checked:
                 if member.name == "MANIFEST.txt":
                     continue
                 extracted = check.extractfile(member)
                 if extracted is None:
-                    raise BackupError("database package content could not be reread")
+                    raise BackupError("recovery package content could not be reread")
                 digest = hashlib.sha256()
                 copied_size = 0
                 with extracted:
@@ -231,16 +271,64 @@ def build_database_package(
                         digest.update(chunk)
                         copied_size += len(chunk)
                 if (digest.hexdigest(), copied_size) != expected_hashes[member.name]:
-                    raise BackupError("database package content verification failed")
+                    raise BackupError("recovery package content verification failed")
         os.replace(partial, package)
         package_hash = _sha256(package)
         checksum = Path(f"{package}.sha256")
         checksum.write_text(f"{package_hash}  {package.name}\n", encoding="ascii")
         os.chmod(checksum, 0o600)
-        return package, package_hash, package.stat().st_size, counts["site"] + counts["bots"]
+        return package, package_hash, package.stat().st_size, sum(counts.values())
     finally:
         partial.unlink(missing_ok=True)
         shutil.rmtree(staging, ignore_errors=True)
+
+
+def encrypt_recovery_package(
+    package: Path,
+    encrypted_path: Path,
+    recipient_file: Path,
+    *,
+    age_binary: str | None = None,
+) -> tuple[str, int]:
+    executable = age_binary or shutil.which("age")
+    if executable is None:
+        raise BackupError("age encryption tool is unavailable")
+    try:
+        recipients = [
+            line.strip()
+            for line in recipient_file.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+    except (OSError, UnicodeError) as error:
+        raise BackupError("recovery encryption recipient is missing or unreadable") from error
+    if len(recipients) != 1:
+        raise BackupError("recovery encryption recipient must contain exactly one key")
+    try:
+        result = subprocess.run(
+            [executable, "-R", str(recipient_file), "-o", str(encrypted_path), str(package)],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=1800,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        encrypted_path.unlink(missing_ok=True)
+        raise BackupError("recovery package encryption could not run") from error
+    if result.returncode != 0:
+        encrypted_path.unlink(missing_ok=True)
+        raise BackupError("recovery package encryption failed")
+    try:
+        with encrypted_path.open("rb") as stream:
+            header = stream.read(64)
+    except OSError as error:
+        encrypted_path.unlink(missing_ok=True)
+        raise BackupError("encrypted recovery package could not be read") from error
+    if not header.startswith(b"age-encryption.org/v1\n"):
+        encrypted_path.unlink(missing_ok=True)
+        raise BackupError("encrypted recovery package has an invalid age header")
+    os.chmod(encrypted_path, 0o600)
+    return _sha256(encrypted_path), encrypted_path.stat().st_size
 
 
 def split_package(package: Path, outbox: Path, *, part_bytes: int = PART_BYTES) -> list[Path]:
@@ -274,7 +362,7 @@ def split_package(package: Path, outbox: Path, *, part_bytes: int = PART_BYTES) 
             part.unlink(missing_ok=True)
         for created in parts:
             created.unlink(missing_ok=True)
-        raise BackupError("database package could not be split for Bale") from error
+        raise BackupError("encrypted recovery package could not be split for Bale") from error
     return parts
 
 
@@ -286,7 +374,7 @@ def _multipart_request(token: str, chat_id: int, document: Path, caption: str) -
     body.extend(f"--{boundary}\r\nContent-Disposition: form-data; name=\"caption\"\r\n\r\n{caption}\r\n".encode("utf-8"))
     body.extend(
         f"--{boundary}\r\nContent-Disposition: form-data; name=\"document\"; filename=\"{filename}\"\r\n"
-        "Content-Type: application/gzip\r\n\r\n".encode("ascii")
+        "Content-Type: application/octet-stream\r\n\r\n".encode("ascii")
     )
     body.extend(document.read_bytes())
     body.extend(f"\r\n--{boundary}--\r\n".encode("ascii"))
@@ -306,19 +394,19 @@ def send_document(token: str, chat_id: int, document: Path, caption: str) -> Non
             with urllib.request.urlopen(request, timeout=90) as response:
                 payload = json.loads(response.read(1024 * 1024).decode("utf-8"))
             if payload.get("ok") is not True:
-                raise BackupError("Bale rejected the database document")
+                raise BackupError("Bale rejected the encrypted recovery document")
             return
         except BackupError:
             if attempt == 2:
                 raise
         except (OSError, urllib.error.URLError, urllib.error.HTTPError, UnicodeError, json.JSONDecodeError) as error:
             if attempt == 2:
-                raise BackupError("Bale document upload failed") from error
+                raise BackupError("Bale recovery upload failed") from error
         time.sleep(2 ** (attempt + 1))
 
 
 def send_failure_notice(token: str, chat_id: int, reason: str) -> None:
-    fields = {"chat_id": str(chat_id), "text": f"ارسال خودکار بکاپ دیتابیس دنتیستری ناموفق بود.\nعلت: {reason}"}
+    fields = {"chat_id": str(chat_id), "text": f"ارسال خودکار بستهٔ بازیابی دنتیستری ناموفق بود.\nعلت: {reason}"}
     body = urllib.parse.urlencode(fields).encode("utf-8")
     request = urllib.request.Request(
         f"{BALE_API}/bot{token}/sendMessage",
@@ -334,8 +422,10 @@ def send_failure_notice(token: str, chat_id: int, reason: str) -> None:
 
 
 def retain_packages(outbox: Path, *, keep: int = KEEP_PACKAGES) -> None:
+    for partial in outbox.glob(".dentistry1402-recovery-*.tar.gz.age.partial"):
+        partial.unlink(missing_ok=True)
     packages = sorted(
-        outbox.glob("dentistry1402-database-*.tar.gz"),
+        outbox.glob("dentistry1402-recovery-*.tar.gz.age"),
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
@@ -346,12 +436,19 @@ def retain_packages(outbox: Path, *, keep: int = KEEP_PACKAGES) -> None:
         package.unlink(missing_ok=True)
         Path(f"{package}.sha256").unlink(missing_ok=True)
     retained_names = {package.name for package in retained}
-    for part in outbox.glob("dentistry1402-database-*.tar.gz.part*-of-*"):
+    for part in outbox.glob("dentistry1402-recovery-*.tar.gz.age.part*-of-*"):
         if not any(part.name.startswith(name + ".part") for name in retained_names):
             part.unlink(missing_ok=True)
 
 
-def run(environ: dict[str, str] | None = None, *, backup_root: Path = BACKUP_ROOT, outbox: Path = OUTBOX) -> None:
+def run(
+    environ: dict[str, str] | None = None,
+    *,
+    backup_root: Path = BACKUP_ROOT,
+    outbox: Path = OUTBOX,
+    runtime_tmp: Path = RUNTIME_TMP,
+    recipient_file: Path = RECIPIENT_FILE,
+) -> None:
     os.umask(0o077)
     environ = os.environ if environ is None else environ
     token = str(environ.get("DENT_BALE_BOT_TOKEN") or "").strip()
@@ -359,36 +456,57 @@ def run(environ: dict[str, str] | None = None, *, backup_root: Path = BACKUP_ROO
     if not token or not owner_raw.isdigit() or int(owner_raw) <= 0:
         raise BackupError("Bale bot token or owner chat ID is not configured")
     owner_id = int(owner_raw)
+    parts: list[Path] = []
+    package: Path | None = None
+    partial: Path | None = None
     try:
+        outbox.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(outbox, 0o700)
+        runtime_tmp.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(runtime_tmp, 0o700)
         archive, created_at = latest_snapshot(backup_root)
-        package, package_hash, package_size, file_count = build_database_package(archive, created_at, outbox)
+        with tempfile.TemporaryDirectory(prefix=".work.", dir=runtime_tmp) as workdir:
+            plaintext, _plaintext_hash, _plaintext_size, file_count = build_recovery_package(
+                archive, created_at, Path(workdir),
+            )
+            stamp = created_at.strftime("%Y%m%dT%H%M%SZ")
+            package = outbox / f"dentistry1402-recovery-{stamp}.tar.gz.age"
+            partial = outbox / f".{package.name}.partial"
+            partial.unlink(missing_ok=True)
+            package_hash, _package_size = encrypt_recovery_package(plaintext, partial, recipient_file)
+            os.replace(partial, package)
+            partial = None
+            package_size = package.stat().st_size
+            checksum = Path(f"{package}.sha256")
+            checksum.write_text(f"{package_hash}  {package.name}\n", encoding="ascii")
+            os.chmod(package, 0o600)
+            os.chmod(checksum, 0o600)
         parts = split_package(package, outbox)
         for index, part in enumerate(parts, 1):
             caption = (
-                "بکاپ دیتابیس دنتیستری آماده است.\n"
+                "بستهٔ بازیابی رمزگذاری‌شدهٔ دنتیستری آماده است.\n"
                 f"زمان snapshot: {created_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
-                f"حجم بسته: {package_size:,} بایت · فایل‌های داده: {file_count}\n"
+                f"حجم فایل رمز‌شده: {package_size:,} بایت · فایل‌های بسته: {file_count}\n"
                 f"SHA-256: {package_hash}"
             )
             if len(parts) > 1:
-                caption += (
-                    f"\nبخش {index}/{len(parts)} · برای بازیابی همهٔ بخش‌ها را به ترتیب به هم بچسبان: "
-                    "cat archive.part* > archive.tar.gz"
-                )
+                caption += f"\nبخش {index}/{len(parts)} · برای بازیابی، همهٔ بخش‌ها را به ترتیب شماره کنار هم قرار بده."
             send_document(token, owner_id, part, caption)
     except Exception as error:
-        send_failure_notice(token, owner_id, "فرایند بکاپ یا ارسال کامل نشد؛ گزارش سرویس روی سرور ثبت شد.")
+        send_failure_notice(token, owner_id, "ساخت، رمزگذاری یا ارسال کامل نشد؛ گزارش sanitized سرویس روی سرور ثبت شد.")
         if isinstance(error, BackupError):
             raise
-        raise BackupError("unexpected database backup sender failure") from error
+        raise BackupError("unexpected recovery backup sender failure") from error
     finally:
-        if "parts" in locals():
-            for part in parts:
-                if part != package:
-                    part.unlink(missing_ok=True)
-        retain_packages(outbox)
+        for part in parts:
+            if part != package:
+                part.unlink(missing_ok=True)
+        if partial is not None:
+            partial.unlink(missing_ok=True)
+        if outbox.exists():
+            retain_packages(outbox)
     print(
-        f"BALE_DATABASE_BACKUP_OK snapshot={archive.name} bytes={package_size} "
+        f"BALE_RECOVERY_BACKUP_OK snapshot={archive.name} encrypted_bytes={package_size} "
         f"files={file_count} parts={len(parts)} sha256={package_hash}"
     )
 
@@ -397,7 +515,7 @@ def main() -> int:
     try:
         run()
     except BackupError as error:
-        print(f"BALE_DATABASE_BACKUP_FAILED reason={error}", file=sys.stderr)
+        print(f"BALE_RECOVERY_BACKUP_FAILED reason={error}", file=sys.stderr)
         return 1
     return 0
 

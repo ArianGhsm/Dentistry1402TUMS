@@ -34,9 +34,15 @@ def make_snapshot(backup_root: Path, *, created_at: datetime | None = None) -> P
         "payload/site-storage/logs/errors.jsonl": '{"message":"excluded log"}\n',
         "payload/site-storage/uploads/large.pdf": "%PDF-1.4 excluded" ,
         "payload/site-storage/secrets/signing.key": "excluded key",
-        "payload/site-tls/privkey.pem": "excluded TLS key",
-        "payload/system-config/nginx.conf": "excluded server config",
-        "payload/integrated-dent-etc/bale-bot.env": "DENT_BALE_BOT_TOKEN=fake-test-token",
+        "payload/site-server-only/.env": "DENT_SIGNING_SECRET=fake-test-secret",
+        "payload/site-server-only/sessions/session.json": "excluded session",
+        "payload/site-tls/letsencrypt/privkey.pem": "fake TLS private key",
+        "payload/system-config/nginx-dentistry1402.conf": "server config",
+        "payload/system-config/php-fpm-dentistry1402.conf": "PHP-FPM config",
+        "payload/integrated-dent-etc/dent-bot.env": "DENT_BOT_TOKEN=fake-telegram-token",
+        "payload/integrated-dent-etc/bale-bot.env": "DENT_BALE_BOT_TOKEN=fake-bale-token",
+        "metadata/runtime-pointers.txt": "site_current=/srv/dentistry1402/releases/test\n",
+        "metadata/service-active.txt": "nginx\n",
     }
     for relative, contents in paths.items():
         target = source / relative
@@ -61,15 +67,15 @@ def make_snapshot(backup_root: Path, *, created_at: datetime | None = None) -> P
 
 
 class BaleDatabaseBackupTests(unittest.TestCase):
-    def test_package_contains_site_stores_and_bot_databases_only(self) -> None:
+    def test_package_contains_recovery_data_and_operations_but_excludes_heavy_files(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             archive = make_snapshot(root)
             created_at = backup._snapshot_time(archive)
-            package, package_hash, _size, file_count = backup.build_database_package(
-                archive, created_at, root / "outbox",
+            package, package_hash, _size, file_count = backup.build_recovery_package(
+                archive, created_at, root / "work",
             )
-            self.assertEqual(file_count, 4)
+            self.assertEqual(file_count, 12)
             self.assertEqual(backup.verify_snapshot_checksum(package), package_hash)
             with tarfile.open(package, "r:gz") as bundle:
                 names = set(bundle.getnames())
@@ -79,11 +85,61 @@ class BaleDatabaseBackupTests(unittest.TestCase):
                     "data/site/payments/store.json",
                     "data/site/classops/events.jsonl",
                     "data/bots/bale-bot/state.sqlite3",
+                    "operations/site-server-only/.env",
+                    "operations/site-tls/letsencrypt/privkey.pem",
+                    "operations/integrated-dent-etc/dent-bot.env",
+                    "operations/integrated-dent-etc/bale-bot.env",
+                    "operations/system-config/nginx-dentistry1402.conf",
+                    "operations/system-config/php-fpm-dentistry1402.conf",
+                    "operations/metadata/runtime-pointers.txt",
+                    "operations/metadata/service-active.txt",
                 })
                 manifest_file = bundle.extractfile("MANIFEST.txt")
                 assert manifest_file is not None
                 manifest = manifest_file.read().decode("utf-8")
-                self.assertIn("excluded=PDFs, images, logs, keys, credentials, TLS and server configuration", manifest)
+                self.assertIn("included=website JSON/JSONL/SQLite stores; bot SQLite databases; durable env/secrets", manifest)
+                self.assertIn("excluded=PDFs, images, uploads, logs, sessions, tmp files and nested backup archives", manifest)
+
+    def test_age_encryption_uses_recipient_file_and_emits_ciphertext_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plaintext = root / "recovery.tar.gz"
+            plaintext.write_bytes(b"DENT_BALE_BOT_TOKEN=private-test-value")
+            recipients = root / "recipient.pub"
+            recipients.write_text("ssh-ed25519 AAAATEST recipient\n", encoding="utf-8")
+            encrypted = root / "recovery.tar.gz.age"
+
+            def fake_age(args, **kwargs):
+                self.assertEqual(kwargs["stdin"], backup.subprocess.DEVNULL)
+                self.assertEqual(kwargs["stderr"], backup.subprocess.DEVNULL)
+                self.assertNotIn("private-test-value", " ".join(args))
+                output = Path(args[args.index("-o") + 1])
+                output.write_bytes(b"age-encryption.org/v1\n" + hashlib.sha256(plaintext.read_bytes()).digest())
+                return backup.subprocess.CompletedProcess(args, 0)
+
+            with patch.object(backup.shutil, "which", return_value="/usr/bin/age"), patch.object(
+                backup.subprocess, "run", side_effect=fake_age,
+            ) as age_run:
+                digest, size = backup.encrypt_recovery_package(plaintext, encrypted, recipients)
+
+            self.assertEqual(age_run.call_args.args[0][1:3], ["-R", str(recipients)])
+            self.assertEqual(digest, hashlib.sha256(encrypted.read_bytes()).hexdigest())
+            self.assertEqual(size, encrypted.stat().st_size)
+            self.assertNotIn(b"private-test-value", encrypted.read_bytes())
+
+    def test_age_encryption_fails_closed_without_single_recipient(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plaintext = root / "recovery.tar.gz"
+            plaintext.write_bytes(b"private")
+            recipients = root / "recipient.pub"
+            recipients.write_text("# no configured recipient\n", encoding="utf-8")
+            with patch.object(backup.shutil, "which", return_value="/usr/bin/age"), patch.object(
+                backup.subprocess, "run",
+            ) as age_run:
+                with self.assertRaises(backup.BackupError):
+                    backup.encrypt_recovery_package(plaintext, root / "encrypted.age", recipients)
+            age_run.assert_not_called()
 
     def test_latest_snapshot_rejects_stale_backup(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -118,29 +174,43 @@ class BaleDatabaseBackupTests(unittest.TestCase):
             root = Path(directory)
             make_snapshot(root)
             sent = []
-            with patch.object(backup, "send_document", side_effect=lambda token, chat_id, path, caption: sent.append((token, chat_id, path, caption))):
+            def fake_encrypt(package: Path, encrypted_path: Path, _recipient: Path):
+                encrypted_path.write_bytes(b"age-encryption.org/v1\n" + hashlib.sha256(package.read_bytes()).digest())
+                return backup._sha256(encrypted_path), encrypted_path.stat().st_size
+
+            with patch.object(backup, "encrypt_recovery_package", side_effect=fake_encrypt), patch.object(
+                backup, "send_document", side_effect=lambda token, chat_id, path, caption: sent.append((token, chat_id, path, caption)),
+            ):
                 backup.run(
                     {"DENT_BALE_BOT_TOKEN": "test-token", "DENT_BALE_OWNER_ID": "12345"},
                     backup_root=root,
                     outbox=root / "outbox",
+                    runtime_tmp=root / "runtime",
+                    recipient_file=root / "recipient.pub",
                 )
             self.assertEqual(len(sent), 1)
             self.assertEqual(sent[0][0:2], ("test-token", 12345))
             self.assertIn("SHA-256:", sent[0][3])
+            self.assertIn("رمزگذاری‌شده", sent[0][3])
+            self.assertTrue(sent[0][2].name.endswith(".tar.gz.age"))
+            self.assertNotIn(b"fake-bale-token", sent[0][2].read_bytes())
 
-    def test_retention_keeps_only_seven_database_packages_and_sidecars(self) -> None:
+    def test_retention_keeps_only_seven_encrypted_recovery_packages_and_sidecars(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for index in range(9):
-                package = root / f"dentistry1402-database-2026100{index + 1}T000000Z.tar.gz"
+                package = root / f"dentistry1402-recovery-2026100{index + 1}T000000Z.tar.gz.age"
                 package.write_bytes(str(index).encode())
                 Path(f"{package}.sha256").write_text("checksum  archive\n", encoding="ascii")
-            packages = sorted(root.glob("*.tar.gz"))
+            stale_partial = root / ".dentistry1402-recovery-interrupted.tar.gz.age.partial"
+            stale_partial.write_bytes(b"interrupted encrypted output")
+            packages = sorted(root.glob("*.tar.gz.age"))
             for index, package in enumerate(packages):
                 backup.os.utime(package, (index, index))
             backup.retain_packages(root)
-            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz"))), 7)
-            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz.sha256"))), 7)
+            self.assertEqual(len(list(root.glob("dentistry1402-recovery-*.tar.gz.age"))), 7)
+            self.assertEqual(len(list(root.glob("dentistry1402-recovery-*.tar.gz.age.sha256"))), 7)
+            self.assertFalse(stale_partial.exists())
 
     def test_service_installs_hardened_daily_sender_after_runtime_backup(self) -> None:
         service = (OPS / "dentistry1402-bale-database-backup.service").read_text(encoding="utf-8")
@@ -150,7 +220,8 @@ class BaleDatabaseBackupTests(unittest.TestCase):
         deployer = (ROOT / "scripts" / "deploy_site_vps.ps1").read_text(encoding="utf-8")
         assert "EnvironmentFile=/etc/integrated-dent/bale-bot.env" in service
         assert "ProtectSystem=strict" in service
-        assert "ReadWritePaths=/var/backups/dentistry1402-runtime/bale-database" in service
+        assert "RuntimeDirectory=dentistry1402-bale-recovery" in service
+        assert "ReadWritePaths=/run/dentistry1402-bale-recovery /var/backups/dentistry1402-runtime/bale-recovery" in service
         assert "OnCalendar=*-*-* 03:35:00 Asia/Tehran" in timer
         assert "dentistry1402-backup.timer" in installer
         assert "dentistry1402-bale-database-backup.timer" in installer
@@ -158,6 +229,10 @@ class BaleDatabaseBackupTests(unittest.TestCase):
         assert "opsBundleHash" in deployer
         assert "ops_expected='__OPS_HASH__'" in deployer
         assert "systemctl enable --now dentistry1402-bale-database-backup.timer" in deployer
+        assert "dentistry1402-recovery-recipient.pub" in deployer
+        assert "age --version" in deployer
+        assert "dentistry1402-recovery-recipient.pub" in installer
+        assert "command -v age" in verifier
 
 
 if __name__ == "__main__":

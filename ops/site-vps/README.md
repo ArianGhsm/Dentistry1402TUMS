@@ -1,6 +1,6 @@
 # 🛠️ Dentistry1402 — Iran VPS Website Runtime
 
-> قرارداد عملیاتی وب‌سایت production روی VPS ایران. این پوشه config و tooling زیرساخت را version می‌کند؛ **دادهٔ زنده، secret و backup داخل Git نیستند**.
+> قرارداد عملیاتی وب‌سایت production روی VPS ایران. این پوشه config و tooling زیرساخت را version می‌کند؛ **دادهٔ زنده، secret و backup داخل Git نیستند**. فایل `dentistry1402-recovery-recipient.pub` فقط کلید عمومی رمزگذاری است و دسترسی یا امکان رمزگشایی نمی‌دهد.
 
 برای release روزمره، مرجع canonical [`../../DEPLOY.md`](../../DEPLOY.md) و `scripts/run_release_gate.ps1` است. اسکریپت‌های bootstrap/install این پوشه مسیر جایگزین برای deploy عادی نیستند.
 
@@ -59,7 +59,7 @@ Layout ثابت production:
 | `php-fpm-dentistry1402.conf` | pool ایزوله `dentweb` و runtime env paths |
 | `logrotate-dentistry1402` | فقط rotation لاگ اختصاصی PHP-FPM |
 | `backup-runtime.sh` + unit/timer | snapshot verified از mutable website/bot runtime |
-| `send-bale-database-backup.py` + unit/timer | ارسال دیتابیس‌های snapshotشده به Bale مالک، بدون فایل‌های حجیم و secret |
+| `send-bale-database-backup.py` + unit/timer | ساخت و ارسال بستهٔ بازیابی رمزگذاری‌شدهٔ دیتابیس و تنظیمات لازم به Bale مالک |
 | `restore-drill.sh` + unit/timer | restore آزمایشی، isolated و بدون mutation روی live runtime |
 | `session-clean.sh` + unit/timer | پاک‌سازی sessionهای PHP مطابق `session.gc_maxlifetime` |
 | `housekeeping.sh` + unit/timer | retention امن releaseهای وب، Telegram و Bale |
@@ -149,7 +149,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 `
 | --- | --- | --- |
 | 🧹 Session clean | هر ساعت در دقیقه‌های `:14` و `:44` | فقط sessionهای منقضی؛ فایل باز PHP-FPM محافظت می‌شود |
 | 💾 Runtime backup | هر روز `03:20` + حداکثر ۵ دقیقه delay تصادفی | snapshot + checksum + JSON/SQLite verification |
-| 📤 Bale database backup | هر روز `03:35` + حداکثر ۵ دقیقه delay تصادفی | فقط JSON/SQLiteهای سایت و دیتابیس‌های ربات را به Bale مالک می‌فرستد |
+| 📤 Bale recovery backup | هر روز `03:35` + حداکثر ۵ دقیقه delay تصادفی | بستهٔ رمزگذاری‌شدهٔ داده و تنظیمات لازم را به Bale مالک می‌فرستد |
 | 📦 Housekeeping | هر روز `04:10` + حداکثر ۵ دقیقه delay | retention releaseها بدون حذف active/in-use |
 | 🧪 Restore drill | یکشنبهٔ اول ماه `04:45` + حداکثر ۱۰ دقیقه delay | restore کامل در محیط isolated و loopback-only |
 
@@ -177,17 +177,49 @@ Retention فعلی: **۱۴ snapshot روزانهٔ جدید + یک snapshot از
 
 ### ارسال روزانه به Bale
 
-`send-bale-database-backup.py` فقط از تازه‌ترین snapshot معتبر `backup-runtime.sh` استفاده می‌کند؛ checksum بیرونی را بررسی می‌کند، JSON/JSONL و SQLite را دوباره اعتبارسنجی می‌کند و یک آرشیو جداگانه می‌سازد. این آرشیو شامل همهٔ JSON/JSONLهای سایت به‌جز مسیر `logs` و همهٔ SQLiteهای ذخیره‌شده در snapshot سایت و ربات‌هاست. PDF، تصویر، log، کلید، token، TLS و تنظیمات سرور به Bale فرستاده نمی‌شوند.
+`send-bale-database-backup.py` فقط از تازه‌ترین snapshot معتبر `backup-runtime.sh` استفاده می‌کند؛ checksum بیرونی را بررسی می‌کند، JSON/JSONL و SQLite را دوباره اعتبارسنجی می‌کند و یک بستهٔ جداگانه می‌سازد. بسته شامل JSON/JSONL/SQLite سایت، دیتابیس‌های ربات‌ها، `.env`ها و secrets پایدار، گواهی و کلید TLS، تنظیمات Nginx/PHP-FPM و metadata نسخهٔ فعال است. PDF، تصویر، فایل‌های upload، log، session، فایل موقت و آرشیوهای بکاپ وارد بسته نمی‌شوند.
 
-timer ارسال ساعت `03:35` تهران اجرا می‌شود؛ یعنی بعد از snapshot روزانهٔ `03:20`. snapshot قدیمی‌تر از ۲۶ ساعت ارسال نمی‌شود. بسته‌های بزرگ‌تر از ۱۹٬۰۰۰٬۰۰۰ بایت به بخش‌های کوچک‌تر شکسته می‌شوند. پس از موفقیت، هفت بستهٔ آخر در مسیر خصوصی زیر باقی می‌مانند:
+timer ارسال ساعت `03:35` تهران اجرا می‌شود؛ یعنی بعد از snapshot روزانهٔ `03:20`. snapshot قدیمی‌تر از ۲۶ ساعت ارسال نمی‌شود. بسته‌های بزرگ‌تر از ۱۹٬۰۰۰٬۰۰۰ بایت به بخش‌های کوچک‌تر شکسته می‌شوند. پس از موفقیت، هفت بستهٔ رمز‌شدهٔ آخر در مسیر خصوصی زیر باقی می‌مانند:
 
 ```text
-/var/backups/dentistry1402-runtime/bale-database/
+/var/backups/dentistry1402-runtime/bale-recovery/
 ```
 
-سرویس از همان `DENT_BALE_BOT_TOKEN` و `DENT_BALE_OWNER_ID` موجود در `/etc/integrated-dent/bale-bot.env` استفاده می‌کند و هویت یا token تازه‌ای نمی‌سازد. مالک باید قبلاً گفت‌وگو را با ربات بله شروع کرده باشد. در صورت خطای snapshot یا ارسال، سرویس تلاش می‌کند در همان گفت‌وگوی مالک پیام خطا بفرستد و جزئیات را در journal ثبت می‌کند.
+محتوای بسته با `age` و کلید عمومی `dentistry1402-recovery-recipient.pub` رمز می‌شود؛ فقط فایل `.age` و checksum آن در outbox باقی می‌ماند. متن Bale فقط زمان snapshot، اندازه، شمار فایل‌ها و SHA-256 فایل رمز‌شده را می‌گوید و نام فایل‌های تنظیمات یا مقدار secretها را نشان نمی‌دهد. هر بخش زیر ۱۹٬۰۰۰٬۰۰۰ بایت است تا از سقف فعلی ۵۰ مگابایتی ارسال سند بله فاصله داشته باشد.
 
-مسیر انتشار canonical در `scripts/deploy_site_vps.ps1` فقط سه فایل دقیق sender/service/timer را جداگانه hash-check می‌کند، همان‌ها را نصب و timer را فعال می‌کند. `install-site.sh` نیز برای bootstrap نصب تازه همین فایل‌ها را می‌شناسد. افزودن این فایل‌ها به مخزن به‌تنهایی وضعیت production را تغییر نمی‌دهد؛ ارسال خودکار پس از release exact-SHA فعال می‌شود.
+کلید خصوصی متناظر فقط روی لپ‌تاپ مالک در `%USERPROFILE%\.codex\recovery\dentistry1402-bale-recovery` نگه‌داری می‌شود و به سرور، Bale یا GitHub کپی نمی‌شود. این فایل برای رمزگشایی لازم است؛ یک نسخهٔ آفلاین امن از آن نگه‌داری کنید. گم‌شدن کلید خصوصی یعنی بسته‌های رمز‌شده قابل بازیابی نیستند. کلیدهای SSH میزبان عمداً منتقل نمی‌شوند و روی میزبان جایگزین دوباره ساخته می‌شوند.
+
+سرویس از همان `DENT_BALE_BOT_TOKEN` و `DENT_BALE_OWNER_ID` موجود در `/etc/integrated-dent/bale-bot.env` استفاده می‌کند و هویت یا token تازه‌ای نمی‌سازد. مالک باید قبلاً گفت‌وگو را با ربات بله شروع کرده باشد. در صورت خطای snapshot یا ارسال، سرویس تلاش می‌کند در همان گفت‌وگوی مالک پیام خطا بفرستد؛ متن journal هیچ secret یا فهرست فایل را ثبت نمی‌کند.
+
+`age` از بستهٔ سیستم نصب می‌شود، recipient عمومی در مسیر `/usr/local/lib/dentistry1402/dentistry1402-recovery-recipient.pub` قرار می‌گیرد و plaintext موقت فقط در `/run` با مجوز `0700` ساخته می‌شود؛ systemd آن را هنگام پایان سرویس پاک می‌کند. مسیر انتشار canonical در `scripts/deploy_site_vps.ps1` چهار فایل دقیق sender/service/timer/recipient را hash-check می‌کند، نصب می‌کند و timer را فعال می‌کند. `install-site.sh` نیز برای bootstrap میزبان تازه همین فایل‌ها را می‌شناسد. افزودن این فایل‌ها به مخزن به‌تنهایی وضعیت production را تغییر نمی‌دهد؛ ارسال خودکار پس از release exact-SHA فعال می‌شود.
+
+### بازیابی بسته‌ای که از Bale دریافت شده است
+
+کلید خصوصی بالا را روی یک ویندوز قابل‌اعتماد و فقط در اختیار مالک نگه دارید. اگر Bale یک فایل `.tar.gz.age` فرستاد، همان فایل آمادهٔ رمزگشایی است. اگر فایل‌های `partNNN-of-NNN` فرستاد، پس از قرار دادن همهٔ بخش‌ها در یک پوشه، آن‌ها را با ترتیب عددی به هم بچسبانید و SHA-256 فایل کامل را با مقدار داخل caption بله مقایسه کنید:
+
+```powershell
+$parts = Get-ChildItem .\dentistry1402-recovery-*.tar.gz.age.part*-of-* | Sort-Object Name
+$output = [System.IO.File]::Create('.\dentistry1402-recovery.tar.gz.age')
+try {
+  foreach ($item in $parts) {
+    $input = [System.IO.File]::OpenRead($item.FullName)
+    try { $input.CopyTo($output) } finally { $input.Dispose() }
+  }
+} finally { $output.Dispose() }
+Get-FileHash .\dentistry1402-recovery.tar.gz.age -Algorithm SHA256
+```
+
+وقتی فایل رمز‌شدهٔ واحد را دارید، با همان کلید خصوصی رمزگشایی کنید و فقط پس از موفقیت رمزگشایی، آرشیو را در یک پوشهٔ خصوصی استخراج کنید:
+
+```powershell
+age --decrypt `
+  --identity "$env:USERPROFILE\.codex\recovery\dentistry1402-bale-recovery" `
+  --output .\dentistry1402-recovery.tar.gz `
+  .\dentistry1402-recovery.tar.gz.age
+tar -tzf .\dentistry1402-recovery.tar.gz
+```
+
+`age` صحت رمزنگاری/یکپارچگی را هنگام رمزگشایی بررسی می‌کند؛ SHA-256 caption هم مونتاژ بخش‌ها را بررسی می‌کند. برای بازسازی سامانه، کد را از commit ثبت‌شده در `operations/metadata/runtime-pointers.txt` در GitHub بگیرید، مقادیر و فایل‌های `operations/` را فقط روی میزبان جایگزین با مجوز محدود بازگردانید، و داده‌های `data/` را طبق restore drill بازیابی کنید. کلید خصوصی نباید در Bale، GitHub یا سرور قرار بگیرد؛ فایل‌های رمزگشایی‌شده و استخراج‌شده حاوی secret هستند و باید در فضای محدود نگه‌داری و پس از بازیابی پاک شوند. این بسته شامل فایل‌های upload، PDF/تصویر، session و log نیست.
 
 ## 🧪 Restore drill
 
