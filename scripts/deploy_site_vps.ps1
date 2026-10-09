@@ -345,28 +345,96 @@ previous="$(readlink -f "$root/current")"
 ops_stage=''
 activated=0
 backup=''
+tooling_snapshot=''
+tooling_changed=0
+rollback_failed=0
 runtime_backup_timer_was_active=0
 bale_backup_timer_was_active=0
 retention_timer_was_active=0
+tooling_paths=(
+  /usr/local/lib/dentistry1402/backup-runtime
+  /usr/local/lib/dentistry1402/backup-retention
+  /usr/local/lib/dentistry1402/restore-drill
+  /usr/local/lib/dentistry1402/send-bale-database-backup
+  /etc/systemd/system/dentistry1402-backup.service
+  /etc/systemd/system/dentistry1402-backup.timer
+  /etc/systemd/system/dentistry1402-backup-retention.service
+  /etc/systemd/system/dentistry1402-backup-retention.timer
+  /etc/systemd/system/dentistry1402-restore-drill.service
+  /etc/systemd/system/dentistry1402-restore-drill.timer
+  /etc/systemd/system/dentistry1402-bale-database-backup.service
+  /etc/systemd/system/dentistry1402-bale-database-backup.timer
+)
+
+snapshot_backup_tooling() {
+  tooling_snapshot="$(mktemp -d /var/tmp/dentistry1402-backup-tooling.XXXXXX)"
+  chmod 0700 "$tooling_snapshot"
+  : > "$tooling_snapshot/manifest"
+  local index=0 path state
+  for path in "${tooling_paths[@]}"; do
+    if test -e "$path" || test -L "$path"; then
+      cp -a -- "$path" "$tooling_snapshot/$index"
+      state=present
+    else
+      state=absent
+    fi
+    printf '%s\t%s\t%s\n' "$index" "$state" "$path" >> "$tooling_snapshot/manifest"
+    index=$((index + 1))
+  done
+}
+
+restore_backup_tooling() {
+  test -n "$tooling_snapshot" && test -f "$tooling_snapshot/manifest"
+  local index state path replacement
+  while IFS=$'\t' read -r index state path; do
+    if test "$state" = present; then
+      replacement="${path}.restore.$$"
+      rm -f -- "$replacement" || return 1
+      cp -a -- "$tooling_snapshot/$index" "$replacement" || return 1
+      mv -fT -- "$replacement" "$path" || return 1
+    elif test "$state" = absent; then
+      rm -f -- "$path" || return 1
+    else
+      echo "Invalid backup-tooling rollback manifest entry: $index" >&2
+      return 1
+    fi
+  done < "$tooling_snapshot/manifest"
+  systemctl daemon-reload || return 1
+}
 
 cleanup() {
-  if test "$runtime_backup_timer_was_active" = 1; then systemctl start dentistry1402-backup.timer || true; fi
-  if test "$bale_backup_timer_was_active" = 1; then systemctl start dentistry1402-bale-database-backup.timer || true; fi
-  if test "$retention_timer_was_active" = 1; then systemctl start dentistry1402-backup-retention.timer || true; fi
+  if test "$rollback_failed" = 0; then
+    if test "$runtime_backup_timer_was_active" = 1; then systemctl start dentistry1402-backup.timer || true; fi
+    if test "$bale_backup_timer_was_active" = 1; then systemctl start dentistry1402-bale-database-backup.timer || true; fi
+    if test "$retention_timer_was_active" = 1; then systemctl start dentistry1402-backup-retention.timer || true; fi
+  fi
   rm -rf -- "$incoming"
   if test -n "$ops_stage"; then rm -rf -- "$ops_stage"; fi
+  if test "$rollback_failed" = 0 && test -n "$tooling_snapshot"; then rm -rf -- "$tooling_snapshot"; fi
   rm -f -- "$bundle" "$ops_bundle" "${prefix}.install.sh"
 }
 rollback() {
-  test -n "$previous" && test -d "$previous"
-  ln -sfn "$previous" "$root/current.next"
-  mv -Tf "$root/current.next" "$root/current"
-  systemctl reload php8.3-fpm
+  local failed=0
+  if test "$activated" = 1; then
+    if test -z "$previous" || ! test -d "$previous"; then
+      failed=1
+    elif ! ln -sfn "$previous" "$root/current.next" || ! mv -Tf "$root/current.next" "$root/current" || ! systemctl reload php8.3-fpm; then
+      failed=1
+    fi
+  fi
+  if test "$tooling_changed" = 1 && ! restore_backup_tooling; then failed=1; fi
+  return "$failed"
 }
 on_exit() {
   rc=$?
-  if test "$rc" -ne 0 && test "$activated" = 1; then
-    if rollback; then echo SITE_ROLLED_BACK; else echo SITE_ROLLBACK_FAILED; fi
+  if test "$rc" -ne 0 && { test "$activated" = 1 || test "$tooling_changed" = 1; }; then
+    if rollback; then
+      echo SITE_ROLLED_BACK
+    else
+      rollback_failed=1
+      echo SITE_ROLLBACK_FAILED
+      if test -n "$tooling_snapshot"; then echo "BACKUP_TOOLING_ROLLBACK_SNAPSHOT=$tooling_snapshot"; fi
+    fi
   fi
   cleanup
   exit "$rc"
@@ -400,6 +468,18 @@ ops_stage="$(mktemp -d /var/tmp/dentistry1402-backup-ops.XXXXXX)"
 tar -xzf "$ops_bundle" -C "$ops_stage"
 test -f "$ops_stage/ops/site-vps/backup_retention.py"
 test -f "$ops_stage/ops/site-vps/dentistry1402-backup-retention.service"
+test -f "$ops_stage/ops/site-vps/backup-runtime.sh"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup.timer"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup-retention.timer"
+test -f "$ops_stage/ops/site-vps/send-bale-database-backup.py"
+test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer"
+test -f "$ops_stage/ops/site-vps/restore-drill.sh"
+test -f "$ops_stage/ops/site-vps/dentistry1402-restore-drill.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-restore-drill.timer"
+snapshot_backup_tooling
+tooling_changed=1
 install -d -o root -g root -m 0700 \
   /var/backups/dentistry1402/runtime \
   /var/backups/dentistry1402/site-data \

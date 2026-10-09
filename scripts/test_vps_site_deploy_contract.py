@@ -80,6 +80,32 @@ for needle in [
     '/srv/dentistry1402/shared/server-only/backups',
 ]:
     assert needle in verification, f'same-SHA verification must check backup policy invariant: {needle}'
+installer = DEPLOY.split("$installer = @'", 1)[1].split("'@", 1)[0]
+for needle in [
+    '/usr/local/lib/dentistry1402/backup-runtime',
+    '/usr/local/lib/dentistry1402/backup-retention',
+    '/usr/local/lib/dentistry1402/restore-drill',
+    '/usr/local/lib/dentistry1402/send-bale-database-backup',
+    '/etc/systemd/system/dentistry1402-backup.service',
+    '/etc/systemd/system/dentistry1402-backup.timer',
+    '/etc/systemd/system/dentistry1402-backup-retention.service',
+    '/etc/systemd/system/dentistry1402-backup-retention.timer',
+    '/etc/systemd/system/dentistry1402-restore-drill.service',
+    '/etc/systemd/system/dentistry1402-restore-drill.timer',
+    '/etc/systemd/system/dentistry1402-bale-database-backup.service',
+    '/etc/systemd/system/dentistry1402-bale-database-backup.timer',
+]:
+    assert needle in installer, f'backup-tooling rollback snapshot must cover {needle}'
+assert installer.index('\nsnapshot_backup_tooling\n') < installer.index(
+    'install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup_retention.py"'
+), 'backup tooling must be snapshotted before the first live install'
+assert 'if test "$tooling_changed" = 1 && ! restore_backup_tooling; then failed=1; fi' in installer
+assert 'test "$activated" = 1 || test "$tooling_changed" = 1' in installer
+assert 'rollback_failed=1' in installer
+assert 'if test "$rollback_failed" = 0; then' in installer, 'backup timers must stay stopped if tooling rollback fails'
+assert 'if test "$rollback_failed" = 0 && test -n "$tooling_snapshot"; then' in installer, (
+    'failed rollback must preserve the prior tooling snapshot for recovery'
+)
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
 assert "backup=\"/var/backups/dentistry1402/site-data/dent-site-data-" in DEPLOY, 'site-data backups must use Dentistry-isolated storage'
 assert "^SITE_DATA_BACKUP=(/var/backups/dentistry1402/site-data/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12})$" in DEPLOY, 'backup output parser must accept only canonical new site-data paths'
