@@ -17,6 +17,7 @@ for required in \
   site-cert.pem site-key.pem nginx-dentistry1402.conf php-fpm-dentistry1402.conf \
   session-clean.sh dentistry1402-session-clean.service dentistry1402-session-clean.timer \
   backup-runtime.sh dentistry1402-backup.service dentistry1402-backup.timer \
+  backup_retention.py dentistry1402-backup-retention.service dentistry1402-backup-retention.timer \
   restore-drill.sh dentistry1402-restore-drill.service dentistry1402-restore-drill.timer \
   send-bale-database-backup.py dentistry1402-bale-database-backup.service dentistry1402-bale-database-backup.timer \
   housekeeping.sh dentistry1402-housekeeping.service dentistry1402-housekeeping.timer; do
@@ -39,8 +40,11 @@ install -d -o dentweb -g dentweb -m 0750 \
 install -d -o root -g root -m 0755 "$root/shared/acme/.well-known/acme-challenge"
 install -d -o root -g root -m 0750 "$root/shared/tls"
 install -d -o root -g root -m 0755 /usr/local/lib/dentistry1402
-install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime
-install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime/bale-database
+install -d -o root -g root -m 0700 \
+  /var/backups/dentistry1402/runtime \
+  /var/backups/dentistry1402/site-data \
+  /var/backups/dentistry1402/bale-database \
+  /var/backups/dentistry1402/restore-drills
 
 if [[ ! -d "$release_dir" ]]; then
   install -d -o root -g dentweb -m 0750 "$release_dir"
@@ -79,6 +83,9 @@ install -o root -g root -m 0644 "$bundle_dir/dentistry1402-session-clean.timer" 
 install -o root -g root -m 0755 "$bundle_dir/backup-runtime.sh" /usr/local/lib/dentistry1402/backup-runtime
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup.service" /etc/systemd/system/dentistry1402-backup.service
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup.timer" /etc/systemd/system/dentistry1402-backup.timer
+install -o root -g root -m 0755 "$bundle_dir/backup_retention.py" /usr/local/lib/dentistry1402/backup-retention
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup-retention.service" /etc/systemd/system/dentistry1402-backup-retention.service
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup-retention.timer" /etc/systemd/system/dentistry1402-backup-retention.timer
 install -o root -g root -m 0755 "$bundle_dir/restore-drill.sh" /usr/local/lib/dentistry1402/restore-drill
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-restore-drill.service" /etc/systemd/system/dentistry1402-restore-drill.service
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-restore-drill.timer" /etc/systemd/system/dentistry1402-restore-drill.timer
@@ -94,7 +101,9 @@ nginx -t
 systemctl daemon-reload
 systemctl reload php8.3-fpm
 systemctl reload nginx
-systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer
+/usr/local/lib/dentistry1402/backup-retention --migrate-legacy
+systemctl start dentistry1402-backup-retention.service
+systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer
 systemctl start dentistry1402-session-clean.service
 
 printf 'SITE_INSTALL_OK release=%s\n' "$release_sha"

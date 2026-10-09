@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 umask 077
 
-backup_root=/var/backups/dentistry1402-runtime
-report_root="$backup_root/restore-drills"
+backup_root=/var/backups/dentistry1402/runtime
+report_root=/var/backups/dentistry1402/restore-drills
 drill=""
 php_pid=""
 report=""

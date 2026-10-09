@@ -26,4 +26,4 @@ LockPersonality=true
 IPAddressDeny=any
 IPAddressAllow=localhost
 ReadOnlyPaths=/srv/dentistry1402 /var/lib/integrated-dent /etc/integrated-dent
-ReadWritePaths=/var/backups/dentistry1402-runtime
+ReadWritePaths=/var/backups/dentistry1402

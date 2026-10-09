@@ -1,0 +1,12 @@
+[Unit]
+Description=Hourly Dentistry1402 backup retention enforcement
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=5m
+Persistent=true
+AccuracySec=1m
+Unit=dentistry1402-backup-retention.service
+
+[Install]
+WantedBy=timers.target

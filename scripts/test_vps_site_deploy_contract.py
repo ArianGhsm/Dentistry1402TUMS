@@ -36,16 +36,16 @@ for needle in [
     "SITE_DATA_BACKUP=",
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
-    "SITE_DATA_BACKUPS_RETAINED=",
+    "backup-retention --migrate-legacy",
+    "'ops/site-vps/backup_retention.py'",
+    "'ops/site-vps/dentistry1402-backup-retention.service'",
+    "'ops/site-vps/dentistry1402-backup-retention.timer'",
     "'ops/site-vps/send-bale-database-backup.py'",
     "'ops/site-vps/dentistry1402-bale-database-backup.service'",
     "'ops/site-vps/dentistry1402-bale-database-backup.timer'",
     "ops_expected='__OPS_HASH__'",
     "grep -Eq '^[[:space:]]*DENT_BALE_OWNER_ID=' /etc/integrated-dent/bale-bot.env",
-    "systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.service /etc/systemd/system/dentistry1402-bale-database-backup.timer",
-    "systemctl enable --now dentistry1402-bale-database-backup.timer",
-    "${site_backups[@]:5}",
-    "rm -rf --one-file-system -- \"$candidate\"",
+    "systemctl enable --now dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer",
     "test ! -e \"$candidate/public_html/storage\"",
     "test ! -e \"$candidate/public_html/server-only\"",
     'SITE_ROLLED_BACK',
@@ -64,9 +64,10 @@ assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/
 assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in DEPLOY
 assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
-assert "-name 'dent-site-data-????????T??????Z-????????????'" in DEPLOY, 'retention must only match canonical timestamped site-data backups'
-assert DEPLOY.index('(cd "$candidate" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('rm -rf --one-file-system -- "$candidate"'), (
-    'every old site-data backup must be verified before any retention deletion'
+assert "backup=\"/var/backups/dentistry1402/site-data/dent-site-data-" in DEPLOY, 'site-data backups must use Dentistry-isolated storage'
+assert "count==12" in DEPLOY, 'backup service bundle must have a fixed, reviewed allowlist'
+assert DEPLOY.index('(cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('backup-retention --migrate-legacy'), (
+    'the verified pre-switch site-data snapshot must exist before retention migrates or prunes backups'
 )
 assert 'Set-Content -LiteralPath $installerPath -Value $installer -Encoding UTF8' not in DEPLOY, 'remote shell installer must be UTF-8 without BOM'
 assert 'deploy_public_html.ps1' not in GATE, 'release gate must not route production through retired cPanel/FTP deployer'

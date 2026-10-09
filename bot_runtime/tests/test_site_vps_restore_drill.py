@@ -47,7 +47,7 @@ def test_restore_drill_systemd_contract_is_monthly_and_loopback_only() -> None:
     assert "IPAddressDeny=any" in service
     assert "IPAddressAllow=localhost" in service
     assert "ReadOnlyPaths=/srv/dentistry1402 /var/lib/integrated-dent /etc/integrated-dent" in service
-    assert "ReadWritePaths=/var/backups/dentistry1402-runtime" in service
+    assert "ReadWritePaths=/var/backups/dentistry1402" in service
     assert "OnCalendar=Sun *-*-1..7 04:45:00 Asia/Tehran" in timer
     assert "Persistent=true" in timer
     assert "RandomizedDelaySec=10m" in timer
