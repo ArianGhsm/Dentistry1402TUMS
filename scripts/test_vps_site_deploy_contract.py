@@ -63,7 +63,23 @@ for needle in [
 
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
 assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in DEPLOY
-assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY
+verification = DEPLOY.split("$verification = @'", 1)[1].split("'@", 1)[0]
+for needle in [
+    'dentistry1402-backup.timer',
+    'dentistry1402-backup-retention.timer',
+    'dentistry1402-restore-drill.timer',
+    'dentistry1402-bale-database-backup.timer',
+    '/usr/local/lib/dentistry1402/backup-runtime',
+    '/usr/local/lib/dentistry1402/backup-retention',
+    '/usr/local/lib/dentistry1402/restore-drill',
+    '/usr/local/lib/dentistry1402/send-bale-database-backup',
+    '/var/backups/dentistry1402/runtime',
+    '/var/backups/dentistry1402/site-data',
+    '/var/backups/dentistry1402/bale-database',
+    '/var/backups/dentistry1402/restore-drills',
+    '/srv/dentistry1402/shared/server-only/backups',
+]:
+    assert needle in verification, f'same-SHA verification must check backup policy invariant: {needle}'
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
 assert "backup=\"/var/backups/dentistry1402/site-data/dent-site-data-" in DEPLOY, 'site-data backups must use Dentistry-isolated storage'
 assert "^SITE_DATA_BACKUP=(/var/backups/dentistry1402/site-data/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12})$" in DEPLOY, 'backup output parser must accept only canonical new site-data paths'

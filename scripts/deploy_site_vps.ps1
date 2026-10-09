@@ -227,7 +227,29 @@ systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
 systemctl is-active --quiet dentistry1402-bale-database-backup.timer
-test -x /usr/local/lib/dentistry1402/send-bale-database-backup
+for unit in \
+  dentistry1402-backup.timer \
+  dentistry1402-backup-retention.timer \
+  dentistry1402-restore-drill.timer \
+  dentistry1402-bale-database-backup.timer; do
+  systemctl is-enabled --quiet "$unit"
+  systemctl is-active --quiet "$unit"
+done
+for executable in \
+  /usr/local/lib/dentistry1402/backup-runtime \
+  /usr/local/lib/dentistry1402/backup-retention \
+  /usr/local/lib/dentistry1402/restore-drill \
+  /usr/local/lib/dentistry1402/send-bale-database-backup; do
+  test -x "$executable"
+done
+for path in \
+  /var/backups/dentistry1402/runtime \
+  /var/backups/dentistry1402/site-data \
+  /var/backups/dentistry1402/bale-database \
+  /var/backups/dentistry1402/restore-drills \
+  /srv/dentistry1402/shared/server-only/backups; do
+  test -d "$path"
+done
 for url in \
   'https://dentistry1402tums.ir/' \
   'https://dentistry1402tums.ir/chat/' \
