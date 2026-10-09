@@ -56,12 +56,16 @@ def test_site_bootstrap_and_verifier_install_housekeeping_controls() -> None:
         "restore-drill.sh",
         "dentistry1402-restore-drill.service",
         "dentistry1402-restore-drill.timer",
+        "send-bale-database-backup.py",
+        "dentistry1402-bale-database-backup.service",
+        "dentistry1402-bale-database-backup.timer",
         "housekeeping.sh",
         "dentistry1402-housekeeping.service",
         "dentistry1402-housekeeping.timer",
     ):
         assert name in installer
-    assert "dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-housekeeping.timer" in installer
+    assert "dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer" in installer
     assert "dentistry1402-backup.timer" in verifier
     assert "dentistry1402-restore-drill.timer" in verifier
+    assert "dentistry1402-bale-database-backup.timer" in verifier
     assert "dentistry1402-housekeeping.timer" in verifier

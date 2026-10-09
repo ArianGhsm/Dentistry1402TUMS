@@ -226,6 +226,8 @@ systemctl is-active --quiet nginx
 systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
+systemctl is-active --quiet dentistry1402-bale-database-backup.timer
+test -x /usr/local/lib/dentistry1402/send-bale-database-backup
 for url in \
   'https://dentistry1402tums.ir/' \
   'https://dentistry1402tums.ir/chat/' \
@@ -279,9 +281,20 @@ cd /opt/integrated-dent/bale/current
     & tar -C $projectRoot -czf $bundle public_html
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $bundle -PathType Leaf)) { throw 'Site code bundle creation failed.' }
     $bundleHash = Get-Sha256 -Path $bundle
+    $opsBundle = Join-Path $temporaryRoot 'bale-database-backup-ops.tar.gz'
+    $opsFiles = @(
+        'ops/site-vps/send-bale-database-backup.py',
+        'ops/site-vps/dentistry1402-bale-database-backup.service',
+        'ops/site-vps/dentistry1402-bale-database-backup.timer'
+    )
+    & tar -C $projectRoot -czf $opsBundle @opsFiles
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $opsBundle -PathType Leaf)) { throw 'Bale database backup service bundle creation failed.' }
+    $opsBundleHash = Get-Sha256 -Path $opsBundle
     $remotePrefix = "/tmp/dent-site-$runId"
     & scp @scpOptions $bundle "${script:target}:${remotePrefix}.tar.gz"
     if ($LASTEXITCODE -ne 0) { throw 'Site code transfer failed.' }
+    & scp @scpOptions $opsBundle "${script:target}:${remotePrefix}.ops.tar.gz"
+    if ($LASTEXITCODE -ne 0) { throw 'Bale database backup service bundle transfer failed.' }
 
     $installerPath = Join-Path $temporaryRoot 'install.sh'
     $installer = @'
@@ -291,17 +304,21 @@ umask 077
 root=/srv/dentistry1402
 sha='__SHA__'
 expected='__HASH__'
+ops_expected='__OPS_HASH__'
 prefix='__PREFIX__'
 bundle="${prefix}.tar.gz"
+ops_bundle="${prefix}.ops.tar.gz"
 release="$root/releases/$sha"
 incoming="$root/releases/.incoming-$sha-$$"
 previous="$(readlink -f "$root/current")"
+ops_stage=''
 activated=0
 backup=''
 
 cleanup() {
   rm -rf -- "$incoming"
-  rm -f -- "$bundle" "${prefix}.install.sh"
+  if test -n "$ops_stage"; then rm -rf -- "$ops_stage"; fi
+  rm -f -- "$bundle" "$ops_bundle" "${prefix}.install.sh"
 }
 rollback() {
   test -n "$previous" && test -d "$previous"
@@ -323,7 +340,16 @@ trap on_exit EXIT
 test -d "$root/shared/storage"
 test -d "$root/shared/server-only"
 printf '%s  %s\n' "$expected" "$bundle" | sha256sum -c -
+printf '%s  %s\n' "$ops_expected" "$ops_bundle" | sha256sum -c -
 tar -tzf "$bundle" | awk 'BEGIN{ok=1} /^\//{ok=0} /(^|\/)\.\.($|\/)/{ok=0} !/^public_html\// && $0!="public_html"{ok=0} END{exit ok?0:1}'
+tar -tzf "$ops_bundle" | awk '
+  BEGIN { ok=1; count=0 }
+  $0=="ops/site-vps/send-bale-database-backup.py" ||
+  $0=="ops/site-vps/dentistry1402-bale-database-backup.service" ||
+  $0=="ops/site-vps/dentistry1402-bale-database-backup.timer" { count++; next }
+  { ok=0 }
+  END { exit ok && count==3 ? 0 : 1 }
+'
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
 nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null
@@ -430,9 +456,29 @@ set +a
 cd /opt/integrated-dent/bale/current
 /usr/bin/python3 -m dent_bot.bale_health | grep -q '"ready": true'
 
+# Install only the exact, checksum-verified database sender bundle. Its timer
+# runs after the existing runtime snapshot timer and writes only to Dentistry's
+# private backup directory.
+test -f /etc/integrated-dent/bale-bot.env
+grep -Eq '^[[:space:]]*DENT_BALE_BOT_TOKEN=' /etc/integrated-dent/bale-bot.env
+grep -Eq '^[[:space:]]*DENT_BALE_OWNER_ID=' /etc/integrated-dent/bale-bot.env
+ops_stage="$(mktemp -d /var/tmp/dentistry1402-bale-ops.XXXXXX)"
+tar -xzf "$ops_bundle" -C "$ops_stage"
+test -f "$ops_stage/ops/site-vps/send-bale-database-backup.py"
+test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer"
+install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime/bale-database
+install -o root -g root -m 0755 "$ops_stage/ops/site-vps/send-bale-database-backup.py" /usr/local/lib/dentistry1402/send-bale-database-backup
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service" /etc/systemd/system/dentistry1402-bale-database-backup.service
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer" /etc/systemd/system/dentistry1402-bale-database-backup.timer
+systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.service /etc/systemd/system/dentistry1402-bale-database-backup.timer
+systemctl daemon-reload
+systemctl enable --now dentistry1402-bale-database-backup.timer
+systemctl is-active --quiet dentistry1402-bale-database-backup.timer
+
 echo SITE_VPS_DEPLOY_OK
 '@
-    $installer = $installer.Replace('__SHA__', $ReleaseSha).Replace('__HASH__', $bundleHash).Replace('__PREFIX__', $remotePrefix)
+    $installer = $installer.Replace('__SHA__', $ReleaseSha).Replace('__HASH__', $bundleHash).Replace('__OPS_HASH__', $opsBundleHash).Replace('__PREFIX__', $remotePrefix)
     Write-Utf8NoBom -Path $installerPath -Content $installer
     & scp @scpOptions $installerPath "${script:target}:${remotePrefix}.install.sh"
     if ($LASTEXITCODE -ne 0) { throw 'Site installer transfer failed.' }

@@ -135,6 +135,70 @@ class PaymentReturnTests(unittest.TestCase):
         self.assertIn("payment-transactions", str(screen.keyboard))
         self.assertIn("payment-offer", str(screen.keyboard))
 
+    def test_owner_financial_notice_lists_cart_items_without_activating_them(self) -> None:
+        class Settings:
+            owner_id = 10
+            platform = "telegram"
+            payment_result_push_enabled = True
+            payment_result_batch_size = 10
+
+        class Site:
+            def claim_payment_result_deliveries(self, _owner_id, *, limit):
+                return {
+                    "success": True,
+                    "deliveries": [{
+                        "deliveryId": "prd_owner_cart_1234567890123456",
+                        "deliveryKind": "owner",
+                        "platform": "telegram",
+                        "chatId": "10",
+                        "order": {
+                            "orderToken": TOKEN,
+                            "status": "success",
+                            "title": "سبد خرید",
+                            "amountRials": 300000,
+                            "verifiedAt": "2026-08-29T08:00:00Z",
+                            "trackingRef": "T-OWNER-CART",
+                        },
+                    }],
+                }
+
+            def ack_payment_result_delivery(self, *_args, **_kwargs):
+                return {"success": True}
+
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            state.record_commerce_cart_checkout(
+                request_id="owner-cart-request",
+                order_token=TOKEN,
+                platform="telegram",
+                platform_user_id=20,
+                subject_key="student:40211272010",
+                student_number="40211272010",
+                display_name="دانشجو",
+                items=[{
+                    "itemKey": "course-a",
+                    "title": "جزوهٔ جراحی",
+                    "amountRials": 300000,
+                }],
+                subtotal_rials=300000,
+                discount_code="",
+                discount_amount_rials=0,
+                amount_rials=300000,
+            )
+            api = FakeApi()
+            try:
+                result = dispatch_payment_result_batch(
+                    settings=Settings(), api=api, state=state, site_api=Site(),
+                )
+                self.assertEqual(result["sent"], 1)
+                self.assertEqual(result["activated"], 0)
+                self.assertIn("جزوهٔ جراحی", api.sent[0][1])
+                self.assertIn("مبلغ کل", api.sent[0][1])
+                checkout = state.commerce_cart_checkout_by_order(TOKEN)
+                self.assertEqual(checkout["status"], "bound")
+            finally:
+                state.close()
+
     def test_payment_delivery_is_same_platform_and_idempotent(self) -> None:
         class Settings:
             owner_id = 10

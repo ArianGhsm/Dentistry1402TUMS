@@ -213,6 +213,14 @@ def dispatch_payment_result_batch(*, settings, api, state: BotState, site_api: S
         ai_checkout = None
         cart_checkout = state.commerce_cart_checkout_by_order(order_token)
         if cart_checkout is not None and delivery_kind == "owner":
+            # Owner delivery must never activate the buyer's entitlements, but
+            # it still needs the immutable checkout snapshot for a meaningful
+            # financial notification instead of the generic "سبد خرید" label.
+            order["cartItems"] = [
+                dict(item)
+                for item in cart_checkout.get("items", [])
+                if isinstance(item, dict)
+            ]
             cart_checkout = None
         if cart_checkout is not None:
             cart_valid = (

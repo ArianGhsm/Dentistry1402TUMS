@@ -42,15 +42,18 @@ class FakeApi:
     def __init__(self) -> None:
         self.sent: list[tuple] = []
         self.edited: list[tuple] = []
+        self.outgoing: list[str] = []
         self.answered: list[tuple] = []
         self.photos: list[tuple] = []
 
     def send(self, chat_id, text, reply_markup):
         self.sent.append((chat_id, text, reply_markup))
+        self.outgoing.append(text)
         return {"message_id": 1}
 
     def edit(self, chat_id, message_id, text, reply_markup):
         self.edited.append((chat_id, message_id, text, reply_markup))
+        self.outgoing.append(text)
         return {"message_id": message_id}
 
     def answer_callback(self, callback_id, text="", *, show_alert=False):
@@ -155,6 +158,9 @@ class DentBotTests(unittest.TestCase):
 
             def claim_notification_deliveries(self, *_args, **_kwargs):
                 time.sleep(0.5)
+                raise SiteApiError("unavailable", code="SITE_UNAVAILABLE")
+
+            def booklet_free_roster(self, *_args, **_kwargs):
                 raise SiteApiError("unavailable", code="SITE_UNAVAILABLE")
 
         with tempfile.TemporaryDirectory() as directory, patch("dent_bot.runtime.SiteApiClient", SlowSiteApi):
@@ -1674,7 +1680,7 @@ class DentBotTests(unittest.TestCase):
                         }
                     }
                 )
-                self.assertNotIn("مدیریت دنت‌یار", api.edited[0][2])
+                self.assertNotIn("مدیریت دنت‌یار", api.outgoing[-1])
                 self.assertEqual(api.answered, [("callback-1", "", False)])
             finally:
                 state.close()

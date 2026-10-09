@@ -59,6 +59,7 @@ Layout ثابت production:
 | `php-fpm-dentistry1402.conf` | pool ایزوله `dentweb` و runtime env paths |
 | `logrotate-dentistry1402` | فقط rotation لاگ اختصاصی PHP-FPM |
 | `backup-runtime.sh` + unit/timer | snapshot verified از mutable website/bot runtime |
+| `send-bale-database-backup.py` + unit/timer | ارسال دیتابیس‌های snapshotشده به Bale مالک، بدون فایل‌های حجیم و secret |
 | `restore-drill.sh` + unit/timer | restore آزمایشی، isolated و بدون mutation روی live runtime |
 | `session-clean.sh` + unit/timer | پاک‌سازی sessionهای PHP مطابق `session.gc_maxlifetime` |
 | `housekeeping.sh` + unit/timer | retention امن releaseهای وب، Telegram و Bale |
@@ -148,6 +149,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 `
 | --- | --- | --- |
 | 🧹 Session clean | هر ساعت در دقیقه‌های `:14` و `:44` | فقط sessionهای منقضی؛ فایل باز PHP-FPM محافظت می‌شود |
 | 💾 Runtime backup | هر روز `03:20` + حداکثر ۵ دقیقه delay تصادفی | snapshot + checksum + JSON/SQLite verification |
+| 📤 Bale database backup | هر روز `03:35` + حداکثر ۵ دقیقه delay تصادفی | فقط JSON/SQLiteهای سایت و دیتابیس‌های ربات را به Bale مالک می‌فرستد |
 | 📦 Housekeeping | هر روز `04:10` + حداکثر ۵ دقیقه delay | retention releaseها بدون حذف active/in-use |
 | 🧪 Restore drill | یکشنبهٔ اول ماه `04:45` + حداکثر ۱۰ دقیقه delay | restore کامل در محیط isolated و loopback-only |
 
@@ -172,6 +174,20 @@ timerها `Persistent=true` هستند؛ missed run بعد از بازگشت hos
 ۴. SQLite snapshotها را `PRAGMA quick_check` می‌کند.
 
 Retention فعلی: **۱۴ snapshot روزانهٔ جدید + یک snapshot از هرکدام از ۸ هفتهٔ جدید**.
+
+### ارسال روزانه به Bale
+
+`send-bale-database-backup.py` فقط از تازه‌ترین snapshot معتبر `backup-runtime.sh` استفاده می‌کند؛ checksum بیرونی را بررسی می‌کند، JSON/JSONL و SQLite را دوباره اعتبارسنجی می‌کند و یک آرشیو جداگانه می‌سازد. این آرشیو شامل همهٔ JSON/JSONLهای سایت به‌جز مسیر `logs` و همهٔ SQLiteهای ذخیره‌شده در snapshot سایت و ربات‌هاست. PDF، تصویر، log، کلید، token، TLS و تنظیمات سرور به Bale فرستاده نمی‌شوند.
+
+timer ارسال ساعت `03:35` تهران اجرا می‌شود؛ یعنی بعد از snapshot روزانهٔ `03:20`. snapshot قدیمی‌تر از ۲۶ ساعت ارسال نمی‌شود. بسته‌های بزرگ‌تر از ۱۹٬۰۰۰٬۰۰۰ بایت به بخش‌های کوچک‌تر شکسته می‌شوند. پس از موفقیت، هفت بستهٔ آخر در مسیر خصوصی زیر باقی می‌مانند:
+
+```text
+/var/backups/dentistry1402-runtime/bale-database/
+```
+
+سرویس از همان `DENT_BALE_BOT_TOKEN` و `DENT_BALE_OWNER_ID` موجود در `/etc/integrated-dent/bale-bot.env` استفاده می‌کند و هویت یا token تازه‌ای نمی‌سازد. مالک باید قبلاً گفت‌وگو را با ربات بله شروع کرده باشد. در صورت خطای snapshot یا ارسال، سرویس تلاش می‌کند در همان گفت‌وگوی مالک پیام خطا بفرستد و جزئیات را در journal ثبت می‌کند.
+
+مسیر انتشار canonical در `scripts/deploy_site_vps.ps1` فقط سه فایل دقیق sender/service/timer را جداگانه hash-check می‌کند، همان‌ها را نصب و timer را فعال می‌کند. `install-site.sh` نیز برای bootstrap نصب تازه همین فایل‌ها را می‌شناسد. افزودن این فایل‌ها به مخزن به‌تنهایی وضعیت production را تغییر نمی‌دهد؛ ارسال خودکار پس از release exact-SHA فعال می‌شود.
 
 ## 🧪 Restore drill
 
@@ -234,9 +250,10 @@ systemctl is-active nginx php8.3-fpm \
 
 systemctl is-active dentistry1402-session-clean.timer \
   dentistry1402-backup.timer dentistry1402-restore-drill.timer \
-  dentistry1402-housekeeping.timer
+  dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer
 
 /usr/local/lib/dentistry1402/backup-runtime
+/usr/local/lib/dentistry1402/send-bale-database-backup
 /usr/local/lib/dentistry1402/restore-drill
 ```
 

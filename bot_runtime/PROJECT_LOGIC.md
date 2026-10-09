@@ -288,6 +288,9 @@ normal buttons/deep links and does not fake unsupported inline mode.
   receipt before site ACK so callback/lease retries cannot duplicate the
   financial confirmation. The versioned website handoff is
   `docs/SITE_BOT_PAYMENT_RETURN_HANDOFF_V1.md`.
+- An owner financial notice for a successful cart renders the immutable checkout
+  item snapshot and its amounts without activating buyer entitlements. Only the
+  verified buyer delivery path activates those items.
 - The owner transaction center supports canonical detail, product/status/date/
   platform/gateway filters, paginated reports and full matching CSV/TXT export.
   Manual corrections can only move an unverified order among pending, failed,

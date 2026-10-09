@@ -18,6 +18,7 @@ for required in \
   session-clean.sh dentistry1402-session-clean.service dentistry1402-session-clean.timer \
   backup-runtime.sh dentistry1402-backup.service dentistry1402-backup.timer \
   restore-drill.sh dentistry1402-restore-drill.service dentistry1402-restore-drill.timer \
+  send-bale-database-backup.py dentistry1402-bale-database-backup.service dentistry1402-bale-database-backup.timer \
   housekeeping.sh dentistry1402-housekeeping.service dentistry1402-housekeeping.timer; do
   [[ -f "$bundle_dir/$required" ]] || { echo "missing bundle: $required" >&2; exit 66; }
 done
@@ -39,6 +40,7 @@ install -d -o root -g root -m 0755 "$root/shared/acme/.well-known/acme-challenge
 install -d -o root -g root -m 0750 "$root/shared/tls"
 install -d -o root -g root -m 0755 /usr/local/lib/dentistry1402
 install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime
+install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime/bale-database
 
 if [[ ! -d "$release_dir" ]]; then
   install -d -o root -g dentweb -m 0750 "$release_dir"
@@ -80,6 +82,9 @@ install -o root -g root -m 0644 "$bundle_dir/dentistry1402-backup.timer" /etc/sy
 install -o root -g root -m 0755 "$bundle_dir/restore-drill.sh" /usr/local/lib/dentistry1402/restore-drill
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-restore-drill.service" /etc/systemd/system/dentistry1402-restore-drill.service
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-restore-drill.timer" /etc/systemd/system/dentistry1402-restore-drill.timer
+install -o root -g root -m 0755 "$bundle_dir/send-bale-database-backup.py" /usr/local/lib/dentistry1402/send-bale-database-backup
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-bale-database-backup.service" /etc/systemd/system/dentistry1402-bale-database-backup.service
+install -o root -g root -m 0644 "$bundle_dir/dentistry1402-bale-database-backup.timer" /etc/systemd/system/dentistry1402-bale-database-backup.timer
 install -o root -g root -m 0755 "$bundle_dir/housekeeping.sh" /usr/local/lib/dentistry1402/housekeeping
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-housekeeping.service" /etc/systemd/system/dentistry1402-housekeeping.service
 install -o root -g root -m 0644 "$bundle_dir/dentistry1402-housekeeping.timer" /etc/systemd/system/dentistry1402-housekeeping.timer
@@ -89,7 +94,7 @@ nginx -t
 systemctl daemon-reload
 systemctl reload php8.3-fpm
 systemctl reload nginx
-systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-housekeeping.timer
+systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer
 systemctl start dentistry1402-session-clean.service
 
 printf 'SITE_INSTALL_OK release=%s\n' "$release_sha"
