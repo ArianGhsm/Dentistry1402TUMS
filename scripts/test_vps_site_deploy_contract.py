@@ -99,7 +99,11 @@ for needle in [
 assert installer.index('\nsnapshot_backup_tooling\n') < installer.index(
     'install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup_retention.py"'
 ), 'backup tooling must be snapshotted before the first live install'
-assert 'if test "$tooling_changed" = 1 && ! restore_backup_tooling; then failed=1; fi' in installer
+assert 'elif ! restore_backup_tooling; then' in installer
+assert 'if test "$backup_migration_started" = 1; then' in installer
+assert installer.index('backup_migration_started=1\n/usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only') < installer.index(
+    'systemctl enable --now dentistry1402-backup.timer'
+), 'after archive migration starts, rollback must retain consumers for the new archive layout'
 assert 'test "$activated" = 1 || test "$tooling_changed" = 1' in installer
 assert 'rollback_failed=1' in installer
 assert 'if test "$rollback_failed" = 0; then' in installer, 'backup timers must stay stopped if tooling rollback fails'

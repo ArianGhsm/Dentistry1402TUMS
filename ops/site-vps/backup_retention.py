@@ -11,6 +11,7 @@ import re
 import shutil
 import stat
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -87,6 +88,39 @@ def _verify_sidecar(archive: Path, sidecar: Path | None = None) -> None:
         raise RetentionError("backup checksum names a different archive")
     if fields[0].lower() != _sha256(archive):
         raise RetentionError("backup checksum verification failed")
+
+
+def _write_canonical_sidecar(archive: Path, sidecar: Path | None = None) -> None:
+    """Write a GNU sha256sum-compatible receipt naming the archive basename."""
+    sidecar = sidecar or Path(f"{archive}.sha256")
+    if archive.is_symlink() or not archive.is_file() or sidecar.is_symlink():
+        raise RetentionError("cannot normalize an unsafe backup checksum")
+    digest = _sha256(archive)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="ascii",
+            dir=sidecar.parent,
+            prefix=f".{sidecar.name}.",
+            delete=False,
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(f"{digest}  {archive.name}\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(temporary, 0o600)
+        os.replace(temporary, sidecar)
+        if os.name != "nt":
+            directory_fd = os.open(sidecar.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    except OSError as error:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+        raise RetentionError("backup checksum could not be normalized") from error
 
 
 def _verify_site_data(path: Path) -> None:
@@ -291,6 +325,7 @@ def _move_archive_pair(source: Path, target: Path) -> bool:
                 raise RetentionError("legacy archive conflicts with its destination")
             if not target_sidecar.exists():
                 os.replace(usable_sidecar, target_sidecar)
+            _write_canonical_sidecar(target, target_sidecar)
             if source.exists():
                 source.unlink()
             if source_sidecar.exists():
@@ -301,23 +336,23 @@ def _move_archive_pair(source: Path, target: Path) -> bool:
             if target_sidecar.exists():
                 _verify_sidecar(source, target_sidecar)
                 _verify_sidecar(source, source_sidecar)
-                if source_sidecar.read_text(encoding="ascii") != target_sidecar.read_text(encoding="ascii"):
+                if _sha256(source) != _sha256(target):
                     raise RetentionError("legacy archive checksum conflicts with its destination")
                 source_sidecar.unlink()
             else:
                 os.replace(source_sidecar, target_sidecar)
         _verify_sidecar(source, target_sidecar)
         os.replace(source, target)
+        _write_canonical_sidecar(target, target_sidecar)
         return True
 
     if target.is_file() and source_sidecar.is_file():
         _verify_sidecar(target, source_sidecar)
         if target_sidecar.exists():
             _verify_sidecar(target, target_sidecar)
-            if source_sidecar.read_text(encoding="ascii") != target_sidecar.read_text(encoding="ascii"):
-                raise RetentionError("orphaned legacy checksum conflicts with its destination")
         else:
             os.replace(source_sidecar, target_sidecar)
+        _write_canonical_sidecar(target, target_sidecar)
         source_sidecar.unlink(missing_ok=True)
         return True
     return False
@@ -349,6 +384,19 @@ def migrate_legacy(
             if not source.is_symlink():
                 target = runtime_root / source.name
                 moved += int(_move_archive_pair(source, target))
+
+    # A previous process may have stopped just after moving both files but
+    # before normalizing an absolute legacy sidecar. Normalize every verified
+    # destination pair so restore's `sha256sum -c` works after a retry.
+    for destination_root, pattern in ((runtime_root, RUNTIME_NAME), (bale_root, BALE_NAME)):
+        for archive in _legacy_archive_paths(destination_root, pattern):
+            sidecar = Path(f"{archive}.sha256")
+            if archive.is_file() and sidecar.is_file() and not sidecar.is_symlink():
+                try:
+                    _verify_sidecar(archive, sidecar)
+                except RetentionError:
+                    continue
+                _write_canonical_sidecar(archive, sidecar)
 
     legacy_bale = legacy_runtime_root / "bale-database"
     if legacy_bale.is_dir() and not legacy_bale.is_symlink():

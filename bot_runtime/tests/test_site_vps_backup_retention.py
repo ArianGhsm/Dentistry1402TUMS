@@ -27,6 +27,11 @@ def write_sidecar(path: Path) -> None:
     Path(f"{path}.sha256").write_text(f"{digest}  {path.name}\n", encoding="ascii")
 
 
+def rewrite_sidecar_as_legacy_absolute(path: Path) -> None:
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    Path(f"{path}.sha256").write_text(f"{digest}  {path}\n", encoding="ascii")
+
+
 def make_runtime(root: Path, date: str) -> Path:
     path = root / f"dentistry1402-runtime-{date}.tar.gz"
     path.write_bytes(f"runtime {date}".encode())
@@ -143,6 +148,8 @@ class DentistryBackupRetentionTests(unittest.TestCase):
                 path.mkdir(parents=True)
             runtime = make_runtime(legacy_runtime, stamp(1))
             bale = make_bale(legacy_bale, stamp(2))
+            rewrite_sidecar_as_legacy_absolute(runtime)
+            rewrite_sidecar_as_legacy_absolute(bale)
             site = make_site(legacy_backups, stamp(3))
 
             migrated = retention.migrate_legacy(
@@ -163,7 +170,38 @@ class DentistryBackupRetentionTests(unittest.TestCase):
             self.assertTrue((site_root / site.name).is_dir())
             retention._verify_sidecar(runtime_root / runtime.name)
             retention._verify_sidecar(bale_root / bale.name)
+            self.assertEqual(
+                Path(f"{runtime_root / runtime.name}.sha256").read_text(encoding="ascii"),
+                f"{hashlib.sha256((runtime_root / runtime.name).read_bytes()).hexdigest()}  {runtime.name}\n",
+            )
+            self.assertEqual(
+                Path(f"{bale_root / bale.name}.sha256").read_text(encoding="ascii"),
+                f"{hashlib.sha256((bale_root / bale.name).read_bytes()).hexdigest()}  {bale.name}\n",
+            )
             retention._verify_site_data(site_root / site.name)
+
+    def test_migration_normalizes_legacy_sidecars_after_interrupted_pair_move(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime_root = root / "project" / "runtime"
+            runtime_root.mkdir(parents=True)
+            archive = make_runtime(runtime_root, stamp(1))
+            rewrite_sidecar_as_legacy_absolute(archive)
+
+            retention.migrate_legacy(
+                backups_root=root / "legacy-var-backups",
+                runtime_root=runtime_root,
+                site_root=root / "project" / "site-data",
+                bale_root=root / "project" / "bale-database",
+                legacy_runtime_root=root / "legacy-var-backups" / "dentistry1402-runtime",
+            )
+
+            sidecar = Path(f"{archive}.sha256")
+            self.assertEqual(
+                sidecar.read_text(encoding="ascii"),
+                f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n",
+            )
+            retention._verify_sidecar(archive)
 
     def test_migration_resumes_if_archive_or_sidecar_move_was_interrupted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

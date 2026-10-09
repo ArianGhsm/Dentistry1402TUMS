@@ -347,6 +347,7 @@ activated=0
 backup=''
 tooling_snapshot=''
 tooling_changed=0
+backup_migration_started=0
 rollback_failed=0
 runtime_backup_timer_was_active=0
 bale_backup_timer_was_active=0
@@ -422,7 +423,14 @@ rollback() {
       failed=1
     fi
   fi
-  if test "$tooling_changed" = 1 && ! restore_backup_tooling; then failed=1; fi
+  if test "$tooling_changed" = 1; then
+    if test "$backup_migration_started" = 1; then
+      systemctl daemon-reload || failed=1
+      echo SITE_BACKUP_TOOLING_RETAINED
+    elif ! restore_backup_tooling; then
+      failed=1
+    fi
+  fi
   return "$failed"
 }
 on_exit() {
@@ -631,6 +639,7 @@ systemd-analyze verify \
   /etc/systemd/system/dentistry1402-bale-database-backup.service \
   /etc/systemd/system/dentistry1402-bale-database-backup.timer
 systemctl daemon-reload
+backup_migration_started=1
 /usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only
 systemctl enable --now dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer
 systemctl is-active --quiet dentistry1402-backup-retention.timer
@@ -655,7 +664,12 @@ echo SITE_VPS_DEPLOY_OK
         $joined = $remoteOutput -join "`n"
         if ($joined -match 'SITE_ROLLED_BACK') {
             $productionMutation = $true
-            Publish-DentDeployLifecycle -Service website -Status rolled_back -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary 'VPS website deployment failed after activation and code was rolled back.' -ServerConfig $serverConfigPath
+            $toolingStatus = if ($joined -match 'SITE_BACKUP_TOOLING_RETAINED') {
+                'Compatible backup tooling was retained after legacy archive migration began.'
+            } else {
+                'The previous backup tooling was restored.'
+            }
+            Publish-DentDeployLifecycle -Service website -Status rolled_back -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary "VPS website code was rolled back after deployment failure. $toolingStatus" -ServerConfig $serverConfigPath
             $lifecycleTerminalSent = $true
         }
         if ($joined -match 'SITE_ROLLBACK_FAILED') {
