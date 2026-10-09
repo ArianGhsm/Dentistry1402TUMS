@@ -37,6 +37,13 @@ for needle in [
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
     "SITE_DATA_BACKUPS_RETAINED=",
+    "'ops/site-vps/send-bale-database-backup.py'",
+    "'ops/site-vps/dentistry1402-bale-database-backup.service'",
+    "'ops/site-vps/dentistry1402-bale-database-backup.timer'",
+    "ops_expected='__OPS_HASH__'",
+    "grep -Eq '^[[:space:]]*DENT_BALE_OWNER_ID=' /etc/integrated-dent/bale-bot.env",
+    "systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.service /etc/systemd/system/dentistry1402-bale-database-backup.timer",
+    "systemctl enable --now dentistry1402-bale-database-backup.timer",
     "${site_backups[@]:5}",
     "rm -rf --one-file-system -- \"$candidate\"",
     "test ! -e \"$candidate/public_html/storage\"",
@@ -54,6 +61,8 @@ for needle in [
     assert needle in DEPLOY, f'missing VPS deploy invariant: {needle}'
 
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
+assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in DEPLOY
+assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
 assert "-name 'dent-site-data-????????T??????Z-????????????'" in DEPLOY, 'retention must only match canonical timestamped site-data backups'
 assert DEPLOY.index('(cd "$candidate" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('rm -rf --one-file-system -- "$candidate"'), (

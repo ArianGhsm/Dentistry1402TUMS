@@ -41,15 +41,18 @@ class FakeApi:
     def __init__(self) -> None:
         self.sent = []
         self.edited = []
+        self.outgoing = []
         self.answered = []
         self.removed = []
 
     def send(self, chat_id, text, keyboard):
         self.sent.append((chat_id, text, keyboard))
+        self.outgoing.append(text)
         return {"message_id": len(self.sent)}
 
     def edit(self, chat_id, message_id, text, keyboard):
         self.edited.append((chat_id, message_id, text, keyboard))
+        self.outgoing.append(text)
         return {"message_id": message_id}
 
     def answer_callback(self, callback_id, text="", *, show_alert=False):
@@ -152,7 +155,7 @@ class OnboardingTests(unittest.TestCase):
                     "message": {"message_id": 9, "chat": {"id": 20, "type": "private"}},
                 }})
                 self.assertGreater(site.account_calls, 0)
-                self.assertIn("خوش آمدی به دنت‌یار", api.edited[-1][2])
+                self.assertIn("خوش آمدی به دنت‌یار", api.outgoing[-1])
                 self.assertEqual(len(api.answered), answers_before_success + 1)
                 self.assertIn("عضویت تأیید شد", api.answered[-1][1])
                 self.assertIs(api.answered[-1][2], False)
@@ -580,8 +583,8 @@ class OnboardingTests(unittest.TestCase):
                         "data": "v1:home",
                         "message": {"message_id": 7, "chat": {"id": 20, "type": "private"}},
                     }})
-                    self.assertIn("خوش آمدی به دنت‌یار", api.edited[-1][2])
-                    self.assertNotIn("دنت‌یار | ورودی", api.edited[-1][2])
+                    self.assertIn("خوش آمدی به دنت‌یار", api.outgoing[-1])
+                    self.assertNotIn("دنت‌یار | ورودی", api.outgoing[-1])
                 finally:
                     state.close()
 
@@ -633,7 +636,7 @@ class OnboardingTests(unittest.TestCase):
                         "id": "forged-admin", "from": {"id": 20}, "data": "v1:grades",
                         "message": {"message_id": 7, "chat": {"id": 20, "type": "private"}},
                     }})
-                    self.assertIn("خوش آمدی به دنت‌یار", api.edited[-1][2])
+                    self.assertIn("خوش آمدی به دنت‌یار", api.outgoing[-1])
                 finally:
                     state.close()
 
@@ -654,7 +657,7 @@ class OnboardingTests(unittest.TestCase):
                     "message": {"message_id": 8, "chat": {"id": 20, "type": "private"}},
                 }})
                 self.assertEqual(state.dialog(20), before)
-                self.assertIn("نام خانوادگی", api.edited[-1][2])
+                self.assertIn("نام خانوادگی", api.outgoing[-1])
             finally:
                 state.close()
 

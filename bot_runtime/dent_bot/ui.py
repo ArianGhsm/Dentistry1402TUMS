@@ -1735,13 +1735,36 @@ def payment_owner_success_push_screen(payload: dict) -> Screen:
     verified = html.escape(format_jalali_datetime(payload.get("verifiedAt")) or "—")
     tracking = html.escape(str(payload.get("trackingRef") or "—"))
     offer_ref = str(payload.get("offerRef") or "")
+    cart_items = [dict(item) for item in payload.get("cartItems", []) if isinstance(item, dict)]
+    cart_section = ""
+    if cart_items:
+        item_lines = [
+            f"\n<b>🛒 محصولات سبد · {to_persian_digits(len(cart_items))} مورد</b>"
+        ]
+        for index, item in enumerate(cart_items, start=1):
+            item_title = " ".join(str(item.get("title") or "محصول").split())
+            if len(item_title) > 88:
+                item_title = item_title[:87].rstrip() + "…"
+            item_amount_value = (
+                item.get("paidAmountRials")
+                if "paidAmountRials" in item
+                else item.get("amountRials")
+            )
+            item_amount = html.escape(format_rials(item_amount_value))
+            item_lines.append(
+                f"{to_persian_digits(index)}. <b>{html.escape(to_persian_digits(item_title))}</b>\n"
+                f"<blockquote>💳 {item_amount}</blockquote>"
+            )
+        cart_section = "\n".join(item_lines)
     rows = []
     if offer_ref:
         rows.append([button("مشاهده محصول", action=f"payment-offer:{offer_ref}")])
     rows.extend(([button("همه تراکنش‌ها", action="payment-transactions")], [button("مرکز پرداخت‌ها", action="admin-payments")]))
     return Screen(
         f"<b>💰 پرداخت جدید</b>\n\nنام: <b>{payer}</b>\nشماره دانشجویی: <code>{student}</code>\n"
-        f"محصول: <b>{title}</b>\nمبلغ: <code>{amount}</code>\nزمان: {verified}\nکد پیگیری: <code>{tracking}</code>",
+        f"محصول: <b>{title}</b>"
+        + cart_section
+        + f"\nمبلغ کل: <code>{amount}</code>\nزمان: {verified}\nکد پیگیری: <code>{tracking}</code>",
         keyboard(*rows),
     )
 

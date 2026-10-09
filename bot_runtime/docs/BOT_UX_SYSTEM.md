@@ -135,6 +135,11 @@ is not copied to the other linked bot, and the public website receipt is not the
 primary or final bot-purchase action. The site contract is
 `SITE_BOT_PAYMENT_RETURN_HANDOFF_V1.md`.
 
+The owner payment notice for a successful cart includes the immutable checked
+out item names and per-item amounts. That notice is informational and does not
+activate buyer entitlements; activation and delivery remain on the buyer's
+verified delivery path.
+
 Exam participation follows `EXAM_BOT_SYSTEM_V1.md`. Catalog, enrollment,
 course purchase, active attempts, per-question answers, timers, study state and
 reports are canonical website data. Telegram and Bale render the same shared

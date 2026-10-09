@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily send of the verified Dentistry1402 database backup to Bale
+
+[Timer]
+OnCalendar=*-*-* 03:35:00 Asia/Tehran
+RandomizedDelaySec=5m
+Persistent=true
+AccuracySec=1m
+Unit=dentistry1402-bale-database-backup.service
+
+[Install]
+WantedBy=timers.target
