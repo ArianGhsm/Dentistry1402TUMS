@@ -19,4 +19,5 @@ ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
 ReadOnlyPaths=/srv/dentistry1402 /var/lib/integrated-dent /etc/integrated-dent /etc/nginx/sites-available /etc/php/8.3/fpm/pool.d
-ReadWritePaths=/var/backups/dentistry1402-runtime
+ReadWritePaths=/var/backups/dentistry1402/runtime
+ExecStopPost=/usr/bin/systemctl start dentistry1402-backup-retention.service
