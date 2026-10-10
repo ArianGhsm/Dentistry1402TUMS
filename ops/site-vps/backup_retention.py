@@ -336,8 +336,6 @@ def _move_archive_pair(source: Path, target: Path) -> bool:
             if target_sidecar.exists():
                 _verify_sidecar(source, target_sidecar)
                 _verify_sidecar(source, source_sidecar)
-                if _sha256(source) != _sha256(target):
-                    raise RetentionError("legacy archive checksum conflicts with its destination")
                 source_sidecar.unlink()
             else:
                 os.replace(source_sidecar, target_sidecar)
