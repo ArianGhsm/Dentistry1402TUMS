@@ -159,6 +159,16 @@ assert "count==12" in DEPLOY, 'backup service bundle must have a fixed, reviewed
 assert DEPLOY.index('(cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('backup-retention --migrate-legacy'), (
     'the verified pre-switch site-data snapshot must exist before legacy backups are migrated'
 )
+retention_install = 'install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup_retention.py" /usr/local/lib/dentistry1402/backup-retention'
+assert DEPLOY.index('systemctl stop dentistry1402-backup-retention.timer') < DEPLOY.index(retention_install), (
+    'the retention timer must be quiesced before replacing its live executable'
+)
+assert DEPLOY.index('(cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index(retention_install), (
+    'the verified site-data recovery snapshot must exist before replacing the live retention executable'
+)
+assert DEPLOY.index('A Dentistry backup service is still active; retry after it completes.') < DEPLOY.index(retention_install), (
+    'all backup services must be quiescent before replacing the live retention executable'
+)
 assert DEPLOY.index('install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup-runtime.sh"') < DEPLOY.index(
     'backup-retention --migrate-legacy --migrate-only'
 ), 'new backup consumers must be installed before legacy archives move'

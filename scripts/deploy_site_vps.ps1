@@ -495,7 +495,6 @@ install -d -o root -g root -m 0700 \
   /var/backups/dentistry1402/site-data \
   /var/backups/dentistry1402/bale-database \
   /var/backups/dentistry1402/restore-drills
-install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup_retention.py" /usr/local/lib/dentistry1402/backup-retention
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
 nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null
@@ -540,6 +539,7 @@ tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage
 (cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)
 chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
 echo "SITE_DATA_BACKUP=$backup"
+install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup_retention.py" /usr/local/lib/dentistry1402/backup-retention
 
 validate_release() {
   candidate="$1"

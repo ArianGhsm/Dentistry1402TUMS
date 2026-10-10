@@ -44,10 +44,11 @@ been changed from this feature branch. The first rollout must pass GitHub CI
 and review, then use the exact merged `origin/main` SHA through
 `scripts/run_release_gate.ps1` / `scripts/deploy_site_vps.ps1`.
 
-The release gate first creates and verifies a new site-data recovery snapshot,
-temporarily pauses the Dentistry runtime, Bale, retention and restore-drill
-timers, and checks that none of their services is active. After live release checks, it installs
-the new backup consumers and migrates complete legacy snapshots in place. The
+The release gate pauses the Dentistry runtime, Bale, retention and restore-drill
+timers and checks that none of their services is active before creating and
+verifying a new site-data recovery snapshot. It installs the replacement
+retention executable only after that snapshot is verified, then installs the
+other backup consumers and migrates complete legacy snapshots in place. The
 deployer does not prune recovery artifacts under `shared/server-only`; the
 separate retention service applies the five-set cap after the release gate has
 completed. Its exit handler restarts timers that were active before a failed
