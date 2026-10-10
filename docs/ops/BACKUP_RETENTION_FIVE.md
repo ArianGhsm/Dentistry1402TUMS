@@ -25,7 +25,8 @@ absolute checksum paths written by the previous site deployer and basename
 entries from the new writer. It preserves the newest available set from each
 family before filling the remaining slots by timestamp. Moves from legacy
 paths use same-filesystem rename, not a duplicate copy. Incomplete sets and
-unknown files remain in place. The helper uses an exclusive lock so scheduled
+unknown files remain in place; invalid calendar timestamps are ignored without
+blocking pruning of valid sets. The helper uses an exclusive lock so scheduled
 cleanup and deployment migration cannot race. The deployer installs the new
 backup, restore and Bale consumers before migrating archive paths; its
 migration-only call does not prune protected `shared/server-only` data. A
@@ -42,19 +43,20 @@ and review, then use the exact merged `origin/main` SHA through
 `scripts/run_release_gate.ps1` / `scripts/deploy_site_vps.ps1`.
 
 The release gate first creates and verifies a new site-data recovery snapshot,
-temporarily pauses the Dentistry runtime, Bale and retention timers, and checks
-that none of their services is active. After live release checks, it installs
+temporarily pauses the Dentistry runtime, Bale, retention and restore-drill
+timers, and checks that none of their services is active. After live release checks, it installs
 the new backup consumers and migrates complete legacy snapshots in place. The
 deployer does not prune recovery artifacts under `shared/server-only`; the
 separate retention service applies the five-set cap after the release gate has
 completed. Its exit handler restarts timers that were active before a failed
 release. The installer performs the same idempotent migration for bootstrap
-installs. No operation writes into `/srv/dentistry1402/current` directly.
+installs and restores previously active backup timers if it exits unsuccessfully.
+No operation writes into `/srv/dentistry1402/current` directly.
 
 ## Validation recorded for this branch
 
 - Targeted retention, Bale sender, restore-drill, housekeeping and deployer
-  contract suite: 17 passed.
+  contract suite: 21 passed.
 - `scripts/test_vps_site_deploy_contract.py`: passed.
 - `scripts/check_instruction_contracts.py`: passed.
 - `scripts/check_repository_hygiene.py`: passed.

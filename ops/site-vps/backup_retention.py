@@ -161,7 +161,11 @@ def _manual_candidate(path: Path, manual_root: Path) -> BackupSet | None:
     if match is None:
         return None
     stamp = match.group(1)
-    return BackupSet(path, "manual", _parse_stamp(stamp), lambda: _verify_manual_path(path, manual_root))
+    try:
+        created_at = _parse_stamp(stamp)
+    except RetentionError:
+        return None
+    return BackupSet(path, "manual", created_at, lambda: _verify_manual_path(path, manual_root))
 
 
 def _verify_manual_path(path: Path, parent: Path) -> None:
@@ -194,17 +198,29 @@ def collect_backups(
         for path in runtime_root.iterdir():
             match = RUNTIME_NAME.fullmatch(path.name)
             if match and path.is_file() and not path.is_symlink():
-                result.append(BackupSet(path, "runtime", _parse_stamp(match.group(1)), lambda p=path: _verify_sidecar(p)))
+                try:
+                    created_at = _parse_stamp(match.group(1))
+                except RetentionError:
+                    continue
+                result.append(BackupSet(path, "runtime", created_at, lambda p=path: _verify_sidecar(p)))
     if bale_root.is_dir() and not bale_root.is_symlink():
         for path in bale_root.iterdir():
             match = BALE_NAME.fullmatch(path.name)
             if match and path.is_file() and not path.is_symlink():
-                result.append(BackupSet(path, "bale-database", _parse_stamp(match.group(1)), lambda p=path: _verify_sidecar(p)))
+                try:
+                    created_at = _parse_stamp(match.group(1))
+                except RetentionError:
+                    continue
+                result.append(BackupSet(path, "bale-database", created_at, lambda p=path: _verify_sidecar(p)))
     if site_root.is_dir() and not site_root.is_symlink():
         for path in site_root.iterdir():
             match = SITE_NAME.fullmatch(path.name)
             if match and path.is_dir() and not path.is_symlink():
-                result.append(BackupSet(path, "site-data", _parse_stamp(match.group(1)), lambda p=path: _verify_site_data(p)))
+                try:
+                    created_at = _parse_stamp(match.group(1))
+                except RetentionError:
+                    continue
+                result.append(BackupSet(path, "site-data", created_at, lambda p=path: _verify_site_data(p)))
     if manual_root.is_dir() and not manual_root.is_symlink():
         for path in manual_root.iterdir():
             candidate = _manual_candidate(path, manual_root)

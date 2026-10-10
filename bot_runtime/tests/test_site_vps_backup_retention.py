@@ -135,6 +135,28 @@ class DentistryBackupRetentionTests(unittest.TestCase):
             self.assertTrue(paths[0].exists())
             self.assertEqual(len(list(runtime_root.glob("*.tar.gz"))), 6)
 
+    def test_invalid_calendar_timestamps_are_ignored_without_blocking_valid_pruning(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime_root = root / "runtime"
+            runtime_root.mkdir()
+            valid = [make_runtime(runtime_root, stamp(day)) for day in range(1, 7)]
+            invalid = runtime_root / "dentistry1402-runtime-20260230T000000Z.tar.gz"
+            invalid.write_bytes(b"manually copied invalid timestamp")
+            write_sidecar(invalid)
+
+            before, after = retention.prune_backups(
+                site_root=root / "site-data",
+                runtime_root=runtime_root,
+                bale_root=root / "bale-database",
+                manual_root=root / "manual",
+            )
+
+            self.assertEqual((before, after), (6, 5))
+            self.assertFalse(valid[0].exists())
+            self.assertTrue(invalid.exists())
+            self.assertTrue(Path(f"{invalid}.sha256").exists())
+
     def test_migration_moves_verified_legacy_sets_without_copying(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
