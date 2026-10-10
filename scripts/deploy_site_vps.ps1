@@ -352,6 +352,7 @@ rollback_failed=0
 runtime_backup_timer_was_active=0
 bale_backup_timer_was_active=0
 retention_timer_was_active=0
+restore_drill_timer_was_active=0
 tooling_paths=(
   /usr/local/lib/dentistry1402/backup-runtime
   /usr/local/lib/dentistry1402/backup-retention
@@ -408,6 +409,7 @@ cleanup() {
     if test "$runtime_backup_timer_was_active" = 1; then systemctl start dentistry1402-backup.timer || true; fi
     if test "$bale_backup_timer_was_active" = 1; then systemctl start dentistry1402-bale-database-backup.timer || true; fi
     if test "$retention_timer_was_active" = 1; then systemctl start dentistry1402-backup-retention.timer || true; fi
+    if test "$restore_drill_timer_was_active" = 1; then systemctl start dentistry1402-restore-drill.timer || true; fi
   fi
   rm -rf -- "$incoming"
   if test -n "$ops_stage"; then rm -rf -- "$ops_stage"; fi
@@ -522,7 +524,11 @@ if systemctl is-active --quiet dentistry1402-backup-retention.timer; then
   retention_timer_was_active=1
   systemctl stop dentistry1402-backup-retention.timer
 fi
-if systemctl is-active --quiet dentistry1402-backup.service || systemctl is-active --quiet dentistry1402-bale-database-backup.service || systemctl is-active --quiet dentistry1402-backup-retention.service; then
+if systemctl is-active --quiet dentistry1402-restore-drill.timer; then
+  restore_drill_timer_was_active=1
+  systemctl stop dentistry1402-restore-drill.timer
+fi
+if systemctl is-active --quiet dentistry1402-backup.service || systemctl is-active --quiet dentistry1402-bale-database-backup.service || systemctl is-active --quiet dentistry1402-backup-retention.service || systemctl is-active --quiet dentistry1402-restore-drill.service; then
   echo "A Dentistry backup service is still active; retry after it completes." >&2
   exit 75
 fi

@@ -104,6 +104,15 @@ assert 'if test "$backup_migration_started" = 1; then' in installer
 assert installer.index('backup_migration_started=1\n/usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only') < installer.index(
     'systemctl enable --now dentistry1402-backup.timer'
 ), 'after archive migration starts, rollback must retain consumers for the new archive layout'
+assert 'systemctl stop dentistry1402-restore-drill.timer' in installer, (
+    'legacy archive migration must pause the scheduled restore drill'
+)
+assert 'systemctl is-active --quiet dentistry1402-restore-drill.service' in installer, (
+    'legacy archive migration must wait until an in-flight restore drill completes'
+)
+assert 'if test "$restore_drill_timer_was_active" = 1; then systemctl start dentistry1402-restore-drill.timer || true; fi' in installer, (
+    'the scheduled restore drill must resume after deployment cleanup when previously active'
+)
 assert 'test "$activated" = 1 || test "$tooling_changed" = 1' in installer
 assert 'rollback_failed=1' in installer
 assert 'if test "$rollback_failed" = 0; then' in installer, 'backup timers must stay stopped if tooling rollback fails'
