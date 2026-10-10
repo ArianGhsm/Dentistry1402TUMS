@@ -10,6 +10,17 @@ release_sha="$1"
 bundle_dir="$2"
 root=/srv/dentistry1402
 release_dir="$root/releases/$release_sha"
+paused_backup_timers=()
+
+restore_paused_backup_timers() {
+  local status=$?
+  trap - EXIT
+  for timer in "${paused_backup_timers[@]}"; do
+    systemctl start "$timer" || status=1
+  done
+  exit "$status"
+}
+trap restore_paused_backup_timers EXIT
 
 [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid release sha" >&2; exit 65; }
 for required in \
@@ -22,6 +33,27 @@ for required in \
   send-bale-database-backup.py dentistry1402-bale-database-backup.service dentistry1402-bale-database-backup.timer \
   housekeeping.sh dentistry1402-housekeeping.service dentistry1402-housekeeping.timer; do
   [[ -f "$bundle_dir/$required" ]] || { echo "missing bundle: $required" >&2; exit 66; }
+done
+
+for timer in \
+  dentistry1402-backup.timer \
+  dentistry1402-backup-retention.timer \
+  dentistry1402-restore-drill.timer \
+  dentistry1402-bale-database-backup.timer; do
+  if systemctl is-active --quiet "$timer"; then
+    systemctl stop "$timer"
+    paused_backup_timers+=("$timer")
+  fi
+done
+for service in \
+  dentistry1402-backup.service \
+  dentistry1402-backup-retention.service \
+  dentistry1402-restore-drill.service \
+  dentistry1402-bale-database-backup.service; do
+  if systemctl is-active --quiet "$service"; then
+    echo "A Dentistry backup service is still active; retry after it completes." >&2
+    exit 75
+  fi
 done
 
 if ! getent passwd dentweb >/dev/null; then
@@ -104,5 +136,7 @@ systemctl reload nginx
 /usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only
 systemctl enable --now dentistry1402-session-clean.timer dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer
 systemctl start dentistry1402-session-clean.service
+paused_backup_timers=()
+trap - EXIT
 
 printf 'SITE_INSTALL_OK release=%s\n' "$release_sha"

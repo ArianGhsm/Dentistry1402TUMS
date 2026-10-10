@@ -194,6 +194,8 @@ timer ارسال ساعت `03:35` تهران اجرا می‌شود؛ یعنی �
 
 مسیر انتشار canonical در `scripts/deploy_site_vps.ps1` فایل‌های دقیق backup و retention را در یک bundle مجزا hash-check می‌کند، consumerهای جدید را نصب می‌کند و snapshotهای کامل legacy را بدون کپی به `/var/backups/dentistry1402/` منتقل می‌کند. این migration-only مرحله فایل‌های `shared/server-only` را prune نمی‌کند. بعد از موفقیت release gate، اجرای جداگانهٔ سرویس retention سقف پنج‌تایی را اعمال می‌کند؛ timer و اجرای پس از backupها ادامهٔ خودکار را انجام می‌دهند. `install-site.sh` نیز migration را برای bootstrap نصب تازه انجام می‌دهد.
 
+در deploy و bootstrap، timerهای backup، retention، restore drill و ارسال Bale پیش از نصب consumerهای جدید متوقف می‌شوند. اگر سرویس متناظر هنوز در حال اجرا باشد، migration با خطا خارج می‌شود؛ timerهایی که از قبل فعال بودند در مسیر خروج ناموفق دوباره فعال می‌شوند.
+
 ## 🧪 Restore drill
 
 `restore-drill.sh` آخرین backup را در tree خصوصی `/var/tmp` بازسازی می‌کند و بدون دست‌زدن به production ثابت می‌کند که recovery قابل اجرا است:

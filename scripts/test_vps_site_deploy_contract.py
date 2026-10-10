@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOY_PATH = ROOT / 'scripts/deploy_site_vps.ps1'
+INSTALL_PATH = ROOT / 'ops/site-vps/install-site.sh'
 GATE_PATH = ROOT / 'scripts/run_release_gate.ps1'
 COMPLETE_PATH = ROOT / 'scripts/complete_task.ps1'
 LEGACY_MAIN_SITE_FTP_EXAMPLE = ROOT / 'config/examples/sftp.example.json'
@@ -13,6 +14,7 @@ RETIRED_MAIN_SITE_DEPLOYERS = (
     ROOT / 'scripts/deploy_public_html.sh',
 )
 DEPLOY = DEPLOY_PATH.read_text(encoding='utf-8')
+INSTALL = INSTALL_PATH.read_text(encoding='utf-8')
 GATE = GATE_PATH.read_text(encoding='utf-8')
 COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
 AGENTS = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
@@ -63,6 +65,27 @@ for needle in [
 
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
 assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in DEPLOY
+for timer in [
+    'dentistry1402-backup.timer',
+    'dentistry1402-backup-retention.timer',
+    'dentistry1402-restore-drill.timer',
+    'dentistry1402-bale-database-backup.timer',
+]:
+    assert timer in INSTALL, f'bootstrap migration must pause {timer}'
+assert 'systemctl stop "$timer"' in INSTALL, 'bootstrap migration must stop each active backup timer'
+for service in [
+    'dentistry1402-backup.service',
+    'dentistry1402-backup-retention.service',
+    'dentistry1402-restore-drill.service',
+    'dentistry1402-bale-database-backup.service',
+]:
+    assert service in INSTALL, f'bootstrap migration must check {service}'
+assert 'systemctl is-active --quiet "$service"' in INSTALL, 'bootstrap migration must check every backup service'
+assert 'trap restore_paused_backup_timers EXIT' in INSTALL
+assert 'paused_backup_timers=()\ntrap - EXIT' in INSTALL, 'successful bootstrap must leave the newly enabled timers active'
+assert INSTALL.index('dentistry1402-restore-drill.timer \\\n') < INSTALL.index(
+    'backup-retention --migrate-legacy --migrate-only'
+), 'bootstrap migration must pause restore drills before moving legacy archives'
 verification = DEPLOY.split("$verification = @'", 1)[1].split("'@", 1)[0]
 for needle in [
     'dentistry1402-backup.timer',
