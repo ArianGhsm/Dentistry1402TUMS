@@ -42,11 +42,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-for binary in tar sha256sum sqlite3 python3 readlink systemctl curl php ss awk grep setpriv find stat install; do
+for binary in tar sha256sum sqlite3 python3 readlink systemctl curl php ss awk grep setpriv find stat install flock; do
   command -v "$binary" >/dev/null 2>&1 || { echo "$binary is required" >&2; exit 2; }
 done
 
 install -d -o root -g root -m 0700 "$backup_root" "$report_root"
+exec 9>"/var/backups/dentistry1402/.retention.lock"
+flock -x 9
 latest="$(find "$backup_root" -maxdepth 1 -type f -name 'dentistry1402-runtime-*.tar.gz' -printf '%T@ %p\n' \
   | sort -nr | head -n 1 | cut -d' ' -f2-)"
 [[ -n "$latest" && -f "$latest" ]] || { echo 'no runtime backup archive found' >&2; exit 3; }

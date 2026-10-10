@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOY_PATH = ROOT / 'scripts/deploy_site_vps.ps1'
 INSTALL_PATH = ROOT / 'ops/site-vps/install-site.sh'
+RESTORE_DRILL_PATH = ROOT / 'ops/site-vps/restore-drill.sh'
 GATE_PATH = ROOT / 'scripts/run_release_gate.ps1'
 COMPLETE_PATH = ROOT / 'scripts/complete_task.ps1'
 LEGACY_MAIN_SITE_FTP_EXAMPLE = ROOT / 'config/examples/sftp.example.json'
@@ -15,6 +16,7 @@ RETIRED_MAIN_SITE_DEPLOYERS = (
 )
 DEPLOY = DEPLOY_PATH.read_text(encoding='utf-8')
 INSTALL = INSTALL_PATH.read_text(encoding='utf-8')
+RESTORE_DRILL = RESTORE_DRILL_PATH.read_text(encoding='utf-8')
 GATE = GATE_PATH.read_text(encoding='utf-8')
 COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
 AGENTS = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
@@ -86,6 +88,14 @@ assert 'paused_backup_timers=()\ntrap - EXIT' in INSTALL, 'successful bootstrap 
 assert INSTALL.index('dentistry1402-restore-drill.timer \\\n') < INSTALL.index(
     'backup-retention --migrate-legacy --migrate-only'
 ), 'bootstrap migration must pause restore drills before moving legacy archives'
+assert 'for binary in ' in RESTORE_DRILL and ' flock; do' in RESTORE_DRILL, (
+    'restore drills must require the shared lock utility'
+)
+restore_lock = 'exec 9>"/var/backups/dentistry1402/.retention.lock"\nflock -x 9\n'
+assert restore_lock in RESTORE_DRILL, 'restore drills must acquire the retention lock'
+assert RESTORE_DRILL.index(restore_lock) < RESTORE_DRILL.index('latest="$(find "$backup_root"'), (
+    'restore drills must hold the retention lock before selecting an archive'
+)
 verification = DEPLOY.split("$verification = @'", 1)[1].split("'@", 1)[0]
 for needle in [
     'dentistry1402-backup.timer',

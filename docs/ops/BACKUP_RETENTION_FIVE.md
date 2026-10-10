@@ -27,7 +27,9 @@ family before filling the remaining slots by timestamp. Moves from legacy
 paths use same-filesystem rename, not a duplicate copy. Incomplete sets and
 unknown files remain in place; invalid calendar timestamps are ignored without
 blocking pruning of valid sets. The helper uses an exclusive lock so scheduled
-cleanup and deployment migration cannot race. The deployer installs the new
+cleanup and deployment migration cannot race. Restore drills acquire the same
+lock before selecting an archive and hold it through verification, so retention
+cannot remove the selected archive mid-drill. The deployer installs the new
 backup, restore and Bale consumers before migrating archive paths; its
 migration-only call does not prune protected `shared/server-only` data. A
 separate systemd timer starts its first hourly run one hour after activation,

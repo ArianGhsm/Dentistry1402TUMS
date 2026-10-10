@@ -198,7 +198,7 @@ timer ارسال ساعت `03:35` تهران اجرا می‌شود؛ یعنی �
 
 ## 🧪 Restore drill
 
-`restore-drill.sh` آخرین backup را در tree خصوصی `/var/tmp` بازسازی می‌کند و بدون دست‌زدن به production ثابت می‌کند که recovery قابل اجرا است:
+`restore-drill.sh` آخرین backup را در tree خصوصی `/var/tmp` بازسازی می‌کند و بدون دست‌زدن به production ثابت می‌کند که recovery قابل اجرا است. پیش از انتخاب آرشیو، همان قفل سرویس retention را می‌گیرد و تا پایان drill نگه می‌دارد؛ بنابراین آرشیوی که drill در حال بررسی آن است هم‌زمان prune نمی‌شود:
 
 - outer checksum و manifest داخلی verify می‌شوند؛
 - JSONها parse و SQLiteها quick-check می‌شوند؛
