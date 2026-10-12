@@ -926,7 +926,8 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
     $local = ($now ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
     $tomorrow = $local->modify('+1 day');
-    $academicDue = (int) $local->format('G') === 21
+    $academicHour = (int) $local->format('G');
+    $academicDue = in_array($academicHour, [16, 21], true)
         && dent_term7_jalali_in_active_window(dent_term7_jalali_key($tomorrow));
     $foodSlot = dent_term7_food_slot($local);
     if ($foodSlot !== null && !dent_term7_jalali_in_active_window(dent_term7_jalali_key($local))) {
@@ -949,7 +950,7 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
     $existing = 0;
     $errors = [];
 
-    $academicSlotKey = 'academic:' . $local->format('Y-m-d') . ':21';
+    $academicSlotKey = 'academic:' . $local->format('Y-m-d') . ':' . sprintf('%02d', $academicHour);
     if ($academicDue && dent_term7_scheduler_claim_slot($academicSlotKey, $local->getTimestamp())) {
         $slotErrors = [];
         $state = dent_term7_state_read();
@@ -959,7 +960,9 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
                 $resolved = dent_term7_resolve_date($tomorrow, $assignment);
                 $candidate = [
                     'source' => 'academic-term7',
-                    'sourceKey' => 'term7:' . DENT_TERM7_SCHEDULE_VERSION . ':tomorrow:' . $tomorrow->format('Y-m-d') . ':' . $studentNumber,
+                    // Preserve the 21:00 legacy key; the new 16:00 slot has its own identity.
+                    'sourceKey' => 'term7:' . DENT_TERM7_SCHEDULE_VERSION . ':tomorrow:' . $tomorrow->format('Y-m-d')
+                        . ($academicHour === 21 ? '' : ':' . sprintf('%02d', $academicHour)) . ':' . $studentNumber,
                     'title' => '📅 برنامه فردا | ' . $resolved['weekdayLabel'] . ' ' . dent_to_fa_digits((string) $resolved['date']),
                     'body' => dent_term7_summary_body($resolved, (string) $studentNumber),
                     'tone' => 'accent',

@@ -382,6 +382,8 @@ try {
     term7_assert(!dent_term7_scheduler_claim_slot('academic:2026-09-08:21', $leaseNow + 1), 'Concurrent scheduler tick is back-pressured by the slot lease');
     dent_term7_scheduler_finish_slot('academic:2026-09-08:21', true);
     term7_assert(!dent_term7_scheduler_claim_slot('academic:2026-09-08:21', $leaseNow + 600), 'Completed scheduler slot remains idempotent after restart');
+    term7_assert(dent_term7_scheduler_claim_slot('academic:2026-09-08:16', $leaseNow), '16:00 reminder has a separate scheduler slot from 21:00');
+    dent_term7_scheduler_finish_slot('academic:2026-09-08:16', true);
 
     $summaryA = dent_term7_resolve_jalali('1405/07/04', 6, ['group10' => 6, 'group8' => 15]);
     $summaryB = dent_term7_resolve_jalali('1405/07/04', 6, ['group10' => 1, 'group8' => 11]);
@@ -566,9 +568,30 @@ try {
     $preTermTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-08 15:00:00', $tz));
     term7_assert($preTermTick['created'] === 0 && $preTermTick['eligibleUsers'] === 0, 'Scheduler creates no academic/food reminder outside the active term window');
 
+    $preAfternoonTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 15:59:00', $tz));
+    term7_assert($preAfternoonTick['created'] === 0, '15:59 Tehran does not send tomorrow academic reminders');
+    $afternoonTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 16:00:00', $tz));
+    $afternoonRecords = array_values(array_filter(notifications_read_store()['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7'));
+    term7_assert($afternoonTick['eligibleUsers'] === 2 && $afternoonTick['created'] === 2 && count($afternoonRecords) === 2, '16:00 Tehran creates one personalized reminder per canonical student across linked Telegram/Bale');
+    term7_assert(count(array_filter($afternoonRecords, static fn($record): bool => str_contains((string) ($record['sourceKey'] ?? ''), ':16:'))) === 2, 'Afternoon notifications have separate canonical 16:00 keys');
+    $afternoonRetry = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 16:30:00', $tz));
+    term7_assert($afternoonRetry['created'] === 0, '16:00 retry within the hour does not duplicate student reminders');
+    $betweenSlots = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 17:00:00', $tz));
+    term7_assert($betweenSlots['created'] === 0, '17:00 Tehran does not create an extra reminder');
+
     $academicTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 21:00:00', $tz));
     $notificationStore = notifications_read_store();
     $academicRecords = array_values(array_filter($notificationStore['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7'));
+    term7_assert($academicTick['eligibleUsers'] === 2 && $academicTick['created'] === 2 && count($academicRecords) === 4, '21:00 Tehran independently creates the second reminder for each canonical student');
+    term7_assert(count(array_unique(array_column($academicRecords, 'sourceKey'))) === 4, 'Each student has two distinct daily source keys with no cross-platform duplicates');
+    $nightRecords = array_values(array_filter($academicRecords, static fn($record): bool => !str_contains((string) ($record['sourceKey'] ?? ''), ':16:')));
+    term7_assert(count($nightRecords) === 2, '21:00 reminder retains the previous notification source key format');
+    foreach ([$studentA, $studentB] as $studentNumber) {
+        $ownRecords = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentNumber)));
+        term7_assert(count($ownRecords) === 2 && $ownRecords[0]['body'] === $ownRecords[1]['body']
+            && $ownRecords[0]['meta']['academicScheduleRows'] === $ownRecords[1]['meta']['academicScheduleRows'], '16:00 and 21:00 use the same personalized rich schedule rows for each student');
+    }
+    $academicRecords = $nightRecords;
     term7_assert($academicTick['eligibleUsers'] === 2 && count($academicRecords) === 2, 'Integration: every canonical linked dentistry-1402 A/B user receives tomorrow summaries regardless of link-generation metadata');
     term7_assert(($academicRecords[0]['body'] ?? '') !== ($academicRecords[1]['body'] ?? ''), 'Integration: A/B summary bodies are personalized');
     $studentBReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentB)))[0] ?? [];
@@ -601,7 +624,7 @@ try {
     );
     term7_assert(!str_contains(implode('|', array_column($academicRecords, 'sourceKey')), $studentC), 'Integration: cross-cohort fixture C is absent');
     $retryTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 21:30:00', $tz));
-    term7_assert($retryTick['created'] === 0 && count(array_filter(notifications_read_store()['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7')) === 2, 'Integration: scheduler restart/retry creates no duplicate');
+    term7_assert($retryTick['created'] === 0 && count(array_filter(notifications_read_store()['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7')) === 4, 'Integration: scheduler restart/retry creates no duplicate in either delivery slot');
 
     dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-22 15:00:00', $tz));
     $notificationStore = notifications_read_store();
