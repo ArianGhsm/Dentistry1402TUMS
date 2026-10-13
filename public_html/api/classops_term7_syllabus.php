@@ -30,14 +30,16 @@ function classops_term7_syllabus_one_off_overrides(): array
     ];
 }
 
-/** Calendar-date-specific clock corrections must not follow rotation-relative syllabus rows into Rotation B. */
-function classops_term7_syllabus_one_off_clock_overrides(): array
+/** Date-specific presentation and clock exceptions must not modify rotation-relative syllabus rows. */
+function classops_term7_syllabus_one_off_session_overrides(): array
 {
     return [
         'research-methods-2-practical|1405/07/22|8' => [
             'start' => '12:45',
             'end' => '13:45',
-            'reason' => 'تغییر استثنایی ساعت جلسه روش تحقیق ۲ در چهارشنبه ۲۲ مهر ۱۴۰۵',
+            'sessionTitle' => 'کار گروهی انتخاب متغیرها',
+            'instructor' => 'دکتر یونس‌پور و دکتر صراف‌زاده',
+            'reason' => 'برگزاری صرفاً بخش دوم جلسه در چهارشنبه ۲۲ مهر؛ بخش نخست پیش‌تر برگزار شده است',
         ],
     ];
 }
@@ -303,13 +305,16 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
                 $copy['timeSource'] = 'one-off-time-unconfirmed';
             }
             if (isset($session['rescheduleReason'])) $copy['rescheduleReason'] = (string) $session['rescheduleReason'];
-            $clockKey = $slug . '|' . $jalaliDate . '|' . ($single === null ? $sessionKey : (string) $single);
-            $clockOverride = classops_term7_syllabus_one_off_clock_overrides()[$clockKey] ?? null;
-            if (is_array($clockOverride)) {
-                $copy['start'] = (string) $clockOverride['start'];
-                $copy['end'] = (string) $clockOverride['end'];
+            $overrideKey = $slug . '|' . $jalaliDate . '|' . ($single === null ? $sessionKey : (string) $single);
+            $sessionOverride = classops_term7_syllabus_one_off_session_overrides()[$overrideKey] ?? null;
+            if (is_array($sessionOverride)) {
+                $copy['start'] = (string) $sessionOverride['start'];
+                $copy['end'] = (string) $sessionOverride['end'];
                 $copy['timeSource'] = 'one-off-academic-notice';
-                $copy['rescheduleReason'] = (string) $clockOverride['reason'];
+                $copy['rescheduleReason'] = (string) $sessionOverride['reason'];
+                $sessionTitle = trim((string) ($sessionOverride['sessionTitle'] ?? $sessionTitle));
+                $copy['sessionTitle'] = $sessionTitle;
+                $copy['instructor'] = trim((string) ($sessionOverride['instructor'] ?? $copy['instructor']));
             }
             $copy['segments'] = is_array($session['segments'] ?? null) ? $session['segments'] : [];
             $copy['sourceFile'] = (string) ($course['sourceFile'] ?? '');
