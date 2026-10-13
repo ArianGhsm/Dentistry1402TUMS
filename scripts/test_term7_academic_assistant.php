@@ -415,6 +415,23 @@ try {
             );
         }
     }
+    $researchTomorrowA = dent_term7_resolve_jalali('1405/07/22', 3, ['group10' => 3, 'group8' => 18]);
+    $researchTomorrowOther = dent_term7_resolve_jalali('1405/07/22', 3, ['group10' => 8, 'group8' => 18]);
+    $researchTomorrowRows = dent_term7_ordered_schedule_rows($researchTomorrowA);
+    $researchTomorrowSessions = array_values(array_filter($researchTomorrowRows, static fn(array $row): bool => str_contains((string) ($row['title'] ?? ''), 'روش تحقیق ۲')));
+    term7_assert(
+        count($researchTomorrowSessions) === 1
+            && ($researchTomorrowSessions[0]['start'] ?? '') === '12:45'
+            && ($researchTomorrowSessions[0]['end'] ?? '') === '13:45'
+            && trim((string) ($researchTomorrowSessions[0]['instructor'] ?? '')) !== '',
+        'Tomorrow announcement metadata shows the updated Research Methodology 2 time and instructor'
+    );
+    term7_assert(
+        str_contains(dent_term7_summary_body($researchTomorrowA), '۱۲:۴۵ تا ۱۳:۴۵')
+            && !str_contains(dent_term7_summary_body($researchTomorrowOther), 'روش تحقیق ۲')
+            && !str_contains(implode('|', array_column(dent_term7_ordered_schedule_rows($researchTomorrowOther), 'title')), 'روش تحقیق ۲'),
+        'Only assigned group 1-5 students receive the updated Research Methodology session in text and rich rows'
+    );
     term7_assert(str_contains(dent_term7_summary_body($missing), 'گروه کارآموزی'), 'Missing-group UX is explicit');
     $clockSummary = dent_term7_summary_body($satA15);
     term7_assert(
