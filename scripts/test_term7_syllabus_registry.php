@@ -367,6 +367,39 @@ syllabus_assert(
     'Research Methodology metadata preserves the canonical 11:45-14:15 clock for every row'
 );
 
+$researchOneOff = classops_term7_syllabus_enrich_events([
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
+], '1405/07/22', 'A');
+syllabus_assert(
+    count($researchOneOff) === 1
+        && ($researchOneOff[0]['sessionNumber'] ?? null) === 8
+        && ($researchOneOff[0]['start'] ?? '') === '12:45'
+        && ($researchOneOff[0]['end'] ?? '') === '13:45'
+        && ($researchOneOff[0]['timeSource'] ?? '') === 'one-off-academic-notice'
+        && ($researchOneOff[0]['instructor'] ?? '') !== ''
+        && ($researchOneOff[0]['location'] ?? '') === 'آمفی‌تئاتر ۹۰',
+    'Research Methodology session 8 uses the 12:45-13:45 correction on 1405/07/22 only'
+);
+$researchBefore = classops_term7_syllabus_enrich_events([
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
+], '1405/07/15', 'A');
+syllabus_assert(
+    count($researchBefore) === 1
+        && ($researchBefore[0]['start'] ?? '') === '11:45'
+        && ($researchBefore[0]['end'] ?? '') === '14:15',
+    'Research Methodology earlier Wednesday retains the ordinary academic clock'
+);
+$researchInRotationB = classops_term7_syllabus_enrich_events([
+    syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
+], '1405/09/18', 'B');
+syllabus_assert(
+    count($researchInRotationB) === 1
+        && ($researchInRotationB[0]['sessionNumber'] ?? null) === 8
+        && ($researchInRotationB[0]['start'] ?? '') === '11:45'
+        && ($researchInRotationB[0]['end'] ?? '') === '14:15',
+    'Rotation B replay of the same research session must never inherit the 22 Mehr time exception'
+);
+
 $researchWithSupplement = classops_term7_syllabus_enrich_events([
     syllabus_event('research-methods-2-practical', 'روش تحقیق ۲', 'آمفی‌تئاتر ۹۰', '11:45', '14:15'),
 ], '1405/07/08', 'A');
