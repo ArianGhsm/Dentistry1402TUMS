@@ -30,6 +30,18 @@ function classops_term7_syllabus_one_off_overrides(): array
     ];
 }
 
+/** Calendar-date-specific clock corrections must not follow rotation-relative syllabus rows into Rotation B. */
+function classops_term7_syllabus_one_off_clock_overrides(): array
+{
+    return [
+        'research-methods-2-practical|1405/07/22|8' => [
+            'start' => '12:45',
+            'end' => '13:45',
+            'reason' => 'تغییر استثنایی ساعت جلسه روش تحقیق ۲ در چهارشنبه ۲۲ مهر ۱۴۰۵',
+        ],
+    ];
+}
+
 function classops_term7_syllabus_apply_one_off_override(string $courseKey, array $session): array
 {
     $numbers = array_values(array_filter(array_map(
@@ -291,6 +303,14 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
                 $copy['timeSource'] = 'one-off-time-unconfirmed';
             }
             if (isset($session['rescheduleReason'])) $copy['rescheduleReason'] = (string) $session['rescheduleReason'];
+            $clockKey = $slug . '|' . $jalaliDate . '|' . ($single === null ? $sessionKey : (string) $single);
+            $clockOverride = classops_term7_syllabus_one_off_clock_overrides()[$clockKey] ?? null;
+            if (is_array($clockOverride)) {
+                $copy['start'] = (string) $clockOverride['start'];
+                $copy['end'] = (string) $clockOverride['end'];
+                $copy['timeSource'] = 'one-off-academic-notice';
+                $copy['rescheduleReason'] = (string) $clockOverride['reason'];
+            }
             $copy['segments'] = is_array($session['segments'] ?? null) ? $session['segments'] : [];
             $copy['sourceFile'] = (string) ($course['sourceFile'] ?? '');
             $copy['sourcePage'] = max(0, (int) ($session['sourcePage'] ?? 0));
