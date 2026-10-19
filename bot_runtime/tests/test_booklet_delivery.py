@@ -1211,6 +1211,11 @@ class BookletDeliveryTests(unittest.TestCase):
                     "document": {"file_id": "personalized-file", "file_unique_id": "personalized-unique"},
                 }
 
+            def send_protected_document_curl(self, chat_id, document_path, *, caption):
+                return self.send_protected_document_path(
+                    chat_id, document_path, caption=caption, filename="dent1402-personalized.pdf"
+                )
+
             def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption=""):
                 self.cached_sends.append((personalized_file_id, caption))
                 return {"message_id": 800 + len(self.cached_sends)}
