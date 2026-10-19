@@ -3802,6 +3802,32 @@ class BotState:
             "createdAtPresent": bool(str(row[2] or "")),
         }
 
+    def failed_protected_media_candidates(self, *, limit: int = 20) -> list[tuple[int, int]]:
+        """Unfulfilled requests due for bounded, idempotent delivery retry.
+
+        Excludes any user/source ever confirmed sent. Only active sources,
+        recent failures, and backoff-expired attempts are eligible.
+        """
+        with self._lock:
+            rows = self.connection.execute(
+                "WITH attempts AS ("
+                " SELECT user_id,source_id,MAX(id) latest_id,"
+                " SUM(CASE WHEN status='sent' THEN 1 ELSE 0 END) sent_count,"
+                " SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failures"
+                " FROM protected_media_deliveries GROUP BY user_id,source_id)"
+                " SELECT d.user_id,d.source_id FROM attempts a"
+                " JOIN protected_media_deliveries d ON d.id=a.latest_id"
+                " JOIN protected_media_sources s ON s.id=d.source_id AND s.active=1"
+                " WHERE d.status='failed' AND a.sent_count=0 AND a.failures<12"
+                " AND d.created_at>=datetime('now','-30 days')"
+                " AND strftime('%s','now')-strftime('%s',d.created_at)"
+                " >= min(3600,60*(1 << min(a.failures,6)))"
+                " ORDER BY CASE WHEN s.content_kind='ai_booklet' THEN 0 ELSE 1 END,"
+                " d.created_at ASC LIMIT ?",
+                (max(1, min(int(limit), 100)),),
+            ).fetchall()
+        return [(int(user_id), int(source_id)) for user_id, source_id in rows]
+
     def set_navid_challenge(self, daily_date: str, message_id: int, expires_at: str) -> None:
         with self._lock:
             self.connection.execute(

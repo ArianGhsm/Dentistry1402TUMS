@@ -9,6 +9,7 @@ import queue
 import re
 import secrets
 import ssl
+import subprocess
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import quote, urlsplit
@@ -348,7 +349,7 @@ class _HttpsConnectionPool:
             healthy = not response.will_close
             return int(response.status), raw
         except (OSError, TimeoutError, http.client.HTTPException) as error:
-            raise BotApiError("Telegram file upload failed", transient=True) from error
+            raise BotApiError(f"Telegram file upload failed: {type(error).__name__} errno={getattr(error, 'errno', None)}", transient=True) from error
         finally:
             if not healthy:
                 try:
@@ -589,6 +590,40 @@ class TelegramBotApi:
             "fileUniqueId": str(info.get("file_unique_id") or ""),
         }
 
+    def send_protected_document_curl(self, chat_id: int, document_path: Path, *, caption: str = "") -> dict:
+        """Stream a personalized PDF with HTTP/2. Secret stays out of process args."""
+        if not document_path.is_file() or document_path.stat().st_size <= 0:
+            raise BotApiError("Personalized PDF is unavailable")
+        url = f"https://{self._transport.host}{self._transport.prefix}{self._path}/sendDocument"
+        config = f'url = "{url}"\n'
+        if self._transport.proxy_host:
+            config += f'proxy = "http://{self._transport.proxy_host}:{self._transport.proxy_port}"\n'
+        command = [
+            "curl", "--config", "-", "--http2", "--silent", "--show-error",
+            "--header", "Expect:", "--max-time", "240", "--connect-timeout", "12",
+            "--request", "POST", "--form-string", f"chat_id={int(chat_id)}",
+            "--form-string", "protect_content=true",
+            "--form", f"document=@{document_path};filename=dent1402-personalized.pdf;type=application/pdf",
+        ]
+        if caption:
+            command.extend(["--form-string", f"caption={self._prepare_rich_text(caption)}"])
+            if self._parse_mode() is not None:
+                command.extend(["--form-string", f"parse_mode={self._parse_mode()}"])
+        try:
+            process = subprocess.run(command, input=config.encode(), capture_output=True, timeout=255)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise BotApiError(f"Telegram HTTP/2 upload failed: {type(error).__name__}", transient=True) from error
+        if process.returncode != 0:
+            raise BotApiError(f"Telegram HTTP/2 upload failed: curl exit {process.returncode}", transient=True)
+        try:
+            value = json.loads(process.stdout.decode("utf-8"))
+        except (UnicodeError, json.JSONDecodeError) as error:
+            raise BotApiError("Telegram HTTP/2 upload returned invalid JSON", transient=True) from error
+        if not isinstance(value, dict) or value.get("ok") is not True:
+            description = str(value.get("description", "request rejected")) if isinstance(value, dict) else "request rejected"
+            raise BotApiError(description[:240])
+        return dict(value.get("result") or {})
+
     def send_protected_document_path(
         self,
         chat_id: int,
@@ -614,7 +649,7 @@ class TelegramBotApi:
             filename=re.sub(r"[^A-Za-z0-9._-]", "-", filename)[:100] or "personalized.pdf",
             content_type="application/pdf",
             file_path=document_path,
-            timeout=90,
+            timeout=300,
         )
         try:
             value = json.loads(raw.decode("utf-8"))

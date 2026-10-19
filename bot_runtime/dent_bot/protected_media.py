@@ -176,6 +176,30 @@ class ProtectedMediaDispatcher:
         while not self._stop_event.wait(900):
             self.cleanup_orphaned_temp()
 
+    def retry_failed_deliveries(self, *, limit: int = 20) -> dict[str, int]:
+        """Replay failed protected-media requests after a bounded backoff.
+
+        enqueue() revalidates canonical entitlement and deduplicates active work.
+        A previous confirmed delivery is excluded by the state query.
+        """
+        counts = {"queued": 0, "skipped": 0, "errors": 0}
+        for user_id, source_id in self.state.failed_protected_media_candidates(limit=limit):
+            try:
+                status = self.enqueue(user_id, source_id)
+            except Exception as error:
+                counts["errors"] += 1
+                logging.warning(
+                    "booklet delivery recovery error source=%s type=%s",
+                    source_id, type(error).__name__,
+                )
+                continue
+            if status == "queued":
+                counts["queued"] += 1
+                logging.info("booklet recovery queued source=%s", source_id)
+            else:
+                counts["skipped"] += 1
+        return counts
+
     def enqueue(self, user_id: int, source_id: int) -> str:
         source = self.state.protected_media_source(int(source_id))
         return self._enqueue_source(user_id, source_id, source, source_type="booklet")
@@ -464,11 +488,11 @@ class ProtectedMediaDispatcher:
             )
             if not self.authorize(job.user_id, source):
                 raise PermissionError("Booklet entitlement was revoked before final delivery")
-            result = self.api.send_protected_document_path(
+            logging.info("booklet upload ready source=%s bytes=%s", job.source_id, output_path.stat().st_size)
+            result = self.api.send_protected_document_curl(
                 job.user_id,
                 output_path,
                 caption=_protected_delivery_caption(source, material.trace_code),
-                filename="dent1402-personalized.pdf",
             )
             file_id, file_unique_id = self._telegram_document_ids(result)
             if not file_id:
