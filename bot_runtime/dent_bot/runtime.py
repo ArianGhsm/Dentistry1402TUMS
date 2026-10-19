@@ -734,10 +734,10 @@ def run_service(*, settings, api, platform_name: str) -> int:
                         fetch_offset = update_id + 1
                         pending.append((update_id, executor.submit(app.handle, update)))
                     failures = 0
-                except BotApiError:
+                except BotApiError as error:
                     failures += 1
                     delay = min(30, 2 ** min(failures, 5))
-                    logging.warning("%s polling failed; retrying in %s seconds", platform_name, delay)
+                    logging.warning("%s polling failed detail=%s; retrying in %s seconds", platform_name, str(error)[:200], delay)
                     stop_event.wait(delay)
             for _update_id, future in pending:
                 try:
@@ -787,6 +787,7 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
     next_navid_check = 0.0
     next_navid_group_poll = 0.0
     next_daily_content_digest_poll = 0.0
+    next_booklet_delivery_retry = 0.0
     while not stop_event.is_set():
         now = time.monotonic()
         if now >= next_account_disconnect_poll:
@@ -913,6 +914,18 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
             except Exception:
                 logging.exception("%s daily content digest failed", platform_name)
             next_daily_content_digest_poll = time.monotonic() + 60
+        now = time.monotonic()
+        if media_dispatcher is not None and now >= next_booklet_delivery_retry:
+            try:
+                counts = media_dispatcher.retry_failed_deliveries(limit=20)
+                if counts["queued"] or counts["errors"]:
+                    logging.info(
+                        "%s booklet retry queued=%s skipped=%s errors=%s",
+                        platform_name, counts["queued"], counts["skipped"], counts["errors"],
+                    )
+            except Exception:
+                logging.exception("%s booklet delivery retry failed", platform_name)
+            next_booklet_delivery_retry = time.monotonic() + 180
         now = time.monotonic()
         if now >= next_navid_check:
             try:
