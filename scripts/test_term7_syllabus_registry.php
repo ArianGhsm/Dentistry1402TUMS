@@ -280,7 +280,7 @@ syllabus_assert(
     'Diagnostic merged-cell boundaries preserve the first date of each instructor/topic block'
 );
 syllabus_assert(
-    syllabus_virtual_session_numbers($diagnostic) === [6, 8, 9, 10, 11, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28],
+    syllabus_virtual_session_numbers($diagnostic) === [6, 8, 9, 10, 11, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 31],
     'Diagnostic Dentistry 3 exposes exactly seventeen virtual sessions after the one-off change'
 );
 $diagQuiz = classops_term7_syllabus_enrich_events([
@@ -330,6 +330,20 @@ syllabus_assert(
         && ($diagOffline[0]['start'] ?? '') === '11:30'
         && ($diagOffline[0]['end'] ?? '') === '12:30',
     'Diagnostic 1405/07/13 is offline virtual while preserving the canonical timetable clock'
+);
+$diagNewOffline = classops_term7_syllabus_enrich_events([
+    syllabus_event('diagnostic-dentistry-3-sun', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '07:00', '08:00'),
+], '1405/10/13');
+syllabus_assert(
+    count($diagNewOffline) === 1
+        && ($diagNewOffline[0]['sessionNumber'] ?? null) === 31
+        && ($diagNewOffline[0]['instructor'] ?? '') === 'دکتر مرادزاده'
+        && ($diagNewOffline[0]['sessionMode'] ?? '') === 'offline'
+        && ($diagNewOffline[0]['sessionModeLabel'] ?? '') === 'مجازی (آفلاین)'
+        && ($diagNewOffline[0]['location'] ?? 'x') === ''
+        && str_contains((string) ($diagNewOffline[0]['title'] ?? ''), 'مجازی (آفلاین)')
+        && ($diagNewOffline[0]['start'] ?? '') === '07:00',
+    'New Diagnostic 3 syllabus marks 13 Dey as offline virtual without changing its canonical clock'
 );
 $diagOnline = classops_term7_syllabus_enrich_events([
     syllabus_event('diagnostic-dentistry-3-mon', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰', '11:30', '12:30'),
