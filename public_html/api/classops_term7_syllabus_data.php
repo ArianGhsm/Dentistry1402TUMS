@@ -477,7 +477,7 @@ function classops_term7_syllabus_source_catalog(): array
     ]
   },
   "diagnostic-dentistry-3": {
-    "version": "1405-1406-1.corrected.4",
+    "version": "1405-1406-1.corrected.5",
     "oneOffCancelledTheoryDates": ["1405/07/19"],
     "eventSlugs": [
       "diagnostic-dentistry-3-sun",
@@ -485,7 +485,7 @@ function classops_term7_syllabus_source_catalog(): array
     ],
     "courseTitle": "دندانپزشکی تشخیصی ۳",
     "sourceCourseTitle": "دندانپزشکی تشخیصی ۳",
-    "sourceFile": "اصلاحیه واحد دندانپزشکی تشخیصی ۳.pdf",
+    "sourceFile": "اصلاحیه جدید واحد دندانپزشکی تشخیصی ۳.pdf",
     "sessions": [
       {
         "sessionNumber": 1,
@@ -970,7 +970,8 @@ function classops_term7_syllabus_source_catalog(): array
         "title": "ضایعات بدخیم مزانشیمی",
         "instructor": "دکتر مرادزاده",
         "references": [],
-        "sessionMode": "in_person",
+        "sessionMode": "offline",
+        "sessionModeLabel": "مجازی (آفلاین)",
         "sourcePage": 1,
         "assessmentPart": "پایان‌ترم"
       },
