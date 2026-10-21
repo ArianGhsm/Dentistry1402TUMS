@@ -127,6 +127,44 @@ try {
             && dent_term7_practical_time_range('afternoon') === ['11:45', '14:15'],
         'Practical period contract maps morning 08:15-11:15 and afternoon 11:45-14:15'
     );
+    // Regression: the new Research Methods 2 clock starts 29 Mehr,
+    // does not retroactively change prior days, and follows both rotations.
+    foreach ([
+        ['1405/07/22', 3, 2, '12:45', '13:45'],
+        ['1405/07/25', 6, 2, '11:45', '14:15'],
+        ['1405/07/29', 3, 2, '12:00', '14:00'],
+        ['1405/08/02', 6, 2, '12:00', '14:00'],
+        ['1405/08/27', 3, 8, '12:00', '14:00'],
+        ['1405/08/30', 6, 8, '12:00', '14:00'],
+    ] as [$date, $day, $group, $start, $end]) {
+        $dayPlan = dent_term7_resolve_jalali($date, $day, ['group10' => $group, 'group8' => 15]);
+        $events = array_values(array_filter(
+            dent_term7_enriched_event_groups($dayPlan)['practicalAfternoon'],
+            static fn(array $event): bool => ($event['slug'] ?? '') === 'research-methods-2-practical'
+        ));
+        term7_assert(
+            $events !== [] && array_reduce(
+                $events,
+                static fn(bool $valid, array $event): bool => $valid
+                    && ($event['start'] ?? '') === $start
+                    && ($event['end'] ?? '') === $end,
+                true
+            ),
+            'Research Methods 2 canonical clock ' . $date . ' for group ' . $group
+        );
+        if ($date === '1405/07/29') {
+            $rows = array_values(array_filter(
+                dent_term7_ordered_schedule_rows($dayPlan),
+                static fn(array $row): bool => str_contains((string)($row['title'] ?? ''), 'روش تحقیق ۲')
+            ));
+            term7_assert(
+                $rows !== [] && ($rows[0]['start'] ?? '') === '12:00'
+                    && ($rows[0]['end'] ?? '') === '14:00'
+                    && str_contains((string)($rows[0]['title'] ?? ''), 'جلسه 10'),
+                'Research Methods 2 corrected time appears in shared daily/notification rows'
+            );
+        }
+    }
     $precisePractical = dent_term7_event('fixture', 'نمونه', 'morning', 'group10', [1], '', '10:15', '11:45');
     term7_assert(
         ($precisePractical['start'] ?? '') === '10:15' && ($precisePractical['end'] ?? '') === '11:45',
@@ -407,11 +445,12 @@ try {
         $researchRows = array_values(array_filter($allRows, static fn(array $event): bool => str_starts_with((string) ($event['slug'] ?? ''), 'research-methods-2')));
         term7_assert(count($researchRows) === $expectedCount, 'Research Methodology 2 follows active rotation and never duplicates');
         if ($expectedCount === 1) {
+            $afterChange = strcmp($date, '1405/07/29') >= 0;
             term7_assert(
-                ($researchRows[0]['start'] ?? '') === '11:45'
-                    && ($researchRows[0]['end'] ?? '') === '14:15'
+                ($researchRows[0]['start'] ?? '') === ($afterChange ? '12:00' : '11:45')
+                    && ($researchRows[0]['end'] ?? '') === ($afterChange ? '14:00' : '14:15')
                     && ($researchRows[0]['location'] ?? '') === (dent_term7_schedule()['theory'][6][0]['location'] ?? ''),
-                'Research Methodology 2 uses the canonical 11:45-14:15 timetable clock and amphitheater location'
+                'Research Methodology 2 keeps historical clock and applies 12:00-14:00 from 29 Mehr'
             );
         }
     }

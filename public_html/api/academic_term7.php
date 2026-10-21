@@ -12,7 +12,7 @@ require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.11';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.12';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -505,6 +505,13 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
         );
         if ($sourceOccurrence === false) {
             continue;
+        }
+        // Research Methods 2: revised recurring clock from 29 Mehr onward.
+        // Preserve historical dates, the 22 Mehr one-off, and other rotations.
+        if ((string) ($event['slug'] ?? '') === 'research-methods-2-practical'
+            && strcmp($jalaliDate, '1405/07/29') >= 0) {
+            $event['start'] = '12:00';
+            $event['end'] = '14:00';
         }
         if ((string) ($event['period'] ?? '') === 'afternoon') {
             $afternoon[] = $event;
