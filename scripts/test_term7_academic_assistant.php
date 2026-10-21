@@ -445,11 +445,12 @@ try {
         $researchRows = array_values(array_filter($allRows, static fn(array $event): bool => str_starts_with((string) ($event['slug'] ?? ''), 'research-methods-2')));
         term7_assert(count($researchRows) === $expectedCount, 'Research Methodology 2 follows active rotation and never duplicates');
         if ($expectedCount === 1) {
+            $afterChange = strcmp($date, '1405/07/29') >= 0;
             term7_assert(
-                ($researchRows[0]['start'] ?? '') === '11:45'
-                    && ($researchRows[0]['end'] ?? '') === '14:15'
+                ($researchRows[0]['start'] ?? '') === ($afterChange ? '12:00' : '11:45')
+                    && ($researchRows[0]['end'] ?? '') === ($afterChange ? '14:00' : '14:15')
                     && ($researchRows[0]['location'] ?? '') === (dent_term7_schedule()['theory'][6][0]['location'] ?? ''),
-                'Research Methodology 2 uses the canonical 11:45-14:15 timetable clock and amphitheater location'
+                'Research Methodology 2 keeps historical clock and applies 12:00-14:00 from 29 Mehr'
             );
         }
     }
