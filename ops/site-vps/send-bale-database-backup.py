@@ -21,12 +21,11 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 
 
-BACKUP_ROOT = Path("/var/backups/dentistry1402-runtime")
-OUTBOX = BACKUP_ROOT / "bale-database"
+BACKUP_ROOT = Path("/var/backups/dentistry1402/runtime")
+OUTBOX = Path("/var/backups/dentistry1402/bale-database")
 ARCHIVE_PATTERN = re.compile(r"^dentistry1402-runtime-(\d{8}T\d{6}Z)\.tar\.gz$")
 PART_BYTES = 19_000_000
 MAX_AGE = dt.timedelta(hours=26)
-KEEP_PACKAGES = 7
 BALE_API = "https://tapi.bale.ai"
 
 
@@ -333,24 +332,6 @@ def send_failure_notice(token: str, chat_id: int, reason: str) -> None:
         return
 
 
-def retain_packages(outbox: Path, *, keep: int = KEEP_PACKAGES) -> None:
-    packages = sorted(
-        outbox.glob("dentistry1402-database-*.tar.gz"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    retained = set(packages[:keep])
-    for package in packages:
-        if package in retained:
-            continue
-        package.unlink(missing_ok=True)
-        Path(f"{package}.sha256").unlink(missing_ok=True)
-    retained_names = {package.name for package in retained}
-    for part in outbox.glob("dentistry1402-database-*.tar.gz.part*-of-*"):
-        if not any(part.name.startswith(name + ".part") for name in retained_names):
-            part.unlink(missing_ok=True)
-
-
 def run(environ: dict[str, str] | None = None, *, backup_root: Path = BACKUP_ROOT, outbox: Path = OUTBOX) -> None:
     os.umask(0o077)
     environ = os.environ if environ is None else environ
@@ -386,7 +367,6 @@ def run(environ: dict[str, str] | None = None, *, backup_root: Path = BACKUP_ROO
             for part in parts:
                 if part != package:
                     part.unlink(missing_ok=True)
-        retain_packages(outbox)
     print(
         f"BALE_DATABASE_BACKUP_OK snapshot={archive.name} bytes={package_size} "
         f"files={file_count} parts={len(parts)} sha256={package_hash}"

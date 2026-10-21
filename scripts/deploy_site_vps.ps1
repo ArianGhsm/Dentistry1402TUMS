@@ -227,7 +227,29 @@ systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
 systemctl is-active --quiet dentistry1402-bale-database-backup.timer
-test -x /usr/local/lib/dentistry1402/send-bale-database-backup
+for unit in \
+  dentistry1402-backup.timer \
+  dentistry1402-backup-retention.timer \
+  dentistry1402-restore-drill.timer \
+  dentistry1402-bale-database-backup.timer; do
+  systemctl is-enabled --quiet "$unit"
+  systemctl is-active --quiet "$unit"
+done
+for executable in \
+  /usr/local/lib/dentistry1402/backup-runtime \
+  /usr/local/lib/dentistry1402/backup-retention \
+  /usr/local/lib/dentistry1402/restore-drill \
+  /usr/local/lib/dentistry1402/send-bale-database-backup; do
+  test -x "$executable"
+done
+for path in \
+  /var/backups/dentistry1402/runtime \
+  /var/backups/dentistry1402/site-data \
+  /var/backups/dentistry1402/bale-database \
+  /var/backups/dentistry1402/restore-drills \
+  /srv/dentistry1402/shared/server-only/backups; do
+  test -d "$path"
+done
 for url in \
   'https://dentistry1402tums.ir/' \
   'https://dentistry1402tums.ir/chat/' \
@@ -281,8 +303,17 @@ cd /opt/integrated-dent/bale/current
     & tar -C $projectRoot -czf $bundle public_html
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $bundle -PathType Leaf)) { throw 'Site code bundle creation failed.' }
     $bundleHash = Get-Sha256 -Path $bundle
-    $opsBundle = Join-Path $temporaryRoot 'bale-database-backup-ops.tar.gz'
+    $opsBundle = Join-Path $temporaryRoot 'dentistry-backup-ops.tar.gz'
     $opsFiles = @(
+        'ops/site-vps/backup-runtime.sh',
+        'ops/site-vps/dentistry1402-backup.service',
+        'ops/site-vps/dentistry1402-backup.timer',
+        'ops/site-vps/backup_retention.py',
+        'ops/site-vps/dentistry1402-backup-retention.service',
+        'ops/site-vps/dentistry1402-backup-retention.timer',
+        'ops/site-vps/restore-drill.sh',
+        'ops/site-vps/dentistry1402-restore-drill.service',
+        'ops/site-vps/dentistry1402-restore-drill.timer',
         'ops/site-vps/send-bale-database-backup.py',
         'ops/site-vps/dentistry1402-bale-database-backup.service',
         'ops/site-vps/dentistry1402-bale-database-backup.timer'
@@ -294,7 +325,7 @@ cd /opt/integrated-dent/bale/current
     & scp @scpOptions $bundle "${script:target}:${remotePrefix}.tar.gz"
     if ($LASTEXITCODE -ne 0) { throw 'Site code transfer failed.' }
     & scp @scpOptions $opsBundle "${script:target}:${remotePrefix}.ops.tar.gz"
-    if ($LASTEXITCODE -ne 0) { throw 'Bale database backup service bundle transfer failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Dentistry backup service bundle transfer failed.' }
 
     $installerPath = Join-Path $temporaryRoot 'install.sh'
     $installer = @'
@@ -314,22 +345,106 @@ previous="$(readlink -f "$root/current")"
 ops_stage=''
 activated=0
 backup=''
+tooling_snapshot=''
+tooling_changed=0
+backup_migration_started=0
+rollback_failed=0
+runtime_backup_timer_was_active=0
+bale_backup_timer_was_active=0
+retention_timer_was_active=0
+restore_drill_timer_was_active=0
+tooling_paths=(
+  /usr/local/lib/dentistry1402/backup-runtime
+  /usr/local/lib/dentistry1402/backup-retention
+  /usr/local/lib/dentistry1402/restore-drill
+  /usr/local/lib/dentistry1402/send-bale-database-backup
+  /etc/systemd/system/dentistry1402-backup.service
+  /etc/systemd/system/dentistry1402-backup.timer
+  /etc/systemd/system/dentistry1402-backup-retention.service
+  /etc/systemd/system/dentistry1402-backup-retention.timer
+  /etc/systemd/system/dentistry1402-restore-drill.service
+  /etc/systemd/system/dentistry1402-restore-drill.timer
+  /etc/systemd/system/dentistry1402-bale-database-backup.service
+  /etc/systemd/system/dentistry1402-bale-database-backup.timer
+)
+
+snapshot_backup_tooling() {
+  tooling_snapshot="$(mktemp -d /var/tmp/dentistry1402-backup-tooling.XXXXXX)"
+  chmod 0700 "$tooling_snapshot"
+  : > "$tooling_snapshot/manifest"
+  local index=0 path state
+  for path in "${tooling_paths[@]}"; do
+    if test -e "$path" || test -L "$path"; then
+      cp -a -- "$path" "$tooling_snapshot/$index"
+      state=present
+    else
+      state=absent
+    fi
+    printf '%s\t%s\t%s\n' "$index" "$state" "$path" >> "$tooling_snapshot/manifest"
+    index=$((index + 1))
+  done
+}
+
+restore_backup_tooling() {
+  test -n "$tooling_snapshot" && test -f "$tooling_snapshot/manifest"
+  local index state path replacement
+  while IFS=$'\t' read -r index state path; do
+    if test "$state" = present; then
+      replacement="${path}.restore.$$"
+      rm -f -- "$replacement" || return 1
+      cp -a -- "$tooling_snapshot/$index" "$replacement" || return 1
+      mv -fT -- "$replacement" "$path" || return 1
+    elif test "$state" = absent; then
+      rm -f -- "$path" || return 1
+    else
+      echo "Invalid backup-tooling rollback manifest entry: $index" >&2
+      return 1
+    fi
+  done < "$tooling_snapshot/manifest"
+  systemctl daemon-reload || return 1
+}
 
 cleanup() {
+  if test "$rollback_failed" = 0; then
+    if test "$runtime_backup_timer_was_active" = 1; then systemctl start dentistry1402-backup.timer || true; fi
+    if test "$bale_backup_timer_was_active" = 1; then systemctl start dentistry1402-bale-database-backup.timer || true; fi
+    if test "$retention_timer_was_active" = 1; then systemctl start dentistry1402-backup-retention.timer || true; fi
+    if test "$restore_drill_timer_was_active" = 1; then systemctl start dentistry1402-restore-drill.timer || true; fi
+  fi
   rm -rf -- "$incoming"
   if test -n "$ops_stage"; then rm -rf -- "$ops_stage"; fi
+  if test "$rollback_failed" = 0 && test -n "$tooling_snapshot"; then rm -rf -- "$tooling_snapshot"; fi
   rm -f -- "$bundle" "$ops_bundle" "${prefix}.install.sh"
 }
 rollback() {
-  test -n "$previous" && test -d "$previous"
-  ln -sfn "$previous" "$root/current.next"
-  mv -Tf "$root/current.next" "$root/current"
-  systemctl reload php8.3-fpm
+  local failed=0
+  if test "$activated" = 1; then
+    if test -z "$previous" || ! test -d "$previous"; then
+      failed=1
+    elif ! ln -sfn "$previous" "$root/current.next" || ! mv -Tf "$root/current.next" "$root/current" || ! systemctl reload php8.3-fpm; then
+      failed=1
+    fi
+  fi
+  if test "$tooling_changed" = 1; then
+    if test "$backup_migration_started" = 1; then
+      systemctl daemon-reload || failed=1
+      echo SITE_BACKUP_TOOLING_RETAINED
+    elif ! restore_backup_tooling; then
+      failed=1
+    fi
+  fi
+  return "$failed"
 }
 on_exit() {
   rc=$?
-  if test "$rc" -ne 0 && test "$activated" = 1; then
-    if rollback; then echo SITE_ROLLED_BACK; else echo SITE_ROLLBACK_FAILED; fi
+  if test "$rc" -ne 0 && { test "$activated" = 1 || test "$tooling_changed" = 1; }; then
+    if rollback; then
+      echo SITE_ROLLED_BACK
+    else
+      rollback_failed=1
+      echo SITE_ROLLBACK_FAILED
+      if test -n "$tooling_snapshot"; then echo "BACKUP_TOOLING_ROLLBACK_SNAPSHOT=$tooling_snapshot"; fi
+    fi
   fi
   cleanup
   exit "$rc"
@@ -342,14 +457,44 @@ test -d "$root/shared/server-only"
 printf '%s  %s\n' "$expected" "$bundle" | sha256sum -c -
 printf '%s  %s\n' "$ops_expected" "$ops_bundle" | sha256sum -c -
 tar -tzf "$bundle" | awk 'BEGIN{ok=1} /^\//{ok=0} /(^|\/)\.\.($|\/)/{ok=0} !/^public_html\// && $0!="public_html"{ok=0} END{exit ok?0:1}'
-tar -tzf "$ops_bundle" | awk '
+  tar -tzf "$ops_bundle" | awk '
   BEGIN { ok=1; count=0 }
+  $0=="ops/site-vps/backup-runtime.sh" ||
+  $0=="ops/site-vps/dentistry1402-backup.service" ||
+  $0=="ops/site-vps/dentistry1402-backup.timer" ||
+  $0=="ops/site-vps/backup_retention.py" ||
+  $0=="ops/site-vps/dentistry1402-backup-retention.service" ||
+  $0=="ops/site-vps/dentistry1402-backup-retention.timer" ||
+  $0=="ops/site-vps/restore-drill.sh" ||
+  $0=="ops/site-vps/dentistry1402-restore-drill.service" ||
+  $0=="ops/site-vps/dentistry1402-restore-drill.timer" ||
   $0=="ops/site-vps/send-bale-database-backup.py" ||
   $0=="ops/site-vps/dentistry1402-bale-database-backup.service" ||
   $0=="ops/site-vps/dentistry1402-bale-database-backup.timer" { count++; next }
   { ok=0 }
-  END { exit ok && count==3 ? 0 : 1 }
+  END { exit ok && count==12 ? 0 : 1 }
 '
+ops_stage="$(mktemp -d /var/tmp/dentistry1402-backup-ops.XXXXXX)"
+tar -xzf "$ops_bundle" -C "$ops_stage"
+test -f "$ops_stage/ops/site-vps/backup_retention.py"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup-retention.service"
+test -f "$ops_stage/ops/site-vps/backup-runtime.sh"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup.timer"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup-retention.timer"
+test -f "$ops_stage/ops/site-vps/send-bale-database-backup.py"
+test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer"
+test -f "$ops_stage/ops/site-vps/restore-drill.sh"
+test -f "$ops_stage/ops/site-vps/dentistry1402-restore-drill.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-restore-drill.timer"
+snapshot_backup_tooling
+tooling_changed=1
+install -d -o root -g root -m 0700 \
+  /var/backups/dentistry1402/runtime \
+  /var/backups/dentistry1402/site-data \
+  /var/backups/dentistry1402/bale-database \
+  /var/backups/dentistry1402/restore-drills
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
 nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null
@@ -366,33 +511,35 @@ storage_bytes="$(du -sb "$root/shared/storage" | awk '{print $1}')"
 avail_bytes="$(df -B1 --output=avail /var/backups | tail -1 | tr -d ' ')"
 required_bytes="$((storage_bytes * 2 + 209715200))"
 test "$avail_bytes" -gt "$required_bytes"
-backup="/var/backups/dent-site-data-$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:12}"
+if systemctl is-active --quiet dentistry1402-backup.timer; then
+  runtime_backup_timer_was_active=1
+  systemctl stop dentistry1402-backup.timer
+fi
+if systemctl is-active --quiet dentistry1402-bale-database-backup.timer; then
+  bale_backup_timer_was_active=1
+  systemctl stop dentistry1402-bale-database-backup.timer
+fi
+if systemctl is-active --quiet dentistry1402-backup-retention.timer; then
+  retention_timer_was_active=1
+  systemctl stop dentistry1402-backup-retention.timer
+fi
+if systemctl is-active --quiet dentistry1402-restore-drill.timer; then
+  restore_drill_timer_was_active=1
+  systemctl stop dentistry1402-restore-drill.timer
+fi
+if systemctl is-active --quiet dentistry1402-backup.service || systemctl is-active --quiet dentistry1402-bale-database-backup.service || systemctl is-active --quiet dentistry1402-backup-retention.service || systemctl is-active --quiet dentistry1402-restore-drill.service; then
+  echo "A Dentistry backup service is still active; retry after it completes." >&2
+  exit 75
+fi
+backup="/var/backups/dentistry1402/site-data/dent-site-data-$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:12}"
 install -d -o root -g root -m 0700 "$backup"
 printf 'previous=%s\ntarget=%s\n' "$previous" "$sha" > "$backup/runtime-pointers.txt"
 tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage
-sha256sum "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" > "$backup/SHA256SUMS"
+(cd "$backup" && sha256sum runtime-pointers.txt storage.tar.gz > SHA256SUMS)
 (cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)
 chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
 echo "SITE_DATA_BACKUP=$backup"
-
-# Keep the five newest verified canonical site-data backups. Validate every
-# deletion candidate before removing anything, and never match forensic or
-# manually named backup directories outside this exact timestamped namespace.
-mapfile -t site_backups < <(find /var/backups -maxdepth 1 -mindepth 1 -type d \
-  -name 'dent-site-data-????????T??????Z-????????????' -printf '%p\n' | sort -r)
-if test "${#site_backups[@]}" -gt 5; then
-  for candidate in "${site_backups[@]:5}"; do
-    [[ "$candidate" =~ ^/var/backups/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}$ ]]
-    test -f "$candidate/runtime-pointers.txt"
-    test -f "$candidate/storage.tar.gz"
-    test -f "$candidate/SHA256SUMS"
-    (cd "$candidate" && sha256sum -c SHA256SUMS >/dev/null)
-  done
-  for candidate in "${site_backups[@]:5}"; do
-    rm -rf --one-file-system -- "$candidate"
-  done
-fi
-echo "SITE_DATA_BACKUPS_RETAINED=$(find /var/backups -maxdepth 1 -mindepth 1 -type d -name 'dent-site-data-????????T??????Z-????????????' | wc -l)"
+install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup_retention.py" /usr/local/lib/dentistry1402/backup-retention
 
 validate_release() {
   candidate="$1"
@@ -456,24 +603,52 @@ set +a
 cd /opt/integrated-dent/bale/current
 /usr/bin/python3 -m dent_bot.bale_health | grep -q '"ready": true'
 
-# Install only the exact, checksum-verified database sender bundle. Its timer
-# runs after the existing runtime snapshot timer and writes only to Dentistry's
-# private backup directory.
+# Install only the exact, checksum-verified Dentistry backup bundle. Each
+# producer sends retention work to a root-only service scoped to Dentistry data.
 test -f /etc/integrated-dent/bale-bot.env
 grep -Eq '^[[:space:]]*DENT_BALE_BOT_TOKEN=' /etc/integrated-dent/bale-bot.env
 grep -Eq '^[[:space:]]*DENT_BALE_OWNER_ID=' /etc/integrated-dent/bale-bot.env
-ops_stage="$(mktemp -d /var/tmp/dentistry1402-bale-ops.XXXXXX)"
-tar -xzf "$ops_bundle" -C "$ops_stage"
+test -f "$ops_stage/ops/site-vps/backup-runtime.sh"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup.timer"
 test -f "$ops_stage/ops/site-vps/send-bale-database-backup.py"
 test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service"
 test -f "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer"
-install -d -o root -g root -m 0700 /var/backups/dentistry1402-runtime/bale-database
+test -f "$ops_stage/ops/site-vps/restore-drill.sh"
+test -f "$ops_stage/ops/site-vps/dentistry1402-restore-drill.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-restore-drill.timer"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup-retention.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-backup-retention.timer"
+install -d -o root -g root -m 0700 \
+  /var/backups/dentistry1402/runtime \
+  /var/backups/dentistry1402/site-data \
+  /var/backups/dentistry1402/bale-database \
+  /var/backups/dentistry1402/restore-drills
+install -o root -g root -m 0755 "$ops_stage/ops/site-vps/backup-runtime.sh" /usr/local/lib/dentistry1402/backup-runtime
 install -o root -g root -m 0755 "$ops_stage/ops/site-vps/send-bale-database-backup.py" /usr/local/lib/dentistry1402/send-bale-database-backup
+install -o root -g root -m 0755 "$ops_stage/ops/site-vps/restore-drill.sh" /usr/local/lib/dentistry1402/restore-drill
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-backup.service" /etc/systemd/system/dentistry1402-backup.service
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-backup.timer" /etc/systemd/system/dentistry1402-backup.timer
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-backup-retention.service" /etc/systemd/system/dentistry1402-backup-retention.service
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-backup-retention.timer" /etc/systemd/system/dentistry1402-backup-retention.timer
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-restore-drill.service" /etc/systemd/system/dentistry1402-restore-drill.service
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-restore-drill.timer" /etc/systemd/system/dentistry1402-restore-drill.timer
 install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.service" /etc/systemd/system/dentistry1402-bale-database-backup.service
 install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-bale-database-backup.timer" /etc/systemd/system/dentistry1402-bale-database-backup.timer
-systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.service /etc/systemd/system/dentistry1402-bale-database-backup.timer
+systemd-analyze verify \
+  /etc/systemd/system/dentistry1402-backup.service \
+  /etc/systemd/system/dentistry1402-backup.timer \
+  /etc/systemd/system/dentistry1402-backup-retention.service \
+  /etc/systemd/system/dentistry1402-backup-retention.timer \
+  /etc/systemd/system/dentistry1402-restore-drill.service \
+  /etc/systemd/system/dentistry1402-restore-drill.timer \
+  /etc/systemd/system/dentistry1402-bale-database-backup.service \
+  /etc/systemd/system/dentistry1402-bale-database-backup.timer
 systemctl daemon-reload
-systemctl enable --now dentistry1402-bale-database-backup.timer
+backup_migration_started=1
+/usr/local/lib/dentistry1402/backup-retention --migrate-legacy --migrate-only
+systemctl enable --now dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer
+systemctl is-active --quiet dentistry1402-backup-retention.timer
 systemctl is-active --quiet dentistry1402-bale-database-backup.timer
 
 echo SITE_VPS_DEPLOY_OK
@@ -487,7 +662,7 @@ echo SITE_VPS_DEPLOY_OK
     $remoteCode = $LASTEXITCODE
     foreach ($line in $remoteOutput) { Write-Output $line }
     foreach ($line in $remoteOutput) {
-        if ([string]$line -match '^SITE_DATA_BACKUP=(/var/backups/[A-Za-z0-9._-]+)$') {
+        if ([string]$line -match '^SITE_DATA_BACKUP=(/var/backups/dentistry1402/site-data/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12})$') {
             $dataBackupPath = $Matches[1]
         }
     }
@@ -495,7 +670,12 @@ echo SITE_VPS_DEPLOY_OK
         $joined = $remoteOutput -join "`n"
         if ($joined -match 'SITE_ROLLED_BACK') {
             $productionMutation = $true
-            Publish-DentDeployLifecycle -Service website -Status rolled_back -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary 'VPS website deployment failed after activation and code was rolled back.' -ServerConfig $serverConfigPath
+            $toolingStatus = if ($joined -match 'SITE_BACKUP_TOOLING_RETAINED') {
+                'Compatible backup tooling was retained after legacy archive migration began.'
+            } else {
+                'The previous backup tooling was restored.'
+            }
+            Publish-DentDeployLifecycle -Service website -Status rolled_back -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary "VPS website code was rolled back after deployment failure. $toolingStatus" -ServerConfig $serverConfigPath
             $lifecycleTerminalSent = $true
         }
         if ($joined -match 'SITE_ROLLBACK_FAILED') {

@@ -7,9 +7,13 @@
 - **Website secrets/runtime:** `/srv/dentistry1402/shared/server-only` on the Iran VPS.
 - **Telegram/Bale runtime state:** server-only state under `/var/lib/integrated-dent` and `/etc/integrated-dent`.
 - **Recovery:** immutable previous code releases plus verified VPS/runtime backups.
-- **Retention:** each successful VPS release keeps only the five newest verified
-  timestamped `dent-site-data-*` backups; forensic/manual backup namespaces are
-  not part of this automatic cleanup.
+- **Retention:** Dentistry keeps at most five newest complete backup sets in
+  total across runtime, website-data, Bale database packages, and dated manual
+  recovery artifacts. The root-only retention service validates automatic
+  backup checksums before pruning and is triggered after backup jobs plus
+  hourly. The website deployer migrates legacy paths only; it does not prune
+  `shared/server-only`. Other projects' backup namespaces are outside its
+  write scope.
 
 The website no longer deploys to cPanel/FTP. The retired main-site cPanel/FTP deployer scripts have been removed from the working tree; Git history is forensic evidence only and must not be restored as an operational release path.
 

@@ -1,0 +1,21 @@
+[Unit]
+Description=Retain five newest complete Dentistry1402 backup sets
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/lib/dentistry1402/backup-retention
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/backups/dentistry1402 /srv/dentistry1402/shared/server-only/backups

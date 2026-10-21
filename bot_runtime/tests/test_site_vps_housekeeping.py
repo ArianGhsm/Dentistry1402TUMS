@@ -17,13 +17,12 @@ def test_backup_is_verified_and_has_bounded_retention() -> None:
     assert "PRAGMA quick_check;" in backup
     assert "sha256sum -c SHA256SUMS" in backup
     assert "json.loads" in backup
-    assert "archives[:14]" in backup
-    assert "len(weekly) < 8" in backup
     assert "--exclude='./sessions'" in backup
     assert "--exclude='./backups'" in backup
     assert "local rc=$?" in backup
     assert 'return "$rc"' in backup
-    assert "ReadWritePaths=/var/backups/dentistry1402-runtime" in service
+    assert "ReadWritePaths=/var/backups/dentistry1402/runtime" in service
+    assert "ExecStopPost=/usr/bin/systemctl start dentistry1402-backup-retention.service" in service
     assert "OnCalendar=*-*-* 03:20:00 Asia/Tehran" in timer
     assert "Persistent=true" in timer
 
@@ -53,6 +52,9 @@ def test_site_bootstrap_and_verifier_install_housekeeping_controls() -> None:
         "backup-runtime.sh",
         "dentistry1402-backup.service",
         "dentistry1402-backup.timer",
+        "backup_retention.py",
+        "dentistry1402-backup-retention.service",
+        "dentistry1402-backup-retention.timer",
         "restore-drill.sh",
         "dentistry1402-restore-drill.service",
         "dentistry1402-restore-drill.timer",
@@ -64,8 +66,9 @@ def test_site_bootstrap_and_verifier_install_housekeeping_controls() -> None:
         "dentistry1402-housekeeping.timer",
     ):
         assert name in installer
-    assert "dentistry1402-backup.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer" in installer
+    assert "dentistry1402-backup.timer dentistry1402-backup-retention.timer dentistry1402-restore-drill.timer dentistry1402-bale-database-backup.timer dentistry1402-housekeeping.timer" in installer
     assert "dentistry1402-backup.timer" in verifier
+    assert "dentistry1402-backup-retention.timer" in verifier
     assert "dentistry1402-restore-drill.timer" in verifier
     assert "dentistry1402-bale-database-backup.timer" in verifier
     assert "dentistry1402-housekeeping.timer" in verifier

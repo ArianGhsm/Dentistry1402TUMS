@@ -128,36 +128,30 @@ class BaleDatabaseBackupTests(unittest.TestCase):
             self.assertEqual(sent[0][0:2], ("test-token", 12345))
             self.assertIn("SHA-256:", sent[0][3])
 
-    def test_retention_keeps_only_seven_database_packages_and_sidecars(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for index in range(9):
-                package = root / f"dentistry1402-database-2026100{index + 1}T000000Z.tar.gz"
-                package.write_bytes(str(index).encode())
-                Path(f"{package}.sha256").write_text("checksum  archive\n", encoding="ascii")
-            packages = sorted(root.glob("*.tar.gz"))
-            for index, package in enumerate(packages):
-                backup.os.utime(package, (index, index))
-            backup.retain_packages(root)
-            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz"))), 7)
-            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz.sha256"))), 7)
-
-    def test_service_installs_hardened_daily_sender_after_runtime_backup(self) -> None:
+    def test_sender_uses_project_scoped_paths_and_shared_retention(self) -> None:
         service = (OPS / "dentistry1402-bale-database-backup.service").read_text(encoding="utf-8")
         timer = (OPS / "dentistry1402-bale-database-backup.timer").read_text(encoding="utf-8")
         installer = (OPS / "install-site.sh").read_text(encoding="utf-8")
         verifier = (OPS / "verify-site.sh").read_text(encoding="utf-8")
         deployer = (ROOT / "scripts" / "deploy_site_vps.ps1").read_text(encoding="utf-8")
+        source = (OPS / "send-bale-database-backup.py").read_text(encoding="utf-8")
         assert "EnvironmentFile=/etc/integrated-dent/bale-bot.env" in service
         assert "ProtectSystem=strict" in service
-        assert "ReadWritePaths=/var/backups/dentistry1402-runtime/bale-database" in service
+        assert "ReadOnlyPaths=/var/backups/dentistry1402/runtime /etc/integrated-dent" in service
+        assert "ReadWritePaths=/var/backups/dentistry1402/bale-database" in service
+        assert "ExecStopPost=/usr/bin/systemctl start dentistry1402-backup-retention.service" in service
+        assert 'BACKUP_ROOT = Path("/var/backups/dentistry1402/runtime")' in source
+        assert 'OUTBOX = Path("/var/backups/dentistry1402/bale-database")' in source
+        assert "KEEP_PACKAGES" not in source
         assert "OnCalendar=*-*-* 03:35:00 Asia/Tehran" in timer
         assert "dentistry1402-backup.timer" in installer
+        assert "dentistry1402-backup-retention.timer" in installer
         assert "dentistry1402-bale-database-backup.timer" in installer
         assert "dentistry1402-bale-database-backup.timer" in verifier
+        assert "dentistry1402-backup-retention.timer" in verifier
         assert "opsBundleHash" in deployer
         assert "ops_expected='__OPS_HASH__'" in deployer
-        assert "systemctl enable --now dentistry1402-bale-database-backup.timer" in deployer
+        assert "systemctl enable --now dentistry1402-backup.timer dentistry1402-backup-retention.timer" in deployer
 
 
 if __name__ == "__main__":
