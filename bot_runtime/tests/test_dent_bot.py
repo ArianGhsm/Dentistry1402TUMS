@@ -1259,15 +1259,11 @@ class DentBotTests(unittest.TestCase):
             "automation": {},
             "assignments": [{"title": "تمرین", "courseTitle": "اندو", "endDateIso": "2026-08-15T10:00:00+03:30"}],
         }, platform="telegram", site_url="https://example.test")
-        self.assertIn("مرکز نوید", navid.text)
-        self.assertNotIn("<tg-time", navid.text)
-        self.assertIn("<b><u>🎓 مرکز نوید</u></b>", navid.text)
-        self.assertIn("<blockquote>📚 درس:", navid.text)
+        self.assertIn("سامانه همیاد", navid.text)
+        self.assertIn("https://example.test/hamiad/", str(navid.keyboard))
+        self.assertNotIn("۱۴۰۵/۵/۲۴", navid.text)
+        self.assertNotIn("تمرین", navid.text)
         self.assertNotIn("<pre>", navid.text)
-        self.assertIn("۱۴۰۵/۵/۲۴", navid.text)
-        self.assertIn("<table bordered striped compact>", navid.text.rich_html)
-        self.assertIn("<th>مهلت</th>", navid.text.rich_html)
-        self.assertIn("بررسی امروز", str(navid.keyboard))
 
     def test_telegram_grade_report_uses_native_send_rich_message_and_rtl_table(self) -> None:
         class CapturingApi(TelegramBotApi):

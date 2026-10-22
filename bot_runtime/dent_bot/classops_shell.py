@@ -9,7 +9,7 @@ from .ui import Screen, button, keyboard
 
 
 CANONICAL_HOME_ROWS: tuple[tuple[tuple[str, str], ...], ...] = (
-    (("🧭 مرکز نوید", "navid-center"),),
+    (("🧭 مرکز همیاد", "navid-center"),),
     (("📚 جزوات", "notes"), ("💳 اشتراک جزوات", "term-subscription:7")),
     (("📊 نمرات", "grades"), ("🗂 امور کلاس", "class-operations")),
     (("👤 حساب من", "account"), ("🔔 اعلان‌ها", "notifications"), ("❓ راهنما", "help")),
@@ -62,7 +62,7 @@ def owner_management_screen() -> Screen:
         "مدیریت سرویس‌های ربات، عملیات کلاس و مسیرهای داخلی ربات.",
         keyboard(
             [button("🖥 وضعیت سرویس‌ها", action="system-status"), button("🗂 مدیریت امور کلاس", action="c3:owner")],
-            [button("🧭 مرکز نوید", action="navid"), button("💳 پرداخت‌ها", action="admin-payments")],
+            [button("🧭 مرکز همیاد", action="navid"), button("💳 پرداخت‌ها", action="admin-payments")],
             [button("📈 آمار فروش جزوات", action="booklet-sales", style="primary")],
             [button("📊 مدیریت نمرات", action="admin-grades"), button("✏️ درخواست‌های مشخصات", action="profile-edit-requests")],
             [button("🔗 اتصال حساب‌ها", action="identity-mappings")],
@@ -98,29 +98,13 @@ def service_status_screen(payload: dict[str, Any] | None, *, api_failed: bool = 
     )
 
 
-def navid_center_screen(response: dict[str, Any]) -> Screen:
-    view = dict(response.get("view") or {})
-    connector = next(
-        (item for item in view.get("connectors", []) if isinstance(item, dict) and item.get("connector") == "navid"),
-        None,
+def navid_center_screen(response: dict[str, Any], *, site_url: str = "https://dentistry1402tums.ir") -> Screen:
+    return Screen(
+        "<b>🧭 مرکز همیاد</b>\n\n"
+        "📚 منابع آموزشی و درس‌های جدید از حساب همیاد دانشگاه خوانده می‌شوند.\n\n"
+        "<blockquote>🔐 اتصال و مدیریت نشست فقط در سایت انجام می‌شود.</blockquote>",
+        keyboard(
+            [button("🔐 ورود و مشاهده درس‌ها", url=site_url.rstrip("/") + "/hamiad/", style="primary")],
+            [button("↩️ بازگشت", action="home")],
+        ),
     )
-    lines = ["<b>🧭 مرکز نوید</b>", ""]
-    rows: list[list[dict[str, Any]]] = []
-    if connector is None:
-        lines.append("وضعیت اتصال نوید در این لحظه قابل تشخیص نیست.")
-    else:
-        state = str(connector.get("status") or "unknown")
-        mapped = {"ready": "ready", "unavailable": "unavailable", "not-configured": "unknown"}.get(state, "unknown")
-        marker, label = status_marker(mapped)
-        lines.append(f"{marker} وضعیت اتصال: <b>{html.escape(str(connector.get('statusLabel') or label))}</b>")
-        masked = str(connector.get("maskedAccountLabel") or "").strip()
-        if masked:
-            lines.append(f"حساب: <code>{html.escape(masked)}</code>")
-        for action in view.get("actions", []):
-            if not isinstance(action, dict) or "نوید" not in str(action.get("label") or ""):
-                continue
-            ref = str(action.get("ref") or "")
-            if re.fullmatch(r"[A-Za-z0-9_-]{12,20}", ref):
-                rows.append([button("ادامه در نوید", action=f"assistant-action:{ref}", style="primary")])
-    rows.append([button("↩️ بازگشت", action="home")])
-    return Screen("\n".join(lines), keyboard(*rows))

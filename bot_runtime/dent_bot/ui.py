@@ -737,107 +737,16 @@ def grades_screen(site_url: str, payload: dict, *, platform: str = "telegram") -
 
 
 def navid_screen(payload: dict, *, platform: str, site_url: str) -> Screen:
-    status = dict(payload.get("status") or {})
-    state = dict(status.get("state") or {})
-    counts = dict(status.get("snapshotCounts") or {})
-    automation = dict(payload.get("automation") or {})
-    assignments = [item for item in payload.get("assignments", []) if isinstance(item, dict)]
-    action = str(state.get("actionRequired") or "")
-    action_labels = {
-        "": ("🟢", "آماده"),
-        "none": ("🟢", "آماده"),
-        "save-credentials": ("🔴", "اطلاعات ورود ثبت نشده"),
-        "update-credentials": ("🔴", "اطلاعات ورود نیاز به اصلاح دارد"),
-        "reconnect": ("🟠", "اتصال نوید نیاز به بازسازی دارد"),
-        "captcha": ("🟡", "در انتظار کپچا"),
-    }
-    marker, label = action_labels.get(action, ("🟡", html.escape(action or "نیازمند بررسی")))
-    last_success = notification_time(state.get("lastSuccessAt"), platform)
-    challenge_expiry = notification_time(state.get("challengeExpiresAt"), platform)
-    completed_at = notification_time(automation.get("completedAt"), platform)
-    lines = [
-        "<b><u>🎓 مرکز نوید</u></b>",
-        "",
-        f"وضعیت اتصال: <b>{marker} {label}</b>",
-        f"درس‌های همگام‌شده: <b>{max(0, int(counts.get('courses') or 0))}</b>",
-        f"تکلیف‌های فعلی: <b>{max(0, int(counts.get('assignments') or 0))}</b>",
-    ]
-    if last_success:
-        lines.append(f"آخرین بررسی موفق: {last_success}")
-    if completed_at:
-        lines.append(f"بررسی روزانه تکمیل‌شده: {completed_at}")
-    if state.get("hasActiveChallenge"):
-        challenge_line = "کپچای فعال در انتظار پاسخ است."
-        if challenge_expiry:
-            challenge_line += f" اعتبار تا {challenge_expiry}"
-        lines.extend(("", f"<blockquote>{challenge_line}</blockquote>"))
-    last_error = html.escape(str(state.get("lastError") or ""))[:400]
-    if last_error:
-        lines.extend(("", f"<blockquote expandable><b>آخرین خطای همگام‌سازی</b>\n{last_error}</blockquote>"))
-    if assignments:
-        for index, item in enumerate(assignments[:8], 1):
-            title = " ".join(str(item.get("title") or "تکلیف").split())[:96]
-            course = " ".join(str(item.get("courseTitle") or "درس").split())[:60]
-            due = format_jalali_datetime(item.get("endDateIso")) or to_persian_digits(item.get("endDateShamsi") or "بدون مهلت")
-            lines.extend((
-                "",
-                numbered_heading(index, title),
-                f"<blockquote>📚 درس: <b>{html.escape(course)}</b>\n⏳ مهلت: {html.escape(due)}</blockquote>",
-            ))
-        nearest = assignments[0]
-        nearest_title = html.escape(" ".join(str(nearest.get("title") or "تکلیف").split())[:160])
-        nearest_description = html.escape(" ".join(str(nearest.get("description") or "").split())[:500])
-        nearest_course = html.escape(" ".join(str(nearest.get("courseTitle") or "درس").split())[:80])
-        nearest_due = notification_time(nearest.get("endDateIso"), platform) or html.escape(
-            to_persian_digits(nearest.get("endDateShamsi") or "بدون مهلت")
-        )
-        detail = f"<b>{nearest_title}</b>\nدرس: {nearest_course}\nمهلت: {nearest_due}"
-        if nearest_description:
-            detail += f"\n\n{nearest_description}"
-        lines.extend(("", f"<blockquote expandable><b>جزئیات نزدیک‌ترین تکلیف</b>\n{detail}</blockquote>"))
-    else:
-        lines.extend(("", "تکلیفی در snapshot فعلی نوید وجود ندارد."))
-
-    rich_parts = [
-        "<h2>🎓 مرکز نوید</h2>",
-        f"<p>وضعیت اتصال: <b>{marker} {label}</b><br/>"
-        f"درس‌های همگام‌شده: <b>{to_persian_digits(max(0, int(counts.get('courses') or 0)))}</b><br/>"
-        f"تکلیف‌های فعلی: <b>{to_persian_digits(max(0, int(counts.get('assignments') or 0)))}</b></p>",
-    ]
-    if last_success:
-        rich_parts.append(f"<p>آخرین بررسی موفق: {html.escape(last_success)}</p>")
-    if state.get("hasActiveChallenge"):
-        rich_parts.append(f"<blockquote>{html.escape(challenge_line)}</blockquote>")
-    if last_error:
-        rich_parts.append(f"<details><summary>آخرین خطای همگام‌سازی</summary><p>{last_error}</p></details>")
-    if assignments:
-        rich_parts.append(
-            "<table bordered striped compact><caption>تکلیف‌های نزدیک</caption>"
-            "<tr><th>تکلیف</th><th>درس</th><th>مهلت</th></tr>"
-        )
-        for item in assignments[:12]:
-            title = html.escape(" ".join(str(item.get("title") or "تکلیف").split())[:120])
-            course = html.escape(" ".join(str(item.get("courseTitle") or "درس").split())[:80])
-            due = html.escape(
-                format_jalali_datetime(item.get("endDateIso"))
-                or to_persian_digits(item.get("endDateShamsi") or "بدون مهلت")
-            )
-            rich_parts.append(f"<tr><td><b>{title}</b></td><td>{course}</td><td>{due}</td></tr>")
-        rich_parts.append("</table>")
-        if nearest_description:
-            rich_parts.append(
-                f"<details><summary>جزئیات نزدیک‌ترین تکلیف</summary>"
-                f"<p><b>{nearest_title}</b><br/>{nearest_description}</p></details>"
-            )
-    else:
-        rich_parts.append("<p>تکلیفی در snapshot فعلی نوید وجود ندارد.</p>")
+    """Legacy callback compatibility; the user-facing source is now Hamiad."""
     return Screen(
-        native_rich_text("\n".join(lines), "".join(rich_parts)),
+        "<b>🎓 سامانه همیاد</b>\n\n"
+        "سامانهٔ آموزش مجازی دانشگاه تغییر کرده است. "
+        "دسترسی به درس‌ها و فایل‌ها از طریق صفحهٔ اتصال همیاد انجام می‌شود.\n\n"
+        "<blockquote>🔐 ورود و نگهداری امن نشست در سایت انجام می‌شود. "
+        "اطلاعات ترم قبلی نوید دیگر در ربات نمایش داده نمی‌شوند.</blockquote>",
         keyboard(
-            [button("بررسی امروز / دریافت کپچا", action="navid-check", style="success")],
-            [button("تازه‌سازی وضعیت", action="navid", style="primary")],
-            [button("پنل نوید سایت", url=f"{site_url}/admin/#navid")],
-            [button("بازگشت به مدیریت", action="admin"), button("🏠 منوی اصلی", action="home")],
+            [button("🔐 ورود و مشاهدهٔ درس‌ها", url=site_url.rstrip("/") + "/hamiad/", style="primary")],
+            [button("↩️ بازگشت", action="home")],
         ),
     )
 

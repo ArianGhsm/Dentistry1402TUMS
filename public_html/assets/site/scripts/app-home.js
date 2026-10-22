@@ -69,7 +69,7 @@
             notes: "/notes/",
             forms: "/forms/",
             grades: "/grades/",
-            navid: "/navid/",
+            navid: "/hamiad/",
             buy: ""
         }
     };
@@ -236,7 +236,7 @@
             notes: String(routes.notes || notesFallback || ""),
             forms: services.forms ? String(routes.forms || scoped("/forms/")) : "",
             grades: services.grades ? String(routes.grades || scoped("/grades/")) : "",
-            navid: services.navid ? String(routes.navid || "/navid/") : "",
+            navid: services.navid ? "/hamiad/" : "",
             buy: services.buy ? String(routes.buy || "/buy/") : ""
         };
     }

@@ -300,7 +300,7 @@
 
                 <section class="account-list-group account-list-group--notifications" aria-label="اعلان‌ها و پیام‌ها">
                     <h3 class="account-list-group__title">اعلان‌ها و پیام‌ها</h3>
-                    <p class="account-list-group__hint">اعلان‌های مهم، تکلیف‌های نوید و اطلاعیه‌های تازه را از همین‌جا ببین.</p>
+                    <p class="account-list-group__hint">اعلان‌های مهم و اطلاعیه‌های تازه را از همین‌جا ببین.</p>
                     <article id="account-navid-alert-card" class="account-notice-card" hidden>
                         <div class="account-notice-card__head">
                             <span id="account-notification-alert-kind" class="account-notice-card__eyebrow">اعلان جدید</span>
@@ -590,7 +590,7 @@
                         <div class="account-surface-head__copy">
                             <span class="account-section-kicker">اعلان‌ها</span>
                             <h3>پیگیری اطلاعیه‌ها و تکالیف جدید</h3>
-                            <p>همه اعلان‌ها، تکلیف‌های نوید و پیام‌های مدیریتی در یک فید جمع‌وجور همین‌جا دیده می‌شوند.</p>
+                            <p>اعلان‌ها و پیام‌های مدیریتی در یک فید مرتب نمایش داده می‌شوند.</p>
                         </div>
                     </header>
 
@@ -599,15 +599,15 @@
 
                         <details id="notifications-prefs-card" class="account-notifications-disclosure" hidden>
                             <summary class="account-notifications-disclosure__summary">
-                                <strong>تنظیمات نوید</strong>
-                                <span>نمایش یا عدم نمایش اعلان تکلیف‌های نوید برای همین حساب</span>
+                                <strong>تنظیمات اعلان‌ها</strong>
+                                <span>کنترل یادآوری‌های فرم‌ها و سایر اعلان‌های حساب</span>
                             </summary>
                             <div class="account-notifications-disclosure__body">
                                 <div class="account-notifications-pref-grid">
-                                    <label id="notifications-navid-row" class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
+                                    <label id="notifications-navid-row" hidden class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
                                         <span>
-                                            <strong>اعلان تکلیف جدید نوید</strong>
-                                            <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
+                                            <strong>اعلان تکالیف سامانه قدیمی (غیرفعال)</strong>
+                                            <small id="notifications-prefs-hint">سامانه قدیمی غیرفعال شده است.</small>
                                         </span>
                                         <input id="notifications-navid-alerts" type="checkbox">
                                     </label>
@@ -924,10 +924,10 @@
 
                                 <label class="phone-toggle-row" for="owner-cohort-service-navid">
                                     <span>
-                                        <strong>کارت نوید</strong>
-                                        <small>نمایش میان‌بر تکالیف نوید برای این cohort</small>
+                                        <strong>اتصال همیاد</strong>
+                                        <small>میان‌بر اتصال به سامانه جدید آموزش دانشگاه</small>
                                     </span>
-                                    <input id="owner-cohort-service-navid" type="checkbox" checked>
+                                    <input id="owner-cohort-service-navid" disabled type="checkbox" checked>
                                 </label>
 
                                 <label class="phone-toggle-row" for="owner-cohort-service-buy">

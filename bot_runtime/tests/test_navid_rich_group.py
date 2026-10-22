@@ -72,14 +72,11 @@ class NavidRichGroupTests(unittest.TestCase):
             platform="telegram",
             site_url="https://example.test",
         )
-        self.assertIn("<b><u>🎓 مرکز نوید</u></b>", screen.text)
-        self.assertIn("<blockquote>📚 درس:", screen.text)
+        self.assertIn("<b>🎓 سامانه همیاد</b>", screen.text)
+        self.assertIn("https://example.test/hamiad/", str(screen.keyboard))
+        self.assertNotIn("جلسه ۱۲", screen.text)
+        self.assertNotIn("شرح تکلیف پروتز", screen.text)
         self.assertNotIn("<pre>", screen.text)
-        self.assertIn("<table bordered striped compact>", screen.text.rich_html)
-        self.assertIn("<th>مهلت</th>", screen.text.rich_html)
-        self.assertIn("<blockquote expandable>", screen.text)
-        self.assertIn("شرح تکلیف پروتز", screen.text)
-        self.assertNotIn("<tg-time", screen.text)
 
     def test_photo_caption_has_structured_fields_and_threshold_label(self) -> None:
         caption = navid_assignment_photo_caption(

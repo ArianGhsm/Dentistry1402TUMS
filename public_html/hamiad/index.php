@@ -11,15 +11,8 @@ header('X-Frame-Options: DENY');
 header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; font-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
 
 $viewer = dent_current_user();
-if ($viewer === null) {
-    header('Location: /account/', true, 302);
-    exit;
-}
-if (($viewer['role'] ?? '') !== 'owner') {
-    http_response_code(403);
-    exit('دسترسی به این صفحه فقط برای مالک سامانه مجاز است.');
-}
-$csrf = dent_auth_session_csrf_token();
+$isOwner = is_array($viewer) && ($viewer['role'] ?? '') === 'owner';
+$csrf = $isOwner ? dent_auth_session_csrf_token() : '';
 ?><!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -30,7 +23,7 @@ $csrf = dent_auth_session_csrf_token();
     <title>ورود به همیاد | دنت‌یار</title>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20261022-hamiad1">
     <link rel="stylesheet" href="/assets/site/styles/bot-link.css?v=20261022-hamiad1">
-    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad1">
+    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad2">
 </head>
 <body class="bot-link-page">
 <main class="bot-link-shell">
@@ -41,6 +34,14 @@ $csrf = dent_auth_session_csrf_token();
     </header>
 
     <section class="bot-link-panel" aria-live="polite">
+        <?php if (!$isOwner): ?>
+        <div class="bot-link-state">
+            <strong>اتصال اختصاصی حساب همیاد</strong>
+            <p>برای استفاده از اتصال امن دانشگاه، ابتدا با حساب مالک دنتیستری وارد شو. بعد از ورود، مستقیم به همین صفحه برمی‌گردی و می‌توانی مشخصات همیاد را وارد کنی.</p>
+            <a class="bot-link-primary" href="/account/?returnTo=%2Fhamiad%2F">ورود به حساب دنتیستری</a>
+            <a class="bot-link-secondary" href="https://lms.tums.ac.ir/login/index.php" rel="noopener noreferrer">ورود مستقیم به همیاد دانشگاه</a>
+        </div>
+        <?php else: ?>
         <div id="hamiad-form-panel" class="bot-link-state">
             <div class="hamiad-summary">
                 <strong>اتصال حساب دانشگاه</strong>
@@ -67,12 +68,23 @@ $csrf = dent_auth_session_csrf_token();
         <div id="hamiad-success-panel" class="bot-link-state" hidden>
             <strong>✅ اتصال تأیید شد</strong>
             <p>نشست همیاد به‌صورت رمزنگاری‌شده برای بررسی درس‌ها ذخیره شد. اطلاعات ورود در این صفحه نگه‌داری نمی‌شود.</p>
+            <div class="hamiad-courses">
+                <div class="hamiad-courses-head">
+                    <strong>درس‌های حساب همیاد</strong>
+                    <button id="hamiad-load-courses" class="bot-link-secondary" type="button">نمایش درس‌ها</button>
+                </div>
+                <p id="hamiad-course-feedback" class="hamiad-feedback" role="status"></p>
+                <div id="hamiad-course-list" class="hamiad-course-list"></div>
+                <div id="hamiad-course-details" class="hamiad-course-list" aria-live="polite"></div>
+            </div>
+            <button id="hamiad-reconnect" class="bot-link-secondary" type="button">ورود مجدد و تعویض نشست</button>
             <a class="bot-link-secondary" href="/app/">بازگشت به دنتیستری</a>
         </div>
+        <?php endif; ?>
     </section>
     <p class="bot-link-security">این صفحه فقط برای مالک سامانه است. رمز عبور در پایگاه داده ذخیره نمی‌شود و داخل لینک قرار نمی‌گیرد.</p>
 </main>
 <div id="hamiad-config" data-csrf="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" hidden></div>
-<script src="/assets/site/scripts/hamiad-bridge.js?v=20261022-hamiad1"></script>
+<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261022-hamiad2"></script><?php endif; ?>
 </body>
 </html>
