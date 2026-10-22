@@ -128,3 +128,43 @@
         color: #aeb9c8;
     }
 }
+
+.hamiad-courses {
+    display: grid;
+    gap: 12px;
+    margin: 12px 0;
+    padding: 14px 0;
+    border-top: 1px solid #d9e0e9;
+}
+.hamiad-courses-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.hamiad-courses-head .bot-link-secondary {
+    padding: 8px 14px;
+}
+.hamiad-course-list {
+    display: grid;
+    gap: 9px;
+}
+.hamiad-course-button {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: right;
+    padding: 10px 14px;
+}
+.hamiad-resource-row {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #d9e0e9;
+}
+.hamiad-resource-row span {
+    font-size: .8rem;
+    color: #64748b;
+}
+.hamiad-resource-row strong {
+    font-size: .93rem;
+}

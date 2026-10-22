@@ -105,5 +105,95 @@
     });
 
     refresh.addEventListener("click", newCaptcha);
-    newCaptcha();
+
+    const connectPanel = document.getElementById("hamiad-success-panel");
+    const loginPanel = document.getElementById("hamiad-form-panel");
+    const courseButton = document.getElementById("hamiad-load-courses");
+    const courseList = document.getElementById("hamiad-course-list");
+    const courseDetails = document.getElementById("hamiad-course-details");
+    const courseFeedback = document.getElementById("hamiad-course-feedback");
+
+    async function readData(action) {
+        const response = await fetch("/api/hamiad_bridge_api.php?action=" + action, {
+            credentials: "same-origin", cache: "no-store",
+        });
+        const value = await response.json().catch(() => null);
+        if (!response.ok || !value || value.success !== true) {
+            throw new Error(value?.error || "دریافت اطلاعات از سامانه انجام نشد.");
+        }
+        return value;
+    }
+
+    function showConnected() {
+        loginPanel.hidden = true;
+        connectPanel.hidden = false;
+    }
+
+    async function loadCourses() {
+        courseButton.disabled = true;
+        courseFeedback.textContent = "در حال بررسی درس‌های ثبت‌شده…";
+        courseList.replaceChildren();
+        courseDetails.replaceChildren();
+        try {
+            const result = await readData("courses");
+            const list = Array.isArray(result.courses) ? result.courses : [];
+            courseFeedback.textContent = list.length
+                ? "برای نمایش محتوای هر درس، نام درس را انتخاب کن."
+                : "هنوز درسی از همیاد شناسایی نشده است.";
+            for (const course of list) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "bot-link-secondary hamiad-course-button";
+                button.textContent = String(course.title || "درس بدون عنوان");
+                button.addEventListener("click", async () => {
+                    courseDetails.replaceChildren();
+                    courseFeedback.textContent = "در حال دریافت محتوای درس…";
+                    try {
+                        const data = await readData("course&id=" + encodeURIComponent(String(course.id)));
+                        const heading = document.createElement("strong");
+                        heading.textContent = String(course.title || "");
+                        courseDetails.appendChild(heading);
+                        const items = Array.isArray(data.items) ? data.items : [];
+                        for (const item of items) {
+                            const line = document.createElement("div");
+                            line.className = "hamiad-resource-row";
+                            const type = document.createElement("span");
+                            type.textContent = String(item.type || "محتوا");
+                            const title = document.createElement("strong");
+                            title.textContent = String(item.title || "بدون عنوان");
+                            line.append(type, title);
+                            courseDetails.appendChild(line);
+                        }
+                        courseFeedback.textContent = items.length
+                            ? "محتوای شناسایی‌شده در همیاد:"
+                            : "محتوای قابل نمایشی در این درس پیدا نشد.";
+                    } catch (error) {
+                        courseFeedback.textContent = error.message;
+                    }
+                });
+                courseList.appendChild(button);
+            }
+        } catch (error) {
+            courseFeedback.textContent = error.message;
+        } finally {
+            courseButton.disabled = false;
+        }
+    }
+
+    courseButton.addEventListener("click", loadCourses);
+    document.getElementById("hamiad-reconnect").addEventListener("click", () => {
+        connectPanel.hidden = true;
+        loginPanel.hidden = false;
+        newCaptcha();
+    });
+
+    readData("status").then((result) => {
+        if (result.status?.connected) {
+            showConnected();
+            courseFeedback.textContent = "نشست قبلی همیاد روی سرور ذخیره شده است.";
+        } else {
+            newCaptcha();
+        }
+    }).catch(() => newCaptcha());
+
 })();
