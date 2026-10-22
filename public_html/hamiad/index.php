@@ -23,7 +23,7 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
     <title>ورود به همیاد | دنت‌یار</title>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20261022-hamiad1">
     <link rel="stylesheet" href="/assets/site/styles/bot-link.css?v=20261022-hamiad1">
-    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad1">
+    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad2">
 </head>
 <body class="bot-link-page">
 <main class="bot-link-shell">

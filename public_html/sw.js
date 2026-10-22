@@ -1,4 +1,4 @@
-const APP_VERSION = "20260907-195131";
+const APP_VERSION = "20261022-hamiad";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 const PAGE_CACHE = "dent1402-pages-" + APP_VERSION;
 const MAX_PAGE_CACHE_ENTRIES = 40;
@@ -51,6 +51,9 @@ const DYNAMIC_BYPASS = [
   "/api/exams_api.php",
   "/api/forms_api.php",
   "/api/navid_api.php",
+  "/api/hamiad_bridge_api.php",
+  "/navid/",
+  "/hamiad/",
   "/api/payments_api.php",
   "/chat/data/",
   "/messages.json",
