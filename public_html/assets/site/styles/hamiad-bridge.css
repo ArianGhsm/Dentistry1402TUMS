@@ -1,0 +1,130 @@
+.hamiad-summary {
+    padding-bottom: 4px;
+}
+
+.hamiad-summary strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 1.03rem;
+}
+
+.hamiad-summary p {
+    margin: 0;
+}
+
+.hamiad-form {
+    display: grid;
+    gap: 11px;
+}
+
+.hamiad-form label {
+    color: inherit;
+    font-size: 0.91rem;
+    font-weight: 700;
+}
+
+.hamiad-form input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 47px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 11px 13px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    direction: ltr;
+}
+
+.hamiad-form input:focus-visible,
+.hamiad-refresh:focus-visible,
+.hamiad-form button:focus-visible {
+    outline: 3px solid rgba(36, 107, 95, 0.25);
+    outline-offset: 2px;
+}
+
+.hamiad-captcha-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.hamiad-refresh {
+    background: transparent;
+    border: 0;
+    padding: 5px 0;
+    color: #176c5d;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+}
+
+.hamiad-refresh:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.hamiad-captcha-image {
+    min-height: 94px;
+    display: grid;
+    place-items: center;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    background: rgba(127, 151, 175, 0.06);
+}
+
+.hamiad-captcha-image img {
+    display: block;
+    width: min(260px, 90%);
+    height: auto;
+    image-rendering: auto;
+}
+
+.hamiad-captcha-image img[hidden] {
+    display: none;
+}
+
+.hamiad-captcha-image span {
+    font-size: 0.9rem;
+    color: #596579;
+}
+
+.hamiad-form .bot-link-primary {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.hamiad-form .bot-link-primary:disabled {
+    opacity: 0.6;
+}
+
+.hamiad-feedback {
+    margin: 0;
+    min-height: 1.5rem;
+    font-size: 0.9rem;
+    color: #176c5d;
+}
+
+.hamiad-feedback.is-error {
+    color: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+    .hamiad-form input {
+        border-color: #46546a;
+    }
+    .hamiad-refresh, .hamiad-feedback {
+        color: #7ad4c0;
+    }
+    .hamiad-feedback.is-error {
+        color: #ffa49b;
+    }
+    .hamiad-captcha-image {
+        border-color: #46546a;
+    }
+    .hamiad-captcha-image span {
+        color: #aeb9c8;
+    }
+}
