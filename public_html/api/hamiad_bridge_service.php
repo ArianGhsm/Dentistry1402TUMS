@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/navid_service.php';
+require_once __DIR__ . '/hamiad_http.php';
+require_once __DIR__ . '/hamiad_storage.php';
 
 // Owner-only LMS login bridge; never persist a password.
 const HAMIAD_BASE = 'https://lms.tums.ac.ir';
@@ -64,14 +65,14 @@ function hamiad_challenge(): array
     $cookies = [];
     $page = [];
     for ($retry = 0; $retry < 3; $retry++) {
-        $page = navid_http_request('GET', HAMIAD_LOGIN, [
+        $page = hamiad_http_request('GET', HAMIAD_LOGIN, [
             'cookies' => $cookies, 'timeoutSec' => 16,
         ]);
-        $cookies = navid_merge_cookies($cookies, (array) ($page['cookies'] ?? []));
+        $cookies = hamiad_merge_cookies($cookies, (array) ($page['cookies'] ?? []));
         if (!empty($page['ok']) && (int) ($page['status'] ?? 0) === 200) {
             break;
         }
-        $location = navid_response_header_value((array) ($page['headers'] ?? []), 'location');
+        $location = hamiad_response_header_value((array) ($page['headers'] ?? []), 'location');
         if (empty($page['ok']) || (int) ($page['status'] ?? 0) !== 307
             || $location !== HAMIAD_LOGIN) {
             break;
@@ -84,12 +85,12 @@ function hamiad_challenge(): array
     if (!$form) {
         throw new RuntimeException('ساختار ورود همیاد قابل شناسایی نیست.');
     }
-    $image = navid_http_request('GET',
+    $image = hamiad_http_request('GET',
         HAMIAD_BASE . '/local/fic_form_fields/includes/captcha_img.php?captcha_id=' . rawurlencode($form['captchaId']),
         ['cookies' => $cookies, 'referer' => HAMIAD_LOGIN, 'timeoutSec' => 16]
     );
     $bytes = (string) ($image['body'] ?? '');
-    $mime = strtolower(navid_response_header_value((array) ($image['headers'] ?? []), 'content-type'));
+    $mime = strtolower(hamiad_response_header_value((array) ($image['headers'] ?? []), 'content-type'));
     if (empty($image['ok']) || (int) ($image['status'] ?? 0) !== 200
         || !str_starts_with($mime, 'image/png')
         || strlen($bytes) < 100 || strlen($bytes) > 200000
@@ -99,7 +100,7 @@ function hamiad_challenge(): array
     $_SESSION['hamiad_challenge'] = [
         'token' => $form['token'],
         'captchaId' => $form['captchaId'],
-        'cookies' => navid_merge_cookies($cookies, (array) ($image['cookies'] ?? [])),
+        'cookies' => hamiad_merge_cookies($cookies, (array) ($image['cookies'] ?? [])),
         'issuedAt' => time(),
     ];
     return ['image' => 'data:image/png;base64,' . base64_encode($bytes)];
@@ -126,7 +127,7 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         || !preg_match('/^[A-Za-z0-9]{4,10}$/D', $captcha)) {
         throw new RuntimeException('اطلاعات ورود یا عبارت امنیتی ناقص است.');
     }
-    $response = navid_http_request('POST', HAMIAD_LOGIN, [
+    $response = hamiad_http_request('POST', HAMIAD_LOGIN, [
         'cookies' => (array) $challenge['cookies'],
         'origin' => HAMIAD_BASE, 'referer' => HAMIAD_LOGIN, 'timeoutSec' => 22,
         'form' => [
@@ -141,8 +142,8 @@ function hamiad_login(string $username, string $password, string $captcha): arra
     if (empty($response['ok']) || !in_array((int) ($response['status'] ?? 0), [302, 303], true)) {
         throw new RuntimeException('ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.');
     }
-    $cookies = navid_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
-    $verified = navid_http_request('GET', HAMIAD_HOME, [
+    $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
+    $verified = hamiad_http_request('GET', HAMIAD_HOME, [
         'cookies' => $cookies, 'referer' => HAMIAD_LOGIN, 'timeoutSec' => 20,
     ]);
     $content = (string) ($verified['body'] ?? '');
@@ -150,13 +151,13 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         || !str_contains($content, 'login/logout.php')) {
         throw new RuntimeException('نشست همیاد هنوز تأیید نشده است.');
     }
-    $cookies = navid_merge_cookies($cookies, (array) ($verified['cookies'] ?? []));
-    dent_write_json_file(dent_storage_path('hamiad/owner-session.json'), [
+    $cookies = hamiad_merge_cookies($cookies, (array) ($verified['cookies'] ?? []));
+    dent_write_json_file(hamiad_session_path(), [
         'schemaVersion' => 1,
         'origin' => HAMIAD_BASE,
         'connectedAt' => dent_iso_now(),
-        'usernameMasked' => navid_mask_value($username),
-        'cookies' => navid_encrypt_json($cookies),
+        'usernameMasked' => substr($username, 0, 2) . str_repeat("*", max(2, strlen($username) - 4)) . substr($username, -2),
+        'cookies' => hamiad_seal($cookies),
     ]);
     $_SESSION['hamiad_login_attempts'] = [];
     return ['message' => 'ورود به همیاد با موفقیت تأیید شد.'];

@@ -274,7 +274,7 @@
             files: "فایل‌های عمومی مالک",
             paste: "متن و raw view",
             html: "صفحه HTML موقت",
-            navid: "همگام‌سازی نوید"
+            navid: "اتصال همیاد"
         };
         return labels[group] || "پنل تخصصی";
     }
@@ -291,7 +291,7 @@
 
         var navidNeedsAction = !!(navid.requiresReconnect || navid.credentialsMissing || navid.credentialsInvalid);
         var navidStatusLabel = navid.credentialsMissing
-            ? "ورود نوید"
+            ? "ورود همیاد"
             : (navid.credentialsInvalid || navid.requiresReconnect ? "اتصال مجدد" : (navid.enabled ? "فعال" : "خاموش"));
         var hasHealthIssue = !storage.rootWritable || Number(errors.last24h || 0) > 0 || navidNeedsAction;
         setText("admin-health-status", hasHealthIssue ? "نیاز به بررسی" : "پایدار");
@@ -323,7 +323,7 @@
                 tone: (((pending.notes || {}).resourceRequests || 0) + ((pending.notes || {}).linkReports || 0)) ? "warn" : "accent"
             },
             {
-                title: "وضعیت نوید",
+                title: "وضعیت همیاد",
                 meta: navid.lastSuccessAt ? ("آخرین موفق: " + formatDate(navid.lastSuccessAt)) : "sync موفق ثبت نشده",
                 value: navidStatusLabel,
                 tone: navidNeedsAction ? "danger" : "accent"

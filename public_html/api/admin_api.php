@@ -6,7 +6,7 @@ require_once __DIR__ . '/analytics_store.php';
 require_once __DIR__ . '/payments_store.php';
 require_once __DIR__ . '/content_tools_store.php';
 require_once __DIR__ . '/html_uploader_store.php';
-require_once __DIR__ . '/navid_service.php';
+require_once __DIR__ . '/hamiad_storage.php';
 require_once __DIR__ . '/notifications_store.php';
 
 function admin_read_json_store(string $relativePath, array $fallback = []): array
@@ -239,24 +239,22 @@ function admin_content_tools_payload(): array
 
 function admin_navid_payload(): array
 {
-    $store = navid_load_store();
-    $ownerStatus = navid_build_owner_status($store);
-    $ownerState = is_array($ownerStatus['state'] ?? null) ? $ownerStatus['state'] : [];
-    $snapshot = is_array($store['snapshot'] ?? null) ? $store['snapshot'] : [];
+    $session = hamiad_session_status();
+    $connected = !empty($session['connected']);
     return [
-        'enabled' => !empty($store['config']['enabled']),
-        'sessionStatus' => (string) ($store['session']['status'] ?? 'missing'),
-        'lastSyncAt' => (string) ($store['state']['lastSyncAt'] ?? ''),
-        'lastSuccessAt' => (string) ($store['state']['lastSuccessAt'] ?? ''),
-        'lastResult' => (string) ($store['state']['lastResult'] ?? ''),
-        'requiresReconnect' => !empty($store['state']['requiresReconnect']),
-        'actionRequired' => (string) ($ownerState['actionRequired'] ?? ''),
-        'credentialsMissing' => !empty($ownerState['credentialsMissing']),
-        'credentialsInvalid' => !empty($ownerState['credentialsInvalid']),
-        'courses' => count(is_array($snapshot['courses'] ?? null) ? $snapshot['courses'] : []),
-        'assignments' => count(is_array($snapshot['assignments'] ?? null) ? $snapshot['assignments'] : []),
-        'ownerStatus' => $ownerStatus,
-        'storeFile' => admin_file_meta(navid_store_path()),
+        'enabled' => $connected,
+        'sessionStatus' => $connected ? 'connected' : 'missing',
+        'lastSyncAt' => '',
+        'lastSuccessAt' => (string) ($session['connectedAt'] ?? ''),
+        'lastResult' => $connected ? 'connected' : '',
+        'requiresReconnect' => false,
+        'actionRequired' => $connected ? '' : 'login',
+        'credentialsMissing' => !$connected,
+        'credentialsInvalid' => false,
+        'courses' => 0,
+        'assignments' => 0,
+        'ownerStatus' => [],
+        'storeFile' => admin_file_meta(hamiad_session_path()),
     ];
 }
 
@@ -322,7 +320,7 @@ function admin_dashboard_payload(array $viewer): array
             ['label' => 'مرکز آپلود', 'href' => '/files/', 'group' => 'files'],
             ['label' => 'Pastebin', 'href' => '/paste/', 'group' => 'paste'],
             ['label' => 'HTML uploader', 'href' => '/html-uploader/', 'group' => 'html'],
-            ['label' => 'نوید', 'href' => '/navid/', 'group' => 'navid'],
+            ['label' => 'همیاد', 'href' => '/hamiad/', 'group' => 'navid'],
         ],
     ];
 }
