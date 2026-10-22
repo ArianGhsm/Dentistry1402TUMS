@@ -11,14 +11,18 @@ function hamiad_course_list(): array
     }
     $result = [];
     foreach (['https://lms.tums.ac.ir/my/', 'https://lms.tums.ac.ir/my/courses.php'] as $url) {
-        $response = hamiad_http_request('GET', $url, ['cookies' => $cookies, 'timeoutSec' => 16]);
-        if (($response['status'] ?? 0) !== 200) {
+        try {
+            $body = hamiad_get_html_with_waf_retry($url, $cookies);
+        } catch (RuntimeException $error) {
+            if (str_contains($error->getMessage(), 'نشست همیاد منقضی')) {
+                throw $error;
+            }
             continue;
         }
         $document = new DOMDocument();
         $state = libxml_use_internal_errors(true);
         try {
-            $document->loadHTML('<?xml encoding="UTF-8"?>' . (string) ($response['body'] ?? ''));
+            $document->loadHTML('<?xml encoding="UTF-8"?>' . $body);
         } finally {
             libxml_clear_errors();
             libxml_use_internal_errors($state);
@@ -56,13 +60,14 @@ function hamiad_course_items(int $courseId): array
     if (!$allowed) {
         throw new RuntimeException('درس در فهرست حساب متصل یافت نشد.');
     }
-    $response = hamiad_http_request('GET', 'https://lms.tums.ac.ir/course/view.php?id=' . $courseId, ['cookies' => hamiad_load_cookies(), 'timeoutSec' => 18]);
-    if (($response['status'] ?? 0) !== 200) {
-        throw new RuntimeException('دریافت درس ممکن نشد.');
-    }
+    $cookies = hamiad_load_cookies();
+    $body = hamiad_get_html_with_waf_retry(
+        'https://lms.tums.ac.ir/course/view.php?id=' . $courseId,
+        $cookies
+    );
     $document = new DOMDocument();
     $old = libxml_use_internal_errors(true);
-    try { $document->loadHTML('<?xml encoding="UTF-8"?>' . (string) ($response['body'] ?? '')); }
+    try { $document->loadHTML('<?xml encoding="UTF-8"?>' . $body); }
     finally { libxml_clear_errors(); libxml_use_internal_errors($old); }
     $items = [];
     foreach ($document->getElementsByTagName('a') as $link) {

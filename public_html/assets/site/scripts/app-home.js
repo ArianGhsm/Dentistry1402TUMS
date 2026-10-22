@@ -274,9 +274,9 @@
                 enabled: services.forms && !!routes.forms,
                 href: routes.forms
             },
-            navid: {
-                enabled: services.navid && !!routes.navid,
-                href: routes.navid
+            hamiad: {
+                enabled: !!(detail && detail.user && detail.user.isOwner),
+                href: "/hamiad/"
             },
             grades: {
                 enabled: services.grades && !!routes.grades,
@@ -791,12 +791,12 @@
             navidRenderEmpty(
                 navidUpdates,
                 isOwner
-                    ? "اعتبار نوید را از پنل حساب ذخیره کن تا پایش تکالیف فعال شود."
-                    : "مدیر هنوز اعتبار نوید را ثبت نکرده است."
+                    ? "اعتبار سامانهٔ پیشین را از پنل حساب ذخیره کن تا پایش تکالیف فعال شود."
+                    : "مدیر هنوز اعتبار سامانهٔ پیشین را ثبت نکرده است."
             );
             navidRenderEmpty(
                 navidAssignments,
-                "تا زمان اتصال نوید، تکلیف فعالی برای نمایش در دسترس نیست."
+                "تا زمان اتصال سامانهٔ پیشین، تکلیف فعالی برای نمایش در دسترس نیست."
             );
             return;
         }
@@ -805,8 +805,8 @@
             navidRenderEmpty(
                 navidUpdates,
                 isOwner
-                    ? "نام کاربری یا رمز نوید نیاز به بروزرسانی دارد."
-                    : "اعتبار نوید توسط مدیر نیاز به بروزرسانی دارد."
+                    ? "نام کاربری یا رمز سامانهٔ پیشین نیاز به بروزرسانی دارد."
+                    : "اعتبار سامانهٔ پیشین توسط مدیر نیاز به بروزرسانی دارد."
             );
             navidRenderEmpty(
                 navidAssignments,
@@ -819,8 +819,8 @@
             navidRenderEmpty(
                 navidUpdates,
                 isOwner
-                    ? "اتصال نوید نیاز به کپچا و اتصال مجدد دارد."
-                    : "اتصال نوید نیاز به اقدام مدیر دارد."
+                    ? "اتصال سامانهٔ پیشین نیاز به کپچا و اتصال مجدد دارد."
+                    : "اتصال سامانهٔ پیشین نیاز به اقدام مدیر دارد."
             );
             navidRenderEmpty(
                 navidAssignments,

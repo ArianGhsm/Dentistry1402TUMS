@@ -743,7 +743,7 @@ def navid_screen(payload: dict, *, platform: str, site_url: str) -> Screen:
         "سامانهٔ آموزش مجازی دانشگاه تغییر کرده است. "
         "دسترسی به درس‌ها و فایل‌ها از طریق صفحهٔ اتصال همیاد انجام می‌شود.\n\n"
         "<blockquote>🔐 ورود و نگهداری امن نشست در سایت انجام می‌شود. "
-        "اطلاعات ترم قبلی نوید دیگر در ربات نمایش داده نمی‌شوند.</blockquote>",
+        "اطلاعات سامانهٔ قدیمی دیگر در ربات نمایش داده نمی‌شوند.</blockquote>",
         keyboard(
             [button("🔐 ورود و مشاهدهٔ درس‌ها", url=site_url.rstrip("/") + "/hamiad/", style="primary")],
             [button("↩️ بازگشت", action="home")],
@@ -758,7 +758,7 @@ def navid_assignment_photo_caption(item: dict, *, event_type: str, platform: str
         "day": "یک روز تا پایان مهلت",
         "test": "پیش‌نمایش مالک",
     }
-    title = html.escape(" ".join(str(item.get("title") or "تکلیف نوید").split())[:180])
+    title = html.escape(" ".join(str(item.get("title") or "تکلیف سامانهٔ پیشین").split())[:180])
     course = html.escape(" ".join(str(item.get("courseTitle") or "درس").split())[:90])
     description = html.escape(" ".join(str(item.get("description") or "").split())[:700])
     created = notification_time(item.get("createdDateIso"), platform) or html.escape(
@@ -769,7 +769,7 @@ def navid_assignment_photo_caption(item: dict, *, event_type: str, platform: str
     )
     event = event_labels.get(event_type, "یادآوری تکلیف")
     lines = [
-        "<b><u>🎓 یادآوری تکلیف نوید</u></b>",
+        "<b><u>🎓 یادآوری تکلیف سامانهٔ پیشین</u></b>",
         "",
         f"<blockquote><b>{html.escape(event)}</b>\n{title}</blockquote>",
         "",
@@ -779,7 +779,7 @@ def navid_assignment_photo_caption(item: dict, *, event_type: str, platform: str
     ]
     if description:
         lines.extend(("", description))
-    lines.extend(("", "<i>منبع: آخرین snapshot تأییدشدهٔ نوید در سایت</i>"))
+    lines.extend(("", "<i>منبع: اطلاعات قدیمی (غیرفعال)</i>"))
     return "\n".join(lines)
 
 
@@ -1877,7 +1877,7 @@ def student_assistant_screen(payload: dict, *, is_owner: bool = False) -> Screen
 
 def integration_challenge_waiting_screen(payload: dict) -> Screen:
     connector = str(payload.get("connector") or dict(payload.get("challenge") or {}).get("connector") or "")
-    labels = {"navid": "نوید", "food": "تغذیه", "saba": "سرویس"}
+    labels = {"navid": "سامانهٔ پیشین", "food": "تغذیه", "saba": "سرویس"}
     label = labels.get(connector, "سامانه دانشگاه")
     return Screen(
         f"<b>🔐 کپچای {html.escape(label)} ارسال شد</b>\n\n"
@@ -1909,7 +1909,7 @@ def home(
         rows.append([button("🎓 دستیار دانشجو", action="student-assistant", style="primary")])
     if is_owner:
         rows.insert(0, [button("💳 پرداخت‌ها", action="admin-payments", style="success")])
-        rows.append([button("🎓 مرکز نوید", action="navid", style="success")])
+        rows.append([button("🎓 مرکز همیاد", action="navid", style="success")])
         rows.append([button("⚙️ مدیریت دنت‌یار", action="admin", style="primary")])
     return Screen(
         frame(
@@ -1967,7 +1967,7 @@ def section(name: str, site_url: str, *, is_owner: bool) -> Screen:
             keyboard(
                 [button("پنل مدیریت سایت", url=f"{site_url}/admin/", style="primary")],
                 [button("📊 مدیریت نمرات", action="admin-grades")],
-                [button("🎓 مرکز نوید", action="navid", style="success")],
+                [button("🎓 مرکز همیاد", action="navid", style="success")],
                 [button("✏️ درخواست‌های ویرایش مشخصات", action="profile-edit-requests")],
                 [button("🔗 مدیریت اتصال حساب‌ها", action="identity-mappings")],
                 [button("💳 محصولات پرداخت", action="admin-payments", style="success")],

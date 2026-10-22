@@ -11,7 +11,7 @@ function dent_bot_navid_require_owner(array $user): void
 function dent_bot_navid_daily_start(array $user, string $platform, array $payload): array
 {
     dent_bot_navid_require_owner($user);
-    return ['success' => false, 'code' => 'NAVID_RETIRED', 'message' => 'نوید پایان یافته است؛ از سامانه همیاد استفاده کن.'];
+    return ['success' => false, 'code' => 'NAVID_RETIRED', 'message' => 'سامانهٔ پیشین غیرفعال است؛ از همیاد استفاده کن.'];
 }
 
 function dent_bot_navid_daily_complete(array $user, string $platform, array $payload): array

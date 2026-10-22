@@ -135,7 +135,7 @@ function dent_student_assistant_test_connector_enabled(): bool
 
 function dent_student_assistant_connector_labels(): array
 {
-    return ['navid' => 'نوید', 'food' => 'تغذیه', 'saba' => 'سرویس'];
+    return ['navid' => 'سامانهٔ پیشین', 'food' => 'تغذیه', 'saba' => 'سرویس'];
 }
 
 function dent_student_assistant_account_key(string $userRef, string $connector): string
