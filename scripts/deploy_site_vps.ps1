@@ -246,6 +246,9 @@ for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
 PY
 set -a
 source /etc/integrated-dent/dent-bot.env
+# Telegram service loads the token from its separate private EnvironmentFile.
+# The release smoke checks must use the same environment without copying secrets.
+source /srv/telegram/accounts/dent1402bot/bot-token.env
 set +a
 cd /opt/integrated-dent/telegram/current
 /opt/integrated-dent/telegram-venv/bin/python -m dent_bot.health | grep -q '"ready": true'
@@ -446,6 +449,9 @@ systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
 set -a
 source /etc/integrated-dent/dent-bot.env
+# Telegram service loads the token from its separate private EnvironmentFile.
+# The release smoke checks must use the same environment without copying secrets.
+source /srv/telegram/accounts/dent1402bot/bot-token.env
 set +a
 cd /opt/integrated-dent/telegram/current
 /opt/integrated-dent/telegram-venv/bin/python -m dent_bot.health | grep -q '"ready": true'
