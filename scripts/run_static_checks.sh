@@ -80,6 +80,7 @@ section "Upload pipeline config"
 "$PHP_BIN" scripts/check_upload_pipeline_config.php || fail "check_upload_pipeline_config.php"
 
 section "Unit tests"
+"$PHP_BIN" scripts/test_hamiad_bridge.php || fail "test_hamiad_bridge.php"
 "$PHP_BIN" scripts/test_unit.php || fail "test_unit.php"
 "$PHP_BIN" scripts/test_endo_tools_catalog.php || fail "test_endo_tools_catalog.php"
 "$PHP_BIN" scripts/test_exam_reminder_retirement.php || fail "test_exam_reminder_retirement.php"
