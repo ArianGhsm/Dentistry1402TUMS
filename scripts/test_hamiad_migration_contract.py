@@ -23,3 +23,18 @@ assert 'http_response_code(410)' in legacy
 assert 'NAVID_RETIRED' in legacy
 assert 'navid.tums.ac.ir' not in home
 print('Hamiad migration UI, session and legacy retirement regression: ok')
+
+http = (ROOT / 'public_html/api/hamiad_http.php').read_text()
+course = (ROOT / 'public_html/api/hamiad_courses.php').read_text()
+pwa = (ROOT / 'public_html/sw.js').read_text()
+account_js = (ROOT / 'public_html/assets/site/scripts/account.js').read_text()
+home_js = (ROOT / 'public_html/assets/site/scripts/app-home.js').read_text()
+assert 'function hamiad_get_html_with_waf_retry' in http
+assert "hamiad_merge_cookies($cookies" in http
+assert 'hamiad_get_html_with_waf_retry($url, $cookies)' in course
+assert "hamiad_get_html_with_waf_retry(" in course
+assert 'data-home-quick="hamiad"' in home
+assert 'hamiad: {' in home_js
+assert 'نوید' not in account_js
+assert 'نوید' not in home_js
+assert '20261022-hamiad-cleanup' in pwa

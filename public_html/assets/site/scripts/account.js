@@ -2540,7 +2540,7 @@
                 activeServices.notes ? "منابع" : "",
                 activeServices.forms ? "فرم" : "",
                 activeServices.grades ? "نمره" : "",
-                activeServices.navid ? "نوید" : "",
+                activeServices.navid ? "سامانه پیشین" : "",
                 activeServices.buy ? "خرید" : ""
             ].filter(Boolean);
             ownerCohortSummary.innerHTML = activeRecord ? [
@@ -3829,7 +3829,7 @@
         }
 
         navidState.loading = true;
-        navidFeedbackMessage("در حال خواندن وضعیت نوید...", "", true);
+        navidFeedbackMessage("در حال خواندن وضعیت سامانهٔ پیشین...", "", true);
         navidRenderOwnerStatus(navidState.ownerStatus);
 
         var response = await navidGet("ownerStatus");
@@ -3841,7 +3841,7 @@
         }
 
         if (!response || !response.success || !response.ownerStatus) {
-            navidFeedbackMessage((response && response.error) || "وضعیت نوید خوانده نشد.", "error");
+            navidFeedbackMessage((response && response.error) || "وضعیت سامانهٔ پیشین خوانده نشد.", "error");
             return;
         }
 
@@ -3866,7 +3866,7 @@
             password: (navidPasswordInput && navidPasswordInput.value.trim()) || ""
         };
 
-        navidFeedbackMessage("در حال ذخیره تنظیمات نوید...", "", true);
+        navidFeedbackMessage("در حال ذخیره تنظیمات سامانهٔ پیشین...", "", true);
         if (navidSyncNowButton) {
             navidSyncNowButton.disabled = true;
         }
@@ -3879,13 +3879,13 @@
             }
 
             if (!response || !response.success) {
-                navidFeedbackMessage((response && response.error) || "ذخیره تنظیمات نوید انجام نشد.", "error");
+                navidFeedbackMessage((response && response.error) || "ذخیره تنظیمات سامانهٔ پیشین انجام نشد.", "error");
                 return;
             }
 
             navidState.ownerStatus = response.ownerStatus || navidState.ownerStatus;
             navidRenderOwnerStatus(navidState.ownerStatus);
-            navidFeedbackMessage(response.message || "تنظیمات نوید ذخیره شد.", "success");
+            navidFeedbackMessage(response.message || "تنظیمات سامانهٔ پیشین ذخیره شد.", "success");
             if (navidPasswordInput) {
                 navidPasswordInput.value = "";
             }
@@ -3902,7 +3902,7 @@
         }
 
         navidSyncNowButton.disabled = true;
-        navidFeedbackMessage("در حال همگام‌سازی فوری نوید...", "", true);
+        navidFeedbackMessage("در حال همگام‌سازی فوری سامانهٔ پیشین...", "", true);
         try {
             var response = await navidPost("syncNow", {});
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
@@ -3911,9 +3911,9 @@
             }
 
             if (!response || !response.success) {
-                navidFeedbackMessage((response && response.message) || (response && response.error) || "همگام‌سازی نوید موفق نشد.", "error");
+                navidFeedbackMessage((response && response.message) || (response && response.error) || "همگام‌سازی سامانهٔ پیشین موفق نشد.", "error");
             } else {
-                navidFeedbackMessage(response.message || "همگام‌سازی نوید انجام شد.", "success");
+                navidFeedbackMessage(response.message || "همگام‌سازی سامانهٔ پیشین انجام شد.", "success");
             }
 
             navidState.ownerStatus = response.ownerStatus || navidState.ownerStatus;
@@ -3935,7 +3935,7 @@
         }
 
         navidGetCaptchaButton.disabled = true;
-        navidReconnectMessage("در حال دریافت کپچای نوید...", "", true);
+        navidReconnectMessage("در حال دریافت کپچای سامانهٔ پیشین...", "", true);
         try {
             var response = await navidPost("captchaChallenge", {});
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
@@ -3969,7 +3969,7 @@
         }
 
         navidCompleteReconnectButton.disabled = true;
-        navidReconnectMessage("در حال اتصال مجدد نوید...", "", true);
+        navidReconnectMessage("در حال اتصال مجدد سامانهٔ پیشین...", "", true);
         try {
             var response = await navidPost("completeReconnect", { captchaCode: captchaCode });
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
@@ -3978,11 +3978,11 @@
             }
 
             if (!response || !response.success) {
-                navidReconnectMessage((response && response.error) || "اتصال مجدد نوید انجام نشد.", "error");
+                navidReconnectMessage((response && response.error) || "اتصال مجدد سامانهٔ پیشین انجام نشد.", "error");
                 return;
             }
 
-            navidReconnectMessage(response.message || "اتصال مجدد نوید انجام شد.", "success");
+            navidReconnectMessage(response.message || "اتصال مجدد سامانهٔ پیشین انجام شد.", "success");
             if (response && response.captchaDataUri && navidCaptchaImage) {
                 navidCaptchaImage.hidden = false;
                 navidCaptchaImage.src = response.captchaDataUri;
@@ -5688,13 +5688,13 @@
                 accountRowOwnerMeta.textContent = "مدیریت کاربران، نماینده‌ها و ایجاد دانشجو";
             }
             if (accountRowNavidMeta) {
-                accountRowNavidMeta.textContent = "وضعیت اتصال و همگام‌سازی نوید";
+                accountRowNavidMeta.textContent = "ورود و مدیریت نشست همیاد";
             }
             if (accountRowPhoneMeta) {
                 accountRowPhoneMeta.textContent = "ثبت شماره موبایل، تایید با OTP و فعال‌سازی مسیر دوم ورود";
             }
             if (accountRowNotificationsMeta) {
-                accountRowNotificationsMeta.textContent = "اعلان‌های نوید و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.";
+                accountRowNotificationsMeta.textContent = "اعلان‌ها و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.";
             }
             if (accountRowBotsMeta) {
                 accountRowBotsMeta.textContent = "بررسی اتصال تلگرام و بله و مدیریت هر اتصال";

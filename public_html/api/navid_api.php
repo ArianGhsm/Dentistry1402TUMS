@@ -7,7 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 echo json_encode([
     'success' => false,
-    'error' => 'سامانهٔ نوید بازنشسته شده است. از بخش همیاد استفاده کن.',
+    'error' => 'مسیر سامانهٔ پیشین غیرفعال است. از بخش همیاد استفاده کن.',
     'code' => 'NAVID_RETIRED',
     'href' => '/hamiad/',
 ], JSON_UNESCAPED_UNICODE);

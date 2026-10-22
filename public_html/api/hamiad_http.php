@@ -291,3 +291,35 @@ function hamiad_response_header_value(array $headers, string $name): string
 
     return '';
 }
+
+/**
+ * Handle the provider's same-URL 307 challenge while retaining short-lived
+ * WAF cookies. All destinations remain fixed to the approved LMS host.
+ */
+function hamiad_get_html_with_waf_retry(string $url, array &$cookies): string
+{
+    for ($attempt = 0; $attempt < 5; $attempt++) {
+        $result = hamiad_http_request('GET', $url, [
+            'cookies' => $cookies,
+            'timeoutSec' => 22,
+            'referer' => 'https://lms.tums.ac.ir/my/',
+        ]);
+        $cookies = hamiad_merge_cookies($cookies, (array) ($result['cookies'] ?? []));
+        if (empty($result['ok'])) {
+            throw new RuntimeException('ارتباط با همیاد برقرار نشد.');
+        }
+        $status = (int) ($result['status'] ?? 0);
+        if ($status === 200) {
+            $body = (string) ($result['body'] ?? '');
+            if (str_contains($body, 'login_captcha_id0') || str_contains($body, 'id="login"')) {
+                throw new RuntimeException('نشست همیاد منقضی شده است. دوباره وارد شو.');
+            }
+            return $body;
+        }
+        $location = hamiad_response_header_value((array) ($result['headers'] ?? []), 'location');
+        if ($status !== 307 || !hash_equals($url, $location)) {
+            throw new RuntimeException('دریافت اطلاعات همیاد با پاسخ غیرمنتظره مواجه شد.');
+        }
+    }
+    throw new RuntimeException('سامانه همیاد همچنان در حال انتقال درخواست است. دوباره تلاش کن.');
+}

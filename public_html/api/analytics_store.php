@@ -486,7 +486,7 @@ function analytics_family_label(string $family): string
         'files' => 'فایل سنتر',
         'paste' => 'پیست',
         'html' => 'HTML',
-        'navid' => 'نوید',
+        'navid' => 'سامانهٔ پیشین',
         'offline' => 'آفلاین',
         default => 'سایر',
     };

@@ -1552,7 +1552,7 @@
 
     function notificationBannerDefaultHref(preview) {
         if (preview && preview.kind === "navid-assignment") {
-            return "/navid/";
+            return "/account/#notifications";
         }
         return "/account/#notifications";
     }
@@ -1565,7 +1565,7 @@
     }
 
     function notificationBannerKindLabel(preview) {
-        return preview && preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید";
+        return preview && preview.kind === "navid-assignment" ? "اعلان قدیمی" : "اعلان جدید";
     }
 
     function ensureNotificationBanner() {
@@ -1673,11 +1673,11 @@
             notificationBanner.eyebrow.textContent = notificationBannerKindLabel(preview);
         }
         if (notificationBanner.title) {
-            notificationBanner.title.textContent = String(preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید"));
+            notificationBanner.title.textContent = String(preview.title || (preview.kind === "navid-assignment" ? "اعلان قدیمی" : "اعلان جدید"));
         }
         if (notificationBanner.body) {
             notificationBanner.body.textContent = String(preview.body || (preview.kind === "navid-assignment"
-                ? "برای دیدن جزئیات، بخش تکالیف نوید را باز کن."
+                ? "برای دیدن جزئیات، بخش اعلان‌ها را باز کن."
                 : "برای دیدن جزئیات، اعلان را باز کن."));
         }
         if (notificationBanner.primary) {
