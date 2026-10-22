@@ -94,7 +94,7 @@ class NavidRichGroupTests(unittest.TestCase):
         self.assertIn("📚 <b>درس:</b>", caption)
         self.assertIn("⏳ <b>مهلت:</b>", caption)
         self.assertNotIn("<pre>", caption)
-        self.assertIn("منبع: آخرین snapshot", caption)
+        self.assertIn("منبع: اطلاعات قدیمی (غیرفعال)", caption)
 
     def test_group_delivery_is_receipted_before_site_ack_and_not_resent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
