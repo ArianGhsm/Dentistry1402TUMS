@@ -887,7 +887,7 @@ def handle_classops_ui_callback(
             return True
         acknowledge()
         try:
-            _show(app, chat_id, callback, navid_center_screen(app.site_api.student_assistant_summary(user_id)))
+            _show(app, chat_id, callback, navid_center_screen({}, site_url=app.site_url))
         except SiteApiError:
             _show(
                 app,

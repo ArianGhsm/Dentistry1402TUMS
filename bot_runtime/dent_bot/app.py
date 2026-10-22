@@ -615,7 +615,8 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             self._complete_integration_captcha(int(chat["id"]), user_id, message, text)
             return
         if user_id == self.owner_id and command == "/navid":
-            self._send_navid_challenge(int(chat["id"]), refresh=True)
+            screen = navid_screen({}, platform=self.platform, site_url=self.site_url)
+            self.api.send(int(chat["id"]), screen.text, screen.keyboard)
             return
         if user_id == self.owner_id and self._is_navid_captcha_reply(message):
             self._complete_navid_captcha(int(chat["id"]), text)
@@ -1131,7 +1132,8 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
                     self.api.send(int(chat["id"]), frame_error(str(error)), payment_control_center_screen([]).keyboard)
             return
         if name == "navid-check" and user_id == self.owner_id:
-            self._send_navid_challenge(int(chat["id"]), refresh=True)
+            screen = navid_screen({}, platform=self.platform, site_url=self.site_url)
+            self.api.send(int(chat["id"]), screen.text, screen.keyboard)
             return
         if self._is_booklet_action(name):
             self._handle_booklet_action(

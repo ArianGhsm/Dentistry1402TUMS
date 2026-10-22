@@ -604,7 +604,7 @@
                             </summary>
                             <div class="account-notifications-disclosure__body">
                                 <div class="account-notifications-pref-grid">
-                                    <label id="notifications-navid-row" class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
+                                    <label id="notifications-navid-row" hidden class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
                                         <span>
                                             <strong>اعلان تکلیف جدید نوید</strong>
                                             <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
@@ -664,93 +664,9 @@
                         </details>
 
                         <details id="notifications-manager-card" class="account-notifications-disclosure" hidden>
-                            <summary class="account-notifications-disclosure__summary">
-                                <strong>ارسال اعلان</strong>
-                                <span>اعلان سریع، زمان‌بندی و SMS فقط وقتی لازم باشد باز می‌شوند.</span>
-                            </summary>
-                            <div class="account-notifications-disclosure__body">
-                                <form id="notifications-broadcast-form" class="account-form account-notifications-form" novalidate>
-                                <div class="account-notifications-form-grid">
-                                    <div class="account-notifications-form-field">
-                                        <label for="notifications-target">مقصد اعلان</label>
-                                        <select id="notifications-target"></select>
-                                    </div>
-                                    <div class="account-notifications-form-field">
-                                        <label for="notifications-schedule-at">زمان انتشار</label>
-                                        <input id="notifications-schedule-at" type="datetime-local" dir="ltr" data-latin-digits="true">
-                                        <small class="account-field-hint">اگر خالی بماند، اعلان بلافاصله ثبت می‌شود. اعلان زمان‌بندی‌شده تا زمان انتشار فقط برای مدیران همان اعلان نمایش مدیریتی دارد.</small>
-                                    </div>
-                                </div>
-
-                                <label for="notifications-title">عنوان اعلان</label>
-                                <input id="notifications-title" type="text" maxlength="180" placeholder="مثلاً اطلاعیه کلاس یا یادآوری مهم">
-
-                                <label for="notifications-body">متن اعلان</label>
-                                <textarea id="notifications-body" rows="5" maxlength="4000" placeholder="پیام یا توضیح مورد نظر را برای همه کاربران مقصد بنویس."></textarea>
-
-                                <div class="account-notifications-form-grid">
-                                    <div class="account-notifications-form-field">
-                                        <label for="notifications-cta-label">متن دکمه مشاهده</label>
-                                        <input id="notifications-cta-label" type="text" maxlength="80" placeholder="مثلاً مشاهده فرم یا رفتن به منابع">
-                                    </div>
-                                    <div class="account-notifications-form-field">
-                                        <label for="notifications-cta-href">مسیر دکمه مشاهده</label>
-                                        <input id="notifications-cta-href" type="text" maxlength="220" dir="ltr" data-latin-digits="true" placeholder="/forms/ یا /notes/term/?term=5">
-                                    </div>
-                                </div>
-
-                                <label class="phone-toggle-row account-notifications-toggle" for="notifications-send-sms">
-                                    <span>
-                                        <strong>ارسال پیامک همزمان</strong>
-                                        <small>متن کوتاه اعلان برای کاربرانی که شماره تاییدشده دارند هم ارسال می‌شود.</small>
-                                    </span>
-                                    <input id="notifications-send-sms" type="checkbox">
-                                </label>
-
-                                <div class="account-notifications-form-actions">
-                                    <button id="notifications-broadcast-submit" class="shell-action-btn shell-action-btn-primary" type="submit">ارسال اعلان</button>
-                                    <div id="notifications-manager-feedback" class="account-feedback" aria-live="polite"></div>
-                                </div>
-                                </form>
-                            </div>
-                        </details>
-
-                        <section class="account-notifications-card account-notifications-card--feed" aria-label="فهرست اعلان‌ها">
-                            <div class="owner-block__head">
-                                <h4>فید اعلان‌ها</h4>
-                                <p>هر مورد به‌صورت یک ردیف کوتاه نمایش داده می‌شود و جزئیات فقط موقع نیاز باز می‌شوند.</p>
-                            </div>
-                            <div class="account-inline-actions">
-                                <button id="notifications-refresh" class="shell-action-btn" type="button">بروزرسانی</button>
-                                <button id="notifications-mark-all" class="shell-action-btn" type="button">خواندن همه</button>
-                            </div>
-                            <div id="notifications-filters" class="account-notifications-filters" hidden></div>
-                            <div id="notifications-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
-                            <div id="notifications-empty" class="account-empty-state" hidden>اعلانی برای این حساب پیدا نشد.</div>
-                            <div id="notifications-list" class="account-notifications-list"></div>
-                        </section>
-                    </div>
-                </article>
-                <article id="owner-panel" class="account-card account-surface-panel" data-surface="owner" hidden>
-                    <header class="account-surface-head">
-                        <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
-                        <div class="account-surface-head__copy">
-                            <span class="account-section-kicker">مدیریت ورودی‌محور</span>
-                            <h3>کاربران، نماینده‌ها و محیط ایزوله هر ورودی</h3>
-                            <p>ابتدا ورودی فعال را انتخاب کن، سپس فقط همان کاربران، نماینده‌ها، فرم‌ها و کارنامه‌های همان ورودی را مدیریت کن.</p>
-                        </div>
-                    </header>
-
-                    <div class="owner-summary" id="owner-summary"></div>
-                    <section class="owner-block owner-block--cohort-shell">
-                        <div class="owner-block__head">
-                            <h4>ورودی فعال</h4>
-                            <p>هر تب فقط داده‌های همان ورودی را نشان می‌دهد. مالک همه ورودی‌ها را می‌بیند و نماینده فقط ورودی خودش را.</p>
-                        </div>
-                        <div id="owner-cohort-summary" class="owner-summary owner-summary--compact"></div>
-                        <div id="owner-cohort-grid" class="owner-cohort-grid"></div>
-                        <label class="owner-search owner-search--cohort">
-                            <span>انتخاب سریع ورودی</span>
+                            <summary class="account-notifications-disclosure
+…[sentinelx: truncated 7435 bytes]…
+                   <span>انتخاب سریع ورودی</span>
                             <select id="owner-cohort-select"></select>
                         </label>
                         <div id="owner-cohort-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
@@ -927,7 +843,7 @@
                                         <strong>کارت نوید</strong>
                                         <small>نمایش میان‌بر تکالیف نوید برای این cohort</small>
                                     </span>
-                                    <input id="owner-cohort-service-navid" type="checkbox" checked>
+                                    <input id="owner-cohort-service-navid" disabled type="checkbox" checked>
                                 </label>
 
                                 <label class="phone-toggle-row" for="owner-cohort-service-buy">
