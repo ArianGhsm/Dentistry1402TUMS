@@ -60,6 +60,10 @@ for needle in [
 ]:
     assert needle in DEPLOY, f'missing VPS deploy invariant: {needle}'
 
+assert DEPLOY.count("source /srv/telegram/accounts/dent1402bot/bot-token.env") == 2, (
+    "both pre-release and live smoke checks must load the same private Telegram token EnvironmentFile as systemd"
+)
+assert DEPLOY.count("source /etc/integrated-dent/dent-bot.env") == 2, "Telegram's primary config remains canonical"
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
 assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in DEPLOY
 assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY
