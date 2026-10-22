@@ -14,7 +14,11 @@ from .classops_owner_workflows import (
     owner_action_screen,
 )
 from .classops_shell import (
-    navid_center_screen,
+    hamiad_overview_screen,
+    hamiad_courses_screen,
+    hamiad_course_screen,
+    hamiad_tasks_screen,
+    hamiad_assignment_screen,
     service_status_screen,
 )
 from .persian_datetime import PERSIAN_WEEKDAYS, format_jalali_datetime, gregorian_to_jalali, to_persian_digits
@@ -857,8 +861,8 @@ def handle_classops_ui_callback(
     chat_id, user_id, raw_data = _context(callback)
     data = _legacy_classops_action(raw_data)
     handled = (
-        data in {"class-operations", "class-operations:owner", "system-status", "navid-center"}
-        or data.startswith("c3:")
+        data in {"class-operations", "class-operations:owner", "system-status", "hamiad-center", "navid-center"}
+        or data.startswith(("c3:", "hamiad:"))
     )
     if not handled or chat_id == 0 or user_id == 0:
         return False
@@ -878,26 +882,44 @@ def handle_classops_ui_callback(
         app.api.send(chat_id, "این بخش فقط در گفت‌وگوی خصوصی ربات در دسترس است.", {"inline_keyboard": []})
         return True
 
-    if data == "navid-center":
-        if user_id == int(getattr(app, "owner_id", -1)):
-            app._callback_core(
-                _callback_with_action(callback, "navid"),
-                interaction_version=interaction_version,
-            )
-            return True
+    if data in {"navid-center", "hamiad-center"} or data.startswith("hamiad:"):
         acknowledge()
+        if user_id != int(getattr(app, "owner_id", -1)):
+            _show(app, chat_id, callback, Screen(
+                "<b>🔐 همیاد</b>\n\nاین اتصال اختصاصی مالک است و اطلاعات شخصی دانشگاه در دسترس دیگران قرار نمی‌گیرد.",
+                keyboard([button("🏠 خانه", action="home")]),
+            ))
+            return True
         try:
-            _show(app, chat_id, callback, navid_center_screen({}, site_url=app.site_url))
-        except SiteApiError:
-            _show(
-                app,
-                chat_id,
-                callback,
-                Screen(
-                    "<b>🧭 مرکز نوید</b>\n\nوضعیت نوید فعلاً قابل دریافت نیست.",
-                    keyboard([button("↩️ بازگشت", action="home")]),
+            parts = data.split(":")
+            if len(parts) == 3 and parts[1] == "course" and parts[2].isdigit():
+                result = app.site_api.request("hamiadCourseV1", user_id, courseId=int(parts[2]))
+                screen = hamiad_course_screen(dict(result.get("detail") or {}))
+            elif len(parts) == 4 and parts[1] == "assignment" and parts[2].isdigit() and parts[3].isdigit():
+                result = app.site_api.request(
+                    "hamiadAssignmentV1", user_id, courseId=int(parts[2]), activityId=int(parts[3])
+                )
+                screen = hamiad_assignment_screen(dict(result.get("assignment") or {}))
+            else:
+                response = app.site_api.request("hamiadDashboardV1", user_id)
+                dashboard = dict(response.get("dashboard") or {})
+                if len(parts) == 3 and parts[1] == "courses" and parts[2].isdigit():
+                    screen = hamiad_courses_screen(dashboard, page=int(parts[2]))
+                elif len(parts) == 3 and parts[1] == "tasks" and parts[2].isdigit():
+                    screen = hamiad_tasks_screen(dashboard, page=int(parts[2]))
+                else:
+                    screen = hamiad_overview_screen(dashboard, site_url=app.site_url)
+        except (SiteApiError, ValueError) as error:
+            screen = Screen(
+                "<b>🎓 مرکز همیاد</b>\n\n"
+                "<blockquote>⚠️ " + html.escape(str(error)[:190]) + "</blockquote>",
+                keyboard(
+                    [button("↻ تلاش مجدد", action="hamiad-center"),
+                     button("🌐 اتصال حساب", url=app.site_url.rstrip("/") + "/hamiad/")],
+                    [button("🏠 خانه", action="home")],
                 ),
             )
+        _show(app, chat_id, callback, screen)
         return True
 
     if data == "system-status":

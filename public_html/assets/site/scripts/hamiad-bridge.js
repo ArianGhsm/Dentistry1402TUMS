@@ -89,6 +89,7 @@
             document.getElementById("hamiad-form-panel").hidden = true;
             document.getElementById("hamiad-success-panel").hidden = false;
             status(result.message || "");
+            loadDashboard();
         } catch (error) {
             password.value = "";
             status(error.message + " برای تلاش بعدی تصویر تازه دریافت کن.", true);
@@ -112,10 +113,26 @@
     const courseList = document.getElementById("hamiad-course-list");
     const courseDetails = document.getElementById("hamiad-course-details");
     const courseFeedback = document.getElementById("hamiad-course-feedback");
+    const overview = document.getElementById("hamiad-overview");
+    const taskList = document.getElementById("hamiad-task-list");
+    const coursesTab = document.getElementById("hamiad-view-courses");
+    const tasksTab = document.getElementById("hamiad-view-tasks");
+    let dashboard = null;
+    let activeView = "courses";
+    let loadSequence = 0;
+
+    const persianDigits = (value) => String(value ?? "").replace(/[0-9]/g, digit => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+    const normalizedCourse = (value) => persianDigits(String(value || "درس").replace(/\s*-\s*ترم\s*[۰-۹0-9]+\s*-\s*کدگروه\s*[۰-۹0-9]+\s*$/u, ""));
+    const create = (tag, cls, text) => {
+        const element = document.createElement(tag);
+        if (cls) element.className = cls;
+        if (text !== undefined) element.textContent = text;
+        return element;
+    };
 
     async function readData(action) {
         const response = await fetch("/api/hamiad_bridge_api.php?action=" + action, {
-            credentials: "same-origin", cache: "no-store",
+            credentials: "same-origin", cache: "no-store", redirect: "error",
         });
         const value = await response.json().catch(() => null);
         if (!response.ok || !value || value.success !== true) {
@@ -129,59 +146,184 @@
         connectPanel.hidden = false;
     }
 
-    async function loadCourses() {
-        courseButton.disabled = true;
-        courseFeedback.textContent = "در حال بررسی درس‌های ثبت‌شده…";
+    function statusMessage(text, isError = false) {
+        courseFeedback.textContent = text;
+        courseFeedback.classList.toggle("is-error", isError);
+    }
+
+    function makeMetric(icon, number, label) {
+        const item = create("div", "hamiad-metric");
+        item.append(create("span", "hamiad-metric-icon", icon),
+                    create("strong", "hamiad-metric-count", persianDigits(number)),
+                    create("span", "hamiad-metric-label", label));
+        return item;
+    }
+
+    function renderDashboardSummary(data) {
+        overview.replaceChildren(
+            makeMetric("📚", data.courses?.length || 0, "درس"),
+            makeMetric("📎", data.resources || 0, "منبع آموزشی"),
+            makeMetric("⏰", data.assignments?.length || 0, "تکلیف")
+        );
+    }
+
+    function showView(view) {
+        activeView = view;
+        courseList.hidden = view !== "courses";
+        taskList.hidden = view !== "tasks";
+        courseDetails.hidden = true;
+        coursesTab.classList.toggle("is-active", view === "courses");
+        tasksTab.classList.toggle("is-active", view === "tasks");
+        if (!dashboard) return;
+        if (view === "tasks") renderTasks(dashboard.assignments || []);
+        else renderCourses(dashboard.courses || []);
+    }
+
+    function renderCourses(courses) {
         courseList.replaceChildren();
-        courseDetails.replaceChildren();
+        if (!courses.length) {
+            courseList.append(create("p", "hamiad-empty", "در نیمسال جاری درسی در همیاد شناسایی نشده است."));
+            return;
+        }
+        for (const course of courses) {
+            const row = create("article", "hamiad-course-card");
+            const content = create("div", "hamiad-course-content");
+            content.append(
+                create("strong", "hamiad-course-name", normalizedCourse(course.title)),
+                create("span", "hamiad-course-meta",
+                    "📎 " + persianDigits(course.resourceCount || 0) + " منبع · ⏰ " +
+                    persianDigits(course.assignmentCount || 0) + " تکلیف")
+            );
+            const button = create("button", "bot-link-secondary hamiad-open-course", "مشاهده ←");
+            button.type = "button";
+            button.addEventListener("click", () => renderCourseDetail(course));
+            row.append(content, button);
+            courseList.append(row);
+        }
+        statusMessage("درس‌های نیمسال جاری بر اساس حساب متصل نمایش داده می‌شوند.");
+    }
+
+    function renderTasks(tasks) {
+        taskList.replaceChildren();
+        if (!tasks.length) {
+            const empty = create("div", "hamiad-empty");
+            empty.append(
+                create("strong", "", "⏰ تکلیفی ثبت نشده است"),
+                create("p", "", "در حال حاضر در دروس ترم ۷ این حساب تکلیفی در سامانه همیاد شناسایی نشده است.")
+            );
+            taskList.append(empty);
+            statusMessage("با تازه‌سازی، تکالیف احتمالی جدید مستقیماً بررسی می‌شوند.");
+            return;
+        }
+        for (const task of tasks) {
+            const card = create("article", "hamiad-course-card");
+            const info = create("div", "hamiad-course-content");
+            info.append(create("strong", "hamiad-course-name", persianDigits(task.title || "تکلیف")),
+                        create("span", "hamiad-course-meta", normalizedCourse(task.courseTitle)));
+            const action = create("button", "bot-link-secondary", "جزئیات");
+            action.type = "button";
+            action.addEventListener("click", () => renderAssignmentDetail(task.courseId, task.id));
+            card.append(info, action);
+            taskList.append(card);
+        }
+        statusMessage("عنوان و اطلاعات هر تکلیف از صفحهٔ اصلی همان درس دریافت شده‌اند.");
+    }
+
+    async function renderCourseDetail(course) {
+        courseList.hidden = true;
+        taskList.hidden = true;
+        courseDetails.hidden = false;
+        coursesTab.classList.add("is-active");
+        tasksTab.classList.remove("is-active");
+        courseDetails.replaceChildren(create("p", "hamiad-empty", "در حال دریافت منابع و تکالیف درس…"));
+        statusMessage("");
         try {
-            const result = await readData("courses");
-            const list = Array.isArray(result.courses) ? result.courses : [];
-            courseFeedback.textContent = list.length
-                ? "برای نمایش محتوای هر درس، نام درس را انتخاب کن."
-                : "هنوز درسی از همیاد شناسایی نشده است.";
-            for (const course of list) {
-                const button = document.createElement("button");
-                button.type = "button";
-                button.className = "bot-link-secondary hamiad-course-button";
-                button.textContent = String(course.title || "درس بدون عنوان");
-                button.addEventListener("click", async () => {
-                    courseDetails.replaceChildren();
-                    courseFeedback.textContent = "در حال دریافت محتوای درس…";
-                    try {
-                        const data = await readData("course&id=" + encodeURIComponent(String(course.id)));
-                        const heading = document.createElement("strong");
-                        heading.textContent = String(course.title || "");
-                        courseDetails.appendChild(heading);
-                        const items = Array.isArray(data.items) ? data.items : [];
-                        for (const item of items) {
-                            const line = document.createElement("div");
-                            line.className = "hamiad-resource-row";
-                            const type = document.createElement("span");
-                            type.textContent = String(item.type || "محتوا");
-                            const title = document.createElement("strong");
-                            title.textContent = String(item.title || "بدون عنوان");
-                            line.append(type, title);
-                            courseDetails.appendChild(line);
-                        }
-                        courseFeedback.textContent = items.length
-                            ? "محتوای شناسایی‌شده در همیاد:"
-                            : "محتوای قابل نمایشی در این درس پیدا نشد.";
-                    } catch (error) {
-                        courseFeedback.textContent = error.message;
-                    }
-                });
-                courseList.appendChild(button);
+            const result = await readData("termCourse&id=" + encodeURIComponent(course.id));
+            const items = Array.isArray(result.detail?.items) ? result.detail.items : [];
+            courseDetails.replaceChildren();
+            const heading = create("div", "hamiad-detail-head");
+            const back = create("button", "bot-link-secondary", "↩ بازگشت به درس‌ها");
+            back.type = "button";
+            back.addEventListener("click", () => showView("courses"));
+            heading.append(create("strong", "", normalizedCourse(course.title)), back);
+            courseDetails.append(heading);
+            if (!items.length) {
+                courseDetails.append(create("p", "hamiad-empty", "هنوز منبع یا تکلیفی برای این درس ثبت نشده است."));
+            }
+            for (const item of items) {
+                const row = create("article", "hamiad-resource-row");
+                const icon = item.kind === "assign" ? "⏰" : (item.kind === "folder" ? "📂" : "📎");
+                row.append(create("span", "hamiad-resource-type", icon + " " + (item.type || "محتوا")),
+                           create("strong", "", persianDigits(item.title || "بدون عنوان")));
+                if (item.kind === "assign") {
+                    const action = create("button", "bot-link-secondary", "مشاهدهٔ تکلیف");
+                    action.addEventListener("click", () => renderAssignmentDetail(course.id, item.id));
+                    row.append(action);
+                } else if (Number.isSafeInteger(Number(item.id)) && Number(item.id) > 0
+                    && ["resource", "folder", "page"].includes(item.kind)) {
+                    const link = create("a", "bot-link-secondary", "باز کردن در همیاد");
+                    link.href = "https://lms.tums.ac.ir/mod/" + item.kind + "/view.php?id=" + Number(item.id);
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                    row.append(link);
+                }
+                courseDetails.append(row);
             }
         } catch (error) {
-            courseFeedback.textContent = error.message;
-        } finally {
-            courseButton.disabled = false;
+            courseDetails.replaceChildren(create("p", "hamiad-empty", error.message));
+            statusMessage(error.message, true);
         }
     }
 
-    courseButton.addEventListener("click", loadCourses);
+    async function renderAssignmentDetail(courseId, activityId) {
+        courseDetails.hidden = false;
+        courseList.hidden = true;
+        taskList.hidden = true;
+        courseDetails.replaceChildren(create("p", "hamiad-empty", "در حال دریافت جزئیات تکلیف…"));
+        try {
+            const result = await readData("assignment&courseId=" + encodeURIComponent(courseId)
+                + "&activityId=" + encodeURIComponent(activityId));
+            const item = result.assignment || {};
+            courseDetails.replaceChildren();
+            const back = create("button", "bot-link-secondary", "↩ بازگشت به تکالیف");
+            back.addEventListener("click", () => showView("tasks"));
+            courseDetails.append(back,
+                create("strong", "hamiad-course-name", persianDigits(item.title || "تکلیف")),
+                create("p", "hamiad-course-meta", "📅 مهلت: " + persianDigits(item.dueText || "در سامانه درج نشده")),
+                create("p", "", persianDigits(item.description || "توضیحی برای این تکلیف ثبت نشده است.")));
+        } catch (error) {
+            courseDetails.replaceChildren(create("p", "hamiad-empty", error.message));
+        }
+    }
+
+    async function loadDashboard() {
+        const sequence = ++loadSequence;
+        courseButton.disabled = true;
+        statusMessage("در حال بررسی درس‌ها و تکالیف واقعی ترم ۷…");
+        try {
+            const result = await readData("dashboard");
+            if (sequence !== loadSequence) return;
+            dashboard = result.dashboard || null;
+            if (!dashboard?.connected) {
+                statusMessage("نشست همیاد متصل نیست؛ ورود دوباره لازم است.", true);
+                return;
+            }
+            renderDashboardSummary(dashboard);
+            showView(activeView);
+        } catch (error) {
+            if (sequence !== loadSequence) return;
+            dashboard = null;
+            statusMessage(error.message, true);
+        } finally {
+            if (sequence === loadSequence) courseButton.disabled = false;
+        }
+    }
+
+    courseButton.addEventListener("click", loadDashboard);
+    coursesTab.addEventListener("click", () => showView("courses"));
+    tasksTab.addEventListener("click", () => showView("tasks"));
     document.getElementById("hamiad-reconnect").addEventListener("click", () => {
+        dashboard = null;
         connectPanel.hidden = true;
         loginPanel.hidden = false;
         newCaptcha();
@@ -190,7 +332,7 @@
     readData("status").then((result) => {
         if (result.status?.connected) {
             showConnected();
-            courseFeedback.textContent = "نشست قبلی همیاد روی سرور ذخیره شده است.";
+            loadDashboard();
         } else {
             newCaptcha();
         }

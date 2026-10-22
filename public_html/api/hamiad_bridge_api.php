@@ -5,6 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/hamiad_bridge_service.php';
 require_once __DIR__ . '/hamiad_courses.php';
+require_once __DIR__ . '/hamiad_dashboard.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Referrer-Policy: no-referrer');
@@ -13,6 +14,33 @@ header('Content-Type: application/json; charset=utf-8');
 
 dent_require_owner();
 $action = trim((string) ($_GET['action'] ?? ''));
+if (dent_request_method() === 'GET' && $action === 'dashboard') {
+    try {
+        dent_json_response(['success' => true, 'dashboard' => hamiad_term7_dashboard()]);
+    } catch (RuntimeException $error) {
+        dent_error($error->getMessage(), 422);
+    }
+}
+if (dent_request_method() === 'GET' && $action === 'termCourse') {
+    try {
+        dent_json_response(['success' => true, 'detail' => hamiad_term7_course_view((int) ($_GET['id'] ?? 0))]);
+    } catch (RuntimeException $error) {
+        dent_error($error->getMessage(), 422);
+    }
+}
+if (dent_request_method() === 'GET' && $action === 'assignment') {
+    try {
+        $courseId = (int) ($_GET['courseId'] ?? 0);
+        $assignmentId = (int) ($_GET['activityId'] ?? 0);
+        $course = hamiad_term7_course_view($courseId);
+        if (!array_filter($course['items'], static fn($item): bool => $item['kind'] === 'assign' && $item['id'] === $assignmentId)) {
+            dent_error('تکلیف به درس جاری تعلق ندارد.', 404);
+        }
+        dent_json_response(['success' => true, 'assignment' => hamiad_assignment_detail($courseId, $assignmentId)]);
+    } catch (RuntimeException $error) {
+        dent_error($error->getMessage(), 422);
+    }
+}
 if (dent_request_method() === 'GET' && $action === 'status') {
     dent_json_response(['success' => true, 'status' => hamiad_session_status()]);
 }

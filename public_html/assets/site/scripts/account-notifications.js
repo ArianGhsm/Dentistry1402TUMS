@@ -269,7 +269,7 @@
             { key: "all", label: "همه", count: list.length },
             { key: "unread", label: "خوانده‌نشده", count: list.filter(function (item) { return notificationsMatchesFilter(item, "unread"); }).length },
             { key: "important", label: "مهم", count: list.filter(function (item) { return notificationsMatchesFilter(item, "important"); }).length },
-            { key: "navid", label: "نوید", count: list.filter(function (item) { return notificationsMatchesFilter(item, "navid"); }).length },
+            { key: "navid", label: "سامانهٔ پیشین", count: list.filter(function (item) { return notificationsMatchesFilter(item, "navid"); }).length },
             { key: "manager", label: "مدیریتی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "manager"); }).length },
             { key: "scheduled", label: "زمان‌بندی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "scheduled"); }).length }
         ];
@@ -478,7 +478,7 @@
 
     function notificationsKindLabel(item) {
         if (item && item.kind === "navid-assignment") {
-            return "نوید";
+            return "سامانهٔ پیشین";
         }
         var source = String(item && item.source || "");
         if (source === "forms") {
@@ -615,7 +615,7 @@
             notificationsOverviewPillHtml("مهم", importantUnreadCount.toLocaleString("fa-IR"), importantUnreadCount > 0 ? "danger" : ""),
             notificationsOverviewPillHtml("یادآور", reminderCount.toLocaleString("fa-IR"), reminderCount > 0 ? "warn" : ""),
             notificationsOverviewPillHtml(manager && manager.canBroadcast ? "در فید" : "قابل‌نمایش", visibleCount.toLocaleString("fa-IR"), ""),
-            notificationsOverviewPillHtml("نوید", navidCount.toLocaleString("fa-IR"), "")
+            notificationsOverviewPillHtml("سامانهٔ پیشین", navidCount.toLocaleString("fa-IR"), "")
         ];
         if (manager && manager.canBroadcast) {
             pills.splice(2, 0, notificationsOverviewPillHtml("در صف", scheduledCount.toLocaleString("fa-IR"), scheduledCount > 0 ? "warn" : ""));
@@ -791,13 +791,13 @@
             accountNavidAlertTime.textContent = formatJalaliDateTime(preview.effectiveAt || preview.createdAt, "—");
         }
         if (accountNavidAlertTitle) {
-            accountNavidAlertTitle.textContent = preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید");
+            accountNavidAlertTitle.textContent = preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید سامانهٔ پیشین" : "اعلان جدید");
         }
         if (accountNavidAlertBody) {
             accountNavidAlertBody.textContent = preview.source === "deploy"
                 ? (notificationsDeployPreviewText(preview) || "گزارش استقرار جدید سایت ثبت شد.")
                 : (preview.body || (preview.kind === "navid-assignment"
-                ? "برای دیدن جزئیات، بخش تکالیف نوید را باز کن."
+                ? "برای دیدن جزئیات، بخش تکالیف سامانهٔ پیشین را باز کن."
                 : "برای دیدن جزئیات، اعلان را باز کن."));
         }
         if (accountNavidAlertLink) {
@@ -862,7 +862,7 @@
             }
             if (notificationsPrefsHint) {
                 notificationsPrefsHint.textContent = canToggle
-                    ? "وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود."
+                    ? "وقتی تکلیف جدیدی در سامانهٔ پیشین بیاید، در حساب کاربری به شما اطلاع داده می‌شود."
                     : "";
             }
         }

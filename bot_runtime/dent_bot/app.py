@@ -71,7 +71,7 @@ from .ui import (
 from .navid import local_now, send_daily_challenge
 from .student_assistant import challenge_expired, clean_captcha_answer, send_private_challenge
 from .academic_term7_rich import decorate_academic_notification_screen
-from .classops_shell import canonical_home_screen, owner_management_screen
+from .classops_shell import canonical_home_screen, owner_management_screen, hamiad_overview_screen
 from .feature_router import decorate_feature_screen, route_feature_callback, route_feature_message
 from .onboarding import (
     BACK_STEP,
@@ -596,7 +596,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         pending_dialog = self.state.dialog(user_id)
         private_message = (
             (self.student_assistant_v1_enabled and self._is_integration_captcha_reply(user_id, message))
-            or (user_id == self.owner_id and command == "/navid")
+            or (user_id == self.owner_id and command in {"/hamiad", "/navid"})
             or (user_id == self.owner_id and self._is_navid_captcha_reply(message))
             or text.startswith("/setgrade")
             or command in {"/product", "/payform"}
@@ -614,8 +614,16 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         if self.student_assistant_v1_enabled and self._is_integration_captcha_reply(user_id, message):
             self._complete_integration_captcha(int(chat["id"]), user_id, message, text)
             return
-        if user_id == self.owner_id and command == "/navid":
-            screen = navid_screen({}, platform=self.platform, site_url=self.site_url)
+        if user_id == self.owner_id and command in {"/hamiad", "/navid"}:
+            try:
+                result = self.site_api.request("hamiadDashboardV1", user_id)
+                screen = hamiad_overview_screen(dict(result.get("dashboard") or {}), site_url=self.site_url)
+            except SiteApiError as error:
+                screen = Screen(
+                    "<b>🎓 مرکز همیاد</b>\n\n<blockquote>" + html.escape(str(error)) + "</blockquote>",
+                    keyboard([button("🌐 ورود به همیاد", url=self.site_url.rstrip("/") + "/hamiad/")],
+                             [button("🏠 خانه", action="home")]),
+                )
             self.api.send(int(chat["id"]), screen.text, screen.keyboard)
             return
         if user_id == self.owner_id and self._is_navid_captcha_reply(message):
@@ -713,7 +721,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
 
     def _send_navid_challenge(self, chat_id: int, *, refresh: bool) -> None:
         if self.site_api is None:
-            self.api.send(chat_id, frame_error("اتصال امن نوید در دسترس نیست."), home(self.site_url, is_owner=True).keyboard)
+            self.api.send(chat_id, frame_error("اتصال امن سامانهٔ پیشین در دسترس نیست."), home(self.site_url, is_owner=True).keyboard)
             return
         daily_date = local_now("Asia/Tehran").strftime("%Y-%m-%d")
         try:
@@ -728,7 +736,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             if str(result.get("status") or "") == "already-completed":
                 self.api.send(
                     chat_id,
-                    "<b>✅ بررسی امروز نوید انجام شده است</b>\n\nتکلیف جدیدی که شناسایی شده باشد در اعلان‌های سایت ثبت شده است.",
+                    "<b>✅ بررسی امروز سامانهٔ پیشین انجام شده است</b>\n\nتکلیف جدیدی که شناسایی شده باشد در اعلان‌های سایت ثبت شده است.",
                     home(self.site_url, is_owner=True).keyboard,
                 )
         except (SiteApiError, BotApiError) as error:
@@ -752,7 +760,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             self.state.set_runtime_value("navid_completed_date", str(pending["date"]))
             self.api.send(
                 chat_id,
-                "<b>✅ بررسی روزانه نوید انجام شد</b>\n\n"
+                "<b>✅ بررسی روزانه سامانهٔ پیشین انجام شد</b>\n\n"
                 f"تکلیف جدید: <b>{new_events}</b>\n"
                 "<blockquote>موارد جدید از مسیر اعلان‌های سایت برای اعضای متصل به ربات‌ها توزیع می‌شوند.</blockquote>",
                 home(self.site_url, is_owner=True).keyboard,
@@ -1132,7 +1140,15 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
                     self.api.send(int(chat["id"]), frame_error(str(error)), payment_control_center_screen([]).keyboard)
             return
         if name == "navid-check" and user_id == self.owner_id:
-            screen = navid_screen({}, platform=self.platform, site_url=self.site_url)
+            try:
+                result = self.site_api.request("hamiadDashboardV1", user_id)
+                screen = hamiad_overview_screen(dict(result.get("dashboard") or {}), site_url=self.site_url)
+            except SiteApiError as error:
+                screen = Screen(
+                    "<b>🎓 مرکز همیاد</b>\n\n<blockquote>" + html.escape(str(error)) + "</blockquote>",
+                    keyboard([button("🌐 اتصال همیاد", url=self.site_url.rstrip("/") + "/hamiad/")],
+                             [button("🏠 خانه", action="home")]),
+                )
             self.api.send(int(chat["id"]), screen.text, screen.keyboard)
             return
         if self._is_booklet_action(name):

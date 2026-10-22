@@ -23,13 +23,13 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
     <title>ورود به همیاد | دنت‌یار</title>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20261022-hamiad1">
     <link rel="stylesheet" href="/assets/site/styles/bot-link.css?v=20261022-hamiad1">
-    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad2">
+    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad-center1">
 </head>
 <body class="bot-link-page">
 <main class="bot-link-shell">
     <header class="bot-link-header">
         <span class="bot-link-kicker">🔐 اتصال امن مالک</span>
-        <h1>ورود به همیاد</h1>
+        <h1>همیاد | امور آموزشی</h1>
         <p>سامانهٔ آموزش الکترونیکی دانشگاه علوم پزشکی تهران</p>
     </header>
 
@@ -70,12 +70,18 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
             <p>نشست همیاد به‌صورت رمزنگاری‌شده برای بررسی درس‌ها ذخیره شد. اطلاعات ورود در این صفحه نگه‌داری نمی‌شود.</p>
             <div class="hamiad-courses">
                 <div class="hamiad-courses-head">
-                    <strong>درس‌های حساب همیاد</strong>
-                    <button id="hamiad-load-courses" class="bot-link-secondary" type="button">نمایش درس‌ها</button>
+                    <strong>پنل آموزشی ترم ۷</strong>
+                    <button id="hamiad-load-courses" class="bot-link-secondary" type="button">↻ تازه‌سازی</button>
+                </div>
+                <div id="hamiad-overview" class="hamiad-overview" aria-live="polite"></div>
+                <div class="hamiad-view-tabs" role="group" aria-label="انتخاب نمای همیاد">
+                    <button id="hamiad-view-courses" class="bot-link-secondary is-active" type="button">📚 درس‌ها</button>
+                    <button id="hamiad-view-tasks" class="bot-link-secondary" type="button">⏰ تکالیف و مهلت‌ها</button>
                 </div>
                 <p id="hamiad-course-feedback" class="hamiad-feedback" role="status"></p>
                 <div id="hamiad-course-list" class="hamiad-course-list"></div>
-                <div id="hamiad-course-details" class="hamiad-course-list" aria-live="polite"></div>
+                <div id="hamiad-course-details" class="hamiad-course-list" aria-live="polite" hidden></div>
+                <div id="hamiad-task-list" class="hamiad-course-list" aria-live="polite" hidden></div>
             </div>
             <button id="hamiad-reconnect" class="bot-link-secondary" type="button">ورود مجدد و تعویض نشست</button>
             <a class="bot-link-secondary" href="/app/">بازگشت به دنتیستری</a>
@@ -85,6 +91,6 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
     <p class="bot-link-security">این صفحه فقط برای مالک سامانه است. رمز عبور در پایگاه داده ذخیره نمی‌شود و داخل لینک قرار نمی‌گیرد.</p>
 </main>
 <div id="hamiad-config" data-csrf="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" hidden></div>
-<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261022-hamiad2"></script><?php endif; ?>
+<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261022-hamiad-center1"></script><?php endif; ?>
 </body>
 </html>
