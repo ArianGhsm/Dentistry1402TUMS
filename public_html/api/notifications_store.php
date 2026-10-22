@@ -1204,7 +1204,7 @@ function notifications_target_label(array $record): string
 function notifications_sender_label(array $record): string
 {
     if ((string) ($record['source'] ?? '') === 'navid') {
-        return 'سامانه نوید';
+        return 'سامانه سامانهٔ پیشین';
     }
 
     if ((string) ($record['source'] ?? '') === 'deploy') {
@@ -3539,7 +3539,7 @@ function notifications_enqueue_navid_assignment(array $assignment): ?array
         $record = notifications_normalize_record($id, [
             'id' => $id,
             'kind' => DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT,
-            'title' => 'تکلیف جدید نوید',
+            'title' => 'تکلیف جدید سامانهٔ پیشین',
             'body' => implode("\n", $bodyParts),
             'tone' => 'warn',
             'target' => DENT_NOTIFICATION_TARGET_COHORT,
@@ -3662,7 +3662,7 @@ function notifications_enqueue_navid_deadline_reminder(array $assignment, int $t
         $record = notifications_normalize_record($id, [
             'id' => $id,
             'kind' => DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT,
-            'title' => 'یادآوری مهلت تکلیف نوید',
+            'title' => 'یادآوری مهلت تکلیف سامانهٔ پیشین',
             'body' => implode("\n", $bodyParts),
             'tone' => $tone,
             'target' => DENT_NOTIFICATION_TARGET_COHORT,

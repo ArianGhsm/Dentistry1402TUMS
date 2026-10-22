@@ -11,7 +11,7 @@ from .state import BotState
 
 _OPAQUE_REF = re.compile(r"[A-Za-z0-9_-]{12,80}")
 _CONNECTOR_LABELS = {
-    "navid": "نوید",
+    "navid": "سامانهٔ پیشین",
     "food": "تغذیه",
     "saba": "سرویس",
 }

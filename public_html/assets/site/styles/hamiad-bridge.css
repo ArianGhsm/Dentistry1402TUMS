@@ -168,3 +168,108 @@
 .hamiad-resource-row strong {
     font-size: .93rem;
 }
+
+/* Unified ClassOps hierarchy for the owner's current-term Moodle feed. */
+.hamiad-overview {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 9px;
+}
+.hamiad-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-height: 94px;
+    justify-content: center;
+    border: 1px solid #d9e0e9;
+    border-radius: 11px;
+    padding: 10px 7px;
+    background: rgba(127,151,175,.06);
+}
+.hamiad-metric-icon { font-size: 1.14rem; }
+.hamiad-metric-count { font-size: 1.27rem; font-variant-numeric: tabular-nums; }
+.hamiad-metric-label { font-size: .79rem; color: #64748b; }
+.hamiad-view-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.hamiad-view-tabs button {
+    width: 100%;
+    min-height: 40px;
+}
+.hamiad-view-tabs .is-active {
+    border-color: #176c5d;
+    color: #176c5d;
+    font-weight: 700;
+}
+.hamiad-course-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #d9e0e9;
+    border-radius: 10px;
+}
+.hamiad-course-content {display:grid;gap:6px;min-width:0;}
+.hamiad-course-name {
+    font-size: .92rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+.hamiad-course-meta {
+    color: #64748b;
+    font-size: .79rem;
+}
+.hamiad-course-card .bot-link-secondary {
+    flex-shrink: 0;
+    font-size: .8rem;
+    padding: 8px 10px;
+}
+.hamiad-detail-head {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding-bottom: 10px;
+    border-bottom:1px solid #d9e0e9;
+}
+.hamiad-resource-row {
+    display:grid;
+    gap:7px;
+    padding:12px 2px;
+    border-bottom:1px solid #d9e0e9;
+}
+.hamiad-resource-type {
+    color: #64748b;
+    font-size:.8rem;
+}
+.hamiad-resource-row .bot-link-secondary {
+    justify-self:start;
+    padding:6px 10px;
+    font-size:.78rem;
+}
+.hamiad-empty {
+    padding:18px 12px;
+    border:1px dashed #cbd5e1;
+    border-radius:10px;
+    margin:0;
+    color:#64748b;
+}
+.hamiad-empty p {margin:8px 0 0;}
+.hamiad-course-list[hidden] {display:none;}
+@media(max-width:450px) {
+    .hamiad-metric {min-height:80px;padding:8px 4px;}
+    .hamiad-course-card {align-items:flex-start;flex-direction:column;}
+    .hamiad-course-card .bot-link-secondary {align-self:flex-end;}
+    .hamiad-detail-head {flex-direction:column;align-items:flex-start;}
+}
+@media(prefers-color-scheme:dark){
+    .hamiad-course-card,.hamiad-metric,.hamiad-detail-head,.hamiad-resource-row {
+        border-color:#435268;
+    }
+    .hamiad-metric-label,.hamiad-course-meta,.hamiad-resource-type,.hamiad-empty {color:#aeb9c8;}
+    .hamiad-view-tabs .is-active {color:#7ad4c0;border-color:#7ad4c0;}
+}

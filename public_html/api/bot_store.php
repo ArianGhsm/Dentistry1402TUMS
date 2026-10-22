@@ -7,6 +7,7 @@ require_once __DIR__ . '/bot_persistence.php';
 require_once __DIR__ . '/bot_delivery_store.php';
 require_once __DIR__ . '/bot_notifications.php';
 require_once __DIR__ . '/bot_navid.php';
+require_once __DIR__ . '/bot_hamiad.php';
 require_once __DIR__ . '/bot_student_assistant.php';
 require_once __DIR__ . '/bot_onboarding.php';
 require_once __DIR__ . '/bot_voice_payment_bridge.php';
@@ -1741,6 +1742,15 @@ function dent_bot_service_dispatch(array $payload): array
     }
     if ($action === 'notificationAudience') {
         return dent_bot_notification_audience($user, $payload);
+    }
+    if ($action === 'hamiadDashboardV1') {
+        return dent_bot_hamiad_dashboard($user);
+    }
+    if ($action === 'hamiadCourseV1') {
+        return dent_bot_hamiad_course($user, $payload);
+    }
+    if ($action === 'hamiadAssignmentV1') {
+        return dent_bot_hamiad_assignment($user, $payload);
     }
     if ($action === 'navidDailyStart') {
         return dent_bot_navid_daily_start($user, $platform, $payload);
