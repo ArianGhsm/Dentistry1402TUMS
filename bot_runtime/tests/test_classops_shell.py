@@ -26,7 +26,7 @@ class ClassOpsShellTests(unittest.TestCase):
         self.assertEqual(
             self._labels(screen),
             [
-                ["🧭 مرکز نوید"],
+                ["🧭 مرکز همیاد"],
                 ["📚 جزوات", "💳 اشتراک جزوات"],
                 ["📊 نمرات", "🗂 امور کلاس"],
                 ["👤 حساب من", "🔔 اعلان‌ها", "❓ راهنما"],
@@ -50,17 +50,19 @@ class ClassOpsShellTests(unittest.TestCase):
         self.assertIn("خطا", str(screen.text))
         self.assertNotIn("failed", str(screen.text))
 
-    def test_navid_center_has_explicit_empty_and_ready_states(self):
-        empty = navid_center_screen({"view": {"connectors": []}})
-        self.assertIn("قابل تشخیص نیست", str(empty.text))
-        ready = navid_center_screen({
+    def test_legacy_center_routes_to_hamiad_without_old_data(self):
+        empty = navid_center_screen({"view": {"connectors": []}}, site_url="https://example.test")
+        self.assertIn("مرکز همیاد", str(empty.text))
+        self.assertNotIn("نوید", str(empty.text))
+        self.assertIn("https://example.test/hamiad/", str(empty.keyboard))
+        old = navid_center_screen({
             "view": {
-                "connectors": [{"connector": "navid", "status": "ready", "statusLabel": "آماده", "maskedAccountLabel": "a***"}],
+                "connectors": [{"connector": "navid", "status": "ready", "statusLabel": "آماده"}],
                 "actions": [{"label": "ورود نوید", "ref": "abcdefghijkl"}],
             }
-        })
-        self.assertIn("آماده", str(ready.text))
-        self.assertIn("ادامه در نوید", str(ready.keyboard))
+        }, site_url="https://example.test")
+        self.assertEqual(str(empty.text), str(old.text))
+        self.assertNotIn("ادامه در نوید", str(old.keyboard))
 
 
 if __name__ == "__main__":
