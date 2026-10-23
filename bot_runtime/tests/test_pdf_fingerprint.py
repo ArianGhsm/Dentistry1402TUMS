@@ -7,6 +7,9 @@ import unittest
 from pathlib import Path
 
 from dent_bot.pdf_fingerprint import (
+    PdfFingerprintError,
+    _identity_watermark_label,
+    _watermark_text,
     LEGACY_WATERMARK_VERSION,
     LEGACY_MICRO_CHANNEL_VERSION,
     INTERLEAVED_MICRO_CHANNEL_VERSION,
@@ -25,6 +28,28 @@ from dent_bot.pdf_fingerprint import (
 )
 from dent_bot.forensic_detector import detect, verify_expected_secure_raster
 from dent_bot.state import BotState
+
+
+class VerifiedExternalWatermarkIdentityTests(unittest.TestCase):
+    def test_verified_mobile_can_personalize_without_fake_national_code(self) -> None:
+        identity = WatermarkIdentity(
+            "دانشجوی خارج از ورودی", "", "09123456789", "verified_mobile"
+        ).validated()
+        self.assertEqual(identity.national_code, "")
+        self.assertIn("موبایل تأییدشده", _identity_watermark_label(identity))
+        rendered = _watermark_text(identity, "TRC-ABCDE-ABCDE")
+        self.assertIn("موبایل تأییدشده", rendered)
+        self.assertNotIn("کد ملی:", rendered)
+
+    def test_missing_national_code_requires_explicit_verified_mobile_mode(self) -> None:
+        with self.assertRaises(PdfFingerprintError):
+            WatermarkIdentity("دانشجوی تست", "", "09123456789").validated()
+        with self.assertRaises(PdfFingerprintError):
+            WatermarkIdentity("دانشجوی تست", "", "09123456789", "unknown").validated()
+        with self.assertRaises(PdfFingerprintError):
+            WatermarkIdentity("دانشجوی تست", "0012345678", "09123456789", "verified_mobile").validated()
+        with self.assertRaises(PdfFingerprintError):
+            WatermarkIdentity("دانشجوی تست", "", "00123456789", "verified_mobile").validated()
 
 
 @unittest.skipUnless(__import__("importlib").util.find_spec("pymupdf"), "PyMuPDF unavailable")

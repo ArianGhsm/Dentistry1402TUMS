@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -33,6 +34,13 @@ class Api:
 
 class TermSubscriptionTests(unittest.TestCase):
     def setUp(self) -> None:
+        # Keep historical Mehr payment fixtures at their original business date.
+        # Without a frozen clock, valid Mehr entitlements expire whenever
+        # this suite is run in Aban or later.
+        clock = patch("dent_bot.state.datetime", wraps=datetime)
+        fixed_datetime = clock.start()
+        fixed_datetime.now.return_value = datetime(2026, 10, 12, 8, tzinfo=timezone.utc)
+        self.addCleanup(clock.stop)
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         self.state = BotState(root / "telegram.sqlite3", payment_offers_path=root / "shared.sqlite3")
@@ -366,7 +374,7 @@ class TermSubscriptionTests(unittest.TestCase):
             grant["id"], actor_user_id=10, actor_platform="telegram", note="test revoke"
         )
         self.assertFalse(app.booklet_access_allowed(20, source))
-        self._paid(billing_period_for(7).key, token="c" * 20, delivery="current-period-delivery")
+        self._paid(billing_period_for(7, MEHR_MIDDLE).key, token="c" * 20, delivery="current-period-delivery")
         self.assertTrue(app.booklet_access_allowed(20, source))
 
     def test_owner_booklet_delivery_bypasses_identity_membership_and_subscription(self) -> None:

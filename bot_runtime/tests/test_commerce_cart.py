@@ -4,6 +4,7 @@ import queue
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -104,6 +105,13 @@ class BatchState:
 
 class CommerceCartTests(unittest.TestCase):
     def setUp(self) -> None:
+        # Keep historical Mehr payment fixtures at their original business date.
+        # Without a frozen clock, valid Mehr entitlements expire whenever
+        # this suite is run in Aban or later.
+        clock = patch("dent_bot.state.datetime", wraps=datetime)
+        fixed_datetime = clock.start()
+        fixed_datetime.now.return_value = datetime(2026, 10, 12, 8, tzinfo=timezone.utc)
+        self.addCleanup(clock.stop)
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         self.state = BotState(
