@@ -349,7 +349,8 @@ function dent_bot_booklet_watermark_identity(
     // Only this explicitly authenticated external identity may use phone-only
     // personalization. Regular students still require a canonical national code.
     $verifiedExternal = (string) ($user['role'] ?? '') === 'external_exam_user'
-        && ($profile['isClassMember'] ?? null) === false
+        && is_array($profile)
+        && !dent_bot_onboarding_profile_is_primary_class_member($profile)
         && trim((string) ($profile['verifiedAt'] ?? '')) !== ''
         && dent_normalize_phone_number((string) ($profile['phoneNumber'] ?? '')) === $phoneNumber;
     $identityMethod = $nationalCode !== '' ? 'national_code' : 'verified_mobile';
