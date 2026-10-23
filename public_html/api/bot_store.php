@@ -344,9 +344,21 @@ function dent_bot_booklet_watermark_identity(
     $phoneVerifiedAt = trim((string) (
         $profile['verifiedAt'] ?? ($user['phoneVerifiedAt'] ?? '')
     ));
-    if ($fullName === '' || $nationalCode === '' || $phoneNumber === '' || $phoneVerifiedAt === '') {
+    // External students enter through OTP-verified onboarding. Their account may
+    // not carry a national code; never fabricate one or label a phone as a code.
+    // Only this explicitly authenticated external identity may use phone-only
+    // personalization. Regular students still require a canonical national code.
+    $verifiedExternal = (string) ($user['role'] ?? '') === 'external_exam_user'
+        && ($profile['isClassMember'] ?? null) === false
+        && trim((string) ($profile['verifiedAt'] ?? '')) !== ''
+        && dent_normalize_phone_number((string) ($profile['phoneNumber'] ?? '')) === $phoneNumber;
+    $identityMethod = $nationalCode !== '' ? 'national_code' : 'verified_mobile';
+    if (
+        $fullName === '' || $phoneNumber === '' || $phoneVerifiedAt === ''
+        || ($nationalCode === '' && !$verifiedExternal)
+    ) {
         dent_error(
-            'برای دریافت جزوه شخصی، نام کامل، کد ملی و موبایل تأییدشده باید در حساب ثبت شده باشد.',
+            'برای دریافت جزوه شخصی، اطلاعات هویتی تأییدشده باید در حساب ثبت شده باشد.',
             409,
             ['code' => 'BOOKLET_IDENTITY_INCOMPLETE']
         );
@@ -357,6 +369,7 @@ function dent_bot_booklet_watermark_identity(
             'fullName' => $fullName,
             'nationalCode' => $nationalCode,
             'phoneNumber' => $phoneNumber,
+            'identityMethod' => $identityMethod,
         ],
     ];
 }

@@ -21,7 +21,27 @@ from dent_bot.booklets import (
 from dent_bot.booklet_source_admin import register_source_metadata, sync_existing_source_message
 from dent_bot.booklet_sources import PRIVATE_SOURCE_CONTENT_KINDS, POWER_SOURCE_CONTENT_KINDS
 from dent_bot.state import BotState
-from dent_bot.protected_media import ProtectedMediaDispatcher, _protected_delivery_caption
+from unittest.mock import patch
+from dent_bot.protected_media import DeliveryJob, ProtectedMediaDispatcher, _protected_delivery_caption
+
+
+class QueuedBookletAuthorizationRetryTests(unittest.TestCase):
+    def test_temporary_access_check_failure_recovers_without_bypassing_check(self) -> None:
+        dispatcher = object.__new__(ProtectedMediaDispatcher)
+        responses = iter([False, True])
+        dispatcher.authorize = lambda _user, _source: next(responses)
+        job = DeliveryJob(10, 20, "document", 0.0)
+        with patch("dent_bot.protected_media.time.sleep") as sleep:
+            self.assertTrue(dispatcher._authorize_queued_job(job, {"contentKind": "booklet"}))
+        sleep.assert_called_once()
+
+    def test_consistent_denial_still_fails_closed(self) -> None:
+        dispatcher = object.__new__(ProtectedMediaDispatcher)
+        dispatcher.authorize = lambda _user, _source: False
+        job = DeliveryJob(10, 20, "document", 0.0)
+        with patch("dent_bot.protected_media.time.sleep") as sleep:
+            self.assertFalse(dispatcher._authorize_queued_job(job, {"contentKind": "booklet"}))
+        self.assertEqual(sleep.call_count, 2)
 
 
 SOURCE_CHAT_ID = -1003706539157

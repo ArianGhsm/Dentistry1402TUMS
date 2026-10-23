@@ -343,6 +343,19 @@ class ProtectedMediaDispatcher:
             return self.state.paid_file_asset_by_id(job.source_id)
         return self.state.protected_media_source(job.source_id)
 
+    def _authorize_queued_job(self, job: DeliveryJob, source: dict) -> bool:
+        # The request passed authorization at enqueue time. A fresh check can
+        # still briefly fail on an API timeout or payment activation race.
+        # Retry only; NEVER send without a successful fresh authorization.
+        for attempt in range(3):
+            if self.authorize(job.user_id, source):
+                if attempt:
+                    logging.info("protected media authorization recovered after retry source=%s", job.source_type)
+                return True
+            if attempt < 2:
+                time.sleep(0.35 * (attempt + 1))
+        return False
+
     def _finish(self, job: DeliveryJob) -> None:
         with self._lock:
             self._pending.discard((job.user_id, job.document_id, WATERMARK_VERSION))
@@ -381,6 +394,7 @@ class ProtectedMediaDispatcher:
             full_name=str(identity.get("fullName") or ""),
             national_code=str(identity.get("nationalCode") or ""),
             phone_number=str(identity.get("phoneNumber") or ""),
+            identity_method=str(identity.get("identityMethod") or "national_code"),
         ).validated()
 
     def _send_pdf(self, job: DeliveryJob, source: dict) -> dict:
@@ -532,7 +546,7 @@ class ProtectedMediaDispatcher:
                 return
             try:
                 source = self._source_for_job(job)
-                if source is None or not self.authorize(job.user_id, source):
+                if source is None or not self._authorize_queued_job(job, source):
                     self.state.record_protected_media_delivery(job.user_id, job.source_id, "denied")
                     denied_text = (
                         "خرید این فایل برای حساب شما تأیید نشد؛ فایل ارسال نشد."

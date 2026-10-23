@@ -75,18 +75,34 @@ class WatermarkIdentity:
     full_name: str
     national_code: str
     phone_number: str
+    identity_method: str = "national_code"
 
     def validated(self) -> "WatermarkIdentity":
         full_name = " ".join(str(self.full_name).split())[:160]
         national_code = _ascii_digits(self.national_code)
         phone_number = _ascii_digits(self.phone_number)
+        identity_method = str(self.identity_method)
         if len(full_name) < 3:
             raise PdfFingerprintError("Canonical full name is missing")
-        if len(national_code) != 10:
-            raise PdfFingerprintError("Canonical national code is missing")
+        if identity_method == "national_code":
+            if len(national_code) != 10:
+                raise PdfFingerprintError("Canonical national code is missing")
+        elif identity_method == "verified_mobile":
+            if national_code:
+                raise PdfFingerprintError("Phone-verified identity must not contain a national code")
+            if len(phone_number) != 11 or not phone_number.startswith("09"):
+                raise PdfFingerprintError("Verified Iranian mobile number is required")
+        else:
+            raise PdfFingerprintError("Unsupported watermark identity method")
         if len(phone_number) not in {10, 11, 12}:
             raise PdfFingerprintError("Canonical phone number is missing")
-        return WatermarkIdentity(full_name, national_code, phone_number)
+        return WatermarkIdentity(full_name, national_code, phone_number, identity_method)
+
+
+def _identity_watermark_label(identity: WatermarkIdentity) -> str:
+    if identity.identity_method == "verified_mobile":
+        return "هویت: موبایل تأییدشده"
+    return f"کد ملی: {to_persian_digits(identity.national_code)}"
 
 
 @dataclass(frozen=True)
@@ -852,9 +868,7 @@ def _place_hardened_visible_and_micro(
     rng = random.Random(material.layout_seed ^ ((page_index + 1) * 0xD1B54A32D192ED03))
     # Full canonical PII is intentionally visible as a deterrent. Hidden
     # channels still carry only the opaque issuance token and never raw PII.
-    line_one = _shape_rtl(
-        f"{identity.full_name} - کد ملی: {to_persian_digits(identity.national_code)}"
-    )
+    line_one = _shape_rtl(f"{identity.full_name} - {_identity_watermark_label(identity)}")
     line_two = _shape_rtl(f"موبایل: {to_persian_digits(identity.phone_number)}")
     trace_text = f"Dent1402 {material.trace_code}"
     metric_font = pymupdf.Font(fontfile=str(font_path))
@@ -965,11 +979,11 @@ def _place_hardened_visible_and_micro(
 
 def _watermark_text(identity: WatermarkIdentity, trace_code: str) -> str:
     safe_name = html.escape(identity.full_name)
-    national = html.escape(to_persian_digits(identity.national_code))
+    identity_label = html.escape(_identity_watermark_label(identity))
     phone = html.escape(to_persian_digits(identity.phone_number))
     trace = html.escape(trace_code)
     return (
-        "<div dir='rtl'><b>" + safe_name + "</b> | کد ملی: " + national
+        "<div dir='rtl'><b>" + safe_name + "</b> | " + identity_label
         + "<br>موبایل: " + phone + " | Trace Code: <b>" + trace + "</b></div>"
     )
 
@@ -1409,7 +1423,7 @@ def _place_secure_visible_marks(page, identity: WatermarkIdentity, material: Fin
                                 font_path: Path, page_index: int, profile: dict[str, object]) -> dict[str, int]:
     full_marks, compact_marks = _secure_visible_plan(profile, material, page_index)
     name = _shape_rtl(identity.full_name)
-    national = _shape_rtl(f"کد ملی: {to_persian_digits(identity.national_code)}")
+    national = _shape_rtl(_identity_watermark_label(identity))
     phone = _shape_rtl(f"موبایل: {to_persian_digits(identity.phone_number)}")
     trace = f"Dent1402 {material.trace_code}"
     for index, mark in enumerate(full_marks):
