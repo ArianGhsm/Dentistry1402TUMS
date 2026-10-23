@@ -90,7 +90,15 @@ class WatermarkIdentity:
         elif identity_method == "verified_mobile":
             if national_code:
                 raise PdfFingerprintError("Phone-verified identity must not contain a national code")
-            if len(phone_number) != 11 or not phone_number.startswith("09"):
+            # The site canonicalizer uses 98xxxxxxxxxx, whereas OTP entry
+            # and older accounts may use 09xxxxxxxxx or 9xxxxxxxxx.
+            # Preserve the verified canonical digits exactly on the watermark.
+            valid_mobile = (
+                (len(phone_number) == 12 and phone_number.startswith("989"))
+                or (len(phone_number) == 11 and phone_number.startswith("09"))
+                or (len(phone_number) == 10 and phone_number.startswith("9"))
+            )
+            if not valid_mobile:
                 raise PdfFingerprintError("Verified Iranian mobile number is required")
         else:
             raise PdfFingerprintError("Unsupported watermark identity method")

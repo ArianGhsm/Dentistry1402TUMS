@@ -36,6 +36,10 @@ class VerifiedExternalWatermarkIdentityTests(unittest.TestCase):
             "دانشجوی خارج از ورودی", "", "09123456789", "verified_mobile"
         ).validated()
         self.assertEqual(identity.national_code, "")
+        international = WatermarkIdentity(
+            "دانشجوی خارج از ورودی", "", "989123456789", "verified_mobile"
+        ).validated()
+        self.assertEqual(international.phone_number, "989123456789")
         self.assertIn("موبایل تأییدشده", _identity_watermark_label(identity))
         rendered = _watermark_text(identity, "TRC-ABCDE-ABCDE")
         self.assertIn("موبایل تأییدشده", rendered)
