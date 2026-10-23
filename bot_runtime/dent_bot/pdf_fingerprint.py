@@ -90,7 +90,9 @@ class WatermarkIdentity:
         elif identity_method == "verified_mobile":
             if national_code:
                 raise PdfFingerprintError("Phone-verified identity must not contain a national code")
-            if len(phone_number) != 11 or not phone_number.startswith("09"):
+            local_mobile = len(phone_number) == 11 and phone_number.startswith("09")
+            international_mobile = len(phone_number) == 12 and phone_number.startswith("989")
+            if not (local_mobile or international_mobile):
                 raise PdfFingerprintError("Verified Iranian mobile number is required")
         else:
             raise PdfFingerprintError("Unsupported watermark identity method")

@@ -41,6 +41,13 @@ class VerifiedExternalWatermarkIdentityTests(unittest.TestCase):
         self.assertIn("موبایل تأییدشده", rendered)
         self.assertNotIn("کد ملی:", rendered)
 
+    def test_verified_external_mobile_with_international_prefix(self) -> None:
+        identity = WatermarkIdentity(
+            "دانشجوی خارج از ورودی", "", "+989123456789", "verified_mobile"
+        ).validated()
+        self.assertEqual(identity.phone_number, "989123456789")
+        self.assertIn("موبایل تأییدشده", _identity_watermark_label(identity))
+
     def test_missing_national_code_requires_explicit_verified_mobile_mode(self) -> None:
         with self.assertRaises(PdfFingerprintError):
             WatermarkIdentity("دانشجوی تست", "", "09123456789").validated()
