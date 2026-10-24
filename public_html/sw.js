@@ -1,4 +1,4 @@
-const APP_VERSION = "20261022-hamiad-cleanup";
+const APP_VERSION = "20261024-hamiad-assignments";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 const PAGE_CACHE = "dent1402-pages-" + APP_VERSION;
 const MAX_PAGE_CACHE_ENTRIES = 40;

@@ -51,6 +51,12 @@ function hamiad_course_activities(int $courseId): array
         $name = trim(preg_replace('/\s+/u', ' ', (string) $a->textContent) ?: '');
         if ($name === '') { continue; }
         $name = preg_replace('/\s+(?:فایل|تکلیف|پوشه)\s*$/u', '', $name) ?: $name;
+        // Moodle accessibility anchors can prefix an assignment with an
+        // erroneous "deadline passed" announcement and append course metadata.
+        // Real due state is always obtained from assignment detail, never here.
+        if ($kind === 'assign' && preg_match('/^موعد\s+(.+?)\s+سر\s*رسیده\s*است(?:\s|$)/u', $name, $titleMatch)) {
+            $name = trim($titleMatch[1]);
+        }
         $key = $kind . ':' . $id;
         if (!isset($items[$key]) || mb_strlen($name) > mb_strlen($items[$key]['title'])) {
             $items[$key] = [
@@ -63,9 +69,44 @@ function hamiad_course_activities(int $courseId): array
     return array_values($items);
 }
 
-function hamiad_assignment_detail(int $courseId, int $activityId): array
+/**
+ * Some Moodle views expose only a relative countdown, not an absolute due date.
+ * Never interpret the assignment TITLE (which may say "سررسیده") as the due status.
+ */
+function hamiad_remaining_seconds(string $value): ?int
 {
-    $activities = hamiad_course_activities($courseId);
+    $normalized = strtr($value, [
+        '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4',
+        '۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9',
+        '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4',
+        '٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
+    ]);
+    if (str_contains($normalized, 'زمان مشخص نشده') || str_contains($normalized, 'نامشخص')) {
+        return null;
+    }
+    $seconds = 0;
+    $matched = false;
+    foreach (['روز'=>86400,'ساعت'=>3600,'دقیقه'=>60] as $unit => $factor) {
+        if (preg_match('/(\d+)\s*' . $unit . '/u', $normalized, $parts)) {
+            $seconds += (int)$parts[1] * $factor;
+            $matched = true;
+        }
+    }
+    if (!$matched) {
+        return null;
+    }
+    if (preg_match('/گذشته|سپری|منقضی/u', $normalized)) {
+        return -$seconds;
+    }
+    if (preg_match('/باقی|مانده/u', $normalized)) {
+        return $seconds;
+    }
+    return null;
+}
+
+function hamiad_assignment_detail(int $courseId, int $activityId, ?array $knownActivities = null): array
+{
+    $activities = $knownActivities ?? hamiad_course_activities($courseId);
     $matching = array_values(array_filter($activities, static fn($a): bool =>
         $a['kind'] === 'assign' && $a['id'] === $activityId
     ));
@@ -91,12 +132,22 @@ function hamiad_assignment_detail(int $courseId, int $activityId): array
             $fields[mb_substr($key, 0, 80)] = mb_substr($value, 0, 240);
         }
     }
-    $due = '';
-    foreach ($fields as $key => $value) {
-        if (preg_match('/موعد|مهلت|تحویل|سررسید|due date|deadline/iu', $key)) {
-            $due = $value; break;
+    $submissionStatus = (string) ($fields['وضعیت تحویل'] ?? '');
+    $gradingStatus = (string) ($fields['وضعیت تصحیح'] ?? '');
+    $remainingText = (string) ($fields['زمان باقیمانده'] ?? '');
+    $remainingSeconds = hamiad_remaining_seconds($remainingText);
+    $dueAt = $remainingSeconds === null ? '' : date(DATE_ATOM, time() + $remainingSeconds);
+    $due = $remainingText;
+    if ($due === '') {
+        foreach ($fields as $key => $value) {
+            if (preg_match('/(?:^|\\s)(?:موعد|مهلت|سررسید|تاریخ تحویل|due date|deadline)(?:\\s|$)/iu', $key)) {
+                $due = $value; break;
+            }
         }
     }
+    $submitted = $submissionStatus !== '' && !preg_match('/هیچ ارسالی|ارسال نشده|عدم ارسال/u', $submissionStatus);
+    $dueStatus = $submitted ? 'submitted' : ($remainingSeconds === null
+        ? 'unknown' : ($remainingSeconds <= 0 ? 'overdue' : 'upcoming'));
     $description = '';
     $xpath = new DOMXPath($dom);
     foreach (['//*[@id="intro"]', '//*[contains(concat(" ",normalize-space(@class)," ")," activity-description ")]', '//*[contains(concat(" ",normalize-space(@class)," ")," box generalbox ")]'] as $selector) {
@@ -108,7 +159,10 @@ function hamiad_assignment_detail(int $courseId, int $activityId): array
     }
     return [
         'courseId' => $courseId, 'id' => $activityId,
-        'title' => $matching[0]['title'], 'dueText' => $due,
+        'title' => $matching[0]['title'], 'dueText' => $due, 'dueAt' => $dueAt,
+        'duePrecision' => $remainingSeconds !== null ? 'relative' : 'unknown',
+        'dueStatus' => $dueStatus, 'submissionStatus' => $submissionStatus,
+        'gradingStatus' => $gradingStatus, 'remainingText' => $remainingText,
         'description' => mb_substr($description, 0, 2000), 'fields' => $fields,
     ];
 }
@@ -130,11 +184,27 @@ function hamiad_term7_dashboard(): array
         $course['assignmentCount'] = count($tasks);
         $resources += $course['resourceCount'];
         foreach ($tasks as $task) {
+            // Reuse the already parsed course activities; the detail remains the
+            // single source of truth for due time and submission status.
+            try {
+                $detail = hamiad_assignment_detail((int)$course['id'], (int)$task['id'], $activities);
+                $task = array_merge($task, $detail);
+            } catch (RuntimeException $error) {
+                $task['dueStatus'] = 'unknown';
+                $task['dueText'] = '';
+                $task['dueAt'] = '';
+                $task['detailError'] = 'جزئیات تکلیف فعلاً قابل دریافت نیست.';
+            }
             $task['courseTitle'] = $course['title'];
             $allAssignments[] = $task;
         }
     }
     unset($course);
+    usort($allAssignments, static function (array $a, array $b): int {
+        $ta = strtotime((string)($a['dueAt'] ?? '')) ?: PHP_INT_MAX;
+        $tb = strtotime((string)($b['dueAt'] ?? '')) ?: PHP_INT_MAX;
+        return ($ta <=> $tb) ?: strcmp((string)($a['title'] ?? ''), (string)($b['title'] ?? ''));
+    });
     return [
         'connected' => true, 'courses' => $courses,
         'assignments' => $allAssignments, 'resources' => $resources,

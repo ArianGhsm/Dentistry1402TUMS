@@ -142,9 +142,9 @@
             ? notificationsState.preferences
             : {};
         return {
-            navidAssignmentAlerts: notificationsNavidAlertsToggle
+            hamiadAssignmentAlerts: notificationsNavidAlertsToggle
                 ? !!notificationsNavidAlertsToggle.checked
-                : !!base.navidAssignmentAlerts,
+                : !!base.hamiadAssignmentAlerts,
             formReminders: notificationsFormRemindersToggle
                 ? !!notificationsFormRemindersToggle.checked
                 : !!base.formReminders,
@@ -251,8 +251,8 @@
         if (key === "important") {
             return !!(item && item.unread && !item.scheduled && notificationsItemIsImportant(item));
         }
-        if (key === "navid") {
-            return !!(item && item.kind === "navid-assignment");
+        if (key === "hamiad") {
+            return !!(item && (item.kind === "hamiad-assignment" || item.source === "hamiad"));
         }
         if (key === "scheduled") {
             return !!(item && item.scheduled);
@@ -269,7 +269,7 @@
             { key: "all", label: "همه", count: list.length },
             { key: "unread", label: "خوانده‌نشده", count: list.filter(function (item) { return notificationsMatchesFilter(item, "unread"); }).length },
             { key: "important", label: "مهم", count: list.filter(function (item) { return notificationsMatchesFilter(item, "important"); }).length },
-            { key: "navid", label: "سامانهٔ پیشین", count: list.filter(function (item) { return notificationsMatchesFilter(item, "navid"); }).length },
+            { key: "hamiad", label: "همیاد", count: list.filter(function (item) { return notificationsMatchesFilter(item, "hamiad"); }).length },
             { key: "manager", label: "مدیریتی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "manager"); }).length },
             { key: "scheduled", label: "زمان‌بندی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "scheduled"); }).length }
         ];
@@ -477,7 +477,7 @@
     }
 
     function notificationsKindLabel(item) {
-        if (item && item.kind === "navid-assignment") {
+        if (item && item.kind === "hamiad-assignment") {
             return "سامانهٔ پیشین";
         }
         var source = String(item && item.source || "");
@@ -607,7 +607,7 @@
         var importantUnreadCount = Math.max(0, Math.floor(toNumber(summary && summary.importantUnreadCount, 0)));
         var reminderCount = Math.max(0, Math.floor(toNumber(summary && summary.reminderCount, 0)));
         var visibleCount = Math.max(0, Math.floor(toNumber(summary && summary.visibleCount, 0)));
-        var navidCount = Math.max(0, Math.floor(toNumber(summary && summary.navidCount, 0)));
+        var hamiadCount = Math.max(0, Math.floor(toNumber(summary && summary.hamiadCount, 0)));
         var scheduledCount = Math.max(0, Math.floor(toNumber(summary && summary.scheduledCount, 0)));
         var latestTitle = String(summary && summary.latestTitle || "").trim();
         var pills = [
@@ -615,7 +615,7 @@
             notificationsOverviewPillHtml("مهم", importantUnreadCount.toLocaleString("fa-IR"), importantUnreadCount > 0 ? "danger" : ""),
             notificationsOverviewPillHtml("یادآور", reminderCount.toLocaleString("fa-IR"), reminderCount > 0 ? "warn" : ""),
             notificationsOverviewPillHtml(manager && manager.canBroadcast ? "در فید" : "قابل‌نمایش", visibleCount.toLocaleString("fa-IR"), ""),
-            notificationsOverviewPillHtml("سامانهٔ پیشین", navidCount.toLocaleString("fa-IR"), "")
+            notificationsOverviewPillHtml("همیاد", hamiadCount.toLocaleString("fa-IR"), "")
         ];
         if (manager && manager.canBroadcast) {
             pills.splice(2, 0, notificationsOverviewPillHtml("در صف", scheduledCount.toLocaleString("fa-IR"), scheduledCount > 0 ? "warn" : ""));
@@ -791,19 +791,19 @@
             accountNavidAlertTime.textContent = formatJalaliDateTime(preview.effectiveAt || preview.createdAt, "—");
         }
         if (accountNavidAlertTitle) {
-            accountNavidAlertTitle.textContent = preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید سامانهٔ پیشین" : "اعلان جدید");
+            accountNavidAlertTitle.textContent = preview.title || (preview.kind === "hamiad-assignment" ? "تکلیف جدید همیاد" : "اعلان جدید");
         }
         if (accountNavidAlertBody) {
             accountNavidAlertBody.textContent = preview.source === "deploy"
                 ? (notificationsDeployPreviewText(preview) || "گزارش استقرار جدید سایت ثبت شد.")
-                : (preview.body || (preview.kind === "navid-assignment"
+                : (preview.body || (preview.kind === "hamiad-assignment"
                 ? "برای دیدن جزئیات، بخش تکالیف سامانهٔ پیشین را باز کن."
                 : "برای دیدن جزئیات، اعلان را باز کن."));
         }
         if (accountNavidAlertLink) {
             accountNavidAlertLink.href = String(preview.ctaHref || "/account/#notifications");
             accountNavidAlertLink.dataset.notificationId = String(preview.id || "");
-            accountNavidAlertLink.textContent = String(preview.ctaLabel || (preview.kind === "navid-assignment" ? "مشاهده تکالیف" : "مشاهده اعلان"));
+            accountNavidAlertLink.textContent = String(preview.ctaLabel || (preview.kind === "hamiad-assignment" ? "مشاهده تکالیف" : "مشاهده اعلان"));
         }
         if (accountNavidAlertMarkRead) {
             var previewId = String(preview.id || "").trim();
@@ -830,7 +830,7 @@
         }
 
         if (notificationsPrefsCard) {
-            var canToggle = !!storedPreferences.canToggleNavidAssignmentAlerts;
+            var canToggle = !!storedPreferences.canToggleHamiadAssignmentAlerts;
             var digestEnabled = !!preferences.dailyDigestEnabled;
             var digestHour = notificationsNormalizeDigestHourValue(preferences.dailyDigestHour, 8);
             notificationsPrefsCard.hidden = false;
@@ -838,7 +838,7 @@
                 notificationsNavidRow.hidden = !canToggle;
             }
             if (notificationsNavidAlertsToggle) {
-                notificationsNavidAlertsToggle.checked = !!preferences.navidAssignmentAlerts;
+                notificationsNavidAlertsToggle.checked = !!preferences.hamiadAssignmentAlerts;
                 notificationsNavidAlertsToggle.disabled = notificationsState.savingPrefs || !canToggle;
             }
             if (notificationsFormRemindersToggle) {
@@ -862,7 +862,7 @@
             }
             if (notificationsPrefsHint) {
                 notificationsPrefsHint.textContent = canToggle
-                    ? "وقتی تکلیف جدیدی در سامانهٔ پیشین بیاید، در حساب کاربری به شما اطلاع داده می‌شود."
+                    ? "تکالیف تازه و یادآوری‌های مهلت همیاد را در سایت، تلگرام و بله دنبال کن."
                     : "";
             }
         }
@@ -1218,7 +1218,7 @@
         setInlineFeedback(notificationsFeedback, "در حال ذخیره تنظیمات اعلان...", "", true);
         renderNotificationsUi();
         return notificationsPost("savePrefs", {
-            navidAssignmentAlerts: draftPreferences.navidAssignmentAlerts ? "1" : "0",
+            hamiadAssignmentAlerts: draftPreferences.hamiadAssignmentAlerts ? "1" : "0",
             formReminders: draftPreferences.formReminders ? "1" : "0",
             paymentReminders: draftPreferences.paymentReminders ? "1" : "0",
             dailyDigestEnabled: draftPreferences.dailyDigestEnabled ? "1" : "0",

@@ -9,6 +9,7 @@ const DENT_NOTIFICATIONS_SCHEMA_VERSION = 6;
 const DENT_NOTIFICATION_ID_PREFIX = 'nt-';
 const DENT_NOTIFICATION_KIND_ANNOUNCEMENT = 'announcement';
 const DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT = 'navid-assignment';
+const DENT_NOTIFICATION_KIND_HAMIAD_ASSIGNMENT = 'hamiad-assignment';
 const DENT_NOTIFICATION_TARGET_ALL = 'all';
 const DENT_NOTIFICATION_TARGET_COHORT = 'cohort';
 const DENT_NOTIFICATION_TARGET_USER = 'user';
@@ -160,7 +161,7 @@ function notifications_clean_tone(?string $value): string
 function notifications_clean_kind(?string $value): string
 {
     $kind = trim((string) $value);
-    return in_array($kind, [DENT_NOTIFICATION_KIND_ANNOUNCEMENT, DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT], true)
+    return in_array($kind, [DENT_NOTIFICATION_KIND_ANNOUNCEMENT, DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT, DENT_NOTIFICATION_KIND_HAMIAD_ASSIGNMENT], true)
         ? $kind
         : DENT_NOTIFICATION_KIND_ANNOUNCEMENT;
 }
@@ -408,6 +409,26 @@ function notifications_clean_meta(array $meta, array $record = []): array
     $thresholdDays = max(0, (int) ($meta['thresholdDays'] ?? 0));
     if ($thresholdDays > 0) {
         $clean['thresholdDays'] = $thresholdDays;
+    }
+
+    // Canonical Moodle activity IDs and due metadata for owner-only notices.
+    foreach (['courseId', 'assignmentId'] as $field) {
+        $value = filter_var($meta[$field] ?? null, FILTER_VALIDATE_INT);
+        if ($value !== false && $value !== null && $value > 0) {
+            $clean[$field] = (int)$value;
+        }
+    }
+    $hamiadDueAt = notifications_normalize_iso_datetime((string)($meta['dueAt'] ?? ''));
+    if ($hamiadDueAt !== '') {
+        $clean['dueAt'] = $hamiadDueAt;
+    }
+    $hamiadDueText = dent_clean_text((string)($meta['dueText'] ?? ''), 120);
+    if ($hamiadDueText !== '') {
+        $clean['dueText'] = $hamiadDueText;
+    }
+    $hamiadReminderDays = (int)($meta['reminderDays'] ?? 0);
+    if (in_array($hamiadReminderDays, [1, 2, 7], true)) {
+        $clean['reminderDays'] = $hamiadReminderDays;
     }
 
     $important = filter_var($meta['important'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
@@ -850,6 +871,7 @@ function notifications_normalize_user_state(string $studentNumber, array $state,
         'snoozedIds' => $snoozedIds,
         'preferences' => [
             'navidAssignmentAlerts' => dent_parse_bool($preferences['navidAssignmentAlerts'] ?? null, true),
+            'hamiadAssignmentAlerts' => dent_parse_bool($preferences['hamiadAssignmentAlerts'] ?? null, true),
             'formReminders' => dent_parse_bool($preferences['formReminders'] ?? null, true),
             'paymentReminders' => dent_parse_bool($preferences['paymentReminders'] ?? null, true),
             'dailyDigestEnabled' => dent_parse_bool($preferences['dailyDigestEnabled'] ?? null, false),
@@ -986,7 +1008,7 @@ function notifications_record_is_important(array $record): bool
         return true;
     }
 
-    if ((string) ($record['kind'] ?? '') === DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT) {
+    if (in_array((string)($record['kind'] ?? ''), [DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT, DENT_NOTIFICATION_KIND_HAMIAD_ASSIGNMENT], true)) {
         return true;
     }
 
@@ -1005,6 +1027,7 @@ function notifications_default_preferences_for_user(array $user): array
 {
     return [
         'navidAssignmentAlerts' => dent_user_cohort_key($user) === dent_primary_cohort_key(),
+        'hamiadAssignmentAlerts' => notifications_user_is_owner($user),
         'formReminders' => !notifications_user_is_owner($user),
         'paymentReminders' => !notifications_user_is_owner($user),
         'dailyDigestEnabled' => false,
@@ -1036,6 +1059,7 @@ function notifications_user_state(array $store, array $user): array
         'snoozedIds' => is_array($state['snoozedIds'] ?? null) ? $state['snoozedIds'] : [],
         'preferences' => [
             'navidAssignmentAlerts' => dent_parse_bool($preferences['navidAssignmentAlerts'] ?? null, $defaults['navidAssignmentAlerts']),
+            'hamiadAssignmentAlerts' => dent_parse_bool($preferences['hamiadAssignmentAlerts'] ?? null, $defaults['hamiadAssignmentAlerts']),
             'formReminders' => dent_parse_bool($preferences['formReminders'] ?? null, $defaults['formReminders']),
             'paymentReminders' => dent_parse_bool($preferences['paymentReminders'] ?? null, $defaults['paymentReminders']),
             'dailyDigestEnabled' => dent_parse_bool($preferences['dailyDigestEnabled'] ?? null, $defaults['dailyDigestEnabled']),
@@ -1151,6 +1175,10 @@ function notifications_record_visible_to_user(array $record, array $user, array 
         if (empty($preferences['navidAssignmentAlerts'])) {
             return false;
         }
+    }
+
+    if ($source === 'hamiad' && empty($preferences['hamiadAssignmentAlerts'])) {
+        return false;
     }
 
     if ($source === 'forms' && empty($preferences['formReminders'])) {
@@ -1472,6 +1500,7 @@ function notifications_summary_for_user(array $store, array $user): array
         'visibleCount' => count($visible),
         'announcementCount' => $announcementCount,
         'navidCount' => $navidCount,
+        'hamiadCount' => count(array_filter($visible, static fn($record): bool => ($record['source'] ?? '') === 'hamiad')),
         'importantUnreadCount' => $importantUnreadCount,
         'reminderCount' => $reminderCount,
         'scheduledCount' => $scheduledCount,
@@ -1548,6 +1577,8 @@ function notifications_preferences_payload(array $user, array $store): array
     $cohortKey = dent_user_cohort_key($user);
     return [
         'navidAssignmentAlerts' => !empty($state['preferences']['navidAssignmentAlerts']),
+        'hamiadAssignmentAlerts' => !empty($state['preferences']['hamiadAssignmentAlerts']),
+        'canToggleHamiadAssignmentAlerts' => notifications_user_is_owner($user),
         'canToggleNavidAssignmentAlerts' => $cohortKey === dent_primary_cohort_key() && !notifications_user_is_prosthesis($user),
         'formReminders' => !empty($state['preferences']['formReminders']),
         'paymentReminders' => !empty($state['preferences']['paymentReminders']),
@@ -1659,6 +1690,13 @@ function notifications_save_preferences(array $user, array $payload): array
             $store['userStates'][$studentNumber]['preferences']['navidAssignmentAlerts'] = dent_parse_bool(
                 $payload['navidAssignmentAlerts'],
                 !empty($current['preferences']['navidAssignmentAlerts'])
+            );
+        }
+
+        if (notifications_user_is_owner($user) && array_key_exists('hamiadAssignmentAlerts', $payload)) {
+            $store['userStates'][$studentNumber]['preferences']['hamiadAssignmentAlerts'] = dent_parse_bool(
+                $payload['hamiadAssignmentAlerts'],
+                !empty($current['preferences']['hamiadAssignmentAlerts'])
             );
         }
 
