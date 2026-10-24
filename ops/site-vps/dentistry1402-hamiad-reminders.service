@@ -1,0 +1,17 @@
+[Unit]
+Description=Dentistry1402 Hamiad owner reminder check
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=dentweb
+Group=dentweb
+Environment=DENT_STORAGE_ROOT=/srv/dentistry1402/shared/storage
+WorkingDirectory=/srv/dentistry1402/current/public_html
+ExecStart=/usr/bin/php /srv/dentistry1402/current/public_html/api/hamiad_reminders_cli.php
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/dentistry1402/shared/storage
+TimeoutStartSec=180

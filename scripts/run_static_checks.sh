@@ -81,6 +81,7 @@ section "Upload pipeline config"
 
 section "Unit tests"
 "$PHP_BIN" scripts/test_hamiad_bridge.php || fail "test_hamiad_bridge.php"
+"$PHP_BIN" scripts/test_hamiad_reminders.php || fail "test_hamiad_reminders.php"
 "$PYTHON_BIN" scripts/test_hamiad_migration_contract.py || fail "test_hamiad_migration_contract.py"
 "$PHP_BIN" scripts/test_unit.php || fail "test_unit.php"
 "$PHP_BIN" scripts/test_endo_tools_catalog.php || fail "test_endo_tools_catalog.php"
