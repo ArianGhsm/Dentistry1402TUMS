@@ -405,7 +405,27 @@ test "$avail_bytes" -gt "$required_bytes"
 backup="/var/backups/dent-site-data-$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:12}"
 install -d -o root -g root -m 0700 "$backup"
 printf 'previous=%s\ntarget=%s\n' "$previous" "$sha" > "$backup/runtime-pointers.txt"
-tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage
+# Integration notifications create entries in a live directory while tar reads
+# the backup. A directory mtime warning alone does not indicate that an
+# archived FILE changed. Never ignore modified/missing files, read errors,
+# partial archives, or warnings from any other storage directory.
+tar_log="$backup/tar-warnings.log"
+if tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage 2>"$tar_log"; then
+  :
+else
+  tar_rc=$?
+  benign='tar: storage/integrations: file changed as we read it'
+  if test "$tar_rc" -ne 1 || test ! -s "$tar_log" ||
+    test "$(wc -l < "$tar_log")" -ne "$(grep -Fxc "$benign" "$tar_log" || true)"; then
+    cat "$tar_log" >&2
+    exit "$tar_rc"
+  fi
+  # Tar completed with only the exact directory-metadata race seen on the
+  # live notification spool. Validate the full archive before accepting it.
+  tar -tzf "$backup/storage.tar.gz" >/dev/null
+  echo "SITE_DATA_BACKUP_DIRECTORY_MTIME_RACE_VERIFIED=integrations"
+fi
+rm -f -- "$tar_log"
 sha256sum "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" > "$backup/SHA256SUMS"
 (cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)
 chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
