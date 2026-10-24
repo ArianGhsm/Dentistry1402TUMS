@@ -74,6 +74,11 @@ assert 'systemctl is-active --quiet dentistry1402-hamiad-reminders.timer' in DEP
 assert 'systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer' in DEPLOY
 assert 'hamiad_units_touched=1' in DEPLOY and 'hamiad_timer_was_enabled' in DEPLOY
 assert 'rollback() {' in DEPLOY and 'hamiad_prev_dir' in DEPLOY
+installer_start = DEPLOY.index("$installer = @'")
+installer_install = DEPLOY.index('hamiad_units_touched=1', installer_start)
+installer_verify = DEPLOY.index('systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer', installer_install)
+assert installer_install < installer_verify, 'new units must install before the first installer readiness check'
+assert DEPLOY[installer_start:installer_install].count('systemctl is-active --quiet dentistry1402-hamiad-reminders.timer') == 0, 'first deploy must not require a timer before installation'
 assert 'hamiad-reminders.service' not in (ROOT / 'public_html' / 'api' / 'hamiad_reminders_cli.php').read_text()
 
 assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY

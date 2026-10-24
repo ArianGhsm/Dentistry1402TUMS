@@ -43,4 +43,6 @@ testAssert(($meta['courseId'] ?? 0)===7772 && ($meta['assignmentId'] ?? 0)===719
 testAssert(($meta['reminderDays'] ?? 0)===1 && !empty($meta['dueAt']), 'deadline metadata preserved');
 $firstRunNear = hamiad_reminder_events(['assignments'=>[$task(77,3600)]], $empty, $now);
 testAssert(count($firstRunNear['events'])===0, 'first run never spams existing due soon');
+$apiSource = file_get_contents(__DIR__ . '/../public_html/api/notifications_api.php');
+testAssert(str_contains($apiSource, "'hamiadAssignmentAlerts' => \$_POST['hamiadAssignmentAlerts'] ?? null"), 'Hamiad preference must reach notification API save handler');
 echo "HAMIAD_REMINDER_CONTRACT_OK\n";

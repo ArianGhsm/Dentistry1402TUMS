@@ -228,6 +228,11 @@ systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
 systemctl is-active --quiet dentistry1402-bale-database-backup.timer
 test -x /usr/local/lib/dentistry1402/send-bale-database-backup
+# In verification-only mode, the previously activated SHA must include both units.
+systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer
+systemctl is-active --quiet dentistry1402-hamiad-reminders.timer
+test -f /etc/systemd/system/dentistry1402-hamiad-reminders.service
+test -f /etc/systemd/system/dentistry1402-hamiad-reminders.timer
 for url in \
   'https://dentistry1402tums.ir/' \
   'https://dentistry1402tums.ir/chat/' \
@@ -475,10 +480,6 @@ for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
 PY
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
-systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer
-systemctl is-active --quiet dentistry1402-hamiad-reminders.timer
-test -f /etc/systemd/system/dentistry1402-hamiad-reminders.service
-test -f /etc/systemd/system/dentistry1402-hamiad-reminders.timer
 set -a
 source /etc/integrated-dent/dent-bot.env
 # Telegram service loads the token from its separate private EnvironmentFile.

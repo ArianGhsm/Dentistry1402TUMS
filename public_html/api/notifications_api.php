@@ -109,6 +109,7 @@ if ($action === 'savePrefs') {
     dent_release_session_lock();
     $preferences = notifications_save_preferences($user, [
         'navidAssignmentAlerts' => $_POST['navidAssignmentAlerts'] ?? null,
+        'hamiadAssignmentAlerts' => $_POST['hamiadAssignmentAlerts'] ?? null,
         'formReminders' => $_POST['formReminders'] ?? null,
         'paymentReminders' => $_POST['paymentReminders'] ?? null,
         'dailyDigestEnabled' => $_POST['dailyDigestEnabled'] ?? null,
