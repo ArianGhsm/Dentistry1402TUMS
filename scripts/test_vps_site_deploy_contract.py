@@ -66,6 +66,16 @@ assert DEPLOY.count("source /srv/telegram/accounts/dent1402bot/bot-token.env") =
 assert DEPLOY.count("source /etc/integrated-dent/dent-bot.env") == 2, "Telegram's primary config remains canonical"
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
 assert "systemctl is-active --quiet dentistry1402-bale-database-backup.timer" in DEPLOY
+assert "'ops/site-vps/dentistry1402-hamiad-reminders.service'" in DEPLOY
+assert "'ops/site-vps/dentistry1402-hamiad-reminders.timer'" in DEPLOY
+assert 'count==5' in DEPLOY, 'Hamiad units must be checksum-verified in the canonical operations bundle'
+assert 'systemctl enable --now dentistry1402-hamiad-reminders.timer' in DEPLOY
+assert 'systemctl is-active --quiet dentistry1402-hamiad-reminders.timer' in DEPLOY
+assert 'systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer' in DEPLOY
+assert 'hamiad_units_touched=1' in DEPLOY and 'hamiad_timer_was_enabled' in DEPLOY
+assert 'rollback() {' in DEPLOY and 'hamiad_prev_dir' in DEPLOY
+assert 'hamiad-reminders.service' not in (ROOT / 'public_html' / 'api' / 'hamiad_reminders_cli.php').read_text()
+
 assert "test -x /usr/local/lib/dentistry1402/send-bale-database-backup" in DEPLOY
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
 assert "-name 'dent-site-data-????????T??????Z-????????????'" in DEPLOY, 'retention must only match canonical timestamped site-data backups'

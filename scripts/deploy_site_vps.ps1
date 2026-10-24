@@ -288,7 +288,9 @@ cd /opt/integrated-dent/bale/current
     $opsFiles = @(
         'ops/site-vps/send-bale-database-backup.py',
         'ops/site-vps/dentistry1402-bale-database-backup.service',
-        'ops/site-vps/dentistry1402-bale-database-backup.timer'
+        'ops/site-vps/dentistry1402-bale-database-backup.timer',
+        'ops/site-vps/dentistry1402-hamiad-reminders.service',
+        'ops/site-vps/dentistry1402-hamiad-reminders.timer'
     )
     & tar -C $projectRoot -czf $opsBundle @opsFiles
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $opsBundle -PathType Leaf)) { throw 'Bale database backup service bundle creation failed.' }
@@ -317,6 +319,11 @@ previous="$(readlink -f "$root/current")"
 ops_stage=''
 activated=0
 backup=''
+hamiad_units_touched=0
+hamiad_prev_service=0
+hamiad_prev_timer=0
+hamiad_timer_was_enabled=0
+hamiad_prev_dir=''
 
 cleanup() {
   rm -rf -- "$incoming"
@@ -324,6 +331,25 @@ cleanup() {
   rm -f -- "$bundle" "$ops_bundle" "${prefix}.install.sh"
 }
 rollback() {
+  # Undo partial Hamiad unit changes before restoring the website pointer.
+  # Service metadata is restored; mutable session/assignment state is untouched.
+  if test "$hamiad_units_touched" = 1; then
+    systemctl disable --now dentistry1402-hamiad-reminders.timer >/dev/null 2>&1 || true
+    if test "$hamiad_prev_service" = 1; then
+      cp -a "$hamiad_prev_dir/service" /etc/systemd/system/dentistry1402-hamiad-reminders.service
+    else
+      rm -f /etc/systemd/system/dentistry1402-hamiad-reminders.service
+    fi
+    if test "$hamiad_prev_timer" = 1; then
+      cp -a "$hamiad_prev_dir/timer" /etc/systemd/system/dentistry1402-hamiad-reminders.timer
+    else
+      rm -f /etc/systemd/system/dentistry1402-hamiad-reminders.timer
+    fi
+    systemctl daemon-reload
+    if test "$hamiad_timer_was_enabled" = 1; then
+      systemctl enable --now dentistry1402-hamiad-reminders.timer
+    fi
+  fi
   test -n "$previous" && test -d "$previous"
   ln -sfn "$previous" "$root/current.next"
   mv -Tf "$root/current.next" "$root/current"
@@ -349,9 +375,11 @@ tar -tzf "$ops_bundle" | awk '
   BEGIN { ok=1; count=0 }
   $0=="ops/site-vps/send-bale-database-backup.py" ||
   $0=="ops/site-vps/dentistry1402-bale-database-backup.service" ||
-  $0=="ops/site-vps/dentistry1402-bale-database-backup.timer" { count++; next }
+  $0=="ops/site-vps/dentistry1402-bale-database-backup.timer" ||
+  $0=="ops/site-vps/dentistry1402-hamiad-reminders.service" ||
+  $0=="ops/site-vps/dentistry1402-hamiad-reminders.timer" { count++; next }
   { ok=0 }
-  END { exit ok && count==3 ? 0 : 1 }
+  END { exit ok && count==5 ? 0 : 1 }
 '
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
@@ -447,6 +475,10 @@ for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
 PY
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
+systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer
+systemctl is-active --quiet dentistry1402-hamiad-reminders.timer
+test -f /etc/systemd/system/dentistry1402-hamiad-reminders.service
+test -f /etc/systemd/system/dentistry1402-hamiad-reminders.timer
 set -a
 source /etc/integrated-dent/dent-bot.env
 # Telegram service loads the token from its separate private EnvironmentFile.
@@ -481,6 +513,33 @@ systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.se
 systemctl daemon-reload
 systemctl enable --now dentistry1402-bale-database-backup.timer
 systemctl is-active --quiet dentistry1402-bale-database-backup.timer
+
+# The owner-only current-term assignment watcher must be part of this exact
+# SHA release, never an ad-hoc operator action after switching the website.
+test -f "$ops_stage/ops/site-vps/dentistry1402-hamiad-reminders.service"
+test -f "$ops_stage/ops/site-vps/dentistry1402-hamiad-reminders.timer"
+hamiad_prev_dir="$ops_stage/hamiad-previous"
+mkdir -p "$hamiad_prev_dir"
+if test -f /etc/systemd/system/dentistry1402-hamiad-reminders.service; then
+  cp -a /etc/systemd/system/dentistry1402-hamiad-reminders.service "$hamiad_prev_dir/service"
+  hamiad_prev_service=1
+fi
+if test -f /etc/systemd/system/dentistry1402-hamiad-reminders.timer; then
+  cp -a /etc/systemd/system/dentistry1402-hamiad-reminders.timer "$hamiad_prev_dir/timer"
+  hamiad_prev_timer=1
+fi
+if systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer; then
+  hamiad_timer_was_enabled=1
+fi
+hamiad_units_touched=1
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-hamiad-reminders.service" /etc/systemd/system/dentistry1402-hamiad-reminders.service
+install -o root -g root -m 0644 "$ops_stage/ops/site-vps/dentistry1402-hamiad-reminders.timer" /etc/systemd/system/dentistry1402-hamiad-reminders.timer
+systemd-analyze verify /etc/systemd/system/dentistry1402-hamiad-reminders.service /etc/systemd/system/dentistry1402-hamiad-reminders.timer
+systemctl daemon-reload
+systemctl enable --now dentistry1402-hamiad-reminders.timer
+systemctl is-enabled --quiet dentistry1402-hamiad-reminders.timer
+systemctl is-active --quiet dentistry1402-hamiad-reminders.timer
+test "$(systemctl show dentistry1402-hamiad-reminders.timer -p FragmentPath --value)" = /etc/systemd/system/dentistry1402-hamiad-reminders.timer
 
 echo SITE_VPS_DEPLOY_OK
 '@
