@@ -20,7 +20,7 @@ def test_notification_module_order_and_live_user_contract():
     html = HTML.read_text(encoding="utf-8")
     a = html.index("account-utils.js?v=20260916-p4-notifications1")
     b = html.index("account-owner-analytics.js?v=20260916-p4-notifications1")
-    c = html.index("account-notifications.js?v=20260916-p4-notifications1")
+    c = html.index("account-notifications.js?v=20261024-hamiad-assignments")
     d = html.index("account.js?v=20260916-p4-notifications1")
     assert a < b < c < d
     shell = ACCOUNT.read_text(encoding="utf-8-sig")

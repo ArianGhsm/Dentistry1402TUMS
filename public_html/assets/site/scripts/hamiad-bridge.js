@@ -218,8 +218,14 @@
         for (const task of tasks) {
             const card = create("article", "hamiad-course-card");
             const info = create("div", "hamiad-course-content");
-            info.append(create("strong", "hamiad-course-name", persianDigits(task.title || "تکلیف")),
-                        create("span", "hamiad-course-meta", normalizedCourse(task.courseTitle)));
+            const dueText = task.dueText || "زمان تحویل در سامانه مشخص نیست";
+            const delivery = task.submissionStatus || "وضعیت ارسال نامشخص";
+            info.append(
+                create("strong", "hamiad-course-name", persianDigits(task.title || "تکلیف")),
+                create("span", "hamiad-course-meta", "📚 " + normalizedCourse(task.courseTitle)),
+                create("span", "hamiad-course-meta", "⏳ " + persianDigits(dueText)),
+                create("span", "hamiad-course-meta", "📤 " + persianDigits(delivery))
+            );
             const action = create("button", "bot-link-secondary", "جزئیات");
             action.type = "button";
             action.addEventListener("click", () => renderAssignmentDetail(task.courseId, task.id));
@@ -289,7 +295,9 @@
             back.addEventListener("click", () => showView("tasks"));
             courseDetails.append(back,
                 create("strong", "hamiad-course-name", persianDigits(item.title || "تکلیف")),
-                create("p", "hamiad-course-meta", "📅 مهلت: " + persianDigits(item.dueText || "در سامانه درج نشده")),
+                create("p", "hamiad-course-meta", "⏳ زمان باقی‌مانده: " + persianDigits(item.dueText || "در سامانه درج نشده")),
+                create("p", "hamiad-course-meta", "📤 وضعیت ارسال: " + persianDigits(item.submissionStatus || "نامشخص")),
+                create("p", "hamiad-course-meta", "📋 وضعیت تصحیح: " + persianDigits(item.gradingStatus || "نامشخص")),
                 create("p", "", persianDigits(item.description || "توضیحی برای این تکلیف ثبت نشده است.")));
         } catch (error) {
             courseDetails.replaceChildren(create("p", "hamiad-empty", error.message));

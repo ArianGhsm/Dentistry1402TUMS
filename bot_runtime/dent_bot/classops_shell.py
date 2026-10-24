@@ -244,7 +244,12 @@ def hamiad_tasks_screen(data: dict[str, Any], *, page: int = 0) -> Screen:
     for task in subset:
         title = html.escape(to_persian_digits(str(task.get("title") or "تکلیف"))[:90])
         course = _hamiad_title(task.get("courseTitle"))
-        parts.extend(("", f"📌 <b>{title}</b>", f"<blockquote>📚 {course}</blockquote>"))
+        due = html.escape(to_persian_digits(str(task.get("dueText") or "زمان نامشخص"))[:110])
+        submission = html.escape(to_persian_digits(str(task.get("submissionStatus") or ""))[:100])
+        meta = f"📚 {course}\n⏳ {due}"
+        if submission:
+            meta += f"\n✅ وضعیت ارسال: {submission}"
+        parts.extend(("", f"📌 <b>{title}</b>", f"<blockquote>{meta}</blockquote>"))
         buttons.append([button("جزئیات تکلیف", action=f"hamiad:assignment:{int(task.get('courseId') or 0)}:{int(task.get('id') or 0)}")])
     nav = []
     if page > 0:
@@ -263,8 +268,13 @@ def hamiad_assignment_screen(data: dict[str, Any]) -> Screen:
     title = html.escape(to_persian_digits(str(data.get("title") or "تکلیف"))[:120])
     due = html.escape(to_persian_digits(str(data.get("dueText") or "در سامانه درج نشده"))[:160])
     desc = html.escape(to_persian_digits(str(data.get("description") or ""))[:950])
+    submission = html.escape(to_persian_digits(str(data.get("submissionStatus") or "وضعیت نامشخص"))[:140])
+    grading = html.escape(to_persian_digits(str(data.get("gradingStatus") or ""))[:140])
     text = (f"<b>⏰ {title}</b>\n\n"
-            f"<blockquote>📅 مهلت تحویل: {due}</blockquote>"
+            f"<blockquote>⏳ زمان باقی‌مانده: {due}\n"
+            f"📤 وضعیت ارسال: {submission}"
+            + (f"\n📋 وضعیت تصحیح: {grading}" if grading else "")
+            + "</blockquote>"
             + (f"\n\n📝 {desc}" if desc else "\n\nتوضیحی در صفحهٔ تکلیف ثبت نشده است."))
     return Screen(text, keyboard([button("⏰ فهرست تکالیف", action="hamiad:tasks:0")],
                                  [button("↩️ مرکز همیاد", action="hamiad-center")]))

@@ -37,4 +37,6 @@ assert 'data-home-quick="hamiad"' in home
 assert 'hamiad: {' in home_js
 assert 'نوید' not in account_js
 assert 'نوید' not in home_js
-assert '20261022-hamiad-cleanup' in pwa
+assert '20261024-hamiad-assignments' in pwa
+assert 'hamiadAssignmentAlerts' in (ROOT / 'public_html/api/notifications_store.php').read_text()
+assert '⏳' in (ROOT / 'public_html/assets/site/scripts/hamiad-bridge.js').read_text()

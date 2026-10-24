@@ -1,0 +1,14 @@
+[Unit]
+Description=Scheduled Hamiad assignment check for Dentistry1402 owner
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Asia/Tehran
+OnCalendar=*-*-* 14:00:00 Asia/Tehran
+OnCalendar=*-*-* 20:00:00 Asia/Tehran
+Persistent=true
+RandomizedDelaySec=3m
+AccuracySec=1m
+Unit=dentistry1402-hamiad-reminders.service
+
+[Install]
+WantedBy=timers.target
