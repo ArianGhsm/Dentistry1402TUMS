@@ -5,7 +5,8 @@ import signal
 import threading
 import time
 from collections import deque
-from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -34,6 +35,16 @@ from .ui import (
 from .persian_datetime import to_persian_digits
 from .navid import decode_image_data_uri, local_now, send_daily_challenge
 from .protected_media import ProtectedMediaDispatcher
+
+
+MAX_PENDING_UPDATES = 100
+
+
+@dataclass
+class PendingUpdate:
+    update_id: int
+    payload: dict
+    future: Future[None]
 
 
 def configure_profile_safely(api, platform_name: str) -> bool:
@@ -712,42 +723,53 @@ def run_service(*, settings, api, platform_name: str) -> int:
         name="dent-bot-background",
         daemon=True,
     )
-    pending: deque[tuple[int, Future[None]]] = deque()
-    fetch_offset = state.offset()
+    pending: deque[PendingUpdate] = deque()
+    pending_ids: set[int] = set()
     background.start()
     try:
         with ThreadPoolExecutor(max_workers=getattr(settings, "update_workers", 8), thread_name_prefix="dent-bot-update") as executor:
             while not stop_event.is_set():
-                _persist_completed_updates(pending, state, platform_name)
-                while len(pending) >= 64 and not stop_event.is_set():
+                _persist_completed_updates(pending, pending_ids, state, platform_name)
+                while len(pending) >= MAX_PENDING_UPDATES and not stop_event.is_set():
+                    head = pending[0]
                     try:
-                        pending[0][1].result(timeout=1)
+                        head.future.result(timeout=1)
                     except FutureTimeoutError:
-                        continue
-                    _persist_completed_updates(pending, state, platform_name)
+                        pass
+                    except Exception:
+                        pass
+                    _persist_completed_updates(pending, pending_ids, state, platform_name)
+                if stop_event.is_set():
+                    break
+                poll_offset = state.offset()
+                new_updates = 0
                 try:
-                    updates = api.get_updates(fetch_offset, settings.poll_timeout)
+                    updates = api.get_updates(poll_offset, settings.poll_timeout)
                     for update in updates:
                         update_id = int(update.get("update_id", -1))
-                        if update_id < fetch_offset:
+                        if update_id < poll_offset or update_id in pending_ids:
                             continue
-                        fetch_offset = update_id + 1
-                        pending.append((update_id, executor.submit(app.handle, update)))
+                        payload = dict(update)
+                        pending.append(PendingUpdate(update_id, payload, executor.submit(app.handle, payload)))
+                        pending_ids.add(update_id)
+                        new_updates += 1
                     failures = 0
+                    if pending and not new_updates and state.offset() == poll_offset:
+                        stop_event.wait(1)
                 except BotApiError as error:
                     failures += 1
                     delay = min(30, 2 ** min(failures, 5))
                     logging.warning("%s polling failed detail=%s; retrying in %s seconds", platform_name, str(error)[:200], delay)
                     stop_event.wait(delay)
-            for _update_id, future in pending:
+            for item in pending:
                 try:
-                    future.result()
+                    item.future.result()
                 except Exception:
                     pass
-            _persist_completed_updates(pending, state, platform_name)
+            _persist_completed_updates(pending, pending_ids, state, platform_name)
     finally:
         stop_event.set()
-        background.join(timeout=5)
+        background.join()
         if media_dispatcher is not None:
             media_dispatcher.close()
         state.close()
@@ -761,20 +783,22 @@ def run_service(*, settings, api, platform_name: str) -> int:
 
 
 def _persist_completed_updates(
-    pending: deque[tuple[int, Future[None]]],
+    pending: deque[PendingUpdate],
+    pending_ids: set[int],
     state: BotState,
     platform_name: str,
 ) -> None:
-    while pending and pending[0][1].done():
-        update_id, future = pending.popleft()
+    while pending and pending[0].future.done():
+        item = pending[0]
         try:
-            future.result()
+            item.future.result()
         except BotApiError:
-            logging.exception("%s update handling failed for update_id=%s", platform_name, update_id)
+            logging.exception("%s update handling failed for update_id=%s", platform_name, item.update_id)
         except Exception:
-            logging.exception("%s unexpected update failure for update_id=%s", platform_name, update_id)
-        finally:
-            state.save_offset(update_id + 1)
+            logging.exception("%s unexpected update failure for update_id=%s", platform_name, item.update_id)
+        state.save_offset(item.update_id + 1)
+        pending.popleft()
+        pending_ids.discard(item.update_id)
 
 
 def _run_background_tasks_core(*, settings, api, state, site_api, platform_name: str, stop_event: threading.Event, media_dispatcher=None) -> None:
@@ -990,4 +1014,4 @@ def _run_background_tasks(*, settings, api, state, site_api, platform_name: str,
         )
     finally:
         stop_event.set()
-        classops_background.join(timeout=5)
+        classops_background.join()
