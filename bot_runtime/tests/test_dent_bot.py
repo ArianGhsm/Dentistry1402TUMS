@@ -11,6 +11,8 @@ import ssl
 import subprocess
 import sys
 import time
+from collections import deque
+from concurrent.futures import Future
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -28,6 +30,8 @@ from dent_bot.config import (
     resolve_booklet_watermark_font,
 )
 from dent_bot.runtime import (
+    PendingUpdate,
+    _persist_completed_updates,
     configure_profile_safely,
     dispatch_account_disconnect_batch,
     dispatch_navid_daily,
@@ -1369,7 +1373,7 @@ class DentBotTests(unittest.TestCase):
         self.assertEqual(second[0], 200)
         self.assertEqual(connection.requests, 2)
 
-    def test_https_pool_retries_once_when_stale_socket_fails_during_request(self) -> None:
+    def test_https_pool_does_not_replay_post_when_stale_socket_fails_during_request(self) -> None:
         import queue
 
         class Socket:
@@ -1410,12 +1414,11 @@ class DentBotTests(unittest.TestCase):
         pool.connections.put(stale)
         pool._new = lambda _timeout: fresh
 
-        status, _raw = pool.post("/start", b"{}", {}, timeout=2)
-
-        self.assertEqual(status, 200)
+        with self.assertRaises(BotApiError):
+            pool.post("/sendMessage", b"{}", {}, timeout=2)
         self.assertTrue(stale.closed)
         self.assertEqual(stale.requests, 1)
-        self.assertEqual(fresh.requests, 1)
+        self.assertEqual(fresh.requests, 0)
         self.assertIs(pool.connections.get_nowait(), fresh)
 
     def test_https_pool_streams_download_and_hashes_without_second_disk_pass(self) -> None:
@@ -1697,6 +1700,30 @@ class DentBotTests(unittest.TestCase):
                 self.assertEqual(row, ("notes",))
             finally:
                 second.close()
+
+    def test_update_offset_waits_for_contiguous_handlers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            first, second = Future(), Future()
+            second.set_result(None)
+            pending = deque([
+                PendingUpdate(42, {"update_id": 42}, first),
+                PendingUpdate(43, {"update_id": 43}, second),
+            ])
+            pending_ids = {42, 43}
+            try:
+                state.save_offset(42)
+                _persist_completed_updates(pending, pending_ids, state, "test")
+                self.assertEqual(state.offset(), 42)
+                self.assertEqual(pending_ids, {42, 43})
+
+                first.set_result(None)
+                _persist_completed_updates(pending, pending_ids, state, "test")
+                self.assertEqual(state.offset(), 44)
+                self.assertFalse(pending)
+                self.assertFalse(pending_ids)
+            finally:
+                state.close()
 
     def test_telegram_and_bale_runtime_states_share_payment_offers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

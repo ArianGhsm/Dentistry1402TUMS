@@ -3671,13 +3671,19 @@ class BotState:
                 raise
 
     def recover_stale_booklet_issuances(self, max_age_seconds: int) -> int:
-        modifier = f"-{max(60, int(max_age_seconds))} seconds"
+        age_seconds = max(0, int(max_age_seconds))
         with self._lock:
-            cursor = self.connection.execute(
-                "UPDATE booklet_issuances SET status='failed',updated_at=CURRENT_TIMESTAMP "
-                "WHERE status='processing' AND updated_at < datetime('now', ?)",
-                (modifier,),
-            )
+            if age_seconds == 0:
+                cursor = self.connection.execute(
+                    "UPDATE booklet_issuances SET status='failed',updated_at=CURRENT_TIMESTAMP "
+                    "WHERE status='processing'"
+                )
+            else:
+                cursor = self.connection.execute(
+                    "UPDATE booklet_issuances SET status='failed',updated_at=CURRENT_TIMESTAMP "
+                    "WHERE status='processing' AND updated_at < datetime('now', ?)",
+                    (f"-{age_seconds} seconds",),
+                )
             self.connection.commit()
             return int(cursor.rowcount)
 
