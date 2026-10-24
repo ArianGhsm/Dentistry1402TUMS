@@ -36,6 +36,7 @@ for needle in [
     "SITE_DATA_BACKUP=",
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
+    'SITE_DATA_BACKUP_DIRECTORY_MTIME_RACE_VERIFIED',
     "SITE_DATA_BACKUPS_RETAINED=",
     "'ops/site-vps/send-bale-database-backup.py'",
     "'ops/site-vps/dentistry1402-bale-database-backup.service'",
