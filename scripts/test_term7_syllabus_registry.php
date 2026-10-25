@@ -660,11 +660,33 @@ syllabus_assert(
 $entRows = $catalog['ent']['sessions'] ?? [];
 syllabus_assert(
     array_column($entRows, 'sessionNumber') === range(1, 12)
-        && count(array_filter($entRows, static fn(array $row): bool => ($row['sessionMode'] ?? '') === 'in_person')) === 5
-        && count(array_filter($entRows, static fn(array $row): bool => ($row['sessionMode'] ?? '') === 'virtual')) === 7
+        && count(array_filter($entRows, static fn(array $row): bool => ($row['sessionMode'] ?? '') === 'in_person')) === 4
+        && count(array_filter($entRows, static fn(array $row): bool => ($row['sessionMode'] ?? '') === 'virtual')) === 8
         && ($entRows[11]['dates'] ?? []) === ['1405/09/23'],
-    'ENT preserves all 12 source rows and the five shaded in-person sessions'
+    'ENT preserves all 12 source rows and the four shaded in-person sessions'
 );
+
+$entTomorrow = classops_term7_syllabus_enrich_events([
+    syllabus_event('ent', 'گوش و حلق و بینی'),
+], '1405/08/04');
+syllabus_assert(count($entTomorrow) === 1
+    && ($entTomorrow[0]['sessionMode'] ?? '') === 'virtual'
+    && ($entTomorrow[0]['location'] ?? 'unexpected') === ''
+    && ($entTomorrow[0]['instructor'] ?? '') === 'دکتر آرمین حسن زاده',
+    'ENT 4 Aban 1405 is virtual with correct instructor and without room');
+
+$endoQuiz = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
+], '1405/08/05');
+syllabus_assert(count($endoQuiz) === 1
+    && ($endoQuiz[0]['quizTitle'] ?? '') === 'کوییز اندودانتیکس'
+    && ($endoQuiz[0]['start'] ?? '') !== '',
+    'Endodontics 5 Aban has separate quiz metadata while keeping class time');
+$allEndoQuizzes = array_values(array_filter(($catalog['endodontics-basics-2']['sessions'] ?? []),
+    static fn(array $row): bool => str_contains((string)($row['title'] ?? ''), 'کوییز')));
+syllabus_assert(count($allEndoQuizzes) >= 5
+    && classops_term7_syllabus_quiz_title('endodontics-basics-2', $allEndoQuizzes[0], '1405/07/12') === 'کوییز ۱',
+    'Quiz labels are automatically extracted from all existing syllabus rows');
 
 $perio = classops_term7_syllabus_enrich_events([
     syllabus_event('periodontology-theory-1', 'پریو نظری ۱'),

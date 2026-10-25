@@ -123,19 +123,23 @@ def hamiad_overview_screen(data: dict[str, Any], *, site_url: str) -> Screen:
     courses = [x for x in data.get("courses", []) if isinstance(x, dict)]
     tasks = [x for x in data.get("assignments", []) if isinstance(x, dict)]
     resources = max(0, int(data.get("resources") or 0))
-    if not connected:
+    stale = bool(data.get("stale"))
+    if not connected and not courses:
         text = (
             "<b>🎓 همیاد | ترم ۷</b>\n\n"
             "<blockquote>🔐 نشست دانشگاه متصل نیست یا منقضی شده است. "
             "از سایت دوباره وارد شو تا درس‌ها و تکالیف بررسی شوند.</blockquote>"
         )
     else:
+        provenance = ("⚠️ آخرین اطلاعات ذخیره‌شده؛ همگام‌سازی تازه انجام نشد."
+                      if stale else ("⚠️ بعضی جزئیات تازه‌سازی نشد؛ دادهٔ قبلی حفظ شده است."
+                                    if data.get("partial") else "اطلاعات از حساب متصل همیاد همگام‌سازی شده‌اند."))
         text = (
             "<b>🎓 همیاد | ترم ۷</b>\n\n"
             f"<blockquote>📚 درس‌ها: <b>{to_persian_digits(len(courses))}</b>\n"
             f"📎 منابع: <b>{to_persian_digits(resources)}</b>\n"
             f"⏰ تکالیف: <b>{to_persian_digits(len(tasks))}</b></blockquote>\n\n"
-            "اطلاعات مستقیماً از نشست متصل همیاد خوانده شده‌اند."
+            + provenance
         )
     return Screen(
         text,
@@ -228,6 +232,19 @@ def hamiad_course_screen(data: dict[str, Any]) -> Screen:
     return Screen("\n".join(parts), keyboard(*buttons))
 
 
+def _hamiad_assignment_timing(data: dict[str, Any]) -> str:
+    states = {
+        "not_open": "هنوز شروع نشده", "open": "مهلت ارسال فعال",
+        "upcoming": "مهلت ارسال فعال", "closed": "دریافت بسته است",
+        "submitted": "ارسال شده", "overdue": "مهلت ارسال پایان یافته",
+        "unknown": "وضعیت نامشخص",
+    }
+    state = str(data.get("submissionWindowStatus") or data.get("dueStatus") or "unknown")
+    opening = html.escape(to_persian_digits(str(data.get("opensText") or "مشخص نشده"))[:100])
+    deadline = html.escape(to_persian_digits(str(data.get("deadlineText") or "مشخص نشده"))[:100])
+    return f"📅 شروع ارسال: {opening}\n⏳ آخرین مهلت ارسال: {deadline}\n📤 وضعیت: {states.get(state, 'وضعیت نامشخص')}"
+
+
 def hamiad_tasks_screen(data: dict[str, Any], *, page: int = 0) -> Screen:
     tasks = [x for x in data.get("assignments", []) if isinstance(x, dict)]
     page_size = 6
@@ -238,17 +255,17 @@ def hamiad_tasks_screen(data: dict[str, Any], *, page: int = 0) -> Screen:
         f"<blockquote>تعداد تکالیف شناسایی‌شده: <b>{to_persian_digits(len(tasks))}</b></blockquote>"
     ]
     buttons = []
+    if data.get("stale"):
+        parts.extend(("", "<blockquote>⚠️ اطلاعات ذخیره‌شدهٔ قبلی؛ همگام‌سازی جدید انجام نشده است. برای اطلاعات تازه دوباره متصل شو.</blockquote>"))
+    elif data.get("partial") or any(bool(x.get("detailStale")) for x in tasks):
+        parts.extend(("", "<blockquote>⚠️ برخی جزئیات از آخرین اطلاعات معتبر نمایش داده می‌شوند.</blockquote>"))
     if not tasks:
         parts.extend(("", "در حال حاضر هیچ تکلیفی در دروس ترم ۷ حساب متصل ثبت نشده است.",
                       "", "↻ برای بررسی تغییرات، تازه‌سازی را انتخاب کن."))
     for task in subset:
         title = html.escape(to_persian_digits(str(task.get("title") or "تکلیف"))[:90])
         course = _hamiad_title(task.get("courseTitle"))
-        due = html.escape(to_persian_digits(str(task.get("dueText") or "زمان نامشخص"))[:110])
-        submission = html.escape(to_persian_digits(str(task.get("submissionStatus") or ""))[:100])
-        meta = f"📚 {course}\n⏳ {due}"
-        if submission:
-            meta += f"\n✅ وضعیت ارسال: {submission}"
+        meta = f"📚 {course}\n{_hamiad_assignment_timing(task)}"
         parts.extend(("", f"📌 <b>{title}</b>", f"<blockquote>{meta}</blockquote>"))
         buttons.append([button("جزئیات تکلیف", action=f"hamiad:assignment:{int(task.get('courseId') or 0)}:{int(task.get('id') or 0)}")])
     nav = []
@@ -266,13 +283,12 @@ def hamiad_tasks_screen(data: dict[str, Any], *, page: int = 0) -> Screen:
 
 def hamiad_assignment_screen(data: dict[str, Any]) -> Screen:
     title = html.escape(to_persian_digits(str(data.get("title") or "تکلیف"))[:120])
-    due = html.escape(to_persian_digits(str(data.get("dueText") or "در سامانه درج نشده"))[:160])
     desc = html.escape(to_persian_digits(str(data.get("description") or ""))[:950])
-    submission = html.escape(to_persian_digits(str(data.get("submissionStatus") or "وضعیت نامشخص"))[:140])
     grading = html.escape(to_persian_digits(str(data.get("gradingStatus") or ""))[:140])
-    text = (f"<b>⏰ {title}</b>\n\n"
-            f"<blockquote>⏳ زمان باقی‌مانده: {due}\n"
-            f"📤 وضعیت ارسال: {submission}"
+    stale_notice = ("⚠️ این جزئیات ذخیره‌شدهٔ قبلی‌اند و هنوز از همیاد تازه‌سازی نشده‌اند.\n\n"
+                    if data.get("detailStale") or data.get("stale") else "")
+    text = (f"<b>⏰ {title}</b>\n\n" + stale_notice
+            + f"<blockquote>{_hamiad_assignment_timing(data)}"
             + (f"\n📋 وضعیت تصحیح: {grading}" if grading else "")
             + "</blockquote>"
             + (f"\n\n📝 {desc}" if desc else "\n\nتوضیحی در صفحهٔ تکلیف ثبت نشده است."))

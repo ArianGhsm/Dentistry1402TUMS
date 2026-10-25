@@ -45,4 +45,28 @@ $firstRunNear = hamiad_reminder_events(['assignments'=>[$task(77,3600)]], $empty
 testAssert(count($firstRunNear['events'])===0, 'first run never spams existing due soon');
 $apiSource = file_get_contents(__DIR__ . '/../public_html/api/notifications_api.php');
 testAssert(str_contains($apiSource, "'hamiadAssignmentAlerts' => \$_POST['hamiadAssignmentAlerts'] ?? null"), 'Hamiad preference must reach notification API save handler');
+// Regression: CLOSED means the submission window is not necessarily overdue or submitted.
+$future = strtotime('2026-10-25T08:00:00+03:30');
+$timing = hamiad_assignment_timing([
+    'شروع ارسال' => '۱۴۰۵/۹/۱ ساعت ۰۰:۰۰',
+    'آخرین مهلت ارسال' => '۱۴۰۵/۹/۲۵ ساعت ۲۳:۵۹',
+    'وضعیت تحویل' => 'CLOSED',
+], $future);
+testAssert($timing['dueStatus'] === 'not_open', 'CLOSED future window is not overdue or submitted');
+testAssert($timing['submissionWindowStatus'] === 'not_open', 'future CLOSED is not-open');
+testAssert(str_starts_with($timing['deadlineAt'],'2026-12-16T23:59:'), 'Persian cutoff converts to real Tehran deadline');
+testAssert(str_starts_with($timing['opensAt'],'2026-11-22T00:00:'), 'Persian submission start is captured');
+testAssert(hamiad_date_iso('۴۸ روز مانده') === '', 'relative countdown cannot invent absolute due date');
+$closedNoDates = hamiad_assignment_timing(['وضعیت تحویل'=>'CLOSED'],$future);
+testAssert($closedNoDates['dueStatus']==='closed' && $closedNoDates['deadlineAt']==='', 'closed alone is not a deadline');
+$submittedTiming = hamiad_assignment_timing(['وضعیت تحویل'=>'Submitted for grading'],$future);
+testAssert($submittedTiming['dueStatus']==='submitted','submitted status is recognized');
+$notOpenTask = $task(10,48*86400,'not_open');
+$notOpenPlan=hamiad_reminder_events(['assignments'=>[$notOpenTask]],$prior,$future);
+testAssert($notOpenPlan['events'] === [], 'not-open assignment never produces imminent reminder');
+$staleTask = $task(10,3600);
+$staleTask['detailStale'] = true;
+testAssert(hamiad_reminder_events(['assignments'=>[$staleTask]],$prior,$now)['events']===[],
+    'stale detail cannot trigger deadline reminder');
+
 echo "HAMIAD_REMINDER_CONTRACT_OK\n";

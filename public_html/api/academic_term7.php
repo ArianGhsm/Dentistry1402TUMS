@@ -617,6 +617,15 @@ function dent_term7_ordered_schedule_rows(array $resolved, string $studentNumber
                     : [];
             }
             $rows[] = $row;
+            $quizTitle = trim((string) ($event['quizTitle'] ?? ''));
+            if ($quizTitle !== '') {
+                $assessment = $row;
+                $assessment['kind'] = 'quiz';
+                $assessment['title'] = $quizTitle . ' — ' . (string) ($event['courseTitle'] ?? $event['title'] ?? '');
+                $assessment['_ordinal'] = $ordinal++;
+                unset($assessment['presentationTopic'], $assessment['presentationPartners']);
+                $rows[] = $assessment;
+            }
         }
     };
     $append(is_array($groups['theory'] ?? null) ? $groups['theory'] : [], 'theory', 'theory');
@@ -722,6 +731,18 @@ function dent_term7_summary_body(array $resolved, string $studentNumber = ''): s
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {
         $appendEvents($lines, $afternoon);
+    }
+    $quizRows = array_values(array_filter(dent_term7_ordered_schedule_rows($resolved, $studentNumber),
+        static fn(array $row): bool => ($row['kind'] ?? '') === 'quiz'));
+    if ($quizRows !== []) {
+        $lines[] = '';
+        $lines[] = '📝 کوییزها';
+        foreach ($quizRows as $quizRow) {
+            $lines[] = '• ' . dent_to_fa_digits((string) ($quizRow['title'] ?? 'کوییز'));
+            if (trim((string) ($quizRow['start'] ?? '')) !== '') {
+                $lines[] = '  ⏰ ' . dent_to_fa_digits((string) $quizRow['start']);
+            }
+        }
     }
     if (!empty($resolved['missingGroup10']) || !empty($resolved['missingGroup8'])) {
         $lines[] = '';

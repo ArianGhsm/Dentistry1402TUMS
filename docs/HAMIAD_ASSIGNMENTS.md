@@ -1,0 +1,13 @@
+# Hamiad assignments: verified dates and durable snapshot
+
+- **Source of truth:** the connected owner's authorized `lms.tums.ac.ir` course and assignment pages. The encrypted owner session is in the existing private Hamiad storage; secrets and passwords never enter the snapshot.
+- **Persistent last-good projection:** `DENT_STORAGE_ROOT/hamiad/assignments-snapshot.json` (private and owner-only), written with the existing atomic JSON store writer after a complete valid sync. New releases must never overwrite this shared storage. An empty/invalid LMS response, WAF redirect, or incomplete detail fetch must retain the previous verified snapshot. A formerly non-empty assignment set may not be cleared automatically by one zero-task response.
+- **Fields:** `opensText/opensAt` = start of submission acceptance; `dueDateText/dueDateAt` = Moodle due date; `cutoffText/cutoffAt` = Moodle final submission cutoff, when present; `deadlineText/deadlineAt` = final cutoff or due date fallback. All absolute timestamps are ISO-8601 Asia/Tehran, converted from verified Jalali/Gregorian source dates. An unverified *remaining time* string is display-only and must not manufacture a deadline.
+- **State:** `not_open` if the explicit start is in the future, `overdue` if an explicit final deadline has passed, `submitted` only with explicit submission evidence, `closed` for CLOSED/disabled acceptance without a demonstrated overdue date, `upcoming` only for a known future deadline and open acceptance, `unknown` otherwise. No state is inferred solely from CLOSED as a due or submission event.
+- **Reader behavior:** site and Telegram/Bale use the same API dates/state, Persian labels, and the established presentation primitives. Display `stale`/`partial` context visibly, and never silently report zero assignments on an LMS/network failure.
+- **Reminders:** owner-only canonical notification machinery; use verified `deadlineAt`, avoid reminders from stale/partial snapshots and from submitted/closed/not-open activities. Preserve the existing first-run silent baseline and idempotency keys.
+- **Regression checks:** `php scripts/test_hamiad_reminders.php`, `php scripts/test_hamiad_assignment_snapshot.php`, `PYTHONPATH=bot_runtime python3 -m unittest bot_runtime.tests.test_hamiad_center` and syllabus/term-7 tests.
+
+## Class quizzes
+
+Quiz identity is derived from the official term-7 session registry. Session titles containing quiz markers produce a separately rendered assessment event with the same canonical audience/clock window as the session; any one-off confirmed quiz must be recorded against the actual course and date in the shared syllabus enrichment helper. Do not create a second independent calendar or platform-specific duplicate formatting.

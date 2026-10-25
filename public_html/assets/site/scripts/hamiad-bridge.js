@@ -203,6 +203,24 @@
         statusMessage("درس‌های نیمسال جاری بر اساس حساب متصل نمایش داده می‌شوند.");
     }
 
+    function submissionStatusLabel(task) {
+        const state = String(task.submissionWindowStatus || task.dueStatus || "unknown");
+        const labels = {
+            not_open: "هنوز شروع نشده", open: "مهلت ارسال فعال", upcoming: "مهلت ارسال فعال",
+            closed: "دریافت بسته است", submitted: "ارسال شده",
+            overdue: "مهلت ارسال پایان یافته", unknown: "وضعیت نامشخص"
+        };
+        return labels[state] || "وضعیت نامشخص";
+    }
+
+    function assignmentTimingRows(task) {
+        return [
+            create("span", "hamiad-course-meta", "📅 شروع ارسال: " + persianDigits(task.opensText || "مشخص نشده")),
+            create("span", "hamiad-course-meta", "⏳ آخرین مهلت ارسال: " + persianDigits(task.deadlineText || "مشخص نشده")),
+            create("span", "hamiad-course-meta", "📤 وضعیت: " + submissionStatusLabel(task))
+        ];
+    }
+
     function renderTasks(tasks) {
         taskList.replaceChildren();
         if (!tasks.length) {
@@ -218,13 +236,10 @@
         for (const task of tasks) {
             const card = create("article", "hamiad-course-card");
             const info = create("div", "hamiad-course-content");
-            const dueText = task.dueText || "زمان تحویل در سامانه مشخص نیست";
-            const delivery = task.submissionStatus || "وضعیت ارسال نامشخص";
             info.append(
                 create("strong", "hamiad-course-name", persianDigits(task.title || "تکلیف")),
                 create("span", "hamiad-course-meta", "📚 " + normalizedCourse(task.courseTitle)),
-                create("span", "hamiad-course-meta", "⏳ " + persianDigits(dueText)),
-                create("span", "hamiad-course-meta", "📤 " + persianDigits(delivery))
+                ...assignmentTimingRows(task)
             );
             const action = create("button", "bot-link-secondary", "جزئیات");
             action.type = "button";
@@ -295,8 +310,7 @@
             back.addEventListener("click", () => showView("tasks"));
             courseDetails.append(back,
                 create("strong", "hamiad-course-name", persianDigits(item.title || "تکلیف")),
-                create("p", "hamiad-course-meta", "⏳ زمان باقی‌مانده: " + persianDigits(item.dueText || "در سامانه درج نشده")),
-                create("p", "hamiad-course-meta", "📤 وضعیت ارسال: " + persianDigits(item.submissionStatus || "نامشخص")),
+                ...assignmentTimingRows(item),
                 create("p", "hamiad-course-meta", "📋 وضعیت تصحیح: " + persianDigits(item.gradingStatus || "نامشخص")),
                 create("p", "", persianDigits(item.description || "توضیحی برای این تکلیف ثبت نشده است.")));
         } catch (error) {
@@ -312,12 +326,15 @@
             const result = await readData("dashboard");
             if (sequence !== loadSequence) return;
             dashboard = result.dashboard || null;
-            if (!dashboard?.connected) {
+            if (!dashboard?.connected && !(dashboard?.stale && dashboard?.courses?.length)) {
                 statusMessage("نشست همیاد متصل نیست؛ ورود دوباره لازم است.", true);
                 return;
             }
             renderDashboardSummary(dashboard);
             showView(activeView);
+            if (dashboard.stale || dashboard.partial) {
+                statusMessage(dashboard.notice || "بخشی از اطلاعات همیاد تازه‌سازی نشد؛ جزئیات ذخیره‌شده حفظ شده است.", true);
+            }
         } catch (error) {
             if (sequence !== loadSequence) return;
             dashboard = null;
@@ -337,13 +354,32 @@
         newCaptcha();
     });
 
+    async function showSavedDashboardOrLogin() {
+        try {
+            const result = await readData("dashboard");
+            const saved = result.dashboard || null;
+            if (saved?.stale && saved?.courses?.length) {
+                dashboard = saved;
+                connectPanel.hidden = false;
+                loginPanel.hidden = true;
+                renderDashboardSummary(dashboard);
+                showView(activeView);
+                statusMessage(saved.notice || "⚠️ اطلاعات ذخیره‌شدهٔ همیاد؛ برای دریافت اطلاعات تازه، اتصال را دوباره برقرار کن.", true);
+                return;
+            }
+        } catch (error) {
+            // Without a verified snapshot, retain the normal login flow.
+        }
+        newCaptcha();
+    }
+
     readData("status").then((result) => {
         if (result.status?.connected) {
             showConnected();
             loadDashboard();
         } else {
-            newCaptcha();
+            showSavedDashboardOrLogin();
         }
-    }).catch(() => newCaptcha());
+    }).catch(() => showSavedDashboardOrLogin());
 
 })();

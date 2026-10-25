@@ -33,12 +33,5 @@ function dent_bot_hamiad_assignment(array $user, array $payload): array
     if (!$course || !$id) {
         dent_error('مشخصات تکلیف معتبر نیست.', 422);
     }
-    $allowed = false;
-    foreach (hamiad_term7_courses() as $item) {
-        if ((int)$item['id'] === (int)$course) { $allowed = true; break; }
-    }
-    if (!$allowed) {
-        dent_error('تکلیف متعلق به درس‌های ترم جاری نیست.', 403);
-    }
-    return ['success' => true, 'assignment' => hamiad_assignment_detail((int)$course, (int)$id)];
+    return ['success' => true, 'assignment' => hamiad_assignment_detail_or_snapshot((int)$course, (int)$id)];
 }

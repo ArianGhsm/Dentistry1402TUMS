@@ -104,6 +104,112 @@ function hamiad_remaining_seconds(string $value): ?int
     return null;
 }
 
+/** Parse official Moodle dates without treating CLOSED or relative labels as a deadline. */
+function hamiad_date_iso(string $value): string
+{
+    $raw = trim(strtr($value, [
+        '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9',
+        '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
+        'ي'=>'ی','ك'=>'ک',
+    ]));
+    if ($raw === '' || preg_match('/^(?:-+|نامشخص|هیچ|never|none|closed|بسته)/iu', $raw)) return '';
+    $year=0; $month=0; $day=0;
+    $months=['فروردین'=>1,'اردیبهشت'=>2,'خرداد'=>3,'تیر'=>4,'مرداد'=>5,'شهریور'=>6,'مهر'=>7,'آبان'=>8,'آذر'=>9,'دی'=>10,'بهمن'=>11,'اسفند'=>12];
+    if (preg_match('/(?<!\d)(1[34]\d{2})[\/-](\d{1,2})[\/-](\d{1,2})(?!\d)/u', $raw, $m)) {
+        [$year,$month,$day]=[(int)$m[1],(int)$m[2],(int)$m[3]];
+    } else {
+        foreach ($months as $name=>$number) {
+            if (preg_match('/(?<!\d)(\d{1,2})\s*'.preg_quote($name,'/').'\s*(1[34]\d{2})(?!\d)/u', $raw, $m)) {
+                [$year,$month,$day]=[(int)$m[2],$number,(int)$m[1]]; break;
+            }
+        }
+    }
+    if ($year) {
+        if ($month<1 || $month>12 || $day<1 || $day>($month<=6?31:($month<=11?30:30))) return '';
+        if (!class_exists('IntlCalendar')) return ''; // Never invent calendar conversion.
+        $clock='00:00';
+        if (preg_match('/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)/', $raw, $m)) $clock=sprintf('%02d:%02d',(int)$m[1],(int)$m[2]);
+        $cal=IntlCalendar::createInstance('Asia/Tehran','fa_IR@calendar=persian');
+        if (!$cal || $cal->getType() !== 'persian') return '';
+        $cal->clear(); $cal->set($year,$month-1,$day,(int)substr($clock,0,2),(int)substr($clock,3,2),0);
+        $seconds=$cal->getTime();
+        if ($seconds===false) return '';
+        return (new DateTimeImmutable('@'.(string)round($seconds/1000)))
+            ->setTimezone(new DateTimeZone('Asia/Tehran'))->format(DATE_ATOM);
+    }
+    // For Gregorian Moodle dates, only parse an actual date, never a countdown.
+    if (!preg_match('/20\d{2}[-\/](?:0?[1-9]|1[012])[-\/](?:0?[1-9]|[12]\d|3[01])|\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b/iu', $raw)) return '';
+    try { return (new DateTimeImmutable($raw,new DateTimeZone('Asia/Tehran')))->format(DATE_ATOM); }
+    catch (Throwable $error) { return ''; }
+}
+
+function hamiad_date_field(array $fields, string $pattern): array
+{
+    foreach ($fields as $key=>$value) {
+        if (!preg_match($pattern, trim((string)$key))) continue;
+        $text=trim((string)$value);
+        if ($text === '') continue;
+        return ['text'=>$text,'at'=>hamiad_date_iso($text)];
+    }
+    return ['text'=>'','at'=>''];
+}
+
+function hamiad_assignment_timing(array $fields, int $clock): array
+{
+    $open=hamiad_date_field($fields,'/(?:شروع\s*(?:ارسال|تحویل|تکلیف)|تاریخ\s*شروع|از\s*تاریخ|Allow submissions from|Available from|Open(?:ing)? date|Start date)/iu');
+    $due=hamiad_date_field($fields,'/(?:تاریخ\s*تحویل|موعد\s*تحویل|مهلت\s*تحویل|سررسید|Due date|Deadline)/iu');
+    $cutoff=hamiad_date_field($fields,'/(?:آخرین\s*مهلت|مهلت\s*نهایی|Cut.?off date|Final submission date)/iu');
+    $last=$cutoff['text']!==''?$cutoff:$due;
+    $submission=trim((string)($fields['وضعیت تحویل']??$fields['Submission status']??$fields['وضعیت ارسال']??''));
+    $submitted=(bool)preg_match('/(?:Submitted for grading|Submitted|ارسال\s*شده|تحویل\s*شده|ثبت\s*شده)/iu',$submission)
+        && !preg_match('/(?:Not submitted|No submission|ارسال\s*نشده|هیچ\s*ارسال|عدم\s*ارسال)/iu',$submission);
+    $closed=(bool)preg_match('/(?:^|\W)(?:CLOSED|Closed)(?:\W|$)|بسته|غیرفعال/iu',$submission);
+    $startTime=$open['at']!==''?strtotime($open['at']):false;
+    $lastTime=$last['at']!==''?strtotime($last['at']):false;
+    if ($submitted) $status='submitted';
+    elseif ($startTime!==false && $startTime>$clock) $status='not_open';
+    elseif ($lastTime!==false && $lastTime<=$clock) $status='overdue';
+    elseif ($closed) $status='closed';
+    elseif ($lastTime!==false && $lastTime>$clock) $status='upcoming';
+    else $status='unknown';
+    return [
+        'opensAt'=>$open['at'],'opensText'=>$open['text'],
+        'dueAt'=>$due['at'],'dueDateText'=>$due['text'],
+        'cutoffAt'=>$cutoff['at'],'cutoffText'=>$cutoff['text'],
+        'deadlineAt'=>$last['at'],'deadlineText'=>$last['text'],
+        'dueStatus'=>$status,'submissionStatus'=>$submission,
+        'submissionWindowStatus'=>$status==='not_open'?'not_open':($status==='submitted'?'submitted':($status==='overdue'||$status==='closed'?'closed':($status==='upcoming'?'open':'unknown'))),
+    ];
+}
+
+function hamiad_assignment_snapshot_path(): string
+{
+    return dent_storage_path('hamiad/assignments-snapshot.json');
+}
+
+/** Last verified good owner-only snapshot survives connection errors and new code deployments. */
+function hamiad_assignment_snapshot_read(): ?array
+{
+    $stored=dent_read_json_file(hamiad_assignment_snapshot_path(),[]);
+    $snapshot=$stored['dashboard']??null;
+    return is_array($snapshot) && !empty($snapshot['courses']) && is_array($snapshot['assignments']??null)
+        ? $snapshot : null;
+}
+
+function hamiad_assignment_snapshot_save(array $dashboard): void
+{
+    if (empty($dashboard['courses']) || !is_array($dashboard['assignments']??null)) {
+        throw new RuntimeException('اطلاعات همیاد ناقص است؛ نسخه معتبر قبلی حفظ شد.');
+    }
+    $prior=hamiad_assignment_snapshot_read();
+    if (count($dashboard['assignments']) === 0 && count($prior['assignments'] ?? []) > 0) {
+        throw new RuntimeException('پاسخ بدون تکلیف همیاد نیازمند تأیید است؛ اطلاعات قبلی حفظ شد.');
+    }
+    dent_write_json_file(hamiad_assignment_snapshot_path(),[
+        'version'=>1,'savedAt'=>date(DATE_ATOM),'dashboard'=>$dashboard,
+    ]);
+}
+
 function hamiad_assignment_detail(int $courseId, int $activityId, ?array $knownActivities = null): array
 {
     $activities = $knownActivities ?? hamiad_course_activities($courseId);
@@ -132,22 +238,12 @@ function hamiad_assignment_detail(int $courseId, int $activityId, ?array $knownA
             $fields[mb_substr($key, 0, 80)] = mb_substr($value, 0, 240);
         }
     }
-    $submissionStatus = (string) ($fields['وضعیت تحویل'] ?? '');
-    $gradingStatus = (string) ($fields['وضعیت تصحیح'] ?? '');
-    $remainingText = (string) ($fields['زمان باقیمانده'] ?? '');
+    $timing = hamiad_assignment_timing($fields, time());
+    $gradingStatus = (string) ($fields['وضعیت تصحیح'] ?? $fields['Grading status'] ?? '');
+    $remainingText = (string) ($fields['زمان باقیمانده'] ?? $fields['Time remaining'] ?? '');
     $remainingSeconds = hamiad_remaining_seconds($remainingText);
-    $dueAt = $remainingSeconds === null ? '' : date(DATE_ATOM, time() + $remainingSeconds);
-    $due = $remainingText;
-    if ($due === '') {
-        foreach ($fields as $key => $value) {
-            if (preg_match('/(?:^|\\s)(?:موعد|مهلت|سررسید|تاریخ تحویل|due date|deadline)(?:\\s|$)/iu', $key)) {
-                $due = $value; break;
-            }
-        }
-    }
-    $submitted = $submissionStatus !== '' && !preg_match('/هیچ ارسالی|ارسال نشده|عدم ارسال/u', $submissionStatus);
-    $dueStatus = $submitted ? 'submitted' : ($remainingSeconds === null
-        ? 'unknown' : ($remainingSeconds <= 0 ? 'overdue' : 'upcoming'));
+    // A relative countdown is display-only. CLOSED is not proof of expiry.
+    $due = $timing['deadlineText'] !== '' ? $timing['deadlineText'] : $remainingText;
     $description = '';
     $xpath = new DOMXPath($dom);
     foreach (['//*[@id="intro"]', '//*[contains(concat(" ",normalize-space(@class)," ")," activity-description ")]', '//*[contains(concat(" ",normalize-space(@class)," ")," box generalbox ")]'] as $selector) {
@@ -159,9 +255,15 @@ function hamiad_assignment_detail(int $courseId, int $activityId, ?array $knownA
     }
     return [
         'courseId' => $courseId, 'id' => $activityId,
-        'title' => $matching[0]['title'], 'dueText' => $due, 'dueAt' => $dueAt,
-        'duePrecision' => $remainingSeconds !== null ? 'relative' : 'unknown',
-        'dueStatus' => $dueStatus, 'submissionStatus' => $submissionStatus,
+        'title' => $matching[0]['title'], 'dueText' => $due,
+        'dueAt' => $timing['deadlineAt'],
+        'duePrecision' => $timing['deadlineAt'] !== '' ? 'absolute' : 'unknown',
+        'dueStatus' => $timing['dueStatus'], 'submissionStatus' => $timing['submissionStatus'],
+        'submissionWindowStatus' => $timing['submissionWindowStatus'],
+        'opensAt' => $timing['opensAt'], 'opensText' => $timing['opensText'],
+        'dueDateAt' => $timing['dueAt'], 'dueDateText' => $timing['dueDateText'],
+        'cutoffAt' => $timing['cutoffAt'], 'cutoffText' => $timing['cutoffText'],
+        'deadlineAt' => $timing['deadlineAt'], 'deadlineText' => $timing['deadlineText'],
         'gradingStatus' => $gradingStatus, 'remainingText' => $remainingText,
         'description' => mb_substr($description, 0, 2000), 'fields' => $fields,
     ];
@@ -170,46 +272,106 @@ function hamiad_assignment_detail(int $courseId, int $activityId, ?array $knownA
 /** Owner-only snapshot. No cross-student identity inference and no Navid fallback. */
 function hamiad_term7_dashboard(): array
 {
+    $cached = hamiad_assignment_snapshot_read();
     $status = hamiad_session_status();
     if (!$status['connected']) {
-        return ['connected' => false, 'courses' => [], 'assignments' => [], 'resources' => 0];
+        return $cached === null
+            ? ['connected'=>false,'courses'=>[],'assignments'=>[],'resources'=>0,'stale'=>false]
+            : array_merge($cached,['connected'=>false,'stale'=>true,'notice'=>'اطلاعات ذخیره‌شده؛ اتصال همیاد نیازمند ورود مجدد است.']);
     }
-    $courses = hamiad_term7_courses();
-    $allAssignments = [];
-    $resources = 0;
-    foreach ($courses as &$course) {
-        $activities = hamiad_course_activities((int) $course['id']);
-        $tasks = array_values(array_filter($activities, static fn($a): bool => $a['kind'] === 'assign'));
-        $course['resourceCount'] = count(array_filter($activities, static fn($a): bool => $a['kind'] !== 'assign'));
-        $course['assignmentCount'] = count($tasks);
-        $resources += $course['resourceCount'];
-        foreach ($tasks as $task) {
-            // Reuse the already parsed course activities; the detail remains the
-            // single source of truth for due time and submission status.
-            try {
-                $detail = hamiad_assignment_detail((int)$course['id'], (int)$task['id'], $activities);
-                $task = array_merge($task, $detail);
-            } catch (RuntimeException $error) {
-                $task['dueStatus'] = 'unknown';
-                $task['dueText'] = '';
-                $task['dueAt'] = '';
-                $task['detailError'] = 'جزئیات تکلیف فعلاً قابل دریافت نیست.';
+    try {
+        $courses = hamiad_term7_courses();
+        // An empty response is not evidence that every previously found course vanished.
+        if ($courses === []) {
+            throw new RuntimeException('فهرست درس‌های همیاد به‌صورت معتبر دریافت نشد.');
+        }
+        $allAssignments = [];
+        $resources = 0;
+        $previous = [];
+        foreach (($cached['assignments'] ?? []) as $oldTask) {
+            if (is_array($oldTask)) $previous[hamiad_assignment_identity_key($oldTask)]=$oldTask;
+        }
+        $detailFailed = false;
+        foreach ($courses as &$course) {
+            $activities = hamiad_course_activities((int)$course['id']);
+            $tasks = array_values(array_filter($activities,static fn($a):bool=>$a['kind']==='assign'));
+            $course['resourceCount']=count(array_filter($activities,static fn($a):bool=>$a['kind']!=='assign'));
+            $course['assignmentCount']=count($tasks);
+            $resources+=$course['resourceCount'];
+            foreach ($tasks as $task) {
+                $key=hamiad_assignment_identity_key($task);
+                try { $task=array_merge($task,hamiad_assignment_detail((int)$course['id'],(int)$task['id'],$activities)); }
+                catch (RuntimeException $error) {
+                    $detailFailed=true;
+                    if (isset($previous[$key])) {
+                        $task=array_merge($task,$previous[$key]);
+                    } else {
+                        $task+=['dueStatus'=>'unknown','dueText'=>'','dueAt'=>'','deadlineAt'=>'','deadlineText'=>'','opensAt'=>'','opensText'=>''];
+                    }
+                    $task['detailStale']=true;
+                    $task['detailError']='جزئیات این تکلیف در همگام‌سازی اخیر دریافت نشد.';
+                }
+                $task['courseTitle']=$course['title'];
+                $allAssignments[]=$task;
             }
-            $task['courseTitle'] = $course['title'];
-            $allAssignments[] = $task;
+        }
+        unset($course);
+        usort($allAssignments,static function(array $a,array $b):int{
+            $ta=strtotime((string)($a['deadlineAt']??$a['dueAt']??'')) ?: PHP_INT_MAX;
+            $tb=strtotime((string)($b['deadlineAt']??$b['dueAt']??'')) ?: PHP_INT_MAX;
+            return ($ta<=>$tb) ?: strcmp((string)($a['title']??''),(string)($b['title']??''));
+        });
+        $dashboard=[
+            'connected'=>true,'courses'=>$courses,'assignments'=>$allAssignments,
+            'resources'=>$resources,'checkedAt'=>date(DATE_ATOM),'stale'=>false,
+            'partial'=>$detailFailed,
+        ];
+        // Preserve complete dates if one detail request failed; never replace a complete snapshot.
+        if (!$detailFailed) hamiad_assignment_snapshot_save($dashboard);
+        return $dashboard;
+    } catch (RuntimeException $error) {
+        if ($cached === null) throw $error;
+        return array_merge($cached,[
+            'connected'=>true,'stale'=>true,'notice'=>'همیاد در دسترس نیست؛ آخرین اطلاعات معتبر ذخیره‌شده نمایش داده می‌شود.',
+            'liveError'=>'همگام‌سازی جدید ناموفق بود.',
+        ]);
+    }
+}
+
+function hamiad_assignment_identity_key(array $task): string
+{
+    return (int)($task['courseId']??0).':'.(int)($task['id']??0);
+}
+
+/** Owner-authenticated callers may read a previously verified activity while LMS is offline. */
+function hamiad_assignment_detail_or_snapshot(int $courseId, int $activityId): array
+{
+    $cached = hamiad_assignment_snapshot_read();
+    $cachedTask = null;
+    $courseAllowed = false;
+    foreach (($cached['courses'] ?? []) as $course) {
+        if ((int)($course['id'] ?? 0) === $courseId) { $courseAllowed=true; break; }
+    }
+    foreach (($cached['assignments'] ?? []) as $task) {
+        if ((int)($task['courseId']??0)===$courseId && (int)($task['id']??0)===$activityId) {
+            $cachedTask=$task; break;
         }
     }
-    unset($course);
-    usort($allAssignments, static function (array $a, array $b): int {
-        $ta = strtotime((string)($a['dueAt'] ?? '')) ?: PHP_INT_MAX;
-        $tb = strtotime((string)($b['dueAt'] ?? '')) ?: PHP_INT_MAX;
-        return ($ta <=> $tb) ?: strcmp((string)($a['title'] ?? ''), (string)($b['title'] ?? ''));
-    });
-    return [
-        'connected' => true, 'courses' => $courses,
-        'assignments' => $allAssignments, 'resources' => $resources,
-        'checkedAt' => date(DATE_ATOM),
-    ];
+    if (!$courseAllowed) {
+        foreach (hamiad_term7_courses() as $course) {
+            if ((int)($course['id']??0)===$courseId) { $courseAllowed=true; break; }
+        }
+    }
+    if (!$courseAllowed) throw new RuntimeException('تکلیف متعلق به درس‌های ترم جاری نیست.');
+    if (!empty(hamiad_session_status()['connected'])) {
+        try { return hamiad_assignment_detail($courseId, $activityId); }
+        catch (RuntimeException $error) { /* Last verified record remains readable. */ }
+    }
+    if ($cachedTask !== null) {
+        $cachedTask['detailStale']=true;
+        return $cachedTask;
+    }
+    throw new RuntimeException('جزئیات معتبر این تکلیف هنوز همگام‌سازی نشده است.');
 }
 
 function hamiad_term7_course_view(int $courseId): array

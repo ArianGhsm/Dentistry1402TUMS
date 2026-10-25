@@ -141,12 +141,27 @@ function classops_bot_ui_term7_record(
         'sourcePage' => max(0, (int) ($event['sourcePage'] ?? 0)),
         'sourceDate' => (string) ($event['sourceDate'] ?? ''),
         'assessmentPart' => (string) ($event['assessmentPart'] ?? ''),
+        'quizTitle' => (string) ($event['quizTitle'] ?? ''),
         'applicability' => [
             'selector' => $selector,
             'group' => is_int($group) ? $group : null,
             'groupLabel' => $selector === 'group10' ? 'گروه صبح' : ($selector === 'group8' ? 'گروه عصر' : ''),
         ],
     ];
+}
+
+/** Same event, independent assessment row. Preserve exact audience and time. */
+function classops_bot_ui_term7_add_assessment(array &$records, array $record): void
+{
+    $quiz = trim((string) ($record['quizTitle'] ?? ''));
+    if ($quiz === '') return;
+    $assessment = $record;
+    $assessment['type'] = 'exam';
+    $assessment['importance'] = 'high';
+    $assessment['title'] = $quiz . ' — ' . (string) ($record['courseTitle'] ?? '');
+    $assessment['ref'] = 't7q_' . substr(hash('sha256', (string) ($record['ref'] ?? '') . '|quiz'), 0, 20);
+    $assessment['quizTitle'] = '';
+    $records[] = $assessment;
 }
 
 function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?array $term7State = null): array
@@ -174,6 +189,7 @@ function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?ar
         if (!is_array($event)) continue;
         $record = classops_bot_ui_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
         $out[] = $record;
+        classops_bot_ui_term7_add_assessment($out, $record);
     }
     foreach ($morning as $event) {
         if (!is_array($event)) continue;
@@ -187,6 +203,7 @@ function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?ar
             ];
         }
         $out[] = $record;
+        classops_bot_ui_term7_add_assessment($out, $record);
     }
     foreach ($afternoon as $event) {
         if (!is_array($event)) continue;
@@ -200,6 +217,7 @@ function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?ar
             ];
         }
         $out[] = $record;
+        classops_bot_ui_term7_add_assessment($out, $record);
     }
     return $out;
 }

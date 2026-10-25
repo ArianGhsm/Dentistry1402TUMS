@@ -80,7 +80,8 @@ function hamiad_reminder_events(array $dashboard, array $priorState, int $clock)
 {
     $known = is_array($priorState['seen'] ?? null) ? $priorState['seen'] : [];
     $sent = is_array($priorState['sent'] ?? null) ? $priorState['sent'] : [];
-    $hasBaseline = !empty($priorState['initialized']);
+    // Empty previously seen-set can come from a failed empty LMS sync; do not spam historical tasks.
+    $hasBaseline = !empty($priorState['initialized']) && $known !== [];
     $events = [];
     $seen = $known;
     foreach (($dashboard['assignments'] ?? []) as $task) {
@@ -102,8 +103,8 @@ function hamiad_reminder_events(array $dashboard, array $priorState, int $clock)
         if (!$hasBaseline) {
             continue; // Establish a read-only baseline without spamming old tasks.
         }
-        $due = strtotime((string)($task['dueAt'] ?? ''));
-        if (($task['dueStatus'] ?? '') !== 'upcoming' || $due === false || $due <= $clock) {
+        $due = strtotime((string)($task['deadlineAt'] ?? $task['dueAt'] ?? ''));
+        if (($task['dueStatus'] ?? '') !== 'upcoming' || !empty($task['detailStale']) || $due === false || $due <= $clock) {
             continue;
         }
         $seconds = $due - $clock;
@@ -130,8 +131,12 @@ function hamiad_process_reminders(bool $dryRun = false, ?array $providedDashboar
 {
     $clock ??= time();
     $dashboard = $providedDashboard ?? hamiad_term7_dashboard();
-    if (empty($dashboard['connected']) || !isset($dashboard['assignments'])) {
-        throw new RuntimeException('نشست فعال همیاد موجود نیست یا اطلاعات تکالیف کامل دریافت نشد.');
+    if (!isset($dashboard['assignments']) || !is_array($dashboard['assignments'])) {
+        throw new RuntimeException('اطلاعات تکالیف همیاد معتبر نیست.');
+    }
+    if (!empty($dashboard['stale']) || !empty($dashboard['partial']) || empty($dashboard['connected'])) {
+        return ['success'=>true,'skipped'=>true,'reason'=>'همگام‌سازی تازه و کامل در دسترس نیست؛ اعلان جدیدی صادر نشد.',
+            'assignmentCount'=>count($dashboard['assignments']),'planned'=>0,'sent'=>0];
     }
     $lockFile = dent_storage_path('hamiad/assignment-watch.lock');
     dent_ensure_directory(dirname($lockFile));
@@ -171,12 +176,24 @@ function hamiad_process_reminders(bool $dryRun = false, ?array $providedDashboar
             $label = $event['kind'] === 'created' ? 'تکلیف جدید همیاد' : 'یادآوری مهلت تکلیف همیاد';
             $tone = $event['kind'] === 'created' ? 'info' :
                 (($event['days'] ?? 0) === 1 ? 'danger' : 'warn');
-            $body = $course . "\n" . $name . ($dueText !== '' ? "\nزمان باقی‌مانده: " . $dueText : '');
+            $startText = trim((string) ($task['opensText'] ?? ''));
+            $deadlineText = trim((string) ($task['deadlineText'] ?? ''));
+            $statusLabel = match ((string)($task['dueStatus'] ?? '')) {
+                'not_open'=>'هنوز شروع نشده', 'upcoming'=>'مهلت ارسال فعال',
+                'closed'=>'دریافت بسته است', 'submitted'=>'ارسال شده',
+                'overdue'=>'مهلت پایان یافته', default=>'وضعیت نامشخص',
+            };
+            $body = $course . "\n" . $name
+                . "\nشروع ارسال: " . ($startText !== '' ? $startText : 'اعلام نشده')
+                . "\nآخرین مهلت ارسال: " . ($deadlineText !== '' ? $deadlineText : 'اعلام نشده')
+                . "\nوضعیت: " . $statusLabel;
             $meta = [
                 'courseId' => (int)($task['courseId'] ?? 0),
                 'assignmentId' => (int)($task['id'] ?? 0),
-                'dueAt' => (string)($task['dueAt'] ?? ''),
+                'dueAt' => (string)($task['deadlineAt'] ?? $task['dueAt'] ?? ''),
                 'dueText' => $dueText,
+                'opensAt' => (string)($task['opensAt'] ?? ''),
+                'deadlineAt' => (string)($task['deadlineAt'] ?? ''),
                 'reminderDays' => (int)($event['days'] ?? 0),
                 'important' => ($event['days'] ?? 0) === 1,
             ];
