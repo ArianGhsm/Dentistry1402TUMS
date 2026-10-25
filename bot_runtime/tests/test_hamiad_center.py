@@ -41,6 +41,9 @@ class TestHamiad(unittest.TestCase):
         detail = str(hamiad_assignment_screen(task).text)
         self.assertIn('آخرین مهلت ارسال', detail)
         self.assertNotIn('CLOSED', detail)
+        stale_task = {**task, 'detailStale': True}
+        self.assertIn('ذخیره‌شدهٔ قبلی', str(hamiad_assignment_screen(stale_task).text))
+        self.assertIn('همگام‌سازی جدید انجام نشده', str(hamiad_tasks_screen({'stale': True, 'assignments': [task]}).text))
 
     @patch('dent_bot.classops_ui._show')
     def test_callbacks_owner_and_nonowner(self, show):

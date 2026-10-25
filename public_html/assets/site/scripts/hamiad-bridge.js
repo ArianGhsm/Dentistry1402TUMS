@@ -354,13 +354,32 @@
         newCaptcha();
     });
 
+    async function showSavedDashboardOrLogin() {
+        try {
+            const result = await readData("dashboard");
+            const saved = result.dashboard || null;
+            if (saved?.stale && saved?.courses?.length) {
+                dashboard = saved;
+                connectPanel.hidden = false;
+                loginPanel.hidden = true;
+                renderDashboardSummary(dashboard);
+                showView(activeView);
+                statusMessage(saved.notice || "⚠️ اطلاعات ذخیره‌شدهٔ همیاد؛ برای دریافت اطلاعات تازه، اتصال را دوباره برقرار کن.", true);
+                return;
+            }
+        } catch (error) {
+            // Without a verified snapshot, retain the normal login flow.
+        }
+        newCaptcha();
+    }
+
     readData("status").then((result) => {
         if (result.status?.connected) {
             showConnected();
             loadDashboard();
         } else {
-            newCaptcha();
+            showSavedDashboardOrLogin();
         }
-    }).catch(() => newCaptcha());
+    }).catch(() => showSavedDashboardOrLogin());
 
 })();

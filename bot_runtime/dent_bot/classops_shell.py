@@ -255,6 +255,10 @@ def hamiad_tasks_screen(data: dict[str, Any], *, page: int = 0) -> Screen:
         f"<blockquote>تعداد تکالیف شناسایی‌شده: <b>{to_persian_digits(len(tasks))}</b></blockquote>"
     ]
     buttons = []
+    if data.get("stale"):
+        parts.extend(("", "<blockquote>⚠️ اطلاعات ذخیره‌شدهٔ قبلی؛ همگام‌سازی جدید انجام نشده است. برای اطلاعات تازه دوباره متصل شو.</blockquote>"))
+    elif data.get("partial") or any(bool(x.get("detailStale")) for x in tasks):
+        parts.extend(("", "<blockquote>⚠️ برخی جزئیات از آخرین اطلاعات معتبر نمایش داده می‌شوند.</blockquote>"))
     if not tasks:
         parts.extend(("", "در حال حاضر هیچ تکلیفی در دروس ترم ۷ حساب متصل ثبت نشده است.",
                       "", "↻ برای بررسی تغییرات، تازه‌سازی را انتخاب کن."))
@@ -281,8 +285,10 @@ def hamiad_assignment_screen(data: dict[str, Any]) -> Screen:
     title = html.escape(to_persian_digits(str(data.get("title") or "تکلیف"))[:120])
     desc = html.escape(to_persian_digits(str(data.get("description") or ""))[:950])
     grading = html.escape(to_persian_digits(str(data.get("gradingStatus") or ""))[:140])
-    text = (f"<b>⏰ {title}</b>\n\n"
-            f"<blockquote>{_hamiad_assignment_timing(data)}"
+    stale_notice = ("⚠️ این جزئیات ذخیره‌شدهٔ قبلی‌اند و هنوز از همیاد تازه‌سازی نشده‌اند.\n\n"
+                    if data.get("detailStale") or data.get("stale") else "")
+    text = (f"<b>⏰ {title}</b>\n\n" + stale_notice
+            + f"<blockquote>{_hamiad_assignment_timing(data)}"
             + (f"\n📋 وضعیت تصحیح: {grading}" if grading else "")
             + "</blockquote>"
             + (f"\n\n📝 {desc}" if desc else "\n\nتوضیحی در صفحهٔ تکلیف ثبت نشده است."))
