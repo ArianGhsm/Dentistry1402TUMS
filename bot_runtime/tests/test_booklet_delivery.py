@@ -1366,6 +1366,64 @@ class BookletDeliveryTests(unittest.TestCase):
                     dispatcher.close()
                 state.close()
 
+    def test_close_waits_for_active_worker_and_defers_queued_booklet(self) -> None:
+        started = threading.Event()
+        release = threading.Event()
+
+        class QueueApi:
+            def send_protected_media(self, chat_id, _source, *, personalized_file_id=""):
+                if chat_id == 100:
+                    started.set()
+                    release.wait(5)
+                return {"message_id": chat_id}
+
+            def send(self, *_args):
+                return {"message_id": 999}
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = BotState(root / "state.sqlite3")
+            dispatcher = None
+            close_thread = None
+            try:
+                state.replace_protected_media_message(SOURCE_CHAT_ID, 12, [{
+                    "contentKind": "voice", "courseCode": "ENT", "courseName": "ENT",
+                    "courseTag": "ent", "term": 7, "sessionNo": 4,
+                    "telegramMethod": "sendVoice", "fileId": "voice-id",
+                    "fileUniqueId": "voice-unique-shutdown", "fileName": "voice.ogg",
+                    "mimeType": "audio/ogg", "caption": "test",
+                }])
+                source_id = int(state.protected_media_for(
+                    course_code="ENT", term=7, session_no=4, content_kind="voice"
+                )[0]["id"])
+                dispatcher = ProtectedMediaDispatcher(
+                    api=QueueApi(), state=state, authorize=lambda _user, _source: True,
+                    temp_root=root / "jobs", workers=1, max_queue=20,
+                )
+                self.assertEqual(dispatcher.enqueue(100, source_id), "queued")
+                self.assertTrue(started.wait(2))
+                self.assertEqual(dispatcher.enqueue(101, source_id), "queued")
+
+                close_thread = threading.Thread(target=dispatcher.close)
+                close_thread.start()
+                self.assertTrue(close_thread.is_alive())
+                self.assertEqual(
+                    state.latest_protected_media_delivery(101, source_id)["status"], "failed"
+                )
+                release.set()
+                close_thread.join(5)
+                self.assertFalse(close_thread.is_alive())
+                self.assertEqual(
+                    state.latest_protected_media_delivery(100, source_id)["status"], "sent"
+                )
+            finally:
+                release.set()
+                if close_thread is not None:
+                    close_thread.join(5)
+                elif dispatcher is not None:
+                    dispatcher.close()
+                state.close()
+
     def test_document_level_dedupe_covers_different_source_routes(self) -> None:
         gate = threading.Event()
 
@@ -1468,6 +1526,17 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(state.recover_stale_booklet_issuances(60), 1)
                 self.assertEqual(state.booklet_issuance_for_source_hash(
                     78, source_id, "tgdoc_stale", "d" * 64, "recipient-pdf-v2"
+                )["status"], "failed")
+                interrupted = state.create_booklet_issuance(
+                    issuance_id="iss_interrupted002", user_id=79, source_id=source_id,
+                    document_id="tgdoc_interrupted", trace_code="TRC-UVWXY-Z1234",
+                    fingerprint_hash="e" * 64, watermark_version="recipient-pdf-v2",
+                    source_hash="f" * 64,
+                )
+                self.assertTrue(state.mark_booklet_issuance_processing(interrupted["issuanceId"]))
+                self.assertEqual(state.recover_stale_booklet_issuances(0), 1)
+                self.assertEqual(state.booklet_issuance_for_source_hash(
+                    79, source_id, "tgdoc_interrupted", "f" * 64, "recipient-pdf-v2"
                 )["status"], "failed")
             finally:
                 state.close()
