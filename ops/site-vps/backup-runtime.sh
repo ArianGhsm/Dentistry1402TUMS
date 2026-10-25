@@ -125,25 +125,13 @@ partial=""
 sha256sum "$archive" > "$checksum"
 chmod 0600 "$archive" "$checksum"
 
-# Keep the 14 newest daily snapshots plus one snapshot for each of the eight
-# newest ISO weeks. This gives short-term density and longer rollback coverage.
+# Keep only the two newest verified runtime snapshots.
 python3 - "$backup_root" <<'PY'
-import datetime as dt
 import pathlib
 import sys
 root = pathlib.Path(sys.argv[1])
 archives = sorted(root.glob('dentistry1402-runtime-*.tar.gz'), key=lambda p: p.stat().st_mtime, reverse=True)
-keep = set(archives[:14])
-weekly = set()
-for path in archives:
-    stamp = dt.datetime.fromtimestamp(path.stat().st_mtime, tz=dt.timezone.utc)
-    key = stamp.isocalendar()[:2]
-    if key not in weekly and len(weekly) < 8:
-        weekly.add(key)
-        keep.add(path)
-for path in archives:
-    if path in keep:
-        continue
+for path in archives[2:]:
     path.unlink(missing_ok=True)
     pathlib.Path(str(path) + '.sha256').unlink(missing_ok=True)
 PY

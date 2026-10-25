@@ -128,7 +128,7 @@ class BaleDatabaseBackupTests(unittest.TestCase):
             self.assertEqual(sent[0][0:2], ("test-token", 12345))
             self.assertIn("SHA-256:", sent[0][3])
 
-    def test_retention_keeps_only_seven_database_packages_and_sidecars(self) -> None:
+    def test_retention_keeps_only_two_database_packages_and_sidecars(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for index in range(9):
@@ -139,8 +139,8 @@ class BaleDatabaseBackupTests(unittest.TestCase):
             for index, package in enumerate(packages):
                 backup.os.utime(package, (index, index))
             backup.retain_packages(root)
-            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz"))), 7)
-            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz.sha256"))), 7)
+            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz"))), 2)
+            self.assertEqual(len(list(root.glob("dentistry1402-database-*.tar.gz.sha256"))), 2)
 
     def test_service_installs_hardened_daily_sender_after_runtime_backup(self) -> None:
         service = (OPS / "dentistry1402-bale-database-backup.service").read_text(encoding="utf-8")

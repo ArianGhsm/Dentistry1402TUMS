@@ -26,7 +26,7 @@ OUTBOX = BACKUP_ROOT / "bale-database"
 ARCHIVE_PATTERN = re.compile(r"^dentistry1402-runtime-(\d{8}T\d{6}Z)\.tar\.gz$")
 PART_BYTES = 19_000_000
 MAX_AGE = dt.timedelta(hours=26)
-KEEP_PACKAGES = 7
+KEEP_PACKAGES = 2
 BALE_API = "https://tapi.bale.ai"
 
 
