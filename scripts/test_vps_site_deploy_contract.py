@@ -18,6 +18,7 @@ COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
 AGENTS = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
 DEPLOY_DOC = (ROOT / 'DEPLOY.md').read_text(encoding='utf-8')
 WORKFLOW_DOC = (ROOT / 'docs/DEVELOPMENT_WORKFLOW.md').read_text(encoding='utf-8')
+RUNTIME_BACKUP = (ROOT / 'ops/site-vps/backup-runtime.sh').read_text(encoding='utf-8')
 
 for needle in [
     'ArianGhsm/Dentistry1402TUMS',
@@ -45,7 +46,7 @@ for needle in [
     "grep -Eq '^[[:space:]]*DENT_BALE_OWNER_ID=' /etc/integrated-dent/bale-bot.env",
     "systemd-analyze verify /etc/systemd/system/dentistry1402-bale-database-backup.service /etc/systemd/system/dentistry1402-bale-database-backup.timer",
     "systemctl enable --now dentistry1402-bale-database-backup.timer",
-    "${site_backups[@]:5}",
+    "${site_backups[@]:2}",
     "rm -rf --one-file-system -- \"$candidate\"",
     "test ! -e \"$candidate/public_html/storage\"",
     "test ! -e \"$candidate/public_html/server-only\"",
@@ -88,6 +89,8 @@ assert "-name 'dent-site-data-????????T??????Z-????????????'" in DEPLOY, 'retent
 assert DEPLOY.index('(cd "$candidate" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('rm -rf --one-file-system -- "$candidate"'), (
     'every old site-data backup must be verified before any retention deletion'
 )
+assert 'for path in archives[2:]' in RUNTIME_BACKUP, 'runtime backups must retain only the two newest snapshots'
+assert 'two newest verified' in DEPLOY_DOC, 'release docs must match the two-snapshot retention policy'
 assert 'Set-Content -LiteralPath $installerPath -Value $installer -Encoding UTF8' not in DEPLOY, 'remote shell installer must be UTF-8 without BOM'
 assert 'deploy_public_html.ps1' not in GATE, 'release gate must not route production through retired cPanel/FTP deployer'
 assert 'deploy_site_vps.ps1' in GATE, 'release gate must route website production to VPS deployer'

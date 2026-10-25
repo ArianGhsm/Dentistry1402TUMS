@@ -17,8 +17,7 @@ def test_backup_is_verified_and_has_bounded_retention() -> None:
     assert "PRAGMA quick_check;" in backup
     assert "sha256sum -c SHA256SUMS" in backup
     assert "json.loads" in backup
-    assert "archives[:14]" in backup
-    assert "len(weekly) < 8" in backup
+    assert "for path in archives[2:]" in backup
     assert "--exclude='./sessions'" in backup
     assert "--exclude='./backups'" in backup
     assert "local rc=$?" in backup

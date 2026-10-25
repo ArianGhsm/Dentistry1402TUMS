@@ -115,6 +115,25 @@ try {
     dent_bot_persistence_initialize($path, $default, 'test_normalize', 'test-initialize');
     test_assert(is_file($path), 'explicit initialization did not create the store');
 
+    $orphan = $path . '.tmp.999999.deadbeef';
+    $orphanGeneration = dent_bot_persistence_backup_directory($path) . DIRECTORY_SEPARATOR . 'store.json.g1.deadbeef.json.gz.tmp.999999.deadbeef';
+    dent_ensure_directory(dirname($orphanGeneration));
+    file_put_contents($orphan, "orphan\n", LOCK_EX);
+    file_put_contents($orphanGeneration, "orphan\n", LOCK_EX);
+    $initializedHash = hash_file('sha256', $path);
+    dent_bot_persistence_update(
+        $path,
+        $default,
+        'test_normalize',
+        static function (array &$store): array { return []; },
+        false,
+        'test-orphan-cleanup'
+    );
+    test_assert(!file_exists($orphan), 'stale temp was not removed under the writer lock');
+    test_assert(!file_exists($orphanGeneration), 'stale generation temp was not removed under the writer lock');
+    test_assert(hash_file('sha256', $path) === $initializedHash, 'stale-temp cleanup changed the active store');
+    $tests++;
+
     // A completed temp write is verified by descriptor readback, rather than
     // an unreliable path stat from a shared-host PHP runtime.
     $statProbe = $root . DIRECTORY_SEPARATOR . 'stat-probe.json';
@@ -144,6 +163,13 @@ try {
         'test-valid-read'
     );
     test_assert(($read['records']['first'] ?? false) === true, 'valid read/write lost data');
+    $previousBackups = glob(dent_bot_persistence_backup_directory($path) . DIRECTORY_SEPARATOR . 'store.json.g1.*.json*') ?: [];
+    test_assert(count($previousBackups) === 1, 'previous generation backup missing');
+    $backupBytes = file_get_contents($previousBackups[0]);
+    $backupRaw = str_ends_with($previousBackups[0], '.gz') && is_string($backupBytes)
+        ? gzdecode($backupBytes)
+        : $backupBytes;
+    test_assert(is_string($backupRaw) && hash('sha256', $backupRaw) === $initializedHash, 'previous generation backup content changed');
     $tests += 3;
 
     // 3: an existing malformed store fails closed and remains byte-identical.
@@ -225,24 +251,6 @@ try {
     test_assert(hash_file('sha256', $path) === $survivalHash, 'short write changed active generation');
     $tests++;
 
-    // 6: invalid temp JSON never reaches atomic rename.
-    try {
-        dent_bot_persistence_update(
-            $path,
-            $default,
-            'test_normalize',
-            static function (array &$store): array { $store['records']['invalid'] = true; return []; },
-            false,
-            'test-invalid-temp',
-            ['invalidTempJson' => true]
-        );
-        throw new RuntimeException('invalid-temp simulation unexpectedly committed');
-    } catch (DentBotPersistenceException $exception) {
-        test_assert($exception->reasonCode === 'BOT_STORE_TEMP_INVALID', 'wrong invalid-temp error');
-    }
-    test_assert(hash_file('sha256', $path) === $survivalHash, 'invalid temp changed active generation');
-    $tests++;
-
     // Recovery maintenance closes both read and write paths without touching data.
     $maintenanceHash = hash_file('sha256', $path);
     file_put_contents(dent_bot_persistence_maintenance_path($path), "incident-recovery\n", LOCK_EX);
@@ -291,6 +299,57 @@ try {
     }
     test_assert(count(glob($path . '.tmp.*') ?: []) === 0, 'orphan temp files remain');
     test_assert(count(glob($root . DIRECTORY_SEPARATOR . '.generations' . DIRECTORY_SEPARATOR . '*.json*') ?: []) >= 1, 'previous generation backup missing');
+    $tests++;
+
+    // Large stores must update below the production FPM memory limit.
+    $largePath = $root . DIRECTORY_SEPARATOR . 'large-store.json';
+    $largeStore = ['schemaVersion' => 1, 'deliveries' => []];
+    for ($index = 0; $index < 10000; $index++) {
+        $id = 'nt-' . $index;
+        $largeStore['deliveries']['delivery-' . $index] = [
+            'deliveryId' => str_repeat('d', 32),
+            'notificationId' => $id,
+            'identityHash' => str_repeat('h', 64),
+            'platform' => 'telegram',
+            'notificationPayload' => [
+                'id' => $id,
+                'source' => 'academic-term7',
+                'sourceKey' => 'assignment:' . $index,
+                'title' => str_repeat('t', 80),
+                'body' => str_repeat('b', 1000),
+                'meta' => ['courseId' => $index, 'assignmentId' => $index],
+                'actions' => [],
+            ],
+            'status' => 'delivered',
+            'attempts' => 1,
+            'lastAttemptAt' => '2026-10-24T12:00:00+00:00',
+        ];
+    }
+    $largePayload = json_encode($largeStore, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    test_assert(is_string($largePayload) && strlen($largePayload) > 10000000, 'large fixture is too small');
+    file_put_contents($largePath, $largePayload, LOCK_EX);
+    unset($largeStore, $largePayload);
+    $previousMemoryLimit = (string) ini_get('memory_limit');
+    $memoryBallast = str_repeat('x', 48 * 1024 * 1024);
+    ini_set('memory_limit', '192M');
+    dent_bot_persistence_update(
+        $largePath,
+        $default,
+        'test_normalize',
+        static function (array &$store): array { $store['records']['scale-test'] = true; return []; },
+        false,
+        'test-large-store-update'
+    );
+    ini_set('memory_limit', $previousMemoryLimit);
+    unset($memoryBallast);
+    $largeRead = dent_bot_persistence_read(
+        $largePath,
+        $default,
+        'test_normalize',
+        static fn(array $store): array => ['marker' => $store['records']['scale-test'] ?? false],
+        'test-large-store-read'
+    );
+    test_assert(($largeRead['marker'] ?? false) === true, 'large-store update did not commit');
     $tests++;
 
     echo json_encode(['status' => 'passed', 'tests' => $tests, 'writers' => 100], JSON_UNESCAPED_SLASHES) . PHP_EOL;

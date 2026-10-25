@@ -280,14 +280,7 @@ function dent_bot_persistence_preserve_previous(string $path, string $raw, int $
     $temp = $target . '.tmp.' . getmypid() . '.' . bin2hex(random_bytes(4));
     try {
         dent_bot_persistence_write_full($temp, $backupPayload, $testOptions);
-        $stored = @file_get_contents($temp);
-        $verifiedRaw = $useGzip && is_string($stored) ? gzdecode($stored) : $stored;
-        $decoded = is_string($verifiedRaw)
-            ? dent_bot_persistence_decode($verifiedRaw, 'BOT_STORE_BACKUP_INVALID')
-            : null;
-        if (!is_array($decoded) || !is_string($verifiedRaw) || !hash_equals($hash, hash('sha256', $verifiedRaw))) {
-            throw new DentBotPersistenceException('BOT_STORE_BACKUP_INVALID', 'Previous bot store generation verification failed');
-        }
+        // The source JSON is already decoded; write_full verifies the exact compressed bytes.
         if (!@rename($temp, $target)) {
             throw new DentBotPersistenceException('BOT_STORE_BACKUP_COMMIT_FAILED', 'Unable to commit previous bot store generation');
         }
@@ -327,6 +320,7 @@ function dent_bot_persistence_read(
         $snapshot = dent_bot_persistence_read_raw($path, false, $defaultStore);
         try {
             $store = $normalize($snapshot['store']);
+            unset($snapshot['store']);
         } catch (DentBotPersistenceException $exception) {
             dent_bot_persistence_preserve_corrupt($path, (string) $snapshot['raw']);
             throw $exception;
@@ -373,9 +367,18 @@ function dent_bot_persistence_update(
     $written = 0;
     try {
         dent_bot_persistence_assert_available($path);
+        // The exclusive lock means matching temps can only belong to dead writers.
+        $staleTemps = glob($path . '.tmp.*') ?: [];
+        $generationTemps = glob(dent_bot_persistence_backup_directory($path) . DIRECTORY_SEPARATOR . basename($path) . '.g*.tmp.*') ?: [];
+        foreach (array_merge($staleTemps, $generationTemps) as $staleTemp) {
+            if (is_file($staleTemp) && !@unlink($staleTemp)) {
+                throw new DentBotPersistenceException('BOT_STORE_TEMP_CLEANUP_FAILED', 'Unable to remove stale bot store temp');
+            }
+        }
         $snapshot = dent_bot_persistence_read_raw($path, $allowInitialize, $defaultStore);
         try {
             $store = $normalize($snapshot['store']);
+            unset($snapshot['store']);
         } catch (DentBotPersistenceException $exception) {
             if (!empty($snapshot['exists'])) {
                 dent_bot_persistence_preserve_corrupt($path, (string) $snapshot['raw']);
@@ -383,7 +386,7 @@ function dent_bot_persistence_update(
             throw $exception;
         }
         $oldGeneration = max(0, (int) (($store['_storage']['generation'] ?? 0)));
-        $before = dent_bot_persistence_encode($store);
+        $beforeHash = hash('sha256', dent_bot_persistence_encode($store));
         $result = $callback($store, [
             'exists' => (bool) $snapshot['exists'],
             'sha256' => (string) $snapshot['hash'],
@@ -392,7 +395,9 @@ function dent_bot_persistence_update(
         ]);
         $store = $normalize($store);
         $afterWithoutGeneration = dent_bot_persistence_encode($store);
-        if ($snapshot['exists'] && hash_equals(hash('sha256', $before), hash('sha256', $afterWithoutGeneration))) {
+        $unchanged = hash_equals($beforeHash, hash('sha256', $afterWithoutGeneration));
+        unset($afterWithoutGeneration);
+        if ($snapshot['exists'] && $unchanged) {
             return is_array($result) ? $result : [];
         }
 
@@ -403,17 +408,9 @@ function dent_bot_persistence_update(
             'committedAt' => gmdate('c'),
         ];
         $payload = dent_bot_persistence_encode($store);
-        if (($testOptions['invalidTempJson'] ?? false) === true) {
-            $payload .= '{invalid';
-        }
         $temp = $path . '.tmp.' . getmypid() . '.' . bin2hex(random_bytes(6));
         $written = dent_bot_persistence_write_full($temp, $payload, $testOptions, $written);
-        $tempRaw = @file_get_contents($temp);
-        if (!is_string($tempRaw)) {
-            throw new DentBotPersistenceException('BOT_STORE_TEMP_READ_FAILED', 'Unable to re-read bot store temp file');
-        }
-        dent_bot_persistence_decode($tempRaw, 'BOT_STORE_TEMP_INVALID');
-        $newHash = hash('sha256', $tempRaw);
+        $newHash = hash('sha256', $payload);
         if (($testOptions['interruptBeforeCommit'] ?? false) === true) {
             throw new DentBotPersistenceException('BOT_STORE_INTERRUPTED', 'Simulated interruption before commit');
         }
@@ -433,7 +430,7 @@ function dent_bot_persistence_update(
             'lockWaitMs' => $waitMs,
             'oldSize' => (int) $snapshot['size'],
             'oldHash' => (string) $snapshot['hash'],
-            'newSize' => strlen($tempRaw),
+            'newSize' => strlen($payload),
             'newHash' => $newHash,
             'bytesExpected' => strlen($payload),
             'bytesWritten' => $written,
@@ -451,10 +448,10 @@ function dent_bot_persistence_update(
             'oldSize' => isset($snapshot) ? (int) $snapshot['size'] : 0,
             'oldHash' => isset($snapshot) ? (string) $snapshot['hash'] : '',
             'newSize' => isset($payload) ? strlen($payload) : 0,
-            'newHash' => isset($tempRaw) && is_string($tempRaw) ? hash('sha256', $tempRaw) : '',
+            'newHash' => isset($payload) ? hash('sha256', $payload) : '',
             'bytesExpected' => isset($payload) ? strlen($payload) : 0,
             'bytesWritten' => $written,
-            'decodeStatus' => $exception->reasonCode === 'BOT_STORE_TEMP_INVALID' ? 'failed' : 'unknown',
+            'decodeStatus' => 'unknown',
             'commitResult' => 'failed-before-commit',
             'reasonCode' => $exception->reasonCode,
             'elapsedMs' => (microtime(true) - $started) * 1000,
