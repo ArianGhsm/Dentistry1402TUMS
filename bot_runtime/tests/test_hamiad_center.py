@@ -1,7 +1,7 @@
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
-from dent_bot.classops_shell import canonical_home_screen, hamiad_overview_screen, hamiad_courses_screen, hamiad_course_screen, hamiad_tasks_screen
+from dent_bot.classops_shell import canonical_home_screen, hamiad_overview_screen, hamiad_courses_screen, hamiad_course_screen, hamiad_tasks_screen, hamiad_assignment_screen
 from dent_bot.classops_ui import handle_classops_ui_callback
 
 def actions(screen):
@@ -24,6 +24,23 @@ class TestHamiad(unittest.TestCase):
         self.assertIn('v1:hamiad:courses:0',actions(hamiad_courses_screen(data,page=1)))
         self.assertIn('هیچ تکلیفی',str(hamiad_tasks_screen(data).text))
         self.assertIn('هنوز فایل',str(hamiad_course_screen({'course':data['courses'][0],'items':[]}).text))
+
+    def test_future_closed_task_is_not_past_due_in_bot(self):
+        task = {
+            'id': 45, 'courseId': 9082, 'title': 'تکلیف روش تحقیق',
+            'courseTitle': 'روش تحقیق ۲', 'opensText': '۱۴۰۵/۹/۱ ساعت ۰۰:۰۰',
+            'deadlineText': '۱۴۰۵/۹/۲۵ ساعت ۲۳:۵۹',
+            'submissionStatus': 'CLOSED', 'submissionWindowStatus': 'not_open',
+        }
+        screen = hamiad_tasks_screen({'assignments': [task]})
+        content = str(screen.text)
+        self.assertIn('شروع ارسال', content)
+        self.assertIn('آخرین مهلت ارسال', content)
+        self.assertIn('هنوز شروع نشده', content)
+        self.assertNotIn('CLOSED', content)
+        detail = str(hamiad_assignment_screen(task).text)
+        self.assertIn('آخرین مهلت ارسال', detail)
+        self.assertNotIn('CLOSED', detail)
 
     @patch('dent_bot.classops_ui._show')
     def test_callbacks_owner_and_nonowner(self, show):

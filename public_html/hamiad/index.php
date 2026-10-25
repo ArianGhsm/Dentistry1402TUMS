@@ -91,6 +91,6 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
     <p class="bot-link-security">این صفحه فقط برای مالک سامانه است. رمز عبور در پایگاه داده ذخیره نمی‌شود و داخل لینک قرار نمی‌گیرد.</p>
 </main>
 <div id="hamiad-config" data-csrf="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" hidden></div>
-<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261024-hamiad-assignments"></script><?php endif; ?>
+<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261025-hamiad-dates"></script><?php endif; ?>
 </body>
 </html>

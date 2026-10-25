@@ -36,7 +36,7 @@ def _structured_rows(item: dict[str, Any]) -> list[dict[str, str]]:
         if not isinstance(raw, dict):
             continue
         kind = str(raw.get("kind") or "").strip()
-        if kind not in {"theory", "practical"}:
+        if kind not in {"theory", "practical", "quiz"}:
             continue
         title = " ".join(str(raw.get("title") or "").split())[:240]
         if not title:
@@ -303,7 +303,7 @@ def academic_notification_text(item: dict[str, Any]):
     if rows:
         rich.append("<table bordered striped compact><tr><th>زمان</th><th>برنامه</th><th>استاد</th></tr>")
         for row in rows[:16]:
-            icon = "📚" if row.get("kind") == "theory" else "🦷"
+            icon = {"theory": "📚", "practical": "🦷", "quiz": "📝"}.get(row.get("kind"), "📅")
             title = ui_module.to_persian_digits(
                 " ".join(str(row.get("title") or "").split())[:160]
             ) or "برنامه"

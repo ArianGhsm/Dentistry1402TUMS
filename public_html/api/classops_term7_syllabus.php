@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.15';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.16';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -247,6 +247,24 @@ function classops_term7_syllabus_session_label(array $session): string
     return 'جلسات ' . implode(' و ', $numbers);
 }
 
+/** Assessment metadata comes from the same syllabus session as the class, not a second calendar. */
+function classops_term7_syllabus_quiz_title(string $courseKey, array $session, string $jalaliDate): string
+{
+    // Confirmed one-off quiz on the actual practical-session date; no number was announced.
+    if ($courseKey === 'endodontics-basics-2' && $jalaliDate === '1405/08/05') {
+        return 'کوییز اندودانتیکس';
+    }
+    $title = trim((string) ($session['title'] ?? ''));
+    if (preg_match('/(?:کوییز|کوئیز|آزمونک)\s*([0-9۰-۹٠-٩]+)/u', $title, $match)) {
+        return 'کوییز ' . strtr($match[1], ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹','٠'=>'۰','١'=>'۱','٢'=>'۲','٣'=>'۳','٤'=>'۴','٥'=>'۵','٦'=>'۶','٧'=>'۷','٨'=>'۸','٩'=>'۹']);
+    }
+    if (preg_match('/کوییز|کوئیز|آزمونک|\bquiz\b/iu', $title)
+        || (string) ($session['sessionMode'] ?? '') === 'in_person_quiz') {
+        return 'کوییز کلاسی';
+    }
+    return '';
+}
+
 function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate, string $rotation = ''): array
 {
     $out = [];
@@ -291,6 +309,7 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             $copy['references'] = is_array($session['references'] ?? null) ? $session['references'] : [];
             $copy['sessionMode'] = $mode;
             $copy['sessionModeLabel'] = $modeLabel;
+            $copy['quizTitle'] = classops_term7_syllabus_quiz_title((string) $mapping['courseKey'], $session, $jalaliDate);
             $copy['timeSource'] = 'academic-term7';
             if (isset($session['oneOffStart'])) {
                 $copy['start'] = (string) $session['oneOffStart'];

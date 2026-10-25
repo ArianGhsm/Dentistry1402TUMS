@@ -2195,7 +2195,7 @@ function classops_term7_syllabus_source_catalog(): array
         "references": [
           "کتاب گلدنبرگ و مباحث انتخابی از کامینگز ۲۰۲۵"
         ],
-        "sessionMode": "in_person",
+        "sessionMode": "virtual",
         "sourcePage": 1,
         "sessionDetails": "بیماری‌های التهابی، تومورهای خوش‌خیم و بدخیم زبان، اوروفارنکس و حلق"
       },

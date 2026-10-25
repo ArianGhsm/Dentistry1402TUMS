@@ -32,11 +32,7 @@ if (dent_request_method() === 'GET' && $action === 'assignment') {
     try {
         $courseId = (int) ($_GET['courseId'] ?? 0);
         $assignmentId = (int) ($_GET['activityId'] ?? 0);
-        $course = hamiad_term7_course_view($courseId);
-        if (!array_filter($course['items'], static fn($item): bool => $item['kind'] === 'assign' && $item['id'] === $assignmentId)) {
-            dent_error('تکلیف به درس جاری تعلق ندارد.', 404);
-        }
-        dent_json_response(['success' => true, 'assignment' => hamiad_assignment_detail($courseId, $assignmentId)]);
+        dent_json_response(['success' => true, 'assignment' => hamiad_assignment_detail_or_snapshot($courseId, $assignmentId)]);
     } catch (RuntimeException $error) {
         dent_error($error->getMessage(), 422);
     }
