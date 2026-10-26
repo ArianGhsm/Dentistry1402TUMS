@@ -447,7 +447,7 @@ function notifications_clean_meta(array $meta, array $record = []): array
     if (preg_match('/^14\\d{2}\\/(?:0[1-9]|1[0-2])\\/(?:0[1-9]|[12]\\d|3[01])$/D', $quizDate) === 1) {
         $clean['quizDate'] = $quizDate;
     }
-    foreach (['quizTitle' => 180, 'quizInstructor' => 180] as $key => $limit) {
+    foreach (['quizTitle' => 180, 'quizInstructor' => 180, 'quizSourceLabel' => 180] as $key => $limit) {
         $value = dent_clean_text((string) ($meta[$key] ?? ''), $limit);
         if ($value !== '') $clean[$key] = $value;
     }
@@ -506,6 +506,9 @@ function notifications_clean_meta(array $meta, array $record = []): array
             'end' => $end,
             'location' => dent_clean_text((string) ($row['location'] ?? ''), 180),
             'instructor' => dent_clean_text((string) ($row['instructor'] ?? ''), 180),
+            'quizSourceLabel' => $kind === 'quiz'
+                ? dent_clean_text((string) ($row['quizSourceLabel'] ?? ''), 180)
+                : '',
             'presentationTopic' => dent_clean_text((string) ($row['presentationTopic'] ?? ''), 260),
             'presentationPartners' => $presentationPartners,
         ];
