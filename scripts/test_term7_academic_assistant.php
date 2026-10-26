@@ -695,6 +695,43 @@ try {
     dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-22 17:00:00', $tz));
     $laterFood = array_values(array_filter(notifications_read_store()['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'food-reservation' && str_contains((string) ($record['sourceKey'] ?? ''), ':17:')));
     term7_assert(count($laterFood) === 1 && str_ends_with((string) $laterFood[0]['sourceKey'], ':' . $studentB), 'Integration: Telegram confirmation suppresses later Bale/Telegram reminders for A only');
+    // Independent quiz notifications share canonical course rows, are scoped to
+    // eligible students, and suppress duplicate 16:00/21:00 fallback slots.
+    $quizPreview = dent_term7_resolve_jalali('1405/08/05', 2, dent_term7_assignment_for_student($studentB));
+    $quizRows = array_values(array_filter(dent_term7_ordered_schedule_rows($quizPreview, $studentB),
+        static fn(array $row): bool => ($row['kind'] ?? '') === 'quiz'));
+    term7_assert(count($quizRows) === 1
+        && ($quizRows[0]['title'] ?? '') === 'کوییز ۴ — مبانی اندودانتیکس ۲'
+        && ($quizRows[0]['instructor'] ?? '') === 'دکتر اسدیان',
+        'Tomorrow plan carries the quiz as a separate structured student-scoped row');
+    $quizEveTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-10-26 16:00:00', $tz));
+    $quizSaved = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7-quiz'));
+    term7_assert(count($quizSaved) === 1
+        && str_contains((string) ($quizSaved[0]['title'] ?? ''), 'کوییز ۴')
+        && str_contains((string) ($quizSaved[0]['body'] ?? ''), 'دکتر اسدیان')
+        && ($quizSaved[0]['targetStudentNumber'] ?? '') === $studentB,
+        'Night-before independent quiz notification targets only the canonical eligible student');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-10-26 21:00:00', $tz));
+    $quizAfterFallback = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7-quiz'));
+    term7_assert(count($quizAfterFallback) === 1, '16:00 and 21:00 quiz reminders are idempotent');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-10-27 07:00:00', $tz));
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-10-27 08:00:00', $tz));
+    $quizMorning = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7-quiz'));
+    term7_assert(count($quizMorning) === 2
+        && count(array_filter($quizMorning, static fn($record): bool => ($record['meta']['quizPhase'] ?? '') === 'today')) === 1,
+        'Day-of quiz reminder is separate from evening reminder and deduplicated at 07:00/08:00');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-11-02 16:00:00', $tz));
+    $futureQuizzes = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7-quiz'
+            && ($record['meta']['quizDate'] ?? '') === '1405/08/12'));
+    term7_assert(count($futureQuizzes) === 1
+        && str_contains((string) ($futureQuizzes[0]['body'] ?? ''), 'دکتر حمیدزاده')
+        && str_contains((string) ($futureQuizzes[0]['title'] ?? ''), 'کوییز ۵'),
+        'Quiz 5 next Tuesday independently notifies only the proper student with Dr Hamidzadeh');
+
 } finally {
     term7_cleanup($testRoot);
 }
