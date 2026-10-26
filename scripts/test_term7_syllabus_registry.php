@@ -693,9 +693,40 @@ $endoQuiz = classops_term7_syllabus_enrich_events([
     syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
 ], '1405/08/05');
 syllabus_assert(count($endoQuiz) === 1
-    && ($endoQuiz[0]['quizTitle'] ?? '') === 'کوییز اندودانتیکس'
+    && ($endoQuiz[0]['quizTitle'] ?? '') === 'کوییز ۴'
+    && ($endoQuiz[0]['quizInstructor'] ?? '') === 'دکتر اسدیان'
+    && ($endoQuiz[0]['quizSourceSessionNumber'] ?? 0) === 11
     && ($endoQuiz[0]['start'] ?? '') !== '',
-    'Endodontics 5 Aban has separate quiz metadata while keeping class time');
+    'Endodontics 5 Aban moves quiz 4 from Sunday and preserves Dr Asadian and class time');
+foreach ([
+    ['1405/08/03', 11, '', '', false],
+    ['1405/08/05', 12, 'کوییز ۴', 'دکتر اسدیان', true],
+    ['1405/08/10', 13, '', '', false],
+    ['1405/08/12', 14, 'کوییز ۵', 'دکتر حمیدزاده', true],
+] as [$jalaliDate, $number, $quizTitle, $quizInstructor, $isQuiz]) {
+    $sessions = classops_term7_syllabus_enrich_events([
+        syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
+    ], $jalaliDate, 'A');
+    $event = $sessions[0] ?? [];
+    syllabus_assert(
+        count($sessions) === 1
+            && ($event['sessionNumber'] ?? null) === $number
+            && ($event['quizTitle'] ?? 'unexpected') === $quizTitle
+            && ($event['quizInstructor'] ?? 'unexpected') === $quizInstructor
+            && ($isQuiz || !str_contains((string) ($event['title'] ?? ''), 'کوییز')),
+        "Endodontics quiz timing {$jalaliDate} is canonical and not repeated"
+    );
+}
+$endoTuesday = dent_term7_resolve_jalali('1405/08/05', 2, ['group10' => 1, 'group8' => 15]);
+$endoRows = array_values(array_filter(dent_term7_ordered_schedule_rows($endoTuesday),
+    static fn(array $row): bool => ($row['kind'] ?? '') === 'quiz'));
+$endoOtherGroup = dent_term7_resolve_jalali('1405/08/05', 2, ['group10' => 6, 'group8' => 15]);
+syllabus_assert(count($endoRows) === 1 && ($endoRows[0]['instructor'] ?? '') === 'دکتر اسدیان'
+    && ($endoRows[0]['start'] ?? '') === '11:45'
+    && count(array_filter(dent_term7_ordered_schedule_rows($endoOtherGroup),
+        static fn(array $row): bool => ($row['kind'] ?? '') === 'quiz')) === 0,
+    'Independent quiz row inherits real group audience and named instructor without leaking to other rotation');
+
 $allEndoQuizzes = array_values(array_filter(($catalog['endodontics-basics-2']['sessions'] ?? []),
     static fn(array $row): bool => str_contains((string)($row['title'] ?? ''), 'کوییز')));
 syllabus_assert(count($allEndoQuizzes) >= 5
