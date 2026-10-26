@@ -172,8 +172,22 @@ syllabus_assert(
     'Orthodontics one-off modality is explicit and traceable in the canonical catalog'
 );
 syllabus_assert(
-    syllabus_virtual_session_numbers($catalog['orthodontics-theory-1']['sessions'] ?? []) === [1, 3, 4, 6, 9, 10, 13, 14, 16],
-    'Orthodontics exposes exactly the nine virtual sessions in the corrected PDF'
+    syllabus_virtual_session_numbers($catalog['orthodontics-theory-1']['sessions'] ?? []) === [1, 3, 4, 6, 8, 9, 10, 13, 14],
+    'Orthodontics honors both announced mode corrections while retaining nine virtual sessions'
+);
+$orthVirtual8 = classops_term7_syllabus_enrich_events([
+    syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱', 'آمفی‌تئاتر ۹۰', '12:40', '13:40'),
+], '1405/08/11');
+syllabus_assert(
+    count($orthVirtual8) === 1
+        && ($orthVirtual8[0]['sessionNumber'] ?? null) === 8
+        && ($orthVirtual8[0]['sessionMode'] ?? '') === 'virtual'
+        && ($orthVirtual8[0]['sessionModeLabel'] ?? '') === 'مجازی'
+        && ($orthVirtual8[0]['location'] ?? 'x') === ''
+        && ($orthVirtual8[0]['instructor'] ?? '') === 'دکتر قدیریان'
+        && ($orthVirtual8[0]['start'] ?? '') === '12:40'
+        && ($orthVirtual8[0]['end'] ?? '') === '13:40',
+    'Orthodontics session 8 changes to virtual without changing teacher or clock'
 );
 $orthVirtual10 = classops_term7_syllabus_enrich_events([
     syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱', 'آمفی‌تئاتر ۹۰', '12:40', '13:40'),
@@ -193,11 +207,11 @@ $orthVirtual16 = classops_term7_syllabus_enrich_events([
 syllabus_assert(
     count($orthVirtual16) === 1
         && ($orthVirtual16[0]['sessionNumber'] ?? null) === 16
-        && ($orthVirtual16[0]['sessionMode'] ?? '') === 'virtual'
-        && ($orthVirtual16[0]['location'] ?? 'x') === ''
+        && ($orthVirtual16[0]['sessionMode'] ?? '') === 'in_person'
+        && ($orthVirtual16[0]['location'] ?? 'x') === 'آمفی‌تئاتر ۹۰'
         && ($orthVirtual16[0]['start'] ?? '') === '12:40'
         && ($orthVirtual16[0]['end'] ?? '') === '13:40',
-    'Orthodontics session 16 follows the corrected PDF virtual modality and keeps the timetable clock'
+    'Orthodontics session 16 is now in person without changing instructor or clock'
 );
 
 $orth = classops_term7_syllabus_enrich_events([
