@@ -623,6 +623,7 @@ function dent_term7_ordered_schedule_rows(array $resolved, string $studentNumber
                 $assessment['kind'] = 'quiz';
                 $assessment['title'] = $quizTitle . ' — ' . (string) ($event['courseTitle'] ?? $event['title'] ?? '');
                 $assessment['instructor'] = trim((string) ($event['quizInstructor'] ?? $event['instructor'] ?? ''));
+                $assessment['quizSourceLabel'] = trim((string) ($event['quizSourceLabel'] ?? ''));
                 $assessment['_ordinal'] = $ordinal++;
                 unset($assessment['presentationTopic'], $assessment['presentationPartners']);
                 $rows[] = $assessment;
@@ -740,6 +741,9 @@ function dent_term7_summary_body(array $resolved, string $studentNumber = ''): s
         $lines[] = '📝 کوییزها';
         foreach ($quizRows as $quizRow) {
             $lines[] = '• ' . dent_to_fa_digits((string) ($quizRow['title'] ?? 'کوییز'));
+            if (trim((string) ($quizRow['quizSourceLabel'] ?? '')) !== '') {
+                $lines[] = '  📖 ' . (string) $quizRow['quizSourceLabel'];
+            }
             if (trim((string) ($quizRow['instructor'] ?? '')) !== '') {
                 $lines[] = '  👤 ' . (string) $quizRow['instructor'];
             }
@@ -966,11 +970,13 @@ function dent_term7_quiz_notification_candidate(array $row, array $resolved, str
     $start = trim((string) ($row['start'] ?? ''));
     $end = trim((string) ($row['end'] ?? ''));
     $location = trim((string) ($row['location'] ?? ''));
+    $sourceLabel = trim((string) ($row['quizSourceLabel'] ?? ''));
     $phaseLabel = $phase === 'today' ? 'امروز' : 'فردا';
     $body = [
         '📅 ' . (string) ($resolved['weekdayLabel'] ?? '') . ' ' . dent_to_fa_digits($date),
         '📝 ' . dent_to_fa_digits($title),
     ];
+    if ($sourceLabel !== '') $body[] = '📖 ' . $sourceLabel;
     if ($instructor !== '') $body[] = '👤 ' . $instructor;
     if ($start !== '') $body[] = '⏰ بازهٔ کلاس: ' . dent_to_fa_digits($start . ($end !== '' ? ' تا ' . $end : ''));
     if ($location !== '') $body[] = '📍 ' . $location;
@@ -989,6 +995,7 @@ function dent_term7_quiz_notification_candidate(array $row, array $resolved, str
             'quizDate' => $date,
             'quizTitle' => $title,
             'quizInstructor' => $instructor,
+            'quizSourceLabel' => $sourceLabel,
             'quizPhase' => $phase,
             'quizClassWindow' => ['start' => $start, 'end' => $end],
         ],

@@ -62,6 +62,7 @@ def _structured_rows(item: dict[str, Any]) -> list[dict[str, str]]:
             "time": time_text,
             "location": " ".join(str(raw.get("location") or "").split())[:180] or "—",
             "instructor": " ".join(str(raw.get("instructor") or "").split())[:180] or "—",
+            "quizSourceLabel": " ".join(str(raw.get("quizSourceLabel") or "").split())[:180] if kind == "quiz" else "",
             "resident": " ".join(str(raw.get("resident") or "").split())[:180],
             "presentationTopic": " ".join(str(raw.get("presentationTopic") or "").split())[:260],
             "presentationPartners": "، ".join(partner_names),
@@ -308,6 +309,7 @@ def academic_notification_text(item: dict[str, Any]):
                 " ".join(str(row.get("title") or "").split())[:160]
             ) or "برنامه"
             time_text = ui_module.to_persian_digits(str(row.get("time") or "—"))
+            quiz_source = " ".join(str(row.get("quizSourceLabel") or "").split())[:180] if row.get("kind") == "quiz" else ""
             location = " ".join(str(row.get("location") or "—").split())[:140] or "—"
             instructor = " ".join(str(row.get("instructor") or "—").split())[:140] or "—"
             resident = " ".join(str(row.get("resident") or "").split())[:140]
@@ -318,6 +320,8 @@ def academic_notification_text(item: dict[str, Any]):
                 meta_bits.append(f"🩺 رزیدنت: {resident}")
             if location != "—":
                 meta_bits.append(f"📍 {location}")
+            if quiz_source:
+                meta_bits.append(f"📖 {quiz_source}")
             presentation_topic = " ".join(str(row.get("presentationTopic") or "").split())[:260]
             presentation_partners = " ".join(str(row.get("presentationPartners") or "").split())[:180]
             fallback.extend((
@@ -337,6 +341,8 @@ def academic_notification_text(item: dict[str, Any]):
                     f"<br/>{html.escape(partner_text)}"
                 )
             location_html = "" if location == "—" else f"<br/>📍 {html.escape(location)}"
+            if quiz_source:
+                location_html += f"<br/>📖 {html.escape(quiz_source)}"
             staff_lines = []
             if instructor != "—":
                 staff_lines.append(html.escape(instructor))

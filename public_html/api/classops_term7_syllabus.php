@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
+// Quiz timetable is unchanged: retain .18 notification identities to avoid a duplicate push.
 const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.18';
 
 function classops_term7_syllabus_mode_label(string $mode): string
@@ -282,6 +283,39 @@ function classops_term7_syllabus_quiz_adjustment(string $courseKey, array $sessi
     return is_array($record) ? $record : null;
 }
 
+/**
+ * For each actual quiz, distinguish its PDF source from a later owner-confirmed
+ * date correction. Never present a moved quiz as if that corrected date was in
+ * the original syllabus.
+ */
+function classops_term7_syllabus_quiz_provenance(
+    string $courseKey,
+    array $session,
+    string $jalaliDate,
+    string $quizTitle
+): array {
+    if ($quizTitle === '') return [];
+    $adjustment = classops_term7_syllabus_quiz_adjustment($courseKey, $session, $jalaliDate);
+    $title = trim((string) ($session['title'] ?? ''));
+    $explicit = preg_match('/کوییز|کوئیز|آزمونک|\\bquiz\\b/iu', $title) === 1
+        || (string) ($session['sessionMode'] ?? '') === 'in_person_quiz';
+    if ($adjustment !== null && isset($adjustment['sourceSessionNumber'])) {
+        return [
+            'quizOrigin' => 'syllabus-date-correction',
+            'quizSourceLabel' => 'کوییز در طرح درس درج شده؛ تاریخ طبق اصلاحیهٔ اعلام‌شده تغییر کرده است.',
+        ];
+    }
+    if ($explicit) {
+        return [
+            'quizOrigin' => 'syllabus',
+            'quizSourceLabel' => 'در طرح درس این جلسه، کوییز درج شده است.',
+        ];
+    }
+    // A future manually announced assessment without an explicit source
+    // must not be mislabeled as documented by a syllabus.
+    return ['quizOrigin' => 'announced', 'quizSourceLabel' => 'طبق اطلاعیهٔ آموزشی'];
+}
+
 /** Assessment metadata comes from the same syllabus session as the class, not a second calendar. */
 function classops_term7_syllabus_quiz_title(string $courseKey, array $session, string $jalaliDate): string
 {
@@ -353,6 +387,11 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
                 ? trim((string) ($quizAdjustment['quizInstructor'] ?? $session['instructor'] ?? ''))
                 : '';
             $copy['quizSourceSessionNumber'] = (int) ($quizAdjustment['sourceSessionNumber'] ?? ($session['sessionNumber'] ?? 0));
+            $quizProvenance = classops_term7_syllabus_quiz_provenance(
+                (string) $mapping['courseKey'], $session, $jalaliDate, $copy['quizTitle']
+            );
+            $copy['quizOrigin'] = (string) ($quizProvenance['quizOrigin'] ?? '');
+            $copy['quizSourceLabel'] = (string) ($quizProvenance['quizSourceLabel'] ?? '');
             $copy['timeSource'] = 'academic-term7';
             if (isset($session['oneOffStart'])) {
                 $copy['start'] = (string) $session['oneOffStart'];
