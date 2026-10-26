@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/hamiad_courses.php';
+require_once __DIR__ . '/hamiad_calendar.php';
 
 /** One canonical term discriminator from the official live Moodle course names. */
 function hamiad_term7_courses(): array
@@ -128,7 +129,12 @@ function hamiad_date_iso(string $value): string
         if ($month<1 || $month>12 || $day<1 || $day>($month<=6?31:($month<=11?30:30))) return '';
         if (!class_exists('IntlCalendar')) return ''; // Never invent calendar conversion.
         $clock='00:00';
-        if (preg_match('/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)/', $raw, $m)) $clock=sprintf('%02d:%02d',(int)$m[1],(int)$m[2]);
+        if (preg_match('/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)/', $raw, $m)) {
+            $hour=(int)$m[1];
+            if ($hour===12 && preg_match('/صبح|بامداد/u', $raw)) $hour=0;
+            elseif ($hour<12 && preg_match('/بعد\s*از\s*ظهر|بعدازظهر|عصر|شب/u', $raw)) $hour+=12;
+            $clock=sprintf('%02d:%02d',$hour,(int)$m[2]);
+        }
         $cal=IntlCalendar::createInstance('Asia/Tehran','fa_IR@calendar=persian');
         if (!$cal || $cal->getType() !== 'persian') return '';
         $cal->clear(); $cal->set($year,$month-1,$day,(int)substr($clock,0,2),(int)substr($clock,3,2),0);
@@ -316,6 +322,43 @@ function hamiad_term7_dashboard(): array
             }
         }
         unset($course);
+        // The Moodle assignment-detail table often omits dates. Its official
+        // calendar contains opening/due events keyed by the real activity ID.
+        $calendarDates=[];
+        try { $calendarDates=hamiad_calendar_assignment_timings($allAssignments); }
+        catch (RuntimeException $error) { $detailFailed=true; }
+        foreach ($allAssignments as &$task) {
+            $id=(int)($task['id']??0);
+            $key=hamiad_assignment_identity_key($task);
+            $record=$calendarDates[$id]??null;
+            if (is_array($record)) {
+                $timing=hamiad_assignment_timing([
+                    'شروع ارسال'=>(string)($record['opensText']??''),
+                    'موعد تحویل'=>(string)($record['dueDateText']??''),
+                    'وضعیت تحویل'=>(string)($task['submissionStatus']??''),
+                ],time());
+                if ($timing['opensAt']!=='' && $timing['dueAt']!=='') {
+                    $task=array_merge($task,$timing);
+                    $task['dueAt']=$timing['deadlineAt'];
+                    $task['dueText']=$timing['deadlineText'];
+                    $task['duePrecision']='absolute';
+                    continue;
+                }
+            }
+            // A temporarily incomplete calendar response must not erase the
+            // previously confirmed start and deadline or trigger fresh alerts.
+            $prior=$previous[$key]??null;
+            if (is_array($prior) && !empty($prior['deadlineAt'])) {
+                foreach (['opensAt','opensText','dueDateAt','dueDateText','cutoffAt','cutoffText',
+                    'dueAt','dueText','duePrecision','deadlineAt','deadlineText','dueStatus',
+                    'submissionWindowStatus'] as $field) {
+                    if (array_key_exists($field,$prior)) $task[$field]=$prior[$field];
+                }
+                $task['detailStale']=true;
+                $detailFailed=true;
+            }
+        }
+        unset($task);
         usort($allAssignments,static function(array $a,array $b):int{
             $ta=strtotime((string)($a['deadlineAt']??$a['dueAt']??'')) ?: PHP_INT_MAX;
             $tb=strtotime((string)($b['deadlineAt']??$b['dueAt']??'')) ?: PHP_INT_MAX;
