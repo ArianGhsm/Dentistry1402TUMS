@@ -733,6 +733,73 @@ syllabus_assert(count($allEndoQuizzes) >= 5
     && classops_term7_syllabus_quiz_title('endodontics-basics-2', $allEndoQuizzes[0], '1405/07/12') === 'کوییز ۱',
     'Quiz labels are automatically extracted from all existing syllabus rows');
 
+// A source-wide scan must discover quizzes from explicit syllabus titles
+// AND in_person_quiz rows. Unrelated exams are never silently promoted.
+$courseQuizCounts = [];
+foreach (classops_term7_syllabus_catalog() as $courseKey => $course) {
+    $found = 0;
+    foreach ($course['sessions'] ?? [] as $session) {
+        $date = trim((string) ($session['dates'][0] ?? ''));
+        if ($date === '') continue;
+        if (classops_term7_syllabus_quiz_title((string) $courseKey, $session, $date) !== '') $found++;
+    }
+    $courseQuizCounts[$courseKey] = $found;
+}
+syllabus_assert(count($courseQuizCounts) === 11
+    && ($courseQuizCounts['diagnostic-dentistry-3'] ?? 0) === 3
+    && ($courseQuizCounts['endodontics-basics-2'] ?? 0) === 5
+    && array_sum($courseQuizCounts) === 8,
+    'All eleven transcribed official syllabi: only eight source-backed quiz occurrences');
+foreach ([
+    ['1405/07/12', 5, 'دکتر درخشان'],
+    ['1405/08/11', 14, 'دکتر مهدوی'],
+    ['1405/09/15', 23, 'دکتر شکیب'],
+] as [$date, $number, $instructor]) {
+    $events = classops_term7_syllabus_enrich_events([
+        syllabus_event($date === '1405/08/11' ? 'diagnostic-dentistry-3-mon' : 'diagnostic-dentistry-3-sun', 'دندانپزشکی تشخیصی ۳', 'آمفی‌تئاتر ۹۰'),
+    ], $date);
+    syllabus_assert(count($events) === 1
+        && ($events[0]['sessionNumber'] ?? null) === $number
+        && ($events[0]['quizTitle'] ?? '') === 'کوییز کلاسی'
+        && ($events[0]['quizInstructor'] ?? '') === $instructor
+        && ($events[0]['quizOrigin'] ?? '') === 'syllabus'
+        && str_contains((string) ($events[0]['quizSourceLabel'] ?? ''), 'در طرح درس'),
+        "Diagnostic quiz {$number}: source attested; correct instructor/date");
+}
+foreach ([
+    ['1405/08/05', 'دکتر اسدیان'],
+    ['1405/08/12', 'دکتر حمیدزاده'],
+] as [$date, $instructor]) {
+    $events = classops_term7_syllabus_enrich_events([
+        syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
+    ], $date, 'A');
+    syllabus_assert(count($events) === 1
+        && ($events[0]['quizInstructor'] ?? '') === $instructor
+        && ($events[0]['quizOrigin'] ?? '') === 'syllabus-date-correction'
+        && str_contains((string) ($events[0]['quizSourceLabel'] ?? ''), 'تاریخ طبق اصلاحیه'),
+        "Rescheduled Endodontics quiz {$date} retains corrected-date provenance");
+}
+$pathologyExamSession = array_values(array_filter(
+    $catalog['pathology-practical-1']['sessions'] ?? [],
+    static fn(array $s): bool => ($s['title'] ?? '') === 'امتحان'
+))[0] ?? [];
+$perioBoardSession = array_values(array_filter(
+    $catalog['periodontology-theory-1']['sessions'] ?? [],
+    static fn(array $s): bool => ($s['title'] ?? '') === 'آزمون بورد'
+))[0] ?? [];
+syllabus_assert(classops_term7_syllabus_quiz_title('pathology-practical-1', $pathologyExamSession, '1405/08/12') === ''
+    && classops_term7_syllabus_quiz_title('periodontology-theory-1', $perioBoardSession, '1405/09/28') === '',
+    'Pathology final and Periodontology board exams are not labeled as quizzes');
+$diagnosticDay = dent_term7_resolve_jalali('1405/08/11', 1, ['group10' => 1, 'group8' => 15]);
+$diagnosticQuizRows = array_values(array_filter(dent_term7_ordered_schedule_rows($diagnosticDay),
+    static fn(array $row): bool => ($row['kind'] ?? '') === 'quiz'));
+syllabus_assert(count($diagnosticQuizRows) === 1
+    && ($diagnosticQuizRows[0]['title'] ?? '') === 'کوییز کلاسی — دندانپزشکی تشخیصی ۳'
+    && ($diagnosticQuizRows[0]['start'] ?? '') === '11:30'
+    && ($diagnosticQuizRows[0]['instructor'] ?? '') === 'دکتر مهدوی'
+    && str_contains((string) ($diagnosticQuizRows[0]['quizSourceLabel'] ?? ''), 'در طرح درس'),
+    'Diagnostic quiz preserved as a separately sortable student calendar event with sourced label');
+
 $perio = classops_term7_syllabus_enrich_events([
     syllabus_event('periodontology-theory-1', 'پریو نظری ۱'),
 ], '1405/08/02');
