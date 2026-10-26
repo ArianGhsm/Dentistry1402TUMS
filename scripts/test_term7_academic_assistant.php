@@ -732,6 +732,50 @@ try {
         && str_contains((string) ($futureQuizzes[0]['title'] ?? ''), 'کوییز ۵'),
         'Quiz 5 next Tuesday independently notifies only the proper student with Dr Hamidzadeh');
 
+    // A future diagnostic quiz labeled in the syllabus must automatically
+    // use exactly the same independent notification pipeline as Endodontics.
+    $diagnosticPreview = dent_term7_resolve_jalali('1405/08/11', 1, dent_term7_assignment_for_student($studentB));
+    $diagnosticSummary = dent_term7_summary_body($diagnosticPreview, $studentB);
+    term7_assert(str_contains($diagnosticSummary, '📝 کوییزها')
+        && str_contains($diagnosticSummary, '📖 در طرح درس این جلسه، کوییز درج شده است.'),
+        'Day summary attributes the Diagnostic quiz directly to its official syllabus');
+    $diagnosticEve = dent_term7_scheduler_tick(new DateTimeImmutable('2026-11-01 16:00:00', $tz));
+    $diagnosticNotices = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record)
+            && ($record['source'] ?? '') === 'academic-term7-quiz'
+            && ($record['meta']['quizDate'] ?? '') === '1405/08/11'));
+    term7_assert($diagnosticEve['success'] && count($diagnosticNotices) === 2
+        && count(array_filter($diagnosticNotices,
+            static fn($n): bool => str_contains((string) ($n['body'] ?? ''), 'در طرح درس این جلسه، کوییز درج شده است.'))) === 2,
+        'Future Diagnostic syllabus quiz sends one independent sourced notice per linked Term 7 student');
+    term7_assert(($diagnosticNotices[0]['meta']['quizSourceLabel'] ?? '') === 'در طرح درس این جلسه، کوییز درج شده است.'
+        && ($diagnosticNotices[0]['meta']['quizInstructor'] ?? '') === 'دکتر مهدوی'
+        && ($diagnosticNotices[0]['meta']['quizClassWindow']['start'] ?? '') === '11:30',
+        'Independent quiz source label and original instructor survive canonical notification store normalization');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-11-01 21:00:00', $tz));
+    $diagnosticEveningRetry = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record)
+            && ($record['source'] ?? '') === 'academic-term7-quiz'
+            && ($record['meta']['quizDate'] ?? '') === '1405/08/11'));
+    term7_assert(count($diagnosticEveningRetry) === 2,
+        'Two evening passes never duplicate syllabus quiz reminder');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-11-02 07:00:00', $tz));
+    $diagnosticMorning = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record)
+            && ($record['source'] ?? '') === 'academic-term7-quiz'
+            && ($record['meta']['quizDate'] ?? '') === '1405/08/11'));
+    term7_assert(count($diagnosticMorning) === 4,
+        'Morning-of independently reminds each eligible student for Diagnostic quiz');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-12-05 16:00:00', $tz));
+    $secondDiagnostic = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record)
+            && ($record['source'] ?? '') === 'academic-term7-quiz'
+            && ($record['meta']['quizDate'] ?? '') === '1405/09/15'));
+    term7_assert(count($secondDiagnostic) === 2
+        && count(array_filter($secondDiagnostic,
+            static fn($n): bool => str_contains((string) ($n['body'] ?? ''), 'دکتر شکیب'))) === 2,
+        'December sixth Diagnostic syllabus quiz uses the same generic notification machinery');
+
 } finally {
     term7_cleanup($testRoot);
 }
