@@ -143,6 +143,7 @@ function classops_bot_ui_term7_record(
         'assessmentPart' => (string) ($event['assessmentPart'] ?? ''),
         'quizTitle' => (string) ($event['quizTitle'] ?? ''),
         'quizInstructor' => (string) ($event['quizInstructor'] ?? ''),
+        'quizSourceLabel' => (string) ($event['quizSourceLabel'] ?? ''),
         'applicability' => [
             'selector' => $selector,
             'group' => is_int($group) ? $group : null,
@@ -161,6 +162,8 @@ function classops_bot_ui_term7_add_assessment(array &$records, array $record): v
     $assessment['importance'] = 'high';
     $assessment['title'] = $quiz . ' — ' . (string) ($record['courseTitle'] ?? '');
     $assessment['instructor'] = trim((string) ($record['quizInstructor'] ?? $record['instructor'] ?? ''));
+    $sourceLabel = trim((string) ($record['quizSourceLabel'] ?? ''));
+    if ($sourceLabel !== '') $assessment['description'] = '📖 ' . $sourceLabel;
     $assessment['ref'] = 't7q_' . substr(hash('sha256', (string) ($record['ref'] ?? '') . '|quiz'), 0, 20);
     $assessment['quizTitle'] = '';
     $records[] = $assessment;
