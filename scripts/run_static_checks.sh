@@ -61,6 +61,7 @@ section "Auth store resilience"
 "$PHP_BIN" scripts/check_auth_store_resilience.php || fail "check_auth_store_resilience.php"
 "$PHP_BIN" scripts/test_json_persistence.php || fail "test_json_persistence.php"
 "$PHP_BIN" scripts/test_atomic_auxiliary_stores.php || fail "test_atomic_auxiliary_stores.php"
+"$PHP_BIN" scripts/test_bot_notification_retention.php || fail "test_bot_notification_retention.php"
 "$PYTHON_BIN" scripts/test_auth_sessions_contracts.py || fail "test_auth_sessions_contracts.py"
 "$NODE_BIN" scripts/test_auth_frontend_session_contracts.cjs || fail "test_auth_frontend_session_contracts.cjs"
 
