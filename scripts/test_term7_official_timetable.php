@@ -109,5 +109,28 @@ $assert(
     'Endodontics source metadata enriches Monday without restoring the old Thursday clock'
 );
 
+// Announced session-mode corrections must propagate to the canonical schedule
+// as well as bot, booklet and reminder projections from the same syllabus.
+foreach ([
+    ['1405/08/11', 8, 'دکتر قدیریان', 'virtual', '', 'مجازی'],
+    ['1405/10/06', 16, 'دکتر تنباکوچی', 'in_person', 'آمفی‌تئاتر ۹۰', 'حضوری'],
+] as [$date, $sessionNumber, $instructor, $mode, $location, $label]) {
+    $resolved = dent_term7_resolve_jalali($date, 1, []);
+    $enriched = dent_term7_enriched_event_groups($resolved);
+    $sessions = array_values(array_filter(
+        $enriched['theory'] ?? [],
+        static fn(array $event): bool => ($event['slug'] ?? '') === 'orthodontics-theory-1'
+            && (int) ($event['sessionNumber'] ?? 0) === $sessionNumber
+    ));
+    $assert(count($sessions) === 1, "Orthodontics session {$sessionNumber} is uniquely scheduled");
+    if (count($sessions) !== 1) continue;
+    $event = $sessions[0];
+    $assert(($event['sessionMode'] ?? '') === $mode, "Orthodontics session {$sessionNumber} mode corrected");
+    $assert(($event['sessionModeLabel'] ?? '') === $label, "Orthodontics session {$sessionNumber} Persian mode label");
+    $assert(($event['instructor'] ?? '') === $instructor, "Orthodontics session {$sessionNumber} instructor preserved");
+    $assert(($event['location'] ?? '') === $location, "Orthodontics session {$sessionNumber} location agrees with mode");
+    $assert(($event['start'] ?? '') === '12:40' && ($event['end'] ?? '') === '13:40', "Orthodontics session {$sessionNumber} clock unchanged");
+}
+
 echo "Official Term 7 timetable tests: {$checks}; failures: {$failures}\n";
 exit($failures === 0 ? 0 : 1);
