@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.17';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.18';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -259,12 +259,35 @@ function classops_term7_syllabus_session_label(array $session): string
     return 'جلسات ' . implode(' و ', $numbers);
 }
 
+/**
+ * Traceable owner-announced rescheduling of existing source-syllabus quizzes.
+ * Keys include the canonical course, Jalali class date and source session number.
+ * No standalone competing quiz calendar is introduced.
+ */
+function classops_term7_syllabus_quiz_adjustments(): array
+{
+    return [
+        'endodontics-basics-2|1405/08/03|11' => ['quizTitle' => '', 'removeFromSessionTitle' => true],
+        'endodontics-basics-2|1405/08/05|12' => ['quizTitle' => 'کوییز ۴', 'quizInstructor' => 'دکتر اسدیان', 'sourceSessionNumber' => 11],
+        'endodontics-basics-2|1405/08/10|13' => ['quizTitle' => '', 'removeFromSessionTitle' => true],
+        'endodontics-basics-2|1405/08/12|14' => ['quizTitle' => 'کوییز ۵', 'quizInstructor' => 'دکتر حمیدزاده', 'sourceSessionNumber' => 13],
+    ];
+}
+
+function classops_term7_syllabus_quiz_adjustment(string $courseKey, array $session, string $jalaliDate): ?array
+{
+    $number = (int) ($session['sessionNumber'] ?? ($session['sessionNumbers'][0] ?? 0));
+    $key = $courseKey . '|' . $jalaliDate . '|' . $number;
+    $record = classops_term7_syllabus_quiz_adjustments()[$key] ?? null;
+    return is_array($record) ? $record : null;
+}
+
 /** Assessment metadata comes from the same syllabus session as the class, not a second calendar. */
 function classops_term7_syllabus_quiz_title(string $courseKey, array $session, string $jalaliDate): string
 {
-    // Confirmed one-off quiz on the actual practical-session date; no number was announced.
-    if ($courseKey === 'endodontics-basics-2' && $jalaliDate === '1405/08/05') {
-        return 'کوییز اندودانتیکس';
+    $adjustment = classops_term7_syllabus_quiz_adjustment($courseKey, $session, $jalaliDate);
+    if ($adjustment !== null && array_key_exists('quizTitle', $adjustment)) {
+        return (string) $adjustment['quizTitle'];
     }
     $title = trim((string) ($session['title'] ?? ''));
     if (preg_match('/(?:کوییز|کوئیز|آزمونک)\s*([0-9۰-۹٠-٩]+)/u', $title, $match)) {
@@ -307,6 +330,10 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             if ($modeLabel === '') $modeLabel = classops_term7_syllabus_mode_label($mode);
             $sessionLabel = classops_term7_syllabus_session_label($session);
             $sessionTitle = trim((string) ($session['title'] ?? ''));
+            $quizAdjustment = classops_term7_syllabus_quiz_adjustment((string) $mapping['courseKey'], $session, $jalaliDate);
+            if (!empty($quizAdjustment['removeFromSessionTitle'])) {
+                $sessionTitle = preg_replace('/^کوییز\s*[0-9۰-۹]+\s*\+\s*/u', '', $sessionTitle) ?? $sessionTitle;
+            }
             $courseTitle = trim((string) ($course['courseTitle'] ?? ($event['title'] ?? '')));
             $copy['courseTitle'] = $courseTitle;
             $copy['sessionKey'] = $sessionKey;
@@ -322,6 +349,10 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             $copy['sessionMode'] = $mode;
             $copy['sessionModeLabel'] = $modeLabel;
             $copy['quizTitle'] = classops_term7_syllabus_quiz_title((string) $mapping['courseKey'], $session, $jalaliDate);
+            $copy['quizInstructor'] = $copy['quizTitle'] !== ''
+                ? trim((string) ($quizAdjustment['quizInstructor'] ?? $session['instructor'] ?? ''))
+                : '';
+            $copy['quizSourceSessionNumber'] = (int) ($quizAdjustment['sourceSessionNumber'] ?? ($session['sessionNumber'] ?? 0));
             $copy['timeSource'] = 'academic-term7';
             if (isset($session['oneOffStart'])) {
                 $copy['start'] = (string) $session['oneOffStart'];

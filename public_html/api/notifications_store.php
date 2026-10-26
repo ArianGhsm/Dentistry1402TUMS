@@ -441,6 +441,28 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['disablePush'] = $disablePush;
     }
 
+    // Quiz reminders are trusted calendar projections; retain explicit fields
+    // for downstream rendering and delivery audits without parsing body text.
+    $quizDate = trim((string) ($meta['quizDate'] ?? ''));
+    if (preg_match('/^14\\d{2}\\/(?:0[1-9]|1[0-2])\\/(?:0[1-9]|[12]\\d|3[01])$/D', $quizDate) === 1) {
+        $clean['quizDate'] = $quizDate;
+    }
+    foreach (['quizTitle' => 180, 'quizInstructor' => 180] as $key => $limit) {
+        $value = dent_clean_text((string) ($meta[$key] ?? ''), $limit);
+        if ($value !== '') $clean[$key] = $value;
+    }
+    if (in_array((string) ($meta['quizPhase'] ?? ''), ['today', 'tomorrow'], true)) {
+        $clean['quizPhase'] = (string) $meta['quizPhase'];
+    }
+    $quizWindow = is_array($meta['quizClassWindow'] ?? null) ? $meta['quizClassWindow'] : [];
+    $start = trim((string) ($quizWindow['start'] ?? ''));
+    $end = trim((string) ($quizWindow['end'] ?? ''));
+    if (($start === '' || preg_match('/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $start) === 1)
+        && ($end === '' || preg_match('/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $end) === 1)
+        && ($start !== '' || $end !== '')) {
+        $clean['quizClassWindow'] = ['start' => $start, 'end' => $end];
+    }
+
     $scheduleVersion = dent_clean_text((string) ($meta['scheduleVersion'] ?? ''), 80);
     if ($scheduleVersion !== '') {
         $clean['scheduleVersion'] = $scheduleVersion;
@@ -452,7 +474,7 @@ function notifications_clean_meta(array $meta, array $record = []): array
             continue;
         }
         $kind = trim((string) ($row['kind'] ?? ''));
-        if (!in_array($kind, ['theory', 'practical'], true)) {
+        if (!in_array($kind, ['theory', 'practical', 'quiz'], true)) {
             continue;
         }
         $period = trim((string) ($row['period'] ?? ''));

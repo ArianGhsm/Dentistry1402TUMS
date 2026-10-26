@@ -622,6 +622,7 @@ function dent_term7_ordered_schedule_rows(array $resolved, string $studentNumber
                 $assessment = $row;
                 $assessment['kind'] = 'quiz';
                 $assessment['title'] = $quizTitle . ' — ' . (string) ($event['courseTitle'] ?? $event['title'] ?? '');
+                $assessment['instructor'] = trim((string) ($event['quizInstructor'] ?? $event['instructor'] ?? ''));
                 $assessment['_ordinal'] = $ordinal++;
                 unset($assessment['presentationTopic'], $assessment['presentationPartners']);
                 $rows[] = $assessment;
@@ -739,8 +740,11 @@ function dent_term7_summary_body(array $resolved, string $studentNumber = ''): s
         $lines[] = '📝 کوییزها';
         foreach ($quizRows as $quizRow) {
             $lines[] = '• ' . dent_to_fa_digits((string) ($quizRow['title'] ?? 'کوییز'));
+            if (trim((string) ($quizRow['instructor'] ?? '')) !== '') {
+                $lines[] = '  👤 ' . (string) $quizRow['instructor'];
+            }
             if (trim((string) ($quizRow['start'] ?? '')) !== '') {
-                $lines[] = '  ⏰ ' . dent_to_fa_digits((string) $quizRow['start']);
+                $lines[] = '  ⏰ در بازه کلاس ' . dent_to_fa_digits((string) $quizRow['start'] . ' تا ' . (string) ($quizRow['end'] ?? ''));
             }
         }
     }
@@ -949,6 +953,48 @@ function dent_term7_perform_notification_action(array $user, string $platform, a
     ];
 }
 
+/**
+ * Independent quiz reminder built strictly from the same person-scoped schedule
+ * rows used by daily/weekly views. A quiz inherits only its class window; its
+ * exact minute within that class is not assumed.
+ */
+function dent_term7_quiz_notification_candidate(array $row, array $resolved, string $studentNumber, string $phase): array
+{
+    $date = (string) ($resolved['date'] ?? '');
+    $title = trim((string) ($row['title'] ?? 'کوییز'));
+    $instructor = trim((string) ($row['instructor'] ?? ''));
+    $start = trim((string) ($row['start'] ?? ''));
+    $end = trim((string) ($row['end'] ?? ''));
+    $location = trim((string) ($row['location'] ?? ''));
+    $phaseLabel = $phase === 'today' ? 'امروز' : 'فردا';
+    $body = [
+        '📅 ' . (string) ($resolved['weekdayLabel'] ?? '') . ' ' . dent_to_fa_digits($date),
+        '📝 ' . dent_to_fa_digits($title),
+    ];
+    if ($instructor !== '') $body[] = '👤 ' . $instructor;
+    if ($start !== '') $body[] = '⏰ بازهٔ کلاس: ' . dent_to_fa_digits($start . ($end !== '' ? ' تا ' . $end : ''));
+    if ($location !== '') $body[] = '📍 ' . $location;
+    $body[] = '';
+    $body[] = 'این کوییز به‌صورت مستقل از اعلان برنامهٔ روزانه یادآوری شده است.';
+    return [
+        'source' => 'academic-term7-quiz',
+        'sourceKey' => 'quiz:' . CLASSOPS_TERM7_SYLLABUS_VERSION . ':' . $date . ':'
+            . substr(hash('sha256', $title . '|' . $instructor . '|' . $start), 0, 16)
+            . ':' . $phase . ':' . $studentNumber,
+        'title' => '📝 یادآوری کوییز ' . $phaseLabel . ' | ' . dent_to_fa_digits($title),
+        'body' => implode("\n", $body),
+        'tone' => 'warn',
+        'meta' => [
+            'important' => true,
+            'quizDate' => $date,
+            'quizTitle' => $title,
+            'quizInstructor' => $instructor,
+            'quizPhase' => $phase,
+            'quizClassWindow' => ['start' => $start, 'end' => $end],
+        ],
+    ];
+}
+
 function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
 {
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
@@ -957,11 +1003,18 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
     $academicHour = (int) $local->format('G');
     $academicDue = in_array($academicHour, [16, 21], true)
         && dent_term7_jalali_in_active_window(dent_term7_jalali_key($tomorrow));
+    // Evening-before (16:00, with 21:00 as fallback) and morning-of (07:00,
+    // with 08:00 as fallback) use idempotent source keys per quiz/student/phase.
+    $quizPhase = in_array($academicHour, [16, 21], true) ? 'tomorrow'
+        : (in_array($academicHour, [7, 8], true) ? 'today' : '');
+    $quizDate = $quizPhase === 'today' ? $local : $tomorrow;
+    $quizDue = $quizPhase !== ''
+        && dent_term7_jalali_in_active_window(dent_term7_jalali_key($quizDate));
     $foodSlot = dent_term7_food_slot($local);
     if ($foodSlot !== null && !dent_term7_jalali_in_active_window(dent_term7_jalali_key($local))) {
         $foodSlot = null;
     }
-    if (!$academicDue && $foodSlot === null) {
+    if (!$academicDue && !$quizDue && $foodSlot === null) {
         return [
             'success' => true,
             'contractVersion' => DENT_TERM7_CONTRACT,
@@ -1007,6 +1060,31 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
             }
         }
         dent_term7_scheduler_finish_slot($academicSlotKey, $slotErrors === []);
+        $errors = array_merge($errors, $slotErrors);
+    }
+
+    // Independently queue assessment notifications to the actual eligible
+    // student's account, never a guessed whole-class audience.
+    $quizSlotKey = 'quiz:' . $local->format('Y-m-d') . ':' . sprintf('%02d', $academicHour);
+    if ($quizDue && dent_term7_scheduler_claim_slot($quizSlotKey, $local->getTimestamp())) {
+        $slotErrors = [];
+        $state = dent_term7_state_read();
+        foreach ($users as $studentNumber => $user) {
+            try {
+                $assignment = dent_term7_assignment_for_student((string) $studentNumber, $state);
+                $resolved = dent_term7_resolve_date($quizDate, $assignment);
+                $rows = dent_term7_ordered_schedule_rows($resolved, (string) $studentNumber);
+                foreach ($rows as $row) {
+                    if (($row['kind'] ?? '') !== 'quiz') continue;
+                    $candidate = dent_term7_quiz_notification_candidate($row, $resolved, (string) $studentNumber, $quizPhase);
+                    $result = notifications_ensure_user_candidate($user, $candidate);
+                    !empty($result['created']) ? $created++ : $existing++;
+                }
+            } catch (Throwable $error) {
+                $slotErrors[] = 'quiz:' . substr(hash('sha256', (string) $studentNumber), 0, 10);
+            }
+        }
+        dent_term7_scheduler_finish_slot($quizSlotKey, $slotErrors === []);
         $errors = array_merge($errors, $slotErrors);
     }
 
