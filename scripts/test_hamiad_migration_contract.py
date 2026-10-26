@@ -40,3 +40,14 @@ assert 'نوید' not in home_js
 assert '20261024-hamiad-assignments' in pwa
 assert 'hamiadAssignmentAlerts' in (ROOT / 'public_html/api/notifications_store.php').read_text()
 assert '⏳' in (ROOT / 'public_html/assets/site/scripts/hamiad-bridge.js').read_text()
+
+# A systemd oneshot runs PHP CLI under ProtectSystem=strict. Unlike PHP-FPM,
+# it does not inherit FPM session settings; it must use the shared writable
+# owner session directory and explicitly grant write access to that path.
+unit = (ROOT / 'ops/site-vps/dentistry1402-hamiad-reminders.service').read_text()
+assert 'ProtectSystem=strict' in unit
+assert 'User=dentweb' in unit
+assert 'Environment=DENT_SERVER_ONLY_ROOT=/srv/dentistry1402/shared/server-only' in unit
+assert 'Environment=DENT_SESSION_SAVE_PATH=/srv/dentistry1402/shared/server-only/sessions' in unit
+assert 'ReadWritePaths=/srv/dentistry1402/shared/storage /srv/dentistry1402/shared/server-only/sessions' in unit
+assert '/srv/dentistry1402/current/public_html/api/hamiad_reminders_cli.php' in unit

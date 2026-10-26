@@ -7,11 +7,13 @@ Type=oneshot
 User=dentweb
 Group=dentweb
 Environment=DENT_STORAGE_ROOT=/srv/dentistry1402/shared/storage
+Environment=DENT_SERVER_ONLY_ROOT=/srv/dentistry1402/shared/server-only
+Environment=DENT_SESSION_SAVE_PATH=/srv/dentistry1402/shared/server-only/sessions
 WorkingDirectory=/srv/dentistry1402/current/public_html
 ExecStart=/usr/bin/php /srv/dentistry1402/current/public_html/api/hamiad_reminders_cli.php
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/srv/dentistry1402/shared/storage
+ReadWritePaths=/srv/dentistry1402/shared/storage /srv/dentistry1402/shared/server-only/sessions
 TimeoutStartSec=180
