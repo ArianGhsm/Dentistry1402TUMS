@@ -111,7 +111,11 @@ function Get-Sha256([string]$Path) {
 function Invoke-RemoteBash([string]$ScriptText) {
     $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($ScriptText))
     $remoteCommand = "printf '%s' '$encoded' | base64 -d | sudo bash"
-    $output = @(& ssh @script:sshOptions $script:target $remoteCommand 2>&1)
+    $output = if ($script:onServer) {
+        @(& bash -c $remoteCommand 2>&1)
+    } else {
+        @(& ssh @script:sshOptions $script:target $remoteCommand 2>&1)
+    }
     $code = $LASTEXITCODE
     if ($code -ne 0) {
         $tail = (@($output) | Select-Object -Last 20) -join "`n"
@@ -150,6 +154,16 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($dirty)) { throw 'Release workspace is not clean.' }
     Assert-CodeOnlyPublicHtml
 
+    # Owner rule 2026-10-26: releases run on the Iran VPS itself (no laptop in the
+    # path). -ServerConfig local runs every step locally with sudo instead of SSH.
+    $script:onServer = $ServerConfig -eq 'local'
+    if ($script:onServer) {
+        $serverConfigPath = 'local'
+        $targetHost = (& hostname).Trim()
+        $script:target = 'local'
+        $script:sshOptions = @()
+        $scpOptions = @()
+    } else {
     $serverConfigPath = Resolve-SharedFile -Path $ServerConfig
     $serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') {
         Split-Path (Split-Path $serverConfigPath -Parent) -Parent
@@ -184,6 +198,7 @@ try {
         '-o', 'ConnectTimeout=10', '-o', 'ConnectionAttempts=1',
         '-o', "UserKnownHostsFile=$knownHosts"
     )
+    }
 
     $preflight = @'
 set -Eeuo pipefail
@@ -283,7 +298,8 @@ cd /opt/integrated-dent/bale/current
     Publish-DentDeployLifecycle -Service website -Status started -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary 'Exact-SHA VPS website deployment started.' -ServerConfig $serverConfigPath
     $lifecycleStarted = $true
 
-    $temporaryRoot = Join-Path $env:TEMP ("dent-site-vps-" + [Guid]::NewGuid().ToString('N'))
+    $temporaryBase = if ($env:TEMP) { $env:TEMP } else { [IO.Path]::GetTempPath() }
+    $temporaryRoot = Join-Path $temporaryBase ("dent-site-vps-" + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
     $bundle = Join-Path $temporaryRoot 'site-code.tar.gz'
     & tar -C $projectRoot -czf $bundle public_html
@@ -301,9 +317,17 @@ cd /opt/integrated-dent/bale/current
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $opsBundle -PathType Leaf)) { throw 'Bale database backup service bundle creation failed.' }
     $opsBundleHash = Get-Sha256 -Path $opsBundle
     $remotePrefix = "/tmp/dent-site-$runId"
-    & scp @scpOptions $bundle "${script:target}:${remotePrefix}.tar.gz"
+    if ($script:onServer) {
+        & sudo install -m 0600 -o root -g root $bundle "${remotePrefix}.tar.gz"
+    } else {
+        & scp @scpOptions $bundle "${script:target}:${remotePrefix}.tar.gz"
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Site code transfer failed.' }
-    & scp @scpOptions $opsBundle "${script:target}:${remotePrefix}.ops.tar.gz"
+    if ($script:onServer) {
+        & sudo install -m 0600 -o root -g root $opsBundle "${remotePrefix}.ops.tar.gz"
+    } else {
+        & scp @scpOptions $opsBundle "${script:target}:${remotePrefix}.ops.tar.gz"
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Bale database backup service bundle transfer failed.' }
 
     $installerPath = Join-Path $temporaryRoot 'install.sh'
@@ -566,10 +590,18 @@ echo SITE_VPS_DEPLOY_OK
 '@
     $installer = $installer.Replace('__SHA__', $ReleaseSha).Replace('__HASH__', $bundleHash).Replace('__OPS_HASH__', $opsBundleHash).Replace('__PREFIX__', $remotePrefix)
     Write-Utf8NoBom -Path $installerPath -Content $installer
-    & scp @scpOptions $installerPath "${script:target}:${remotePrefix}.install.sh"
+    if ($script:onServer) {
+        & sudo install -m 0600 -o root -g root $installerPath "${remotePrefix}.install.sh"
+    } else {
+        & scp @scpOptions $installerPath "${script:target}:${remotePrefix}.install.sh"
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Site installer transfer failed.' }
 
-    $remoteOutput = @(& ssh @script:sshOptions $script:target sudo bash "${remotePrefix}.install.sh" 2>&1)
+    $remoteOutput = if ($script:onServer) {
+        @(& sudo bash "${remotePrefix}.install.sh" 2>&1)
+    } else {
+        @(& ssh @script:sshOptions $script:target sudo bash "${remotePrefix}.install.sh" 2>&1)
+    }
     $remoteCode = $LASTEXITCODE
     foreach ($line in $remoteOutput) { Write-Output $line }
     foreach ($line in $remoteOutput) {

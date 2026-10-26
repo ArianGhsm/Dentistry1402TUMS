@@ -12,16 +12,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
+$payload = @{
+    service = $Service; status = $Status; event_id = $EventId; environment = $Environment
+    version = $Version; summary = $Summary; actor = $Actor
+} | ConvertTo-Json -Compress
+# Owner rule 2026-10-26: releases run on the Iran VPS itself. -ServerConfig local
+# queues the event directly, without SSH.
+if ($ServerConfig -eq 'local') {
+    $localPath = "/var/lib/integrated-dent/deploy-notifier/.incoming-$([Guid]::NewGuid().ToString('N')).b64"
+    $payloadBase64Local = [Convert]::ToBase64String([Text.UTF8Encoding]::new($false, $true).GetBytes($payload))
+    $localCommand = "set -euo pipefail; trap 'rm -f -- $localPath' EXIT; umask 077; printf '%s' '$payloadBase64Local' > $localPath; set -a; . /etc/integrated-dent/deploy-notifier.env; set +a; cd /opt/integrated-dent/notifier/current; base64 --decode < $localPath | runuser -u dentops --preserve-environment -- python3 -m deploy_notifier.cli publish-json"
+    $output = & sudo bash -c $localCommand
+    if ($LASTEXITCODE -ne 0) { throw "The deployment event was not queued on the VPS." }
+    if ($output) { Write-Output ($output -join "`n") }
+    exit 0
+}
 $serverConfigPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
 $serverConfigPath = (Resolve-Path -LiteralPath $serverConfigPath).Path
 $serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverConfigPath -Parent) -Parent } else { $root }
 $server = Get-Content -LiteralPath $serverConfigPath -Raw | ConvertFrom-Json
 $sshUser = if ($server.user) { $server.user } else { $server.bootstrapUser }
 if (-not $sshUser) { throw "SSH user is missing from server config." }
-$payload = @{
-    service = $Service; status = $Status; event_id = $EventId; environment = $Environment
-    version = $Version; summary = $Summary; actor = $Actor
-} | ConvertTo-Json -Compress
 $utf8 = [Text.UTF8Encoding]::new($false, $true)
 $payloadBytes = $utf8.GetBytes($payload)
 $payloadBase64 = [Convert]::ToBase64String($payloadBytes)

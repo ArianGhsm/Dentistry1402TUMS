@@ -15,6 +15,8 @@ The website no longer deploys to cPanel/FTP. The retired main-site cPanel/FTP de
 
 Deploy must never push to GitHub, create a commit, stamp/mutate source, upload local production data, or treat a dirty workspace as a release source.
 
+- **Owner rule (2026-10-26): the laptop is removed from the work path.** Development and release both happen through GitHub and on the Iran VPS itself. An agent may merge its own PR to `main` once CI is green, then releases that exact `origin/main` SHA from a clean release worktree on the VPS with `pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <sha> -ServerConfig local -Deploy` (dry-run first with `-DryRun`). `-ServerConfig local` runs the same gate steps locally with sudo instead of SSH; the SSH server-config form remains only as a fallback.
+
 ## Development versus release
 
 Development is GitHub-first. A task branch starts from an exact current `main` SHA, runs relevant tests/CI, and merges only after review. Feature branches do **not** deploy production.
@@ -41,19 +43,19 @@ The release worktree must satisfy:
 Dry-run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-sha> -DryRun
+pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <exact-sha> -ServerConfig local -DryRun
 ```
 
 Deploy:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-sha> -Deploy
+pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <exact-sha> -ServerConfig local -Deploy
 ```
 
 Task-completion alias:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-sha>
+pwsh -File scripts/complete_task.ps1 -ReleaseSha <exact-sha> -ServerConfig local
 ```
 
 `complete_task.ps1` enters the same validated release gate; it is not a separate deployment path.
