@@ -4,8 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-// Quiz timetable is unchanged: retain .18 notification identities to avoid a duplicate push.
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.18';
+// Quiz 5 with Dr. Hamidzadeh restored to its 1405/08/10 source session; refresh quiz reminder identities.
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.19';
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -270,8 +270,7 @@ function classops_term7_syllabus_quiz_adjustments(): array
     return [
         'endodontics-basics-2|1405/08/03|11' => ['quizTitle' => '', 'removeFromSessionTitle' => true],
         'endodontics-basics-2|1405/08/05|12' => ['quizTitle' => 'کوییز ۴', 'quizInstructor' => 'دکتر اسدیان', 'sourceSessionNumber' => 11],
-        'endodontics-basics-2|1405/08/10|13' => ['quizTitle' => '', 'removeFromSessionTitle' => true],
-        'endodontics-basics-2|1405/08/12|14' => ['quizTitle' => 'کوییز ۵', 'quizInstructor' => 'دکتر حمیدزاده', 'sourceSessionNumber' => 13],
+        // 1405/08/05: Owner reconfirmed quiz 5 for Sunday 1405/08/10; this matches source session 13.
     ];
 }
 

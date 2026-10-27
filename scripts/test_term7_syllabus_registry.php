@@ -701,8 +701,8 @@ syllabus_assert(count($endoQuiz) === 1
 foreach ([
     ['1405/08/03', 11, '', '', false],
     ['1405/08/05', 12, 'کوییز ۴', 'دکتر اسدیان', true],
-    ['1405/08/10', 13, '', '', false],
-    ['1405/08/12', 14, 'کوییز ۵', 'دکتر حمیدزاده', true],
+    ['1405/08/10', 13, 'کوییز ۵', 'دکتر حمیدزاده', true],
+    ['1405/08/12', 14, '', '', false],
 ] as [$jalaliDate, $number, $quizTitle, $quizInstructor, $isQuiz]) {
     $sessions = classops_term7_syllabus_enrich_events([
         syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
@@ -768,7 +768,6 @@ foreach ([
 }
 foreach ([
     ['1405/08/05', 'دکتر اسدیان'],
-    ['1405/08/12', 'دکتر حمیدزاده'],
 ] as [$date, $instructor]) {
     $events = classops_term7_syllabus_enrich_events([
         syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
@@ -779,6 +778,23 @@ foreach ([
         && str_contains((string) ($events[0]['quizSourceLabel'] ?? ''), 'تاریخ طبق اصلاحیه'),
         "Rescheduled Endodontics quiz {$date} retains corrected-date provenance");
 }
+// Regression: quiz 5 is restored to the source Sunday, not duplicated on Tuesday.
+$hamidzadehSunday = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
+], '1405/08/10', 'A');
+$hamidzadehTuesday = classops_term7_syllabus_enrich_events([
+    syllabus_event('endodontics-basics-2', 'مبانی اندودانتیکس ۲'),
+], '1405/08/12', 'A');
+syllabus_assert(count($hamidzadehSunday) === 1
+    && ($hamidzadehSunday[0]['sessionNumber'] ?? 0) === 13
+    && ($hamidzadehSunday[0]['quizTitle'] ?? '') === 'کوییز ۵'
+    && ($hamidzadehSunday[0]['quizInstructor'] ?? '') === 'دکتر حمیدزاده'
+    && ($hamidzadehSunday[0]['quizOrigin'] ?? '') === 'syllabus'
+    && str_contains((string) ($hamidzadehSunday[0]['quizSourceLabel'] ?? ''), 'در طرح درس')
+    && count($hamidzadehTuesday) === 1
+    && ($hamidzadehTuesday[0]['quizTitle'] ?? 'unexpected') === '',
+    'Quiz 5: Sunday 10 Aban restored with correct instructor; Tuesday 12 Aban cleared');
+
 $pathologyExamSession = array_values(array_filter(
     $catalog['pathology-practical-1']['sessions'] ?? [],
     static fn(array $s): bool => ($s['title'] ?? '') === 'امتحان'
