@@ -723,14 +723,19 @@ try {
     term7_assert(count($quizMorning) === 2
         && count(array_filter($quizMorning, static fn($record): bool => ($record['meta']['quizPhase'] ?? '') === 'today')) === 1,
         'Day-of quiz reminder is separate from evening reminder and deduplicated at 07:00/08:00');
-    dent_term7_scheduler_tick(new DateTimeImmutable('2026-11-02 16:00:00', $tz));
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-10-31 16:00:00', $tz));
     $futureQuizzes = array_values(array_filter(notifications_read_store()['notifications'],
         static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7-quiz'
-            && ($record['meta']['quizDate'] ?? '') === '1405/08/12'));
+            && ($record['meta']['quizDate'] ?? '') === '1405/08/10'));
     term7_assert(count($futureQuizzes) === 1
         && str_contains((string) ($futureQuizzes[0]['body'] ?? ''), 'دکتر حمیدزاده')
         && str_contains((string) ($futureQuizzes[0]['title'] ?? ''), 'کوییز ۵'),
-        'Quiz 5 next Tuesday independently notifies only the proper student with Dr Hamidzadeh');
+        'Quiz 5 next Sunday independently notifies only the proper student with Dr Hamidzadeh');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2026-11-02 16:00:00', $tz));
+    $staleTuesdayQuizzes = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7-quiz'
+            && ($record['meta']['quizDate'] ?? '') === '1405/08/12'));
+    term7_assert($staleTuesdayQuizzes === [], 'Rescheduled quiz 5 creates no Tuesday reminder');
 
     // A future diagnostic quiz labeled in the syllabus must automatically
     // use exactly the same independent notification pipeline as Endodontics.
