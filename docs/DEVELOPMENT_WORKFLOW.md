@@ -64,6 +64,8 @@ read production data/secrets or perform deployment, and changes under
 
 ### Production release gate
 
+- **Owner rule (2026-10-26): the laptop is removed from the work path.** Development and release both happen through GitHub and on the Iran VPS itself. An agent may merge its own PR to `main` once CI is green, then releases that exact `origin/main` SHA from a clean release worktree on the VPS with `pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <sha> -ServerConfig local -Deploy` (dry-run first with `-DryRun`). `-ServerConfig local` runs the same gate steps locally with sudo instead of SSH; the SSH server-config form remains only as a fallback.
+
 Merging to `main` is not automatically a production deployment. When the merged
 SHA contains production website or runtime code changes, that exact merged
 `main` SHA must separately pass:

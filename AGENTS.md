@@ -5,7 +5,8 @@
 - The only writable repository for this product is exactly `ArianGhsm/Dentistry1402TUMS`. Verify `origin` before every write; similarly named repositories are read-only evidence.
 - Canonical code is an exact GitHub commit. Production `storage/` is canonical data; verified ignored laptop/server-only snapshots are recovery copies.
 - `bot_runtime/` is the canonical source for Telegram/Bale runtime. Live state, credentials, logs and service releases remain outside Git.
-- `main` is integration/release only. Feature branches start at an immutable declared SHA, do not rebase/pull mid-task, do not self-merge, and do not deploy.
+- `main` is integration/release only. Feature branches start at an immutable declared SHA and do not rebase/pull mid-task; a feature branch itself never deploys.
+- **Owner rule (2026-10-26): the laptop is removed from the work path.** Development and release both happen through GitHub and on the Iran VPS itself. An agent may merge its own PR to `main` once CI is green, then releases that exact `origin/main` SHA from a clean release worktree on the VPS with `pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <sha> -ServerConfig local -Deploy` (dry-run first with `-DryRun`). `-ServerConfig local` runs the same gate steps locally with sudo instead of SSH; the SSH server-config form remains only as a fallback.
 - Feature-branch completion and integrated-release completion are distinct. Only an integrated release requires backup, exact-SHA canonical deploy and live verification. A docs/tests/workflow-only change with no production code change does not trigger an empty production deploy.
 - The canonical release command requires `-ReleaseSha <exact-origin-main-sha>`. Deploy never creates or pushes a Git commit and never rewrites source files.
 - The canonical website production release path is `scripts/run_release_gate.ps1` -> `scripts/deploy_site_vps.ps1`; `scripts/complete_task.ps1` is only an alias into that same gate. The retired cPanel/FTP deployer files have been removed from the working tree; Git history is evidence only and no operational workflow may invoke or recreate them.
@@ -332,9 +333,9 @@
 6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`، و اگر بخشی از لایه‌های relevant verify نشده‌اند یا عمداً scope نشده‌اند، صریحاً ذکر کنید.
 7. برای integrated release، پس از merge به `main` و قبل از پاسخ نهایی release، فرمان زیر با SHA دقیق `origin/main` اجرا شود:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-sha>
+pwsh -File scripts/complete_task.ps1 -ReleaseSha <exact-sha> -ServerConfig local
 ```
-7.1. Feature branch حق merge یا production deploy ندارد؛ DoD آن در `docs/DEVELOPMENT_WORKFLOW.md` است.
+7.1. Feature branch خودش production deploy نمی‌کند؛ ادغام PR سبز در `main` و release همان SHA روی خود VPS (بدون لپ‌تاپ) مجاز است؛ DoD آن در `docs/DEVELOPMENT_WORKFLOW.md` است.
 7.2. تغییر صرفاً workflow/docs/tests که production code/runtime را تغییر نداده است با CI و coherence check بسته می‌شود، نه empty deploy.
 8. وضعیت integrated release فقط وقتی کامل است که backup، deploy exact-SHA، live health/log/smoke و rollback readiness موفق باشند.
 
@@ -342,15 +343,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha
 - اتمام source task و production deploy دو مرحله جدا هستند. فقط integrated release از SHA دقیق merge‌شده‌ی `origin/main` وارد release gate می‌شود؛ feature branch و تغییر صرفاً docs/tests/workflow production deploy نمی‌کنند.
 - dry-run canonical:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -DryRun
+pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -ServerConfig local -DryRun
 ```
 - deploy canonical:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -Deploy
+pwsh -File scripts/run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -ServerConfig local -Deploy
 ```
 - alias بستن integrated release:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-origin-main-sha>
+pwsh -File scripts/complete_task.ps1 -ReleaseSha <exact-origin-main-sha> -ServerConfig local
 ```
 - `complete_task.ps1` فقط همان `run_release_gate.ps1 -Deploy` را فراخوانی می‌کند و مسیر deploy مستقلی نیست. `run_release_gate.ps1` نیز فقط `scripts/deploy_site_vps.ps1` را برای website production اجرا می‌کند.
 - deployerهای قدیمی cPanel/FTP از working tree حذف شده‌اند؛ تاریخچه Git فقط مرجع forensic است و هیچ wrapper یا recovery workflow نباید آن‌ها را اجرا یا دوباره به‌عنوان مسیر عملیاتی برگرداند.
