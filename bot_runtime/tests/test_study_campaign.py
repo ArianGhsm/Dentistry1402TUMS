@@ -9,7 +9,7 @@ from dent_bot.app import DentBotApp
 from dent_bot.state import BotState
 from dent_bot.ui import button
 from dent_bot.study_campaign import BUNDLES
-from .test_booklet_delivery import BOOKLET_CATALOG, FakeApi, LinkedSite
+from bot_runtime.tests.test_booklet_delivery import BOOKLET_CATALOG, FakeApi, LinkedSite
 
 
 class CampaignSite(LinkedSite):
