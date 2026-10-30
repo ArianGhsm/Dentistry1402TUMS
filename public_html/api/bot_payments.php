@@ -455,6 +455,48 @@ function dent_bot_payment_reservation_state(
     return $state;
 }
 
+/**
+ * Recover a pending standalone checkout when the user taps the same offer
+ * again from a different Telegram message. A pending reservation is not a
+ * completed purchase. Reusing its order preserves the authoritative payment
+ * token and prevents overlapping provider checkouts for the same item.
+ *
+ * Never reuse a cart order, another account/device, a changed product price
+ * or version, an expired attempt, or a previously completed transaction.
+ */
+function dent_bot_payment_reusable_pending_offer(
+    array $orders,
+    string $offerRef,
+    array $payerKeys,
+    string $platform,
+    string $platformUserId,
+    int $amount,
+    int $productVersion,
+    ?int $nowEpoch = null
+): ?array {
+    $nowEpoch = $nowEpoch ?? time();
+    $identityHash = dent_bot_identity_hash($platform, $platformUserId);
+    for ($index = count($orders) - 1; $index >= 0; $index--) {
+        $order = $orders[$index];
+        if (!is_array($order)
+            || !in_array((string) ($order['user_id'] ?? ''), $payerKeys, true)
+            || !dent_bot_payment_pending_reserves_slot($order, $nowEpoch)
+            || (int) ($order['amount'] ?? 0) !== $amount) {
+            continue;
+        }
+        $extra = dent_bot_payment_extra($order);
+        if ((string) ($extra['source'] ?? '') !== 'bot-offer'
+            || (string) ($extra['bot_offer_ref'] ?? '') !== $offerRef
+            || (int) ($extra['bot_offer_version'] ?? 0) !== $productVersion
+            || (string) ($extra['bot_origin_platform'] ?? '') !== $platform
+            || (string) ($extra['bot_origin_identity_hash'] ?? '') !== $identityHash) {
+            continue;
+        }
+        return $order;
+    }
+    return null;
+}
+
 function dent_bot_payment_reservation_error(array $state, int $capacity, int $maxPerUser): string
 {
     if ($capacity > 0 && (int) ($state['reserved'] ?? 0) >= $capacity) {
@@ -556,6 +598,26 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
                 }
             }
             return ['retry' => $existing];
+        }
+        // A different callback requestId must not consume a second purchase
+        // for the same user's unfinished standalone offer. Reuse only when
+        // this is their sole active reservation for the product; successful
+        // purchases and mixed-cart reservations keep their normal limits.
+        if ((int) ($reservation['userReserved'] ?? 0) === 1) {
+            $pending = dent_bot_payment_reusable_pending_offer(
+                is_array($store['orders'] ?? null) ? $store['orders'] : [],
+                $offerRef,
+                $payerKeys,
+                $platform,
+                $platformUserId,
+                $amount,
+                $productVersion
+            );
+            if (is_array($pending)) {
+                return dent_bot_payment_existing_needs_gateway_retry($pending)
+                    ? ['retry' => $pending]
+                    : ['existing' => $pending];
+            }
         }
         $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser);
         if ($reservationError === 'PRODUCT_CAPACITY_REACHED') {
