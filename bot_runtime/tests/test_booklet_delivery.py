@@ -217,6 +217,46 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(parse_session_number(f"جزوه جلسه {number} - تست"), number)
         self.assertIsNone(parse_session_number("جزوه جلسه چهل و یکم"))
 
+    def test_dentnote_multi_range_caption_routes_one_file_to_all_nine_sessions(self) -> None:
+        caption = (
+            "📦 دنتنوت آسیبشناسی عملی ۱ - جلسات اول تا پنجم و هفتم تا دهم\n"
+            "📚 آسیبشناسی عملی ۱\n#پاتو_عملی۱ #ترم۷ #دنتنوت #DentNote"
+        )
+        self.assertEqual(parse_session_numbers(caption), (1, 2, 3, 4, 5, 7, 8, 9, 10))
+        catalog = copy.deepcopy(BOOKLET_CATALOG)
+        path_course = next(c for c in catalog["courses"] if c["courseKey"] == "pathology-practical-1")
+        path_course["sessions"].extend(
+            {"sessionNumber": number, "title": f"جلسه {number}"}
+            for number in range(3, 11)
+        )
+        records = source_records_from_channel_post({
+            "caption": caption,
+            "document": {
+                "file_id": "dentnote-test-id",
+                "file_unique_id": "single-source-for-nine-sessions",
+                "file_name": "دنت‌نوت پاتولوژی عملی.pdf",
+                "mime_type": "application/pdf",
+            },
+        }, catalog, allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS)
+        self.assertEqual([r["sessionNo"] for r in records], [1, 2, 3, 4, 5, 7, 8, 9, 10])
+        self.assertEqual({r["contentKind"] for r in records}, {"dentnote"})
+        self.assertEqual(len({r["fileUniqueId"] for r in records}), 1)
+
+    def test_future_flashcard_publication_and_invalid_ranges_fail_closed(self) -> None:
+        self.assertEqual(parse_session_numbers("🃏 فلش‌کارت جلسه سی و یکم"), (31,))
+        self.assertEqual(parse_session_numbers("دنتنوت جلسات ۱۲ تا ۱۰"), ())
+        self.assertEqual(parse_session_numbers("جزوه جلسات اول تا چهل و یکم"), ())
+        caption = "🃏 فلش کارت جلسه دوم\n📚 روش تحقیق ۲\n#روش_تحقیق۲ #ترم۷ #فلش_کارت"
+        records = source_records_from_channel_post({
+            "caption": caption,
+            "document": {"file_id": "flashcard-doc", "mime_type": "application/pdf"},
+        }, BOOKLET_CATALOG, allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS)
+        self.assertEqual([(r["contentKind"], r["sessionNo"]) for r in records], [("flashcard", 2)])
+        self.assertEqual(source_records_from_channel_post({
+            "caption": caption,
+            "audio": {"file_id": "must-not-be-accepted"},
+        }, BOOKLET_CATALOG, allowed_kinds=PRIVATE_SOURCE_CONTENT_KINDS), [])
+
     def test_multi_session_power_caption_routes_one_file_to_each_session(self) -> None:
         caption = (
             "📒 پاور جلسات اول و دوم روش تحقیق ۲ - مرور مباحث\n"

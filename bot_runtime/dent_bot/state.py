@@ -409,7 +409,7 @@ def _migrate_protected_media_schema(connection: sqlite3.Connection) -> None:
     ).fetchone()
     current_sql = str(row[0] or "") if row else ""
     target_unique = "UNIQUE(source_chat_id, source_message_id, content_kind, course_code, session_no)"
-    if row is None or ("ai_booklet" in current_sql and target_unique in current_sql):
+    if row is None or ("ai_booklet" in current_sql and "dentnote" in current_sql and "flashcard" in current_sql and target_unique in current_sql):
         return
     connection.execute("BEGIN IMMEDIATE")
     try:
@@ -428,7 +428,7 @@ def _migrate_protected_media_schema(connection: sqlite3.Connection) -> None:
             "term INTEGER NOT NULL CHECK(term BETWEEN 1 AND 12),"
             "session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),"
             "content_kind TEXT NOT NULL CHECK(content_kind IN "
-            "('voice','power','booklet','reference','ai_booklet')),"
+            "('voice','power','booklet','reference','ai_booklet','dentnote','flashcard')),"
             "telegram_method TEXT NOT NULL CHECK(telegram_method IN "
             "('sendDocument','sendAudio','sendVoice')),"
             "file_id TEXT NOT NULL DEFAULT '',"
@@ -527,7 +527,7 @@ class BotState:
                 course_tag TEXT NOT NULL,
                 term INTEGER NOT NULL CHECK(term BETWEEN 1 AND 12),
                 session_no INTEGER NOT NULL CHECK(session_no BETWEEN 1 AND 40),
-                content_kind TEXT NOT NULL CHECK(content_kind IN ('voice','power','booklet','reference','ai_booklet')),
+                content_kind TEXT NOT NULL CHECK(content_kind IN ('voice','power','booklet','reference','ai_booklet','dentnote','flashcard')),
                 telegram_method TEXT NOT NULL CHECK(telegram_method IN ('sendDocument','sendAudio','sendVoice')),
                 file_id TEXT NOT NULL DEFAULT '',
                 file_unique_id TEXT NOT NULL DEFAULT '',
@@ -1979,7 +1979,7 @@ class BotState:
             str(asset.get("sourcePlatform") or "telegram") != "telegram"
             or method not in allowed_methods
             or not file_id
-            or source_chat_id <= 0
+            or source_chat_id == 0
             or source_message_id <= 0
         ):
             raise ValueError("Invalid paid file asset")
@@ -2053,6 +2053,19 @@ class BotState:
         capacity = max(0, min(1_000_000, int(capacity)))
         max_per_user = max(0, min(10_000, int(max_per_user)))
         normalized_asset = self._normalize_paid_file_asset(paid_file_asset) if isinstance(paid_file_asset, dict) else None
+        if normalized_asset is not None and normalized_asset["sourceChatId"] < 0:
+            # Private-channel paid artifacts must be backed by an active,
+            # unambiguous indexed source; never trust guessed Telegram IDs.
+            with self._lock:
+                source = self.connection.execute(
+                    "SELECT id FROM protected_media_sources WHERE source_chat_id=? "
+                    "AND source_message_id=? AND file_id=? AND file_unique_id=? "
+                    "AND content_kind IN ('dentnote','flashcard') AND active=1 LIMIT 1",
+                    (normalized_asset["sourceChatId"], normalized_asset["sourceMessageId"],
+                     normalized_asset["fileId"], normalized_asset["fileUniqueId"]),
+                ).fetchone()
+            if source is None or not normalized_asset["fileUniqueId"]:
+                raise ValueError("Paid study artifact must match an active private source")
         asset_ref = secrets.token_urlsafe(18) if normalized_asset is not None else ""
         effective_fulfillment = dict(fulfillment or {})
         if normalized_asset is not None:
@@ -2117,6 +2130,25 @@ class BotState:
         with self._lock:
             row = self.payment_connection.execute(query, (str(asset_ref),)).fetchone()
         return self._paid_file_asset_payload(row)
+
+    def paid_file_asset_for_source(self, source: dict) -> dict | None:
+        """Resolve a shared session source to its one canonical priced asset.
+
+        One DentNote PDF may be indexed under many sessions. Its Telegram
+        file_unique_id, not the session number, is the product identity.
+        Multiple conflicting assets are rejected rather than guessed.
+        """
+        unique_id = str(source.get("fileUniqueId") or "").strip()
+        if not unique_id:
+            return None
+        with self._lock:
+            rows = self.payment_connection.execute(
+                "SELECT id,ref,source_platform,source_chat_id,source_message_id,telegram_method,file_id,"
+                "file_unique_id,file_name,mime_type,file_size,caption,media_label,active,created_at,updated_at "
+                "FROM paid_file_assets WHERE file_unique_id=? AND active=1",
+                (unique_id,),
+            ).fetchall()
+        return self._paid_file_asset_payload(rows[0]) if len(rows) == 1 else None
 
     def paid_file_asset_by_id(self, asset_id: int) -> dict | None:
         with self._lock:
@@ -3286,7 +3318,7 @@ class BotState:
             )
             for item in records:
                 kind = str(item.get("contentKind") or "")
-                if kind not in {"voice", "power", "booklet", "reference", "ai_booklet"}:
+                if kind not in {"voice", "power", "booklet", "reference", "ai_booklet", "dentnote", "flashcard"}:
                     raise ValueError("Invalid protected media kind")
                 self.connection.execute(
                     "INSERT INTO protected_media_sources("
@@ -3429,7 +3461,7 @@ class BotState:
         return {
             str(row[0]): max(0, int(row[1] or 0))
             for row in rows
-            if str(row[0]) in {"voice", "power", "booklet", "reference", "ai_booklet"}
+            if str(row[0]) in {"voice", "power", "booklet", "reference", "ai_booklet", "dentnote", "flashcard"}
         }
 
     def protected_media_session_counts_for_tag(

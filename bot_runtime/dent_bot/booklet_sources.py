@@ -11,6 +11,8 @@ PRIVATE_SOURCE_CONTENT_KINDS: FrozenSet[str] = frozenset({
     "booklet",
     "reference",
     AI_BOOKLET_CONTENT_KIND,
+    "dentnote",
+    "flashcard",
 })
 POWER_SOURCE_CONTENT_KINDS: FrozenSet[str] = frozenset({"power"})
 
