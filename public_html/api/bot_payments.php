@@ -370,7 +370,20 @@ function dent_bot_payment_existing_needs_gateway_retry(array $order, ?int $nowEp
         return false;
     }
 
-    return !dent_bot_payment_pending_reserves_slot($order, $nowEpoch);
+    // Reissue a provider authority well before the one-hour reservation
+    // window ends. Users were being sent back to an expired provider link
+    // even while the original checkout was still legitimately reserved.
+    $nowEpoch = $nowEpoch ?? time();
+    $startedAt = trim((string) ($order['payment_started_at'] ?? ''));
+    if ($startedAt === '') {
+        $startedAt = trim((string) ($order['created_at'] ?? ''));
+    }
+    $startedEpoch = $startedAt !== '' ? strtotime($startedAt) : false;
+    if ($startedEpoch === false) {
+        return true;
+    }
+    return ($nowEpoch - $startedEpoch) >= 900
+        || !dent_bot_payment_pending_reserves_slot($order, $nowEpoch);
 }
 
 function dent_bot_payment_archive_gateway_start(array $order, array $snapshot): array

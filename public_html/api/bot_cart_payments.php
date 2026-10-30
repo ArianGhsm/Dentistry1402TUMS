@@ -306,6 +306,48 @@ function dent_bot_payment_cart_order_lines(array $items, array $discount): array
 }
 
 
+/**
+ * Repair historical cart snapshots that were truncated by the generic
+ * extra_form_data text limit. The signed request must have the exact same
+ * offer identities and prices as the persisted order lines; otherwise fail
+ * closed. We repair the original order instead of creating a second payment.
+ */
+function dent_bot_payment_restore_cart_snapshot(array $order, array $requestItems): array
+{
+    $extra = dent_bot_payment_extra($order);
+    $raw = (string) ($extra['bot_cart_items_json'] ?? '');
+    $previous = json_decode($raw, true);
+    if (is_array($previous) && array_is_list($previous) && $previous !== []) {
+        return $order;
+    }
+
+    $lines = array_values(is_array($order['cart_items'] ?? null) ? $order['cart_items'] : []);
+    if (count($lines) === 0 || count($lines) !== count($requestItems)) {
+        dent_error('جزئیات سفارش قبلی قابل بازیابی نیست.', 409, ['code' => 'BOT_CART_SNAPSHOT_MISMATCH']);
+    }
+    foreach ($requestItems as $index => $item) {
+        $line = is_array($lines[$index] ?? null) ? $lines[$index] : [];
+        if (!hash_equals((string) ($line['slug'] ?? ''), payments_clean_slug((string) ($item['offerRef'] ?? '')))
+            || (int) ($line['subtotal'] ?? -1) !== (int) ($item['amountRials'] ?? 0)
+            || (int) ($line['quantity'] ?? 0) !== 1) {
+            dent_error('جزئیات سفارش قبلی با درخواست جدید تطابق ندارد.', 409, ['code' => 'BOT_CART_SNAPSHOT_MISMATCH']);
+        }
+    }
+    if ((int) ($order['subtotal'] ?? 0) !== array_sum(array_map(
+        static fn(array $item): int => (int) ($item['amountRials'] ?? 0),
+        $requestItems
+    ))) {
+        dent_error('مبلغ سفارش قبلی با درخواست جدید تطابق ندارد.', 409, ['code' => 'BOT_CART_SNAPSHOT_MISMATCH']);
+    }
+    $extra['bot_cart_items_json'] = json_encode(
+        $requestItems,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+    );
+    $order['extra_form_data'] = $extra;
+    return $order;
+}
+
+
 function dent_bot_create_cart_payment(array $user, string $platform, string $platformUserId, array $payload): array
 {
     dent_bot_payment_require_v2($payload);
@@ -377,7 +419,13 @@ function dent_bot_create_cart_payment(array $user, string $platform, string $pla
             if (in_array((string) ($candidate['user_id'] ?? ''), $payerKeys, true)
                 && (string) ($extra['bot_request_ref'] ?? '') !== ''
                 && hash_equals((string) $extra['bot_request_ref'], $requestRef)) {
-                $existing = $candidate;
+                $existing = dent_bot_payment_restore_cart_snapshot($candidate, $items);
+                // Persist repairs even when the caller only retries its old
+                // checkout; the following store save is atomic and bounded.
+                $index = payments_find_order_index_by_id($store, (int) ($candidate['id'] ?? 0));
+                if ($index >= 0) {
+                    $store['orders'][$index] = $existing;
+                }
                 break;
             }
         }
