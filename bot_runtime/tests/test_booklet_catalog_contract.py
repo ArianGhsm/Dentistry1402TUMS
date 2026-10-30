@@ -4,8 +4,12 @@ import json
 import subprocess
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
-from dent_bot.booklets import parse_source_caption
+from dent_bot.booklets import parse_source_caption, courses_screen
+from dent_bot.booklet_app_workflows import BookletAppWorkflows
+from dent_bot.study_campaign import PATHOLOGY_COURSE_KEY, ENDO_COURSE_KEY
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,6 +84,50 @@ class BookletCatalogContractTests(unittest.TestCase):
             self.assertIsNotNone(parsed)
             assert parsed is not None
             self.assertEqual(parsed.course_code, course["courseKey"])
+
+    def test_featured_purchase_is_recoverable_from_courses_after_wrong_tap(self) -> None:
+        """Always expose the live paid resource from Notes, even if an
+        announcement's keyboard was edited when a different course was tapped."""
+        self.assertTrue(any(x.get("courseKey") == PATHOLOGY_COURSE_KEY for x in self.courses))
+        self.assertTrue(any(x.get("courseKey") == ENDO_COURSE_KEY for x in self.courses))
+        state = Mock()
+        state.protected_media_for_tag.return_value = [{"fileUniqueId": "source-id"}]
+        state.paid_file_asset_for_source.return_value = {"assetRef": "asset-canonical"}
+        state.paid_file_offer_refs.return_value = ["offer-canonical"]
+        state.payment_offer.return_value = {"effectiveStatus": "active"}
+        app = SimpleNamespace(state=state)
+        result = BookletAppWorkflows._booklet_courses_screen(app, self.catalog)
+        actions = [
+            (button["text"], button.get("callback_data", ""))
+            for row in result.keyboard["inline_keyboard"]
+            for button in row
+        ]
+        self.assertEqual(
+            actions[0][1],
+            f"v1:booklet-resource:{PATHOLOGY_COURSE_KEY}:1:dentnote",
+        )
+        self.assertEqual(actions[1][1], "v1:study-packs")
+        self.assertIn("دنت‌نوت پاتولوژی", actions[0][0])
+        self.assertIn("دسترسی سریع", result.text)
+        self.assertEqual(actions[-1][1], "v1:home")
+        # Following a wrong course does not consume a campaign flag or alter
+        # the next Notes index; it remains visible on every revisit.
+        repeated = BookletAppWorkflows._booklet_courses_screen(app, self.catalog)
+        self.assertEqual(result.keyboard, repeated.keyboard)
+
+    def test_featured_purchase_is_hidden_without_active_product(self) -> None:
+        state = Mock()
+        state.protected_media_for_tag.return_value = [{"fileUniqueId": "source-id"}]
+        state.paid_file_asset_for_source.return_value = {"assetRef": "asset-canonical"}
+        state.paid_file_offer_refs.return_value = ["offer-canonical"]
+        state.payment_offer.return_value = None
+        screen = BookletAppWorkflows._booklet_courses_screen(
+            SimpleNamespace(state=state), self.catalog
+        )
+        self.assertFalse(
+            any("دنت‌نوت" in row[0]["text"] for row in screen.keyboard["inline_keyboard"])
+        )
+        self.assertNotIn("دسترسی سریع", screen.text)
 
     def test_conflicting_course_title_and_hashtag_fail_closed(self) -> None:
         self.assertGreaterEqual(len(self.courses), 2)

@@ -322,13 +322,21 @@ def _short(value: object, limit: int = 52) -> str:
     return text if len(text) <= limit else text[: max(1, limit - 1)].rstrip() + "…"
 
 
-def courses_screen(catalog: dict) -> Screen:
+def courses_screen(
+    catalog: dict,
+    *,
+    featured_actions: list[tuple[str, str]] | None = None,
+) -> Screen:
     courses = catalog_courses(catalog)
     rows = [
+        [button(label, action=action, style="success")]
+        for label, action in (featured_actions or [])
+    ]
+    rows.extend(
         [button(f"📚 {_short(course.get('courseTitle') or 'درس', 46)}", action=f"booklet-course:{course['courseKey']}")]
         for course in courses
         if course.get("sessions")
-    ]
+    )
     rows.append([button("🏠 منوی اصلی", action="home")])
     if courses:
         body = (
@@ -340,8 +348,14 @@ def courses_screen(catalog: dict) -> Screen:
             "در حال حاضر طرح درس قابل استفاده‌ای از منبع آموزشی دریافت نشد.\n"
             "<blockquote>جلسه‌ای حدس زده یا به‌صورت محلی ساخته نمی‌شود.</blockquote>"
         )
+    featured_context = (
+        "<b>📌 دسترسی سریع به فایل‌های امتحانی</b>\n"
+        "<blockquote>این گزینه‌ها از فهرست جزوات دوباره قابل دسترسی‌اند؛ "
+        "اگر از پیام اعلان خارج شدی، از همین مسیر برگرد.</blockquote>\n\n"
+        if featured_actions else ""
+    )
     return Screen(
-        "<b><u>📚 آرشیو امن جزوات</u></b>\n\n" + body,
+        "<b><u>📚 آرشیو امن جزوات</u></b>\n\n" + featured_context + body,
         keyboard(*rows),
     )
 

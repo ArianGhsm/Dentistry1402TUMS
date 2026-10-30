@@ -283,6 +283,39 @@ class BookletAppWorkflows:
                 )
         self._render_booklet_screen(chat_id, message_id, screen)
 
+    def _booklet_courses_screen(self, catalog: dict) -> Screen:
+        """Show permanent product entry points above the syllabus list.
+
+        The campaign message can be edited away by Telegram callbacks. Reuse
+        the existing course-index renderer and resolve the shortcut from the
+        canonical live resource/paid-offer catalog, not a hardcoded product ID.
+        """
+        featured: list[tuple[str, str]] = []
+        pathology = course_by_key(catalog, PATHOLOGY_COURSE_KEY)
+        if pathology is not None and session_by_number(pathology, DENTNOTE_ANCHOR_SESSION):
+            sources = self.state.protected_media_for_tag(
+                course_tag=str(pathology.get("bookletTag") or ""),
+                term=int(catalog.get("term") or 7),
+                session_no=DENTNOTE_ANCHOR_SESSION,
+                content_kind="dentnote",
+            )
+            for source in sources:
+                asset = self.state.paid_file_asset_for_source(source)
+                if asset is None:
+                    continue
+                if any(
+                    self.state.payment_offer(ref) is not None
+                    for ref in self.state.paid_file_offer_refs(str(asset["assetRef"]))
+                ):
+                    featured.append((
+                        "📕 دنت‌نوت پاتولوژی عملی",
+                        f"booklet-resource:{PATHOLOGY_COURSE_KEY}:{DENTNOTE_ANCHOR_SESSION}:dentnote",
+                    ))
+                    break
+        if course_by_key(catalog, ENDO_COURSE_KEY) is not None and featured:
+            featured.append(("🎁 بسته‌های ویژهٔ امتحانات", "study-packs"))
+        return booklet_courses_screen(catalog, featured_actions=featured)
+
     def _booklet_resources_screen(self, catalog: dict, course_key: str, session_no: int) -> Screen:
         course = course_by_key(catalog, course_key)
         if course is None:
@@ -708,7 +741,7 @@ class BookletAppWorkflows:
             return self._study_bundle_checkout_screen(name, user_id, catalog)
         if name == "notes":
             self.state.touch_user(user_id, "notes")
-            return booklet_courses_screen(catalog)
+            return self._booklet_courses_screen(catalog)
 
         if name.startswith("booklet-course:"):
             course_key = name.removeprefix("booklet-course:")
