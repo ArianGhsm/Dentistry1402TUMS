@@ -982,6 +982,23 @@ function payments_normalize_extra_form_data(array $value): array
         if ($fieldName === '') {
             continue;
         }
+        // Cart snapshots are structured fulfilment metadata, not free-form
+        // form text. A three-file campaign already exceeds the normal 1000-
+        // character limit; truncating JSON silently breaks repeat checkout,
+        // payment verification and paid-file delivery. Preserve a bounded,
+        // parseable snapshot without relaxing limits for unrelated fields.
+        if ($fieldName === 'bot_cart_items_json') {
+            $serialized = (string) $fieldValue;
+            $decoded = strlen($serialized) <= 131072 ? json_decode($serialized, true) : null;
+            if (is_array($decoded) && array_is_list($decoded) && count($decoded) <= 50) {
+                $output[$fieldName] = $serialized;
+            } else {
+                // Keep invalid historical values identifiable so their
+                // integrity can be restored against canonical order lines.
+                $output[$fieldName] = dent_clean_text($serialized, 1000);
+            }
+            continue;
+        }
         $output[$fieldName] = dent_clean_text((string) $fieldValue, 1000);
     }
 

@@ -357,7 +357,7 @@ unit_assert(
     dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === true,
     'Bot checkout refreshes a pending gateway authority after one hour'
 );
-$gatewayRetryPending['payment_started_at'] = '2026-09-25T07:00:01Z';
+$gatewayRetryPending['payment_started_at'] = '2026-09-25T07:50:01Z';
 unit_assert(
     dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === false,
     'Bot checkout reuses a fresh pending gateway authority to keep double taps idempotent'
@@ -371,6 +371,77 @@ unit_assert(
 unit_assert(
     dent_bot_payment_existing_needs_gateway_retry(['status' => PAYMENTS_ORDER_STATUS_SUCCESS], $gatewayRetryNow) === false,
     'Provider-verified successful bot orders never restart checkout'
+);
+// Regression: multi-PDF cart snapshots exceeded the legacy 1000-character
+// generic form field and were silently truncated, breaking any second tap.
+$longCartItems = [];
+for ($i = 0; $i < 3; $i++) {
+    $longCartItems[] = [
+        'itemKey' => 'ai:' . $i,
+        'kind' => 'ai_booklet',
+        'offerRef' => $i === 2 ? '2UfDEmr0qsyMohv4dUHIIZL_' : str_repeat((string) ($i + 1), 20),
+        'title' => str_repeat('جزوهٔ آموزشی ', 18),
+        'amountRials' => 390000,
+        'fulfillment' => ['text' => str_repeat('فایل پس از تأیید ارسال می‌شود ', 12)],
+    ];
+}
+$longCartJson = json_encode($longCartItems, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$normalizedCartFields = payments_normalize_extra_form_data([
+    'bot_cart_items_json' => $longCartJson,
+    'regular_profile_field' => str_repeat('x', 3000),
+]);
+unit_assert(
+    strlen($longCartJson) > 1000
+        && ($normalizedCartFields['bot_cart_items_json'] ?? '') === $longCartJson
+        && ($normalizedCartFields['regular_profile_field'] ?? '') === str_repeat('x', 1000),
+    'Cart JSON persists past the old 1000-character cap without weakening ordinary fields'
+);
+$restoredCartOrder = dent_bot_payment_restore_cart_snapshot([
+    'subtotal' => 1170000,
+    'extra_form_data' => ['bot_cart_items_json' => substr($longCartJson, 0, 1000)],
+    'cart_items' => array_map(static fn(array $item): array => [
+        'slug' => payments_clean_slug($item['offerRef']), 'subtotal' => $item['amountRials'], 'quantity' => 1,
+    ], $longCartItems),
+], $longCartItems);
+unit_assert(
+    json_decode((string) ($restoredCartOrder['extra_form_data']['bot_cart_items_json'] ?? ''), true) === $longCartItems
+        && count(dent_bot_payment_cart_items($restoredCartOrder)) === 3,
+    'A previously truncated three-file checkout is restored and remains fulfillable'
+);
+$normalizationRoundTrip = payments_normalize_extra_form_data($restoredCartOrder['extra_form_data']);
+unit_assert(
+    $normalizationRoundTrip['bot_cart_items_json'] === $longCartJson,
+    'Restored checkout survives persistence normalization and repeat retrieval'
+);
+$gatewayRetryPending['payment_started_at'] = '2026-09-25T07:46:00Z';
+unit_assert(
+    dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === false,
+    'Double tap inside fifteen minutes reuses the provider authority'
+);
+$gatewayRetryPending['payment_started_at'] = '2026-09-25T07:44:59Z';
+unit_assert(
+    dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === true,
+    'Unpaid provider authority is renewed after fifteen minutes without creating another order'
+);
+$reservedCheckoutAt = strtotime('2026-09-25T08:00:00Z') ?: 0;
+$existingPendingCheckout = [
+    'status' => PAYMENTS_ORDER_STATUS_PENDING,
+    'created_at' => '2026-09-25T07:30:00Z',
+    'payment_started_at' => '2026-09-25T07:30:00Z',
+];
+unit_assert(
+    dent_bot_payment_pending_refresh_keeps_reservation($existingPendingCheckout, $reservedCheckoutAt),
+    'Renewing a 30-minute pending provider URL reuses its existing product reservation'
+);
+$existingPendingCheckout['payment_started_at'] = '2026-09-25T07:50:00Z';
+unit_assert(
+    !dent_bot_payment_pending_refresh_keeps_reservation($existingPendingCheckout, $reservedCheckoutAt),
+    'A fresh double-tap keeps the original provider URL without renewal'
+);
+$existingPendingCheckout['payment_started_at'] = '2026-09-25T06:55:00Z';
+unit_assert(
+    !dent_bot_payment_pending_refresh_keeps_reservation($existingPendingCheckout, $reservedCheckoutAt),
+    'Expired reservations follow normal admission checks instead of bypassing product capacity'
 );
 $summaryBucket = dent_bot_payment_summary_bucket([
     [
