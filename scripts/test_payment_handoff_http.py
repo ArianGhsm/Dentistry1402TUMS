@@ -240,6 +240,68 @@ def main():
                     for p in FakeGateway.requests if "callbackUrl" in p
                 )
 
+                # Regression: the same student opens a paid PDF, switches to
+                # an unrelated Endo purchase and returns via a fresh button.
+                # The original PDF attempt must not exhaust the one-purchase
+                # quota. It is still a pending payment, not an entitlement.
+                pdf_payload = dict(
+                    action="createBotPayment",
+                    contractVersion="bot-commerce-v2",
+                    platform="telegram",
+                    platformUserId="654321",
+                    offerRef="dentnote_pending_reuse_fixture_1",
+                    title="DentNote pathology PDF",
+                    amountRials=390000,
+                    productVersion=1,
+                    maxPurchasesPerUser=1,
+                    requestId=hashlib.sha256(b"pdf-attempt-one").hexdigest(),
+                )
+                first_pdf = request(endpoint, secret, pdf_payload)
+                assert first_pdf["status"] == 200, first_pdf
+                pdf_token = first_pdf["payload"]["orderToken"]
+                count_before_same_offer = len(FakeGateway.requests)
+                fresh_callback = dict(
+                    pdf_payload,
+                    requestId=hashlib.sha256(b"pdf-attempt-two").hexdigest(),
+                )
+                reused_pdf = request(endpoint, secret, fresh_callback)
+                assert reused_pdf["status"] == 200, reused_pdf
+                assert reused_pdf["payload"]["orderToken"] == pdf_token
+                assert reused_pdf["payload"]["alreadyCreated"] is True
+                assert len(FakeGateway.requests) == count_before_same_offer
+                store_path = Path(directory) / "storage/payments/store.json"
+                store = json.loads(store_path.read_text(encoding="utf-8"))
+                pdf_order = next(o for o in store["orders"] if o["public_token"] == pdf_token)
+                old_track = pdf_order["authority"]
+                # Older than Zibal's 15-minute launch window but still
+                # within the one-hour pending quota reservation.
+                pdf_order["payment_started_at"] = time.strftime(
+                    "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 1000)
+                )
+                store_path.write_text(json.dumps(store, ensure_ascii=False), encoding="utf-8")
+                renewed_pdf = request(endpoint, secret, dict(
+                    pdf_payload,
+                    requestId=hashlib.sha256(b"pdf-attempt-three").hexdigest(),
+                ))
+                assert renewed_pdf["status"] == 200, renewed_pdf
+                assert renewed_pdf["payload"]["orderToken"] == pdf_token
+                assert renewed_pdf["payload"]["gatewayRefreshed"] is True
+                assert len(FakeGateway.requests) == count_before_same_offer + 1
+                store = json.loads(store_path.read_text(encoding="utf-8"))
+                pdf_orders = [o for o in store["orders"] if o["public_token"] == pdf_token]
+                assert len(pdf_orders) == 1 and pdf_orders[0]["authority"] != old_track
+                # A verified purchase is never recoverable as a new pending
+                # checkout: the paid-file fulfillment remains authoritative.
+                pdf_orders[0]["status"] = "success"
+                store_path.write_text(json.dumps(store, ensure_ascii=False), encoding="utf-8")
+                paid_again = request(endpoint, secret, dict(
+                    pdf_payload,
+                    requestId=hashlib.sha256(b"pdf-attempt-four").hexdigest(),
+                ))
+                assert paid_again["status"] == 409, paid_again
+                assert paid_again["payload"].get("code") == "PRODUCT_PURCHASE_LIMIT_REACHED"
+                print("paid-PDF pending reuse + fresh callback + gateway renewal + paid limit passed")
+
                 cart_refs = ["cart_fixture_product_one", "cart_fixture_product_two"]
                 cart_payload = dict(
                     action="createBotCartPayment",
