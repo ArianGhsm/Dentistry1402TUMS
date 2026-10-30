@@ -63,7 +63,7 @@ class BookletAppWorkflows:
                 "ai-select-all",
                 "ai-select-none",
                 "ai-checkout",
-                "study-pack:",
+                "study-pack",
             )
         )
 
@@ -260,7 +260,8 @@ class BookletAppWorkflows:
             catalog = self._booklet_catalog(user_id)
             regular_resource = (
                 name.startswith("booklet-resource:")
-                and not name.endswith(f":{AI_BOOKLET_CONTENT_KIND}")
+                and name.rsplit(":", 1)[-1]
+                not in {AI_BOOKLET_CONTENT_KIND, "dentnote", "flashcard"}
             )
             if regular_resource:
                 allowed, blocked_screen = self._booklet_access_screen(user_id)
@@ -362,6 +363,10 @@ class BookletAppWorkflows:
             course_key,
             ai_published_sessions=set(context["published"]),
             ai_owned_sessions=set(context["owned"]),
+            highlight_study_packs=(
+                course_key == ENDO_COURSE_KEY
+                and set(ENDO_SESSIONS).issubset(set(context["eligible"]))
+            ),
         )
 
     def _ai_bulk_selection_view(
@@ -528,6 +533,60 @@ class BookletAppWorkflows:
             return_to_bot_enabled=self.payment_return_v1_enabled,
         )
 
+    def _study_bundle_selection_screen(self, user_id: int, catalog: dict) -> Screen:
+        context = self._ai_bulk_context(user_id, catalog, ENDO_COURSE_KEY)
+        if not set(ENDO_SESSIONS).issubset(set(context["eligible"])):
+            return Screen(
+                frame_error("دو جزوهٔ موردنیاز این بسته هنوز قابل خرید نیستند."),
+                keyboard([button("↩️ مبانی اندو ۲", action=f"booklet-course:{ENDO_COURSE_KEY}")]),
+            )
+
+        rows = [[button("🎁 دو جزوهٔ اندو · ۷۰٬۰۰۰ تومان",
+                        action="study-pack:endo", style="success")]]
+        pathology = course_by_key(catalog, PATHOLOGY_COURSE_KEY)
+        dentnote_ready = False
+        if pathology is not None:
+            sources = self.state.protected_media_for_tag(
+                course_tag=str(pathology.get("bookletTag") or ""),
+                term=int(catalog.get("term") or 7),
+                session_no=DENTNOTE_ANCHOR_SESSION,
+                content_kind="dentnote",
+            )
+            identity = identity_from_account(context.get("account") or {})
+            for source in sources:
+                asset = self.state.paid_file_asset_for_source(source)
+                if asset is None:
+                    continue
+                for ref in self.state.paid_file_offer_refs(str(asset["assetRef"])):
+                    offer = self.state.payment_offer_for_user(ref, identity)
+                    if (offer is not None
+                        and str(dict(offer.get("fulfillment") or {}).get("kind") or "") == "paid_file"):
+                        dentnote_ready = True
+                        break
+        if dentnote_ready:
+            rows.append([button("⭐ هر سه فایل · ۹۰٬۰۰۰ تومان",
+                                action="study-pack:complete", style="success")])
+        rows.extend((
+            [button("📘 داروها · ۳۹٬۰۰۰ تومان",
+                    action=f"booklet-ai-buy:{ENDO_COURSE_KEY}:13")],
+            [button("📗 اپکس‌لوکیتور · ۳۹٬۰۰۰ تومان",
+                    action=f"booklet-ai-buy:{ENDO_COURSE_KEY}:9")],
+        ))
+        rows.append([button("↩️ مبانی اندو ۲", action=f"booklet-course:{ENDO_COURSE_KEY}")])
+        return Screen(
+            "<b><u>🎁 بسته‌های ویژهٔ امتحانات</u></b>\n\n"
+            "<blockquote>🦷 کوییز پنجم مبانی اندو ۲ · یکشنبه ۱۰ آبان\n"
+            "🔬 امتحان پاتولوژی عملی ۱ · سه‌شنبه ۱۲ آبان</blockquote>\n\n"
+            "<b>بستهٔ اندو: ۷۰٬۰۰۰ تومان</b>\n"
+            "دو جزوه به‌جای ۷۸٬۰۰۰ تومان.\n\n"
+            + ("<b>بستهٔ کامل: ۹۰٬۰۰۰ تومان</b>\n"
+               "دو جزوهٔ اندو و دنت‌نوت به‌جای ۱۱۷٬۰۰۰ تومان.\n\n"
+               if dentnote_ready else
+               "<blockquote>دنت‌نوت هنوز برای خرید بستهٔ کامل فعال نیست.</blockquote>\n\n")
+            + "خرید هر جزوه به‌صورت جداگانه نیز امکان‌پذیر است.",
+            keyboard(*rows),
+        )
+
     def _study_bundle_checkout_screen(self, name: str, user_id: int, catalog: dict) -> Screen:
         key = name.removeprefix("study-pack:")
         bundle = BUNDLES.get(key)
@@ -643,6 +702,8 @@ class BookletAppWorkflows:
         )
 
     def _booklet_screen_for_action(self, name: str, user_id: int, catalog: dict) -> Screen:
+        if name == "study-packs":
+            return self._study_bundle_selection_screen(user_id, catalog)
         if name.startswith("study-pack:"):
             return self._study_bundle_checkout_screen(name, user_id, catalog)
         if name == "notes":

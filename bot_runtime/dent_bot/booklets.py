@@ -352,6 +352,7 @@ def sessions_screen(
     *,
     ai_published_sessions: set[int] | None = None,
     ai_owned_sessions: set[int] | None = None,
+    highlight_study_packs: bool = False,
 ) -> Screen:
     course = course_by_key(catalog, course_key)
     if course is None:
@@ -379,6 +380,10 @@ def sessions_screen(
     purchasable = sorted(published - owned)
 
     rows: list[list[dict]] = []
+    if highlight_study_packs:
+        rows.append([
+            button("🎁 بسته‌های ویژهٔ کوییز و امتحان", action="study-packs", style="success")
+        ])
     if purchasable:
         rows.append([
             button(

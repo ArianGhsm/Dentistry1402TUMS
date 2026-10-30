@@ -106,6 +106,44 @@ class StudyCampaignTests(unittest.TestCase):
         self.assertEqual(discount["code"], BUNDLES["complete"].discount_code)
         self.assertEqual(sum(int(x["amountRials"]) for x in items) - discount["amount"], 900000)
 
+    def test_entrypoint_from_endo_course_to_both_bundle_buttons(self):
+        app, _state, _site, catalog = self.build()
+        course = app._booklet_sessions_screen(20, catalog, "endodontics-basics-2")
+        course_actions = [item.get("callback_data", "")
+                          for row in course.keyboard["inline_keyboard"] for item in row]
+        self.assertIn("v1:study-packs", course_actions)
+        choices = app._booklet_screen_for_action("study-packs", 20, catalog)
+        choices_actions = [item.get("callback_data", "")
+                           for row in choices.keyboard["inline_keyboard"] for item in row]
+        self.assertIn("v1:study-pack:endo", choices_actions)
+        self.assertIn("v1:study-pack:complete", choices_actions)
+        self.assertIn("۹۰٬۰۰۰ تومان", choices.text)
+
+    def test_subscription_does_not_block_paid_dentnote_selection(self):
+        app, _state, _site, _catalog = self.build()
+        app._booklet_access_screen = lambda _user: (
+            False, app._booklet_resources_screen(
+                app.site_api.booklet_catalog(20), "pathology-practical-1", 1
+            )
+        )
+        app._handle_booklet_action(
+            chat_id=20, user_id=20,
+            name="booklet-resource:pathology-practical-1:1:dentnote",
+            message_id=99,
+        )
+        self.assertTrue(app.api.edited or app.api.sent)
+        rendered = (app.api.edited[-1][2] if app.api.edited else app.api.sent[-1][1])
+        self.assertIn("دنت‌نوت پاتولوژی عملی", rendered)
+        self.assertIn("۳۹", rendered)
+
+    def test_unavailable_dentnote_is_not_offered_as_ready_bundle(self):
+        app, state, _site, catalog = self.build(with_paid_file=False)
+        choices = app._booklet_screen_for_action("study-packs", 20, catalog)
+        callbacks = [item.get("callback_data", "")
+                     for row in choices.keyboard["inline_keyboard"] for item in row]
+        self.assertIn("v1:study-pack:endo", callbacks)
+        self.assertNotIn("v1:study-pack:complete", callbacks)
+
     def test_missing_file_offer_fails_closed_without_checkout(self):
         app, state, site, catalog = self.build(with_paid_file=False)
         screen = app._study_bundle_checkout_screen("study-pack:complete", 20, catalog)
