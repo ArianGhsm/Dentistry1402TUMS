@@ -19,6 +19,8 @@ RESOURCE_LABELS = {
     "power": "📒 پاور",
     "booklet": "📓 جزوه",
     "reference": "📘 رفرنس",
+    "dentnote": "📕 دنت‌نوت",
+    "flashcard": "🃏 فلش‌کارت",
     AI_BOOKLET_CONTENT_KIND: "🤖 جزوه هوش مصنوعی",
 }
 AI_BULK_PAGE_SIZE = 8
@@ -59,23 +61,34 @@ def ordinal(number: int) -> str:
 
 
 def parse_session_numbers(caption: str) -> tuple[int, ...]:
+    """Recognize explicit sessions and inclusive ranges; reject invalid ranges."""
     normalized = _normalized(caption).translate(_DIGIT_TRANSLATION)
     value_pattern = rf"(?:{_ORDINAL_PATTERN}|[0-9]{{1,2}})"
+    part_pattern = rf"{value_pattern}(?:\s+تا\s+{value_pattern})?"
     match = re.search(
         rf"(?:^|\s)جلس(?:ه|ات)\s+"
-        rf"(?P<values>{value_pattern}(?:\s*(?:،|,|و)\s*{value_pattern})*)"
+        rf"(?P<values>{part_pattern}(?:\s*(?:،|,|و)\s*{part_pattern})*)"
         rf"(?=\s|$|[-–—:])",
         normalized,
     )
-    if not match:
+    if not match or re.match(r"\s+تا(?:\s|$)", normalized[match.end():]):
+        # The ordinal after an explicit range delimiter was not recognized.
         return ()
+
     numbers: list[int] = []
-    for token in re.findall(value_pattern, match.group("values")):
-        number = int(token) if token.isdigit() else _ORDINAL_LOOKUP.get(token, 0)
-        if not 1 <= number <= 40:
+    for part in re.finditer(
+        rf"(?P<first>{value_pattern})(?:\s+تا\s+(?P<last>{value_pattern}))?",
+        match.group("values"),
+    ):
+        first = part.group("first")
+        last = part.group("last") or first
+        lower = int(first) if first.isdigit() else _ORDINAL_LOOKUP.get(first, 0)
+        upper = int(last) if last.isdigit() else _ORDINAL_LOOKUP.get(last, 0)
+        if not 1 <= lower <= upper <= 40:
             return ()
-        if number not in numbers:
-            numbers.append(number)
+        for number in range(lower, upper + 1):
+            if number not in numbers:
+                numbers.append(number)
     return tuple(numbers)
 
 
@@ -129,6 +142,12 @@ def _content_kinds(caption: str) -> tuple[str, ...]:
     tags = _hashtags(caption)
     if AI_BOOKLET_SOURCE_TAG_KEY in tags:
         return (AI_BOOKLET_CONTENT_KIND,)
+    # Explicit source tags identify independently purchasable study artifacts.
+    # They are never silently classified as ordinary, subscription-accessible booklets.
+    if tags & {"دنتنوت", "dentnote"}:
+        return ("dentnote",)
+    if tags & {"فلشکارت", "flashcard", "flashcards"}:
+        return ("flashcard",)
     # AI booklets are marker-only. A human-readable mention without the
     # explicit source hashtag must never fall through into ordinary booklets.
     if re.search(r"(?<!\w)جزوه\s+هوش\s+مصنوعی(?!\w)", normalized):
@@ -272,7 +291,7 @@ def source_records_from_channel_post(
     if not media_type:
         return []
     method = {"document": "sendDocument", "audio": "sendAudio", "voice": "sendVoice"}[media_type]
-    if AI_BOOKLET_CONTENT_KIND in kinds:
+    if any(kind in kinds for kind in (AI_BOOKLET_CONTENT_KIND, "dentnote", "flashcard")):
         is_pdf = (
             media_type == "document"
             and (
@@ -447,7 +466,7 @@ def resources_screen(
     if mode:
         metadata.append(f"📍 {html.escape(mode)}")
 
-    kinds = ("voice", "power", "booklet", "reference", AI_BOOKLET_CONTENT_KIND)
+    kinds = ("voice", "power", "booklet", "reference", AI_BOOKLET_CONTENT_KIND, "dentnote", "flashcard")
     counts = {kind: max(0, int(content_counts.get(kind) or 0)) for kind in kinds}
     available = {kind: counts[kind] > 0 for kind in kinds}
 
@@ -514,6 +533,12 @@ def resources_screen(
                 style="primary",
             )
         ])
+    study_row = [
+        button(RESOURCE_LABELS[kind], action=f"booklet-resource:{course_key}:{session_no}:{kind}")
+        for kind in ("dentnote", "flashcard") if available[kind]
+    ]
+    if study_row:
+        rows.append(study_row)
     rows.extend((
         [button("↩️ جلسات", action=f"booklet-course:{course_key}")],
         [button("🏠 منوی اصلی", action="home")],

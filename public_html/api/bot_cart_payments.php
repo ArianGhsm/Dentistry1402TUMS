@@ -96,6 +96,60 @@ function dent_bot_payment_ai_bulk_discount(array $items): array
     ];
 }
 
+/**
+ * Enforce the exact owner-authorized exam bundle, rather than accepting a
+ * client-defined discount against an arbitrary cart. The caller remains the
+ * signed bot service, but the payment backend independently validates items.
+ */
+function dent_bot_payment_validate_study_bundle(array $raw, array $items, int $subtotal): void
+{
+    $code = strtoupper(preg_replace('/\s+/', '', (string) ($raw['code'] ?? '')) ?? '');
+    $targets = [
+        'ENDO1405_2' => ['count' => 2, 'discount' => 80000, 'subtotal' => 780000],
+        'ENDO1405_3' => ['count' => 3, 'discount' => 270000, 'subtotal' => 1170000],
+    ];
+    if (!isset($targets[$code])) {
+        return;
+    }
+    $expected = $targets[$code];
+    if (count($items) !== $expected['count']
+        || $subtotal !== $expected['subtotal']
+        || strtolower((string) ($raw['kind'] ?? '')) !== 'fixed'
+        || (int) ($raw['amount'] ?? 0) !== $expected['discount']
+        || (int) ($raw['minSubtotalRials'] ?? 0) !== $expected['subtotal']
+        || (int) ($raw['maxUses'] ?? 0) !== 0
+        || trim((string) ($raw['expiresAt'] ?? '')) !== '') {
+        dent_error('محتوای بستهٔ ویژه با شرایط تخفیف مطابقت ندارد.', 409, ['code' => 'STUDY_BUNDLE_INVALID']);
+    }
+    $sessions = [];
+    $paidFiles = 0;
+    foreach ($items as $item) {
+        if ((int) ($item['amountRials'] ?? 0) !== 390000) {
+            dent_error('قیمت اقلام بسته معتبر نیست.', 409, ['code' => 'STUDY_BUNDLE_PRICE_INVALID']);
+        }
+        $kind = (string) ($item['kind'] ?? '');
+        if ($kind === 'ai_booklet') {
+            if ((string) ($item['courseCode'] ?? '') !== 'endodontics-basics-2'
+                || (int) ($item['term'] ?? 0) !== 7) {
+                dent_error('جزوهٔ این بسته معتبر نیست.', 409, ['code' => 'STUDY_BUNDLE_ITEM_INVALID']);
+            }
+            $sessions[] = (int) ($item['sessionNo'] ?? 0);
+        } elseif ($kind === 'offer' && $expected['count'] === 3
+            && (string) (($item['fulfillment'] ?? [])['kind'] ?? '') === 'paid_file'
+            && str_contains((string) ($item['title'] ?? ''), 'دنت')
+            && (str_contains((string) ($item['title'] ?? ''), 'پاتولوژی')
+                || str_contains((string) ($item['title'] ?? ''), 'آسیب‌شناسی'))) {
+            $paidFiles++;
+        } else {
+            dent_error('محصولی خارج از بسته انتخاب شده است.', 409, ['code' => 'STUDY_BUNDLE_ITEM_INVALID']);
+        }
+    }
+    sort($sessions, SORT_NUMERIC);
+    if ($sessions !== [9, 13] || $paidFiles !== $expected['count'] - 2) {
+        dent_error('محصولات بسته کامل یا معتبر نیستند.', 409, ['code' => 'STUDY_BUNDLE_ITEMS_MISMATCH']);
+    }
+}
+
 function dent_bot_payment_cart_discount(array $payload, array $items, int $subtotal, array $orders): array
 {
     $automatic = dent_bot_payment_ai_bulk_discount($items);
@@ -112,6 +166,7 @@ function dent_bot_payment_cart_discount(array $payload, array $items, int $subto
         $value = max(0, (int) ($raw['amount'] ?? 0));
         $minimum = max(0, (int) ($raw['minSubtotalRials'] ?? 0));
         $maxUses = max(0, min(1000000, (int) ($raw['maxUses'] ?? 0)));
+        dent_bot_payment_validate_study_bundle($raw, $items, $subtotal);
         $expiresAt = dent_bot_payment_iso((string) ($raw['expiresAt'] ?? ''));
 
         if (preg_match('/^[A-Z0-9][A-Z0-9_-]{3,23}$/D', $code) !== 1

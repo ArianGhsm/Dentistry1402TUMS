@@ -24,15 +24,21 @@ from .booklets import (
 from .booklet_sources import source_policy_for_channel
 from .cart import cart_checkout_request_id
 from .message_frames import frame_error
+from .payments import identity_from_account
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
 from .subscriptions import policy_is_effective, subscription_identity_from_account
+from .study_campaign import (
+    BUNDLES, ENDO_COURSE_KEY, ENDO_SESSIONS,
+    PATHOLOGY_COURSE_KEY, DENTNOTE_ANCHOR_SESSION,
+)
 from .ui import (
     Screen,
     button,
     keyboard,
     payment_created_screen,
     payment_phone_required_screen,
+    payment_confirm_screen,
     term_subscription_screen,
 )
 
@@ -57,6 +63,7 @@ class BookletAppWorkflows:
                 "ai-select-all",
                 "ai-select-none",
                 "ai-checkout",
+                "study-pack:",
             )
         )
 
@@ -521,7 +528,123 @@ class BookletAppWorkflows:
             return_to_bot_enabled=self.payment_return_v1_enabled,
         )
 
+    def _study_bundle_checkout_screen(self, name: str, user_id: int, catalog: dict) -> Screen:
+        key = name.removeprefix("study-pack:")
+        bundle = BUNDLES.get(key)
+        if bundle is None or self.site_api is None or self.platform != "telegram":
+            return Screen(frame_error("این بستهٔ خرید معتبر یا در دسترس نیست."),
+                          keyboard([button("🏠 خانه", action="home")]))
+        identity, account = self._cart_identity(user_id, refresh=True)
+        if identity is None:
+            return self._unlinked_access_screen(user_id, account)
+        endo_course = course_by_key(catalog, ENDO_COURSE_KEY)
+        if endo_course is None or any(
+            session_by_number(endo_course, session) is None for session in ENDO_SESSIONS
+        ):
+            return Screen(frame_error("طرح درس اندو برای این خرید معتبر نیست."),
+                          keyboard([button("↩️ جزوات", action="notes")]))
+
+        term = int(catalog.get("term") or 7)
+        course_tag = str(endo_course.get("bookletTag") or "")
+        descriptors = [
+            {
+                "kind": "ai_booklet",
+                "offerRef": ai_booklet_offer_ref(term, ENDO_COURSE_KEY, session),
+                "term": term, "courseCode": ENDO_COURSE_KEY,
+                "courseTag": course_tag, "sessionNo": session,
+            }
+            for session in ENDO_SESSIONS
+        ]
+        if bundle.product_count == 3:
+            pathology = course_by_key(catalog, PATHOLOGY_COURSE_KEY)
+            if pathology is None or session_by_number(pathology, DENTNOTE_ANCHOR_SESSION) is None:
+                return Screen(frame_error("طرح درس پاتولوژی برای این خرید معتبر نیست."),
+                              keyboard([button("↩️ جزوات", action="notes")]))
+            candidates = self.state.protected_media_for_tag(
+                course_tag=str(pathology.get("bookletTag") or ""),
+                term=term,
+                session_no=DENTNOTE_ANCHOR_SESSION,
+                content_kind="dentnote",
+            )
+            matched_offers = {}
+            for source in candidates:
+                asset = self.state.paid_file_asset_for_source(source)
+                if asset is None:
+                    continue
+                for ref in self.state.paid_file_offer_refs(str(asset["assetRef"])):
+                    offer = self.state.payment_offer_for_user(ref, identity_from_account(account))
+                    if offer is not None:
+                        matched_offers[ref] = offer
+            if len(matched_offers) != 1:
+                return Screen(
+                    frame_error("فایل دنت‌نوت یا محصول فروش آن هنوز به‌صورت یکتا آماده نیست؛ خرید بسته متوقف شد."),
+                    keyboard([button("↩️ جزوات", action="notes")]),
+                )
+            offer_ref, offer = next(iter(matched_offers.items()))
+            blocked = self._paid_file_purchase_blocker(user_id, offer)
+            if blocked is not None:
+                return blocked
+            descriptors.append({"kind": "offer", "offerRef": offer_ref})
+
+        resolved = [
+            self._cart_resolve_descriptor(
+                user_id, descriptor, account=account,
+                commerce_identity=identity, booklet_catalog=catalog,
+            )
+            for descriptor in descriptors
+        ]
+        if len(resolved) != bundle.product_count or any(
+            not item.get("available") for item in resolved
+        ):
+            return Screen(
+                frame_error("حداقل یکی از فایل‌ها منتشر نشده یا قبلاً برای حساب شما خریداری شده است؛ "
+                            "لطفاً خریدهای قبلی و موجودی را بررسی کنید."),
+                keyboard([button("↩️ جزوات", action="notes")]),
+            )
+        subtotal = sum(int(item.get("amountRials") or 0) for item in resolved)
+        if subtotal != bundle.product_count * AI_BOOKLET_PRICE_RIALS:
+            return Screen(
+                frame_error("قیمت یکی از محصولات تغییر کرده است؛ خرید بسته تا بازبینی متوقف شد."),
+                keyboard([button("↩️ جزوات", action="notes")]),
+            )
+        checkout_items = [
+            {k: v for k, v in item.items() if k not in {"available", "reason"}}
+            for item in resolved
+        ]
+        discount_amount = subtotal - bundle.total_rials
+        discount = {
+            "code": bundle.discount_code,
+            "kind": "fixed",
+            "amount": discount_amount,
+            "minSubtotalRials": subtotal,
+            "maxUses": 0,
+        }
+        request_id = cart_checkout_request_id(
+            identity.subject_key, version=0,
+            items=checkout_items, discount_code=bundle.discount_code,
+        )
+        try:
+            result = self._create_commerce_checkout(
+                user_id, identity=identity, checkout_items=checkout_items,
+                request_id=request_id, discount=discount,
+            )
+        except SiteApiError as error:
+            if error.code == "PAYMENT_PHONE_REQUIRED":
+                return payment_phone_required_screen()
+            return Screen(frame_error(str(error)), keyboard([button("↩️ جزوات", action="notes")]))
+        if int(result.get("amountRials") or 0) != bundle.total_rials:
+            # Order must not be displayed as a successful correctly-priced
+            # checkout unless the canonical site returned the exact campaign sum.
+            return Screen(frame_error("مبلغ محاسبه‌شده درگاه با قیمت بسته مطابقت ندارد."),
+                          keyboard([button("🏠 خانه", action="home")]))
+        return payment_created_screen(
+            result, platform=self.platform,
+            return_to_bot_enabled=self.payment_return_v1_enabled,
+        )
+
     def _booklet_screen_for_action(self, name: str, user_id: int, catalog: dict) -> Screen:
+        if name.startswith("study-pack:"):
+            return self._study_bundle_checkout_screen(name, user_id, catalog)
         if name == "notes":
             self.state.touch_user(user_id, "notes")
             return booklet_courses_screen(catalog)
@@ -781,6 +904,55 @@ class BookletAppWorkflows:
             return Screen(
                 frame_error("این جلسه در طرح درس مرجع پیدا نشد."),
                 keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+            )
+
+        if content_kind in {"dentnote", "flashcard"}:
+            # A catalog entry never grants the ordinary subscription-accessible
+            # path. Paid files use the existing canonical checkout + watermark.
+            base_screen = self._booklet_resources_screen(catalog, course_key, session_no)
+            label = RESOURCE_LABELS[content_kind]
+            sources = self.state.protected_media_for_tag(
+                course_tag=str(course.get("bookletTag") or ""),
+                term=int(catalog.get("term") or 7),
+                session_no=session_no,
+                content_kind=content_kind,
+            )
+            account = self.site_api.account(user_id) if self.site_api is not None else {}
+            identity = identity_from_account(account)
+            linked: dict[str, tuple[dict, dict]] = {}
+            for source in sources:
+                asset = self.state.paid_file_asset_for_source(source)
+                if not asset:
+                    continue
+                for ref in self.state.paid_file_offer_refs(str(asset["assetRef"])):
+                    offer = self.state.payment_offer_for_user(ref, identity)
+                    if offer is not None and str(dict(offer.get("fulfillment") or {}).get("kind") or "") == "paid_file":
+                        linked[ref] = (offer, asset)
+            if len(linked) == 1:
+                offer, asset = next(iter(linked.values()))
+                if self.site_api is None:
+                    return Screen(frame_error("درگاه پرداخت در دسترس نیست."), base_screen.keyboard)
+                states = self._payment_product_states(user_id, [offer])
+                return payment_confirm_screen(
+                    offer, state=dict(states.get(str(offer.get("ref") or "")) or {})
+                )
+            if linked:
+                rows = [
+                    [button(str(offer.get("title") or label)[:36],
+                            action=f"payment-confirm:{ref}", style="primary")]
+                    for ref, (offer, _asset) in linked.items()
+                ]
+                rows.append([button("↩️ تولیدات جلسه", action=f"booklet-session:{course_key}:{session_no}")])
+                return Screen(
+                    f"<b>{label}</b>\n\n"
+                    "برای خرید یا دریافت هر فایل، محصول مربوط را انتخاب کنید.",
+                    keyboard(*rows),
+                )
+            return Screen(
+                f"<b>{label}</b>\n\n"
+                + ("این فایل منتشر شده، اما محصول قابل خریدِ آن هنوز فعال نشده است."
+                   if sources else "برای این جلسه هنوز چنین فایلی منتشر نشده است."),
+                base_screen.keyboard,
             )
 
         if content_kind == AI_BOOKLET_CONTENT_KIND:
