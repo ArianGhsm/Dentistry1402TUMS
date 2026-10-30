@@ -194,7 +194,22 @@ def cart_media_requests(state: object, items: list[dict]) -> list[tuple[str, str
             continue
         fulfillment = dict(raw.get("fulfillment") or {})
         if str(fulfillment.get("kind") or "") == "paid_file":
-            asset = state.paid_file_asset(str(fulfillment.get("assetRef") or ""))
+            # The payment site's public snapshot intentionally returns only
+            # the approved paid-file-get action, not the internal assetRef.
+            # Reconstruct that exact ref after validating its format, then
+            # resolve against the canonical paid_file_assets store. This also
+            # allows verified purchases created before the bug fix to deliver.
+            asset_ref = str(fulfillment.get("assetRef") or "").strip()
+            action = str(fulfillment.get("action") or "").strip()
+            matched = re.fullmatch(r"paid-file-get:([A-Za-z0-9_-]{16,80})", action)
+            if matched:
+                action_ref = matched.group(1)
+                if asset_ref and asset_ref != action_ref:
+                    continue
+                asset_ref = action_ref
+            if not re.fullmatch(r"[A-Za-z0-9_-]{16,80}", asset_ref):
+                continue
+            asset = state.paid_file_asset(asset_ref)
             asset_id = int((asset or {}).get("id") or 0)
             dedupe = ("paid_file", asset_id)
             if asset_id > 0 and dedupe not in seen:
