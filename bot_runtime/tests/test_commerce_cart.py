@@ -626,6 +626,52 @@ class CommerceCartTests(unittest.TestCase):
         self.assertEqual(captured["descriptor"]["sessionNo"], 2)
         self.assertEqual(captured["descriptor"]["term"], 7)
 
+    def test_paid_file_cart_delivery_from_public_action_only(self) -> None:
+        offer = self.state.create_payment_offer(
+            "دنت‌نوت پاتولوژی عملی", 390_000, "آزمون تحویل",
+            audience={"mode": "all"},
+            paid_file_asset={
+                "sourcePlatform": "telegram", "sourceChatId": 1,
+                "sourceMessageId": 172, "telegramMethod": "sendDocument",
+                "fileId": "file-private", "fileUniqueId": "unique-dentnote-test",
+                "fileName": "dentnote.pdf", "mimeType": "application/pdf",
+                "fileSize": 12345, "mediaLabel": "دنت‌نوت",
+            },
+        )
+        asset_ref = str(offer["fulfillment"]["assetRef"])
+        asset = self.state.paid_file_asset(asset_ref)
+        assert asset is not None
+        item = {
+            "kind": "offer",
+            "itemKey": "offer:" + offer["ref"],
+            # Exactly the payment site's safe returned snapshot:
+            # assetRef has intentionally been stripped.
+            "fulfillment": {
+                "kind": "paid_file",
+                "action": "paid-file-get:" + asset_ref,
+            },
+        }
+        self.assertEqual(
+            cart_media_requests(self.state, [item]),
+            [(item["itemKey"], "paid_file", int(asset["id"]))],
+        )
+        self.assertEqual(
+            cart_media_requests(self.state, [item, item]),
+            [(item["itemKey"], "paid_file", int(asset["id"]))],
+        )
+        self.assertEqual(
+            cart_media_requests(self.state, [
+                dict(item, fulfillment=dict(item["fulfillment"], assetRef="another-valid-but-conflicting-ref")),
+            ]),
+            [],
+        )
+        self.assertEqual(
+            cart_media_requests(self.state, [
+                dict(item, fulfillment={"kind": "paid_file", "action": "paid-file-get:invalid!"}),
+            ]),
+            [],
+        )
+
     def test_paid_file_prerequisites_are_rechecked_at_checkout(self) -> None:
         offer = self.state.create_payment_offer(
             "PDF شخصی",
