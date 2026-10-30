@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 from .api import BotApiError
-from .booklets import courses_screen as booklet_courses_screen
 from .message_frames import frame_error
 from .navid import local_now
 from .paid_files import extract_paid_file_source
@@ -855,7 +854,7 @@ class DialogAppWorkflows:
                 assert blocked_screen is not None
                 screen = blocked_screen
             else:
-                screen = booklet_courses_screen(self._booklet_catalog(user_id))
+                screen = self._booklet_courses_screen(self._booklet_catalog(user_id))
         except SiteApiError as error:
             screen = Screen(
                 frame_error(str(error)),
