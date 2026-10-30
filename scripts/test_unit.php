@@ -423,6 +423,26 @@ unit_assert(
     dent_bot_payment_existing_needs_gateway_retry($gatewayRetryPending, $gatewayRetryNow) === true,
     'Unpaid provider authority is renewed after fifteen minutes without creating another order'
 );
+$reservedCheckoutAt = strtotime('2026-09-25T08:00:00Z') ?: 0;
+$existingPendingCheckout = [
+    'status' => PAYMENTS_ORDER_STATUS_PENDING,
+    'created_at' => '2026-09-25T07:30:00Z',
+    'payment_started_at' => '2026-09-25T07:30:00Z',
+];
+unit_assert(
+    dent_bot_payment_pending_refresh_keeps_reservation($existingPendingCheckout, $reservedCheckoutAt),
+    'Renewing a 30-minute pending provider URL reuses its existing product reservation'
+);
+$existingPendingCheckout['payment_started_at'] = '2026-09-25T07:50:00Z';
+unit_assert(
+    !dent_bot_payment_pending_refresh_keeps_reservation($existingPendingCheckout, $reservedCheckoutAt),
+    'A fresh double-tap keeps the original provider URL without renewal'
+);
+$existingPendingCheckout['payment_started_at'] = '2026-09-25T06:55:00Z';
+unit_assert(
+    !dent_bot_payment_pending_refresh_keeps_reservation($existingPendingCheckout, $reservedCheckoutAt),
+    'Expired reservations follow normal admission checks instead of bypassing product capacity'
+);
 $summaryBucket = dent_bot_payment_summary_bucket([
     [
         'status' => PAYMENTS_ORDER_STATUS_SUCCESS,

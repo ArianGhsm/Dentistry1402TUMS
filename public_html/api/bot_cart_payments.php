@@ -348,6 +348,16 @@ function dent_bot_payment_restore_cart_snapshot(array $order, array $requestItem
 }
 
 
+/** A still-reserved pending checkout may renew its provider authority without
+ *  consuming another product/coupon reservation. It is the SAME order token. */
+function dent_bot_payment_pending_refresh_keeps_reservation(array $order, ?int $nowEpoch = null): bool
+{
+    return (string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_PENDING
+        && dent_bot_payment_pending_reserves_slot($order, $nowEpoch)
+        && dent_bot_payment_existing_needs_gateway_retry($order, $nowEpoch);
+}
+
+
 function dent_bot_create_cart_payment(array $user, string $platform, string $platformUserId, array $payload): array
 {
     dent_bot_payment_require_v2($payload);
@@ -432,6 +442,12 @@ function dent_bot_create_cart_payment(array $user, string $platform, string $pla
 
         if (is_array($existing) && !dent_bot_payment_existing_needs_gateway_retry($existing)) {
             return ['existing' => $existing];
+        }
+        if (is_array($existing) && dent_bot_payment_pending_refresh_keeps_reservation($existing)) {
+            // The pending order already owns its capacity and coupon
+            // reservation. Running admission checks again would count this
+            // exact order against itself and incorrectly reject the refresh.
+            return ['retry' => $existing];
         }
 
         foreach ($items as $item) {
