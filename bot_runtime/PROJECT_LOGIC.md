@@ -357,10 +357,12 @@ normal buttons/deep links and does not fake unsupported inline mode.
   must not share one blocking loop. Polling continuously fetches updates,
   bounded worker threads handle user interactions, and a separate background
   thread performs notification claim/ack and Navid scheduling.
-- The update queue is bounded, offsets advance in Telegram update order only
-  after handlers complete, and SQLite access is serialized with an in-process
-  lock. A slow relay or site timeout must never pause receipt of new Telegram
-  updates.
+- The update queue is bounded to Telegram's 100-update poll window. Repeated
+  `getUpdates` responses are deduplicated by update ID; offsets advance in order
+  only after handlers finish. Handler errors are logged and treated as terminal
+  to avoid automatically replaying an uncertain outbound action. SQLite access
+  is serialized with an in-process lock. A slow relay or site timeout must
+  never acknowledge an unfinished update.
 - Callback acknowledgement is best-effort with a short timeout. Rapid repeated
   callbacks from one user are coalesced before expensive work. Interactive and
   periodic jobs have separate signed-site clients/circuit breakers, so a Navid

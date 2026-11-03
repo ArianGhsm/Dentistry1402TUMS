@@ -219,22 +219,7 @@ class _HttpsConnectionPool:
             connection.timeout = timeout
             if connection.sock is not None:
                 connection.sock.settimeout(timeout)
-            try:
-                connection.request("POST", f"{self.prefix}{path}", body=body, headers=headers)
-            except (OSError, TimeoutError, http.client.HTTPException):
-                # A pooled TLS socket may have been closed while idle. If the
-                # failure happens inside request()/sendall(), the HTTP request
-                # was incomplete and cannot be processed by the Bot API, so one
-                # retry on a new connection is safe and prevents the first user
-                # interaction after an idle period from being lost. Failures
-                # after request() returns are deliberately not retried because
-                # the remote side may already have created the message.
-                try:
-                    connection.close()
-                except OSError:
-                    pass
-                connection = self._new(timeout)
-                connection.request("POST", f"{self.prefix}{path}", body=body, headers=headers)
+            connection.request("POST", f"{self.prefix}{path}", body=body, headers=headers)
             response = connection.getresponse()
             raw = response.read(2 * 1024 * 1024 + 1)
             if len(raw) > 2 * 1024 * 1024:

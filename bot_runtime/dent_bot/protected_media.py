@@ -125,9 +125,10 @@ class ProtectedMediaDispatcher:
         self._last_cleanup_monotonic = 0.0
         self._stop_event = threading.Event()
         self._prepare_temp_root()
-        recovered = self.state.recover_stale_booklet_issuances(self.orphan_max_age_seconds)
+        # One service process owns this database; no prior processing worker survives startup.
+        recovered = self.state.recover_stale_booklet_issuances(0)
         if recovered:
-            logging.warning("booklet stale issuances recovered count=%s", recovered)
+            logging.warning("booklet interrupted issuances recovered count=%s", recovered)
         self._threads = [
             threading.Thread(target=self._run, name=f"dent-protected-media-{index + 1}", daemon=True)
             for index in range(max(1, min(workers, 8)))
@@ -639,8 +640,35 @@ class ProtectedMediaDispatcher:
 
     def close(self) -> None:
         self._stop_event.set()
+        cancelled = 0
+        paid_cancelled = 0
+        while True:
+            try:
+                job = self.queue.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                if job is not None:
+                    with self._lock:
+                        self._pending.discard((job.user_id, job.document_id, WATERMARK_VERSION))
+                    if job.source_type == "paid_file":
+                        # Paid-file source IDs are not protected_media_sources IDs; the purchase UI retries them.
+                        paid_cancelled += 1
+                    else:
+                        self.state.record_protected_media_delivery(job.user_id, job.source_id, "failed")
+                    cancelled += 1
+            except Exception:
+                logging.exception("protected media shutdown recovery failed")
+            finally:
+                self.queue.task_done()
+        if cancelled:
+            logging.warning(
+                "protected media queued jobs deferred on shutdown cancelled=%s paid_retry_action=%s",
+                cancelled,
+                paid_cancelled,
+            )
         for _thread in self._threads:
-            self.queue.put(None)
+            self.queue.put_nowait(None)
         for thread in self._threads:
-            thread.join(timeout=5)
-        self._cleanup_thread.join(timeout=5)
+            thread.join()
+        self._cleanup_thread.join()

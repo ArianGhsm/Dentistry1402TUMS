@@ -28,6 +28,12 @@ name, national code and verified mobile only after canonical authentication.
 - Every job gets a private `0700` directory. Source, output, page batches and
   scratch files are removed in `finally`; age-based orphan cleanup handles a
   process crash without deleting active jobs.
+- On service stop, active workers finish before SQLite and Bot API connections
+  close. Queued unpaid deliveries are recorded for the existing retry worker;
+  paid-file deliveries keep their existing purchase/cart retry action. A process restart
+  immediately releases issuance rows left in `processing` by a hard stop. The
+  Telegram service stop timeout covers the maximum configured render and upload
+  time.
 - Voice and non-PDF media are copied unchanged with `protect_content=true`.
   Both first PDF upload and cached `file_id` resend also set
   `protect_content=true`.
