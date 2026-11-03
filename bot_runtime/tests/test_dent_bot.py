@@ -91,6 +91,70 @@ class DentBotTests(unittest.TestCase):
         finally:
             api.close()
 
+    def test_required_membership_transient_request_retries_once(self) -> None:
+        api = TelegramBotApi("123:test", api_root="https://example.test")
+        try:
+            with patch("dent_bot.api.time.sleep") as pause, patch.object(
+                api, "call",
+                side_effect=[BotApiError("network interrupted", transient=True), {"status": "member"}],
+            ) as request:
+                self.assertTrue(api.is_chat_member("@Dent1402Booklets", 20))
+                self.assertEqual(request.call_count, 2)
+                pause.assert_called_once_with(0.25)
+
+            with patch("dent_bot.api.time.sleep") as pause, patch.object(
+                api._transport, "post",
+                side_effect=[
+                    (502, b'{"ok":false,"description":"Bad Gateway"}'),
+                    (200, b'{"ok":true,"result":{"status":"member"}}'),
+                ],
+            ) as request:
+                self.assertTrue(api.is_chat_member("@Dent1402Booklets", 20))
+                self.assertEqual(request.call_count, 2)
+                pause.assert_called_once_with(0.25)
+
+            with patch("dent_bot.api.time.sleep") as pause, patch.object(
+                api, "call",
+                side_effect=BotApiError("network unavailable", transient=True),
+            ) as request:
+                with self.assertRaises(BotApiError):
+                    api.is_chat_member("@Dent1402Booklets", 20)
+                self.assertEqual(request.call_count, 2)
+                pause.assert_called_once_with(0.25)
+
+            with patch("dent_bot.api.time.sleep") as pause, patch.object(
+                api, "call",
+                side_effect=BotApiError("bot is not an administrator"),
+            ) as request:
+                with self.assertRaises(BotApiError):
+                    api.is_chat_member("@Dent1402Booklets", 20)
+                request.assert_called_once()
+                pause.assert_not_called()
+        finally:
+            api.close()
+
+    def test_gateway_failure_retries_membership_but_not_permanent_rejection(self) -> None:
+        api = TelegramBotApi("123:test", api_root="https://example.test")
+        try:
+            with patch("dent_bot.api.time.sleep") as pause, patch.object(
+                api._transport, "post", side_effect=[
+                    (502, b'{"ok":false,"error_code":502,"description":"Bad Gateway"}'),
+                    (200, b'{"ok":true,"result":{"status":"member"}}'),
+                ],
+            ) as request:
+                self.assertTrue(api.is_chat_member("@Dent1402Booklets", 20))
+                self.assertEqual(request.call_count, 2)
+                pause.assert_called_once_with(0.25)
+            with patch("dent_bot.api.time.sleep") as pause, patch.object(
+                api._transport, "post", return_value=(403, b'{"ok":false,"error_code":403,"description":"Forbidden"}'),
+            ) as request:
+                with self.assertRaises(BotApiError):
+                    api.is_chat_member("@Dent1402Booklets", 20)
+                request.assert_called_once()
+                pause.assert_not_called()
+        finally:
+            api.close()
+
     def test_callback_alert_is_visible_and_reports_transport_failure(self) -> None:
         api = TelegramBotApi("123:test", api_root="https://example.test")
         try:
