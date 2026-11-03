@@ -10,6 +10,7 @@ import re
 import secrets
 import ssl
 import subprocess
+import time
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import quote, urlsplit
@@ -390,10 +391,12 @@ class TelegramBotApi:
         try:
             value = json.loads(raw.decode("utf-8"))
         except (UnicodeError, json.JSONDecodeError) as error:
-            raise BotApiError("Telegram returned an invalid response") from error
+            raise BotApiError("Telegram returned an invalid response", transient=_status >= 500) from error
         if not isinstance(value, dict) or value.get("ok") is not True:
             description = str(value.get("description", "request rejected")) if isinstance(value, dict) else "request rejected"
-            raise BotApiError(description[:240])
+            error_code = value.get("error_code", _status) if isinstance(value, dict) else _status
+            transient = isinstance(error_code, int) and (error_code == 429 or error_code >= 500)
+            raise BotApiError(description[:240], transient=transient or _status >= 500)
         return value.get("result")
 
     def get_updates(self, offset: int, poll_timeout: int) -> list[dict]:
@@ -415,11 +418,20 @@ class TelegramBotApi:
         interaction. The required channel bot must remain an administrator so
         Telegram guarantees getChatMember for other users.
         """
-        result = self.call(
-            "getChatMember",
-            {"chat_id": chat_id, "user_id": int(user_id)},
-            timeout=6,
-        )
+        # getChatMember has no side effects. Retry a transient transport fault
+        # once before the caller's mandatory membership gate fails closed.
+        for attempt in range(2):
+            try:
+                result = self.call(
+                    "getChatMember",
+                    {"chat_id": chat_id, "user_id": int(user_id)},
+                    timeout=6,
+                )
+                break
+            except BotApiError as error:
+                if attempt or not error.transient:
+                    raise
+                time.sleep(0.25)
         if not isinstance(result, dict):
             raise BotApiError("Telegram returned an invalid chat-member response", transient=True)
         status = str(result.get("status") or "")
