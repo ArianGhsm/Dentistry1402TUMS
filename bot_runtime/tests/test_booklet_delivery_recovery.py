@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from dent_bot.api import BotApiError, TelegramBotApi
-from dent_bot.protected_media import ProtectedMediaDispatcher
+from dent_bot.protected_media import ProtectedMediaDispatcher, _protected_delivery_failure_text
 from dent_bot.state import BotState
 
 
@@ -75,8 +75,8 @@ class BookletDeliveryRecoveryTests(unittest.TestCase):
         self.assertEqual(queued, [(105, self.source_id)])
 
 
-class TelegramHttp2UploadTests(unittest.TestCase):
-    def test_http2_upload_keeps_bot_token_off_process_arguments(self) -> None:
+class TelegramHttp1UploadTests(unittest.TestCase):
+    def test_http1_upload_keeps_bot_token_off_process_arguments(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "personalized.pdf"
             path.write_bytes(b"%PDF-1.4\nTEST")
@@ -88,7 +88,8 @@ class TelegramHttp2UploadTests(unittest.TestCase):
                     result = api.send_protected_document_curl(101, path, caption="<b>جزوه</b>")
                 self.assertEqual(result["message_id"], 55)
                 cmd = call.call_args.args[0]
-                self.assertIn("--http2", cmd)
+                self.assertIn("--http1.1", cmd)
+                self.assertNotIn("--http2", cmd)
                 self.assertIn("protect_content=true", cmd)
                 self.assertTrue(any("filename=dent1402-personalized.pdf" in arg for arg in cmd))
                 self.assertNotIn("TEST_SECRET", " ".join(cmd))
@@ -97,19 +98,41 @@ class TelegramHttp2UploadTests(unittest.TestCase):
             finally:
                 api.close()
 
-    def test_failed_http2_upload_is_not_recorded_as_success(self) -> None:
+    def test_failed_http1_upload_is_not_recorded_as_success(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "test.pdf"
             path.write_bytes(b"%PDF-1.4")
             api = TelegramBotApi("123:TEST_SECRET")
             try:
-                with patch("dent_bot.api.subprocess.run") as call:
-                    call.return_value = subprocess.CompletedProcess([], 56, b"", b"")
-                    with self.assertRaises(BotApiError) as raised:
-                        api.send_protected_document_curl(101, path)
-                self.assertTrue(raised.exception.transient)
+                for curl_exit in (28, 92):
+                    with self.subTest(curl_exit=curl_exit):
+                        with patch("dent_bot.api.subprocess.run") as call:
+                            call.return_value = subprocess.CompletedProcess([], curl_exit, b"", b"")
+                            with self.assertRaises(BotApiError) as raised:
+                                api.send_protected_document_curl(101, path)
+                        self.assertTrue(raised.exception.transient)
+                        self.assertIn(f"curl exit {curl_exit}", str(raised.exception))
             finally:
                 api.close()
+
+
+
+class ProtectedDeliveryErrorCopyTests(unittest.TestCase):
+    def test_transient_telegram_upload_failure_does_not_blame_canonical_account(self) -> None:
+        failure = BotApiError("Telegram HTTP/2 stream reset", transient=True)
+        text = _protected_delivery_failure_text("booklet", failure)
+        self.assertIn("ارتباط با تلگرام", text)
+        self.assertIn("خودکار", text)
+        self.assertNotIn("مشخصات کامل حساب", text)
+        self.assertNotIn("HTTP/2", text)
+
+    def test_nontransient_booklet_failure_keeps_source_or_identity_guidance(self) -> None:
+        text = _protected_delivery_failure_text("booklet", BotApiError("invalid source"))
+        self.assertIn("فایل منبع", text)
+
+    def test_paid_file_failure_retains_purchase_specific_wording(self) -> None:
+        text = _protected_delivery_failure_text("paid_file", BotApiError("down", transient=True))
+        self.assertIn("فایل محافظت‌شده", text)
 
 
 if __name__ == "__main__":

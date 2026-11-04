@@ -32,6 +32,18 @@ def _error(message: str) -> str:
     return f"<b>⚠️ انجام نشد</b>\n\n{html.escape(message)}"
 
 
+def _protected_delivery_failure_text(source_type: str, error: Exception) -> str:
+    if source_type == "paid_file":
+        return "صدور فایل محافظت‌شده انجام نشد؛ کمی بعد دوباره دریافت را بزن."
+    if isinstance(error, BotApiError) and error.transient:
+        return (
+            "ارتباط با تلگرام هنگام ارسال نسخهٔ شخصی قطع شد. "
+            "ربات پس از بازیابی ارتباط، به‌صورت خودکار دوباره تلاش می‌کند؛ "
+            "نیازی به ثبت‌نام مجدد یا ویرایش مشخصات حساب نیست."
+        )
+    return "صدور نسخهٔ شخصی انجام نشد؛ مشخصات کامل حساب یا فایل منبع را بررسی کن و دوباره تلاش کن."
+
+
 _BOOKLET_CAPTION_KINDS = frozenset({"booklet", "ai_booklet", "paid_file"})
 _DIRECT_SOURCE_COPY_KINDS = frozenset({"power"})
 _TELEGRAM_CAPTION_SOURCE_BUDGET = 900
@@ -622,11 +634,7 @@ class ProtectedMediaDispatcher:
                     str(error)[:300],
                 )
                 try:
-                    failure_text = (
-                        "صدور فایل محافظت‌شده انجام نشد؛ کمی بعد دوباره دریافت را بزن."
-                        if job.source_type == "paid_file"
-                        else "صدور نسخهٔ شخصی انجام نشد؛ مشخصات کامل حساب یا فایل منبع را بررسی کن و دوباره تلاش کن."
-                    )
+                    failure_text = _protected_delivery_failure_text(job.source_type, error)
                     self.api.send(
                         job.user_id,
                         _error(failure_text),
