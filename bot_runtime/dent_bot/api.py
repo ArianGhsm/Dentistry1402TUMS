@@ -603,7 +603,11 @@ class TelegramBotApi:
         }
 
     def send_protected_document_curl(self, chat_id: int, document_path: Path, *, caption: str = "") -> dict:
-        """Stream a personalized PDF with HTTP/2. Secret stays out of process args."""
+        """Stream a personalized PDF over HTTP/1.1 to avoid proxy HTTP/2 stream resets.
+
+        Keep the bot token in stdin-based curl config, never process args.
+        The existing bounded delivery-recovery worker handles transient failures.
+        """
         if not document_path.is_file() or document_path.stat().st_size <= 0:
             raise BotApiError("Personalized PDF is unavailable")
         url = f"https://{self._transport.host}{self._transport.prefix}{self._path}/sendDocument"
@@ -611,7 +615,7 @@ class TelegramBotApi:
         if self._transport.proxy_host:
             config += f'proxy = "http://{self._transport.proxy_host}:{self._transport.proxy_port}"\n'
         command = [
-            "curl", "--config", "-", "--http2", "--silent", "--show-error",
+            "curl", "--config", "-", "--http1.1", "--silent", "--show-error",
             "--header", "Expect:", "--max-time", "240", "--connect-timeout", "12",
             "--request", "POST", "--form-string", f"chat_id={int(chat_id)}",
             "--form-string", "protect_content=true",
@@ -624,13 +628,13 @@ class TelegramBotApi:
         try:
             process = subprocess.run(command, input=config.encode(), capture_output=True, timeout=255)
         except (OSError, subprocess.TimeoutExpired) as error:
-            raise BotApiError(f"Telegram HTTP/2 upload failed: {type(error).__name__}", transient=True) from error
+            raise BotApiError(f"Telegram HTTP/1.1 upload failed: {type(error).__name__}", transient=True) from error
         if process.returncode != 0:
-            raise BotApiError(f"Telegram HTTP/2 upload failed: curl exit {process.returncode}", transient=True)
+            raise BotApiError(f"Telegram HTTP/1.1 upload failed: curl exit {process.returncode}", transient=True)
         try:
             value = json.loads(process.stdout.decode("utf-8"))
         except (UnicodeError, json.JSONDecodeError) as error:
-            raise BotApiError("Telegram HTTP/2 upload returned invalid JSON", transient=True) from error
+            raise BotApiError("Telegram HTTP/1.1 upload returned invalid JSON", transient=True) from error
         if not isinstance(value, dict) or value.get("ok") is not True:
             description = str(value.get("description", "request rejected")) if isinstance(value, dict) else "request rejected"
             raise BotApiError(description[:240])
