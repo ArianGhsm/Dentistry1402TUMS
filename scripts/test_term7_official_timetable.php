@@ -34,6 +34,7 @@ $expectedTheory = [
         ['diagnostic-dentistry-3-mon', '11:30', '12:30'],
         ['orthodontics-theory-1', '12:40', '13:40'],
         ['endodontics-theory-1', '13:50', '15:50'],
+        ['endodontics-theory-1-makeup-14050825', '12:40', '13:40'],
     ],
     2 => [['oral-health-theory-2', '07:00', '08:00']],
     3 => [['partial-basics-theory', '07:00', '08:00']],
@@ -130,6 +131,26 @@ foreach ([
     $assert(($event['instructor'] ?? '') === $instructor, "Orthodontics session {$sessionNumber} instructor preserved");
     $assert(($event['location'] ?? '') === $location, "Orthodontics session {$sessionNumber} location agrees with mode");
     $assert(($event['start'] ?? '') === '12:40' && ($event['end'] ?? '') === '13:40', "Orthodontics session {$sessionNumber} clock unchanged");
+}
+
+// The announced makeup class is a single-date event, not a weekly recurrence.
+foreach ([
+    ['1405/08/24', 7, 0],
+    ['1405/08/25', 1, 1],
+    ['1405/08/26', 2, 0],
+    ['1405/09/02', 1, 0],
+] as [$date, $weekday, $expectedCount]) {
+    $resolved = dent_term7_resolve_jalali($date, $weekday, []);
+    $events = array_values(array_filter(
+        dent_term7_enriched_event_groups($resolved)['theory'],
+        static fn(array $event): bool => ($event['slug'] ?? '') === 'endodontics-theory-1-makeup-14050825'
+    ));
+    $assert(count($events) === $expectedCount, "Asadian makeup event date-scoped: {$date}");
+    if ($events === []) continue;
+    $event = $events[0];
+    $assert(($event['start'] ?? '') === '12:40' && ($event['end'] ?? '') === '13:40', 'Asadian makeup revised clock');
+    $assert(($event['instructor'] ?? '') === 'دکتر اسدیان', 'Asadian makeup instructor preserved');
+    $assert(str_contains((string) ($event['title'] ?? ''), 'جبرانی'), 'Asadian makeup reason visible');
 }
 
 echo "Official Term 7 timetable tests: {$checks}; failures: {$failures}\n";
