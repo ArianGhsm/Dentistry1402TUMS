@@ -286,9 +286,14 @@ class BookletAppWorkflows:
         self._render_booklet_screen(chat_id, message_id, screen)
 
     def _booklet_courses_screen(self, catalog: dict) -> Screen:
-        # Course-specific paid materials belong above that course's sessions,
-        # not as a pathology-only shortcut in the global subject directory.
-        return booklet_courses_screen(catalog)
+        # Course-specific paid materials belong above that course's sessions.
+        # Keep the independent exam-bundle entry in the global index.
+        featured = (
+            [("🎁 بسته‌های ویژهٔ امتحانات", "study-packs")]
+            if course_by_key(catalog, ENDO_COURSE_KEY) is not None
+            else []
+        )
+        return booklet_courses_screen(catalog, featured_actions=featured)
 
     def _course_dentnote_entries(self, catalog: dict, course_key: str) -> list[tuple[dict, int]]:
         """Find active, deliverable products from the canonical indexed media.

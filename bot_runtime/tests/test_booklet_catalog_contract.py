@@ -104,6 +104,10 @@ class BookletCatalogContractTests(unittest.TestCase):
         self.assertFalse(any(
             "دنت‌نوت" in row[0]["text"] for row in courses.keyboard["inline_keyboard"]
         ))
+        self.assertEqual(
+            courses.keyboard["inline_keyboard"][0][0]["callback_data"],
+            "v1:study-packs",
+        )
         screen = app._booklet_sessions_screen(123, self.catalog, PATHOLOGY_COURSE_KEY)
         self.assertEqual(
             screen.keyboard["inline_keyboard"][0][0]["callback_data"],
