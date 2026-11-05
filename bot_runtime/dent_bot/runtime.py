@@ -668,6 +668,8 @@ def run_service(*, settings, api, platform_name: str) -> int:
             state=state,
             authorize=app.protected_media_access_allowed,
             identity_provider=site_api.booklet_watermark_identity,
+            account_provider=site_api.account,
+            forwardable_student_number=settings.booklet_forwardable_student_number,
             fingerprint_key=settings.booklet_fingerprint_key,
             watermark_font=settings.booklet_watermark_font,
             temp_root=settings.booklet_temp_root,

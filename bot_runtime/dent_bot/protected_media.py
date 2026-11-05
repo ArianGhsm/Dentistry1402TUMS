@@ -82,7 +82,8 @@ class ProtectedMediaDispatcher:
 
     Non-PDF media stays server-side at Telegram. A PDF is downloaded only into
     one private job directory, personalized by secure page raster burn-in, uploaded with
-    protect_content, cached by Telegram file_id and removed in every exit path.
+    Telegram protection by default, cached by Telegram file_id, then cleaned up.
+    A canonical-ID allowlist may unlock forwarding of watermarked PDFs only.
     The VPS never keeps source or personalized PDF bytes after the job.
     """
 
@@ -93,6 +94,8 @@ class ProtectedMediaDispatcher:
         state: BotState,
         authorize: Callable[[int, dict], bool],
         identity_provider: Callable[[int], dict] | None = None,
+        account_provider: Callable[[int], dict] | None = None,
+        forwardable_student_number: str = "",
         fingerprint_key: bytes = b"",
         watermark_font: Path = Path(""),
         temp_root: Path = Path("/var/lib/integrated-dent/dent-bot/tmp/booklets"),
@@ -114,6 +117,8 @@ class ProtectedMediaDispatcher:
         self.state = state
         self.authorize = authorize
         self.identity_provider = identity_provider
+        self.account_provider = account_provider
+        self.forwardable_student_number = str(forwardable_student_number).strip()
         self.fingerprint_key = bytes(fingerprint_key)
         self.watermark_font = Path(watermark_font)
         self.temp_root = Path(temp_root)
@@ -409,7 +414,23 @@ class ProtectedMediaDispatcher:
             identity_method=str(identity.get("identityMethod") or "national_code"),
         ).validated()
 
+    def _forwarding_unlocked_for_watermarked_pdf(self, user_id: int) -> bool:
+        """Fail closed; match the linked canonical student, never a display name."""
+        if not self.forwardable_student_number or self.account_provider is None:
+            return False
+        try:
+            account = self.account_provider(user_id)
+        except Exception as error:
+            logging.warning("booklet forwarding policy lookup unavailable: %s", type(error).__name__)
+            return False
+        if not isinstance(account, dict) or account.get("linked") is not True or account.get("authComplete") is not True:
+            return False
+        user = account.get("user")
+        return isinstance(user, dict) and str(user.get("studentNumber") or "") == self.forwardable_student_number
+
     def _send_pdf(self, job: DeliveryJob, source: dict) -> dict:
+        # Unlock forwarding only for already-watermarked PDFs, including cached copies.
+        protect_content = not self._forwarding_unlocked_for_watermarked_pdf(job.user_id)
         document_id = job.document_id
         cached = self.state.sent_booklet_issuance(job.user_id, job.source_id, document_id, WATERMARK_VERSION)
         if cached is not None:
@@ -421,6 +442,7 @@ class ProtectedMediaDispatcher:
                     source,
                     personalized_file_id=str(cached.get("telegramFileId") or ""),
                     caption=_protected_delivery_caption(source, str(cached.get("traceCode") or "")),
+                    protect_content=protect_content,
                 )
                 logging.info(
                     "booklet cache hit queue_ms=%s",
@@ -465,6 +487,7 @@ class ProtectedMediaDispatcher:
                     source,
                     personalized_file_id=str(existing["telegramFileId"]),
                     caption=_protected_delivery_caption(source, str(existing.get("traceCode") or "")),
+                    protect_content=protect_content,
                 )
             if existing is None:
                 issuance_id = "iss_" + secrets.token_urlsafe(24)
@@ -519,6 +542,7 @@ class ProtectedMediaDispatcher:
                 job.user_id,
                 output_path,
                 caption=_protected_delivery_caption(source, material.trace_code),
+                protect_content=protect_content,
             )
             file_id, file_unique_id = self._telegram_document_ids(result)
             if not file_id:

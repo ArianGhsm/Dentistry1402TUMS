@@ -1132,9 +1132,37 @@ class BookletDeliveryTests(unittest.TestCase):
             self.assertEqual(api.calls[-1][1][field], f"personal-{field}-id")
             self.assertIs(api.calls[-1][1]["protect_content"], True)
 
+        api.send_protected_media(20, source, personalized_file_id="watermarked-pdf", protect_content=False)
+        self.assertIs(api.calls[-1][1]["protect_content"], False)
+        with self.assertRaises(BotApiError):
+            api.send_protected_media(20, source, protect_content=False)
+
         bale = object.__new__(BaleBotApi)
         with self.assertRaises(BotApiError):
             bale.send_protected_media(20, source)
+
+    def test_forwarding_exception_requires_exact_verified_canonical_student(self) -> None:
+        dispatcher = object.__new__(ProtectedMediaDispatcher)
+        dispatcher.forwardable_student_number = "12345678901"
+        dispatcher.account_provider = lambda _uid: {
+            "linked": True, "authComplete": True,
+            "user": {"studentNumber": "12345678901"},
+        }
+        self.assertTrue(dispatcher._forwarding_unlocked_for_watermarked_pdf(123))
+        dispatcher.account_provider = lambda _uid: {
+            "linked": True, "authComplete": True,
+            "user": {"studentNumber": "12345678902"},
+        }
+        self.assertFalse(dispatcher._forwarding_unlocked_for_watermarked_pdf(123))
+        dispatcher.account_provider = lambda _uid: {
+            "linked": True, "authComplete": False,
+            "user": {"studentNumber": "12345678901"},
+        }
+        self.assertFalse(dispatcher._forwarding_unlocked_for_watermarked_pdf(123))
+        dispatcher.account_provider = lambda _uid: (_ for _ in ()).throw(RuntimeError("offline"))
+        self.assertFalse(dispatcher._forwarding_unlocked_for_watermarked_pdf(123))
+        dispatcher.account_provider = None
+        self.assertFalse(dispatcher._forwarding_unlocked_for_watermarked_pdf(123))
 
     def test_pdf_power_uses_direct_protected_source_copy_without_watermark(self) -> None:
         class PowerApi:
@@ -1271,13 +1299,14 @@ class BookletDeliveryTests(unittest.TestCase):
                     "document": {"file_id": "personalized-file", "file_unique_id": "personalized-unique"},
                 }
 
-            def send_protected_document_curl(self, chat_id, document_path, *, caption):
+            def send_protected_document_curl(self, chat_id, document_path, *, caption, protect_content=True):
+                self.upload_protect_content = protect_content
                 return self.send_protected_document_path(
                     chat_id, document_path, caption=caption, filename="dent1402-personalized.pdf"
                 )
 
-            def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption=""):
-                self.cached_sends.append((personalized_file_id, caption))
+            def send_protected_media(self, chat_id, source, *, personalized_file_id="", caption="", protect_content=True):
+                self.cached_sends.append((personalized_file_id, caption, protect_content))
                 return {"message_id": 800 + len(self.cached_sends)}
 
             def send(self, chat_id, text, keyboard):
@@ -1322,9 +1351,16 @@ class BookletDeliveryTests(unittest.TestCase):
                         "phoneNumber": "09123456789",
                     }},
                     fingerprint_key=b"k" * 32,
+                    account_provider=lambda _user: {
+                        "linked": True, "authComplete": True,
+                        "user": {"studentNumber": "12345678901"},
+                    },
+                    forwardable_student_number="12345678901",
                     watermark_font=font,
                     temp_root=temp_root,
-                    qpdf_binary="/usr/bin/qpdf",
+                    # Prefer the in-process assembler where available; this test
+                    # asserts recipient policy, not external qpdf behavior.
+                    qpdf_binary="" if __import__("importlib").util.find_spec("pikepdf") else "qpdf",
                     workers=1,
                     max_queue=24,
                     same_document_cooldown_seconds=1,
@@ -1333,6 +1369,7 @@ class BookletDeliveryTests(unittest.TestCase):
                 dispatcher.queue.join()
                 self.assertEqual(api.downloads, 1)
                 self.assertEqual(api.uploads, 1)
+                self.assertIs(api.upload_protect_content, False)
                 self.assertGreater(api.assert_bytes, source_pdf.stat().st_size)
                 self.assertEqual(api.assert_filename, "dent1402-personalized.pdf")
                 self.assertIn(SOURCE_CAPTION, api.upload_caption)
@@ -1348,6 +1385,7 @@ class BookletDeliveryTests(unittest.TestCase):
                 self.assertEqual(api.downloads, 1)
                 self.assertEqual(api.uploads, 1)
                 self.assertEqual(api.cached_sends[0][0], "personalized-file")
+                self.assertIs(api.cached_sends[0][2], False)
                 self.assertIn(SOURCE_CAPTION, api.cached_sends[0][1])
                 self.assertIn("🔐 نسخهٔ شخصی‌سازی‌شده", api.cached_sends[0][1])
                 self.assertIn("کد رهگیری:", api.cached_sends[0][1])
