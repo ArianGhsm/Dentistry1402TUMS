@@ -279,8 +279,17 @@ function dent_bot_cleanup_payment_delivery_store(array &$store, int $now): void
 
 function dent_bot_cleanup_notification_delivery_store(array &$store, int $now): void
 {
-    $retentionDays = max(7, min(365, (int) (getenv('DENT_BOT_NOTIFICATION_DELIVERY_RETENTION_DAYS') ?: 90)));
+    // The store is decoded on every claim, so it must stay small: at 90 days it
+    // reached ~20 MB and exhausted the 256M PHP limit. Delivered/failed rows are
+    // the only record that a notification was already pushed, so the dispatch
+    // window (dispatchSince) is advanced to the same cutoff below; otherwise a
+    // pruned, still-visible notification would be pushed again.
+    $retentionDays = max(7, min(365, (int) (getenv('DENT_BOT_NOTIFICATION_DELIVERY_RETENTION_DAYS') ?: 30)));
     $terminalBefore = $now - ($retentionDays * 86400);
+    $storedSince = strtotime((string) ($store['dispatchSince'] ?? ''));
+    if ($storedSince === false || $storedSince < $terminalBefore) {
+        $store['dispatchSince'] = gmdate('c', $terminalBefore);
+    }
     foreach ($store['deliveries'] as $key => $delivery) {
         if (!is_array($delivery)) {
             unset($store['deliveries'][$key]);

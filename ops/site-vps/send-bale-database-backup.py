@@ -24,7 +24,7 @@ from pathlib import Path, PurePosixPath
 BACKUP_ROOT = Path("/var/backups/dentistry1402-runtime")
 OUTBOX = BACKUP_ROOT / "bale-database"
 ARCHIVE_PATTERN = re.compile(r"^dentistry1402-runtime-(\d{8}T\d{6}Z)\.tar\.gz$")
-PART_BYTES = 19_000_000
+PART_BYTES = 9_000_000
 MAX_AGE = dt.timedelta(hours=26)
 KEEP_PACKAGES = 2
 BALE_API = "https://tapi.bale.ai"
@@ -303,7 +303,7 @@ def send_document(token: str, chat_id: int, document: Path, caption: str) -> Non
     request = _multipart_request(token, chat_id, document, caption)
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(request, timeout=90) as response:
+            with urllib.request.urlopen(request, timeout=240) as response:
                 payload = json.loads(response.read(1024 * 1024).decode("utf-8"))
             if payload.get("ok") is not True:
                 raise BackupError("Bale rejected the database document")
