@@ -45,6 +45,7 @@ class BotSettings:
     booklet_media_workers: int
     booklet_media_queue_size: int
     booklet_access_mode: str
+    booklet_forwardable_student_number: str
     booklet_fingerprint_key: bytes
     booklet_watermark_font: Path
     booklet_temp_root: Path
@@ -192,6 +193,12 @@ def load_settings() -> BotSettings:
     booklet_pdf_normalizer = os.getenv("DENT_BOT_BOOKLET_PDF_NORMALIZER", "none").strip().lower()
     if booklet_pdf_normalizer not in {"none", "pikepdf"}:
         raise ValueError("Unsupported booklet PDF normalizer")
+    forwardable_student_number = os.getenv("DENT_BOT_BOOKLET_FORWARDABLE_STUDENT_NUMBER", "").strip()
+    if forwardable_student_number and (
+        len(forwardable_student_number) != 11 or not forwardable_student_number.isascii()
+        or not forwardable_student_number.isdigit()
+    ):
+        raise ValueError("Forwardable booklet student number must be one 11-digit canonical ID")
     return BotSettings(
         token=token,
         bot_username=os.getenv("DENT_BOT_EXPECTED_USERNAME", "Dent1402Bot").strip().lstrip("@") or "Dent1402Bot",
@@ -245,6 +252,7 @@ def load_settings() -> BotSettings:
         booklet_media_workers=min(8, max(1, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_WORKERS", "1")))),
         booklet_media_queue_size=min(500, max(20, int(os.getenv("DENT_BOT_BOOKLET_MEDIA_QUEUE_SIZE", "100")))),
         booklet_access_mode=booklet_access_mode,
+        booklet_forwardable_student_number=forwardable_student_number,
         # Telegram can now watermark paid-file PDFs even when the private booklet source channel
         # is disabled, so the fingerprint key is a runtime invariant for Telegram.
         booklet_fingerprint_key=load_booklet_fingerprint_key(required=True),

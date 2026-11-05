@@ -538,8 +538,11 @@ class TelegramBotApi:
         *,
         personalized_file_id: str = "",
         caption: str = "",
+        protect_content: bool = True,
     ) -> dict:
-        """Deliver Telegram media with forwarding/saving protection enabled."""
+        """Deliver source media protected; only personalized files may opt out."""
+        if not protect_content and not personalized_file_id:
+            raise BotApiError("Source media cannot be delivered without forward protection")
         if personalized_file_id:
             method = str(source.get("telegramMethod") or "sendDocument")
             field = {
@@ -557,7 +560,7 @@ class TelegramBotApi:
             payload = {
                 "chat_id": chat_id,
                 field: personalized_file_id,
-                "protect_content": True,
+                "protect_content": bool(protect_content),
             }
             if caption and method not in {"sendVideoNote", "sendSticker"}:
                 payload["caption"] = self._prepare_rich_text(caption)
@@ -602,7 +605,9 @@ class TelegramBotApi:
             "fileUniqueId": str(info.get("file_unique_id") or ""),
         }
 
-    def send_protected_document_curl(self, chat_id: int, document_path: Path, *, caption: str = "") -> dict:
+    def send_protected_document_curl(
+        self, chat_id: int, document_path: Path, *, caption: str = "", protect_content: bool = True
+    ) -> dict:
         """Stream a personalized PDF over HTTP/1.1 to avoid proxy HTTP/2 stream resets.
 
         Keep the bot token in stdin-based curl config, never process args.
@@ -618,7 +623,7 @@ class TelegramBotApi:
             "curl", "--config", "-", "--http1.1", "--silent", "--show-error",
             "--header", "Expect:", "--max-time", "240", "--connect-timeout", "12",
             "--request", "POST", "--form-string", f"chat_id={int(chat_id)}",
-            "--form-string", "protect_content=true",
+            "--form-string", f"protect_content={str(bool(protect_content)).lower()}",
             "--form", f"document=@{document_path};filename=dent1402-personalized.pdf;type=application/pdf",
         ]
         if caption:
@@ -647,12 +652,13 @@ class TelegramBotApi:
         *,
         caption: str = "",
         filename: str = "personalized.pdf",
+        protect_content: bool = True,
     ) -> dict:
         if not document_path.is_file() or document_path.stat().st_size <= 0:
             raise BotApiError("Personalized PDF is unavailable")
         fields = {
             "chat_id": str(int(chat_id)),
-            "protect_content": "true",
+            "protect_content": str(bool(protect_content)).lower(),
         }
         if caption:
             fields["caption"] = self._prepare_rich_text(caption)

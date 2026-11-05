@@ -71,6 +71,7 @@ def load_settings() -> BotSettings:
         booklet_media_workers=1,
         booklet_media_queue_size=4,
         booklet_access_mode="all-authenticated",
+        booklet_forwardable_student_number="",
         booklet_fingerprint_key=b"",
         booklet_watermark_font=Path(""),
         booklet_temp_root=Path("/var/lib/integrated-dent/bale-bot/tmp/booklets"),
