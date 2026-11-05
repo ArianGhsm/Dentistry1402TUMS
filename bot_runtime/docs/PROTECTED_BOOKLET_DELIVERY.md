@@ -28,9 +28,20 @@ name, national code and verified mobile only after canonical authentication.
 - Every job gets a private `0700` directory. Source, output, page batches and
   scratch files are removed in `finally`; age-based orphan cleanup handles a
   process crash without deleting active jobs.
-- Voice and non-PDF media are copied unchanged with `protect_content=true`.
-  Both first PDF upload and cached `file_id` resend also set
-  `protect_content=true`.
+- Voice, non-PDF media, and direct source copies always use
+  `protect_content=true`. By default, first personalized PDF uploads and
+  cached `file_id` resends also set `protect_content=true`.
+- A single optional Telegram-only exception is configured through
+  `DENT_BOT_BOOKLET_FORWARDABLE_STUDENT_NUMBER` (one canonical 11-digit student
+  number; empty by default). For that student, **only** freshly generated or
+  cached, already-personalized watermarked PDF editions are sent with
+  `protect_content=false`. The dispatcher rechecks the signed website `account`
+  response on every send and requires `linked=true`, `authComplete=true`, and
+  the exact canonical `user.studentNumber` match. Any network/identity error,
+  missing mapping, or different student fails closed to the default protected
+  delivery. Authorization, membership, recipient burn-in, hidden fingerprint,
+  issuance attribution and cache isolation remain unchanged. The original
+  source PDF and all other content kinds remain forward-protected.
 - The first successful upload atomically publishes its Telegram `file_id`.
   Cache hits perform no source download, rendering, watermarking or upload.
   An upload retry reuses the same issuance and fingerprint.
@@ -51,7 +62,7 @@ private Telegram source
   -> encode that page image
   -> write a four-page bounded-memory batch
   -> qpdf merge and validation
-  -> protected Telegram upload
+  -> Telegram upload (protected by default; canonical single-student exception)
   -> immediate temporary cleanup
 ```
 
