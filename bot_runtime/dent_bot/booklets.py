@@ -366,6 +366,7 @@ def sessions_screen(
     *,
     ai_published_sessions: set[int] | None = None,
     ai_owned_sessions: set[int] | None = None,
+    dentnote_action: str = "",
     highlight_study_packs: bool = False,
 ) -> Screen:
     course = course_by_key(catalog, course_key)
@@ -394,6 +395,10 @@ def sessions_screen(
     purchasable = sorted(published - owned)
 
     rows: list[list[dict]] = []
+    if dentnote_action:
+        rows.append([
+            button("📕 دنت‌نوت | خرید و دریافت", action=dentnote_action, style="success")
+        ])
     if highlight_study_packs:
         rows.append([
             button("🎁 بسته‌های ویژهٔ کوییز و امتحان", action="study-packs", style="success")
@@ -485,7 +490,7 @@ def resources_screen(
     if mode:
         metadata.append(f"📍 {html.escape(mode)}")
 
-    kinds = ("voice", "power", "booklet", "reference", AI_BOOKLET_CONTENT_KIND, "dentnote", "flashcard")
+    kinds = ("voice", "power", "booklet", "reference", AI_BOOKLET_CONTENT_KIND, "flashcard")
     counts = {kind: max(0, int(content_counts.get(kind) or 0)) for kind in kinds}
     available = {kind: counts[kind] > 0 for kind in kinds}
 
@@ -552,12 +557,10 @@ def resources_screen(
                 style="primary",
             )
         ])
-    study_row = [
-        button(RESOURCE_LABELS[kind], action=f"booklet-resource:{course_key}:{session_no}:{kind}")
-        for kind in ("dentnote", "flashcard") if available[kind]
-    ]
-    if study_row:
-        rows.append(study_row)
+    if available["flashcard"]:
+        rows.append([
+            button(RESOURCE_LABELS["flashcard"], action=f"booklet-resource:{course_key}:{session_no}:flashcard")
+        ])
     rows.extend((
         [button("↩️ جلسات", action=f"booklet-course:{course_key}")],
         [button("🏠 منوی اصلی", action="home")],

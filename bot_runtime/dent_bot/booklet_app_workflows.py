@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 
 from .ai_booklets import (
@@ -51,6 +52,7 @@ class BookletAppWorkflows:
         return name == "notes" or name.startswith(
             (
                 "booklet-course:",
+                "booklet-dentnotes:",
                 "booklet-session:",
                 "booklet-resource:",
                 "booklet-ai-buy:",
@@ -284,37 +286,89 @@ class BookletAppWorkflows:
         self._render_booklet_screen(chat_id, message_id, screen)
 
     def _booklet_courses_screen(self, catalog: dict) -> Screen:
-        """Show permanent product entry points above the syllabus list.
+        # Course-specific paid materials belong above that course's sessions,
+        # not as a pathology-only shortcut in the global subject directory.
+        return booklet_courses_screen(catalog)
 
-        The campaign message can be edited away by Telegram callbacks. Reuse
-        the existing course-index renderer and resolve the shortcut from the
-        canonical live resource/paid-offer catalog, not a hardcoded product ID.
+    def _course_dentnote_entries(self, catalog: dict, course_key: str) -> list[tuple[dict, int]]:
+        """Find active, deliverable products from the canonical indexed media.
+
+        One product may be indexed against many syllabus sessions. Deduplicate
+        by offer reference, and never advertise an unbacked/unpublished file.
         """
-        featured: list[tuple[str, str]] = []
-        pathology = course_by_key(catalog, PATHOLOGY_COURSE_KEY)
-        if pathology is not None and session_by_number(pathology, DENTNOTE_ANCHOR_SESSION):
-            sources = self.state.protected_media_for_tag(
-                course_tag=str(pathology.get("bookletTag") or ""),
-                term=int(catalog.get("term") or 7),
-                session_no=DENTNOTE_ANCHOR_SESSION,
-                content_kind="dentnote",
-            )
-            for source in sources:
+        course = course_by_key(catalog, course_key)
+        if course is None:
+            return []
+        tag = str(course.get("bookletTag") or "").strip()
+        if not tag:
+            return []
+        term = int(catalog.get("term") or 7)
+        valid_sessions = {
+            int(session.get("sessionNumber") or 0)
+            for session in course.get("sessions", [])
+            if isinstance(session, dict) and 1 <= int(session.get("sessionNumber") or 0) <= 40
+        }
+        indexed_sessions = self.state.protected_media_session_counts_for_tag(
+            course_tag=tag, term=term, content_kind="dentnote",
+        )
+        entries: dict[str, tuple[dict, int]] = {}
+        for session_no in sorted(set(indexed_sessions) & valid_sessions):
+            for source in self.state.protected_media_for_tag(
+                course_tag=tag, term=term, session_no=session_no, content_kind="dentnote",
+            ):
                 asset = self.state.paid_file_asset_for_source(source)
                 if asset is None:
                     continue
-                if any(
-                    self.state.payment_offer(ref) is not None
-                    for ref in self.state.paid_file_offer_refs(str(asset["assetRef"]))
-                ):
-                    featured.append((
-                        "📕 دنت‌نوت پاتولوژی عملی",
-                        f"booklet-resource:{PATHOLOGY_COURSE_KEY}:{DENTNOTE_ANCHOR_SESSION}:dentnote",
-                    ))
-                    break
-        if course_by_key(catalog, ENDO_COURSE_KEY) is not None and featured:
-            featured.append(("🎁 بسته‌های ویژهٔ امتحانات", "study-packs"))
-        return booklet_courses_screen(catalog, featured_actions=featured)
+                for ref in self.state.paid_file_offer_refs(str(asset["assetRef"])):
+                    if ref in entries:
+                        continue
+                    offer = self.state.payment_offer(ref)
+                    if (
+                        offer is not None
+                        and str(dict(offer.get("fulfillment") or {}).get("kind") or "") == "paid_file"
+                    ):
+                        entries[ref] = (offer, session_no)
+        return list(entries.values())
+
+    def _course_dentnotes_screen(self, user_id: int, catalog: dict, course_key: str) -> Screen:
+        course = course_by_key(catalog, course_key)
+        if course is None:
+            return Screen(
+                frame_error("این درس در طرح درس مرجع پیدا نشد."),
+                keyboard([button("↩️ فهرست درس‌ها", action="notes")]),
+            )
+        entries = self._course_dentnote_entries(catalog, course_key)
+        if not entries:
+            return Screen(
+                frame_error("دنت‌نوت قابل خریدی برای این درس ثبت نشده است."),
+                keyboard([button("↩️ جلسات درس", action=f"booklet-course:{course_key}")]),
+            )
+        if len(entries) == 1:
+            return self._booklet_resource_screen(
+                f"booklet-resource:{course_key}:{entries[0][1]}:dentnote",
+                user_id, catalog,
+            )
+        account = self._account_snapshot(user_id)
+        identity = identity_from_account(account)
+        rows = [
+            [button(
+                str(offer.get("title") or "دنت‌نوت")[:38],
+                action=f"payment-confirm:{offer['ref']}", style="primary",
+            )]
+            for offer, _session in entries
+            if self.state.payment_offer_for_user(str(offer["ref"]), identity) is not None
+        ]
+        if not rows:
+            return Screen(
+                frame_error("برای این حساب محصول قابل خریدی پیدا نشد."),
+                keyboard([button("↩️ جلسات درس", action=f"booklet-course:{course_key}")]),
+            )
+        rows.append([button("↩️ جلسات درس", action=f"booklet-course:{course_key}")])
+        return Screen(
+            f"<b>📕 دنت‌نوت‌های {html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n\n"
+            "<blockquote>محصول موردنظر را برای خرید یا دریافت فایل انتخاب کن.</blockquote>",
+            keyboard(*rows),
+        )
 
     def _booklet_resources_screen(self, catalog: dict, course_key: str, session_no: int) -> Screen:
         course = course_by_key(catalog, course_key)
@@ -391,11 +445,18 @@ class BookletAppWorkflows:
 
     def _booklet_sessions_screen(self, user_id: int, catalog: dict, course_key: str) -> Screen:
         context = self._ai_bulk_context(user_id, catalog, course_key)
+        dentnotes = self._course_dentnote_entries(catalog, course_key)
+        dentnote_action = ""
+        if len(dentnotes) == 1:
+            dentnote_action = f"booklet-resource:{course_key}:{dentnotes[0][1]}:dentnote"
+        elif dentnotes:
+            dentnote_action = f"booklet-dentnotes:{course_key}"
         return booklet_sessions_screen(
             catalog,
             course_key,
             ai_published_sessions=set(context["published"]),
             ai_owned_sessions=set(context["owned"]),
+            dentnote_action=dentnote_action,
             highlight_study_packs=(
                 course_key == ENDO_COURSE_KEY
                 and set(ENDO_SESSIONS).issubset(set(context["eligible"]))
@@ -742,6 +803,10 @@ class BookletAppWorkflows:
         if name == "notes":
             self.state.touch_user(user_id, "notes")
             return self._booklet_courses_screen(catalog)
+
+        if name.startswith("booklet-dentnotes:"):
+            course_key = name.removeprefix("booklet-dentnotes:")
+            return self._course_dentnotes_screen(user_id, catalog, course_key)
 
         if name.startswith("booklet-course:"):
             course_key = name.removeprefix("booklet-course:")
