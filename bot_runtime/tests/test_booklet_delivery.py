@@ -1358,7 +1358,9 @@ class BookletDeliveryTests(unittest.TestCase):
                     forwardable_student_number="12345678901",
                     watermark_font=font,
                     temp_root=temp_root,
-                    qpdf_binary="/usr/bin/qpdf",
+                    # Prefer the in-process assembler where available; this test
+                    # asserts recipient policy, not external qpdf behavior.
+                    qpdf_binary="" if __import__("importlib").util.find_spec("pikepdf") else "qpdf",
                     workers=1,
                     max_queue=24,
                     same_document_cooldown_seconds=1,
