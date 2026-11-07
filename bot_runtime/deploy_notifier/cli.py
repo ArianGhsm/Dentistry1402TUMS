@@ -19,7 +19,8 @@ def _delivery_summary(payload: dict[str, object]) -> dict[str, object]:
     deliveries = dict(payload.get("deliveries") or {})
     return {
         "event_id": event.get("event_id", ""),
-        "queued": bool(payload),
+        "queued": bool(payload) and not bool(payload.get("skipped")),
+        "skipped": bool(payload.get("skipped")),
         "deliveries": {
             name: {
                 "status": dict(value or {}).get("status", "unknown"),
@@ -47,7 +48,7 @@ def publish(args: argparse.Namespace) -> int:
     print(json.dumps(summary, ensure_ascii=False))
     if args.require_delivery:
         states = [item["status"] for item in summary["deliveries"].values()]
-        return 0 if states and all(state == "delivered" for state in states) else 2
+        return 0 if summary["skipped"] or (states and all(state == "delivered" for state in states)) else 2
     return 0 if payload else 1
 
 
@@ -97,7 +98,8 @@ def health(args: argparse.Namespace) -> int:
     spool = Spool(settings.state_dir)
     channels = configured_channel_health(settings)
     result = {
-        "ready": bool(channels) and all(channels.values()),
+        "ready": not settings.channels or all(channels.values()),
+        "disabled": not bool(settings.channels),
         "channels": channels,
         "pending_events": len(spool.pending_paths(limit=10000)),
         "state_directory_writable": os.access(spool.root, os.W_OK),
