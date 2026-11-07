@@ -302,6 +302,10 @@ class Notifier:
         self.transports = transports
 
     def publish(self, event: DeployEvent, channels: tuple[str, ...]) -> dict[str, object]:
+        # A deliberate empty channel configuration is a persistent owner opt-out.
+        # Do not generate undeliverable spool entries or contact any transport.
+        if not channels:
+            return {"event": event.to_dict(), "deliveries": {}, "skipped": True}
         self.spool.enqueue(event, channels)
         return self.flush_event(event.event_id)
 
