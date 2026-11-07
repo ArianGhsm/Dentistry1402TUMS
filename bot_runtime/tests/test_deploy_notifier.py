@@ -193,6 +193,35 @@ class DeployNotifierTests(unittest.TestCase):
             self.assertEqual(payload["deliveries"]["site"]["status"], "delivered")
             self.assertEqual(len(site.messages), 1)
 
+    def test_empty_channels_silences_site_telegram_and_bale_without_spooling(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            spool = Spool(Path(directory))
+            telegram = FakeTransport("telegram", [DeliveryResult(True)])
+            bale = FakeTransport("bale", [DeliveryResult(True)])
+            site = FakeTransport("site", [DeliveryResult(True)])
+            notifier = Notifier(spool, {"telegram": telegram, "bale": bale, "site": site})
+            event = DeployEvent.create(service="website", status="succeeded", event_id="quiet-release")
+            payload = notifier.publish(event, ())
+            self.assertTrue(payload["skipped"])
+            self.assertEqual(payload["deliveries"], {})
+            self.assertEqual(list(spool.pending.glob("*.json")), [])
+            self.assertEqual(list(spool.delivered.glob("*.json")), [])
+            self.assertEqual(telegram.messages, [])
+            self.assertEqual(bale.messages, [])
+            self.assertEqual(site.messages, [])
+
+    def test_empty_environment_channel_setting_is_valid_opt_out(self) -> None:
+        previous = os.environ.get("DENT_DEPLOY_NOTIFY_CHANNELS")
+        try:
+            os.environ["DENT_DEPLOY_NOTIFY_CHANNELS"] = ""
+            self.assertEqual(load_settings().channels, ())
+            self.assertEqual(configured_channel_health(load_settings()), {})
+        finally:
+            if previous is None:
+                os.environ.pop("DENT_DEPLOY_NOTIFY_CHANNELS", None)
+            else:
+                os.environ["DENT_DEPLOY_NOTIFY_CHANNELS"] = previous
+
     def test_missing_channel_is_durably_pending(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             spool = Spool(Path(directory))

@@ -48,7 +48,7 @@ if [[ ! -e "$ENV_ROOT/deploy-notifier.env" ]]; then
   [[ "$site_url" == https://* && -n "$site_secret" ]] || { echo "Site notifier inputs are invalid" >&2; exit 3; }
   umask 077
   {
-    printf 'DENT_DEPLOY_NOTIFY_CHANNELS=telegram,bale,site\n'
+    printf 'DENT_DEPLOY_NOTIFY_CHANNELS=\n'
     printf 'DENT_DEPLOY_TELEGRAM_BOT_TOKEN=%s\n' "$telegram_token"
     printf 'DENT_DEPLOY_TELEGRAM_CHAT_ID=%s\n' "$telegram_owner"
     printf 'DENT_DEPLOY_TELEGRAM_PROXY_URL=http://127.0.0.1:11080\n'
