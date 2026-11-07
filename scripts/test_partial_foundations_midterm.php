@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 // Regression: term-7 midterm must use existing quiz renderer/purchase
 // contracts and preserve independent answer disagreements with the scan.
+require_once dirname(__DIR__) . '/public_html/api/exams_modules.php';
 require_once dirname(__DIR__) . '/public_html/api/exams_partial_foundations_midterm_sample_overrides.php';
 require_once dirname(__DIR__) . '/public_html/api/dentistry_curriculum.php';
 

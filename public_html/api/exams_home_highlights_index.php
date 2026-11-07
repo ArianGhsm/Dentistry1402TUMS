@@ -9,7 +9,7 @@ function dent_exams_home_highlights_index(): array
 {
     return array (
   'schemaVersion' => 1,
-  'sourceSignature' => 'eb16f7ba2fe1f95a09adc402e9ab69369019300348be8a1ed829a20894dda658',
+  'sourceSignature' => '575b9f226569de5f0b9f2d5ba11ac900547b84a35dcba826374b6f396adea0d8',
   'defaultCatalogKey' => 'shared',
   'catalogByCohort' => 
   array (
@@ -24,6 +24,25 @@ function dent_exams_home_highlights_index(): array
     'shared' => 
     array (
       0 => 
+      array (
+        'catalogKey' => 'shared',
+        'slug' => 'partial-foundations-midterm-sample',
+        'title' => 'نمونه‌سؤالات میان‌ترم مبانی پروتز پارسیل ۱',
+        'shortTitle' => 'میان‌ترم مبانی پارسیل',
+        'cardDescription' => '۴۱ سؤال میان‌ترم ترم ۷؛ پاسخ مستقل، بررسی گزینه‌ها، منابع جلسات و یادداشت‌های آموزشی.',
+        'heroDescription' => 'مجموعه ۴۱ سؤال میان‌ترم مبانی پروتز پارسیل ۱ برای ترم ۷، با پاسخ مستقل و تحلیل هر گزینه. در چهار سؤال، کلید اسکن با بررسی مستقل متفاوت است. سؤال تصویریِ شماره ۶ به علت در دسترس نبودن تصویر اسکن، در نمره لحاظ نمی‌شود. هزینه دسترسی طبق تعرفه استاندارد آزمون‌ها ۴۵ هزار تومان است.',
+        'addedAt' => '2026-11-08T00:30:00+03:30',
+        'path' => '/exams/partial-foundations-midterm-sample/',
+        'stats' => 
+        array (
+          'examCount' => 1,
+        ),
+        'curriculum' => 
+        array (
+          'finalExam' => NULL,
+        ),
+      ),
+      1 => 
       array (
         'catalogKey' => 'shared',
         'slug' => 'medical-emergencies-term6-final-sample',
@@ -42,28 +61,6 @@ function dent_exams_home_highlights_index(): array
           'finalExam' => 
           array (
             'expiresAt' => '2026-08-25T00:00:00+03:30',
-          ),
-        ),
-      ),
-      1 => 
-      array (
-        'catalogKey' => 'shared',
-        'slug' => 'dental-materials-foundations-final-sample',
-        'title' => 'آزمون نمونه سوالات پایان‌ترم مبانی مواد دندانی',
-        'shortTitle' => 'نمونه سوالات پایان‌ترم مواد دندانی',
-        'cardDescription' => 'دو آزمون نمونه سوال پایان‌ترم مبانی مواد دندانی شامل ۷۲ سؤال تستی و ۱۶ سؤال تشریحی با پاسخ کامل.',
-        'heroDescription' => 'این مجموعه مربوط به درس آزمون نمونه سوالات پایان‌ترم مبانی مواد دندانی ترم ۶ است و فعلاً ۲ آزمون با مجموع ۸۸ سوال را پوشش می‌دهد. با یک بار پرداخت ۴۵ هزار تومان، کل درس برای همین حساب فعال می‌شود.',
-        'addedAt' => '2026-08-20T21:30:00+03:30',
-        'path' => '/exams/dental-materials-foundations-final-sample/',
-        'stats' => 
-        array (
-          'examCount' => 2,
-        ),
-        'curriculum' => 
-        array (
-          'finalExam' => 
-          array (
-            'expiresAt' => '2026-08-23T00:00:00+03:30',
           ),
         ),
       ),

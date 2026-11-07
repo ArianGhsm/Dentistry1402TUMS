@@ -2,7 +2,9 @@
 declare(strict_types=1);
 
 // Transcript-derived questions. The scanned cast for item 6 is not supplied.
-return json_decode(<<<'QUESTION_JSON'
+function dent_exams_partial_foundations_midterm_sample_questions(): array
+{
+    return json_decode(<<<'QUESTION_JSON'
 [
   {
     "number": 1,
@@ -2316,3 +2318,4 @@ return json_decode(<<<'QUESTION_JSON'
   }
 ]
 QUESTION_JSON, true, 512, JSON_THROW_ON_ERROR);
+}

@@ -54,7 +54,8 @@ function dent_exams_partial_foundations_midterm_sample_runtime_exam_payload(
     if ($catalogKey !== 'shared' || $courseSlug !== 'partial-foundations-midterm-sample' || $examSlug !== 'midterm-41') {
         return null;
     }
-    $questions = require __DIR__ . '/exams_partial_foundations_midterm_sample_questions.php';
+    dent_exams_require_optional_module('exams_partial_foundations_midterm_sample_questions.php');
+    $questions = dent_exams_partial_foundations_midterm_sample_questions();
     if (!is_array($questions) || count($questions) !== 41) {
         return null;
     }
