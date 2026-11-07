@@ -50,7 +50,10 @@ class FakeMediaState:
         }
 
     def protected_media_session_counts_for_tag(self, *, course_tag, term, content_kind):
-        assert term == 7 and content_kind == "dentnote"
+        assert term == 7
+        if content_kind == "booklet":
+            return {}
+        assert content_kind == "dentnote"
         return {session: len(assets) for (tag, session), assets in self.media.items() if tag == course_tag}
 
     def protected_media_for_tag(self, *, course_tag, term, session_no, content_kind):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import signal
 import threading
 import time
@@ -670,6 +671,8 @@ def run_service(*, settings, api, platform_name: str) -> int:
             identity_provider=site_api.booklet_watermark_identity,
             account_provider=site_api.account,
             forwardable_student_number=settings.booklet_forwardable_student_number,
+            original_booklet_delivery=os.getenv("DENT_BOT_ORIGINAL_BOOKLET_DELIVERY", "").strip() == "1",
+            original_booklet_source_chat_id=int(settings.booklet_source_channel_id),
             fingerprint_key=settings.booklet_fingerprint_key,
             watermark_font=settings.booklet_watermark_font,
             temp_root=settings.booklet_temp_root,

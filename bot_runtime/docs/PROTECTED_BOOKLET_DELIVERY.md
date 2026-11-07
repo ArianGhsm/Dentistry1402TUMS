@@ -19,6 +19,21 @@ authenticated-open behavior remains. The signed website contract
 `bookletWatermarkIdentityV1` is the sole identity authority and returns full
 name, national code and verified mobile only after canonical authentication.
 
+### Course-level bulk retrieval (ordinary PDF booklets)
+
+The session-list action **📓 دریافت یکجای جزوات عادی** is available only to
+users with effective current booklet access and only when ordinary PDFs are
+indexed for that syllabus course. It sits immediately below the course's
+DentNote purchase/download action when that action exists. Its source query
+uses the same active protected_media_sources records and course/session
+catalog as individual retrieval, sorted by syllabus session number.
+Cross-session duplicates are coalesced by Telegram file-unique ID or source
+message identity. Only PDF records with contentKind=booklet enter the
+existing enqueue_batch path; bought DentNotes/AI content, reference, voice,
+and PowerPoint records are excluded. Each job has fresh permission checks at
+enqueue and on delivery, and queue pressure yields an explicit partial-result
+message. No bulk export archive or persistent PDF copies are created.
+
 ## Queue, transport and cache
 
 - Production uses one real PDF worker and a bounded 48-item queue. Twenty

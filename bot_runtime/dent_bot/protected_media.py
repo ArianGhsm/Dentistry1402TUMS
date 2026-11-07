@@ -96,6 +96,8 @@ class ProtectedMediaDispatcher:
         identity_provider: Callable[[int], dict] | None = None,
         account_provider: Callable[[int], dict] | None = None,
         forwardable_student_number: str = "",
+        original_booklet_delivery: bool = False,
+        original_booklet_source_chat_id: int = 0,
         fingerprint_key: bytes = b"",
         watermark_font: Path = Path(""),
         temp_root: Path = Path("/var/lib/integrated-dent/dent-bot/tmp/booklets"),
@@ -119,6 +121,8 @@ class ProtectedMediaDispatcher:
         self.identity_provider = identity_provider
         self.account_provider = account_provider
         self.forwardable_student_number = str(forwardable_student_number).strip()
+        self.original_booklet_delivery = bool(original_booklet_delivery)
+        self.original_booklet_source_chat_id = int(original_booklet_source_chat_id)
         self.fingerprint_key = bytes(fingerprint_key)
         self.watermark_font = Path(watermark_font)
         self.temp_root = Path(temp_root)
@@ -612,6 +616,12 @@ class ProtectedMediaDispatcher:
                     if not self.authorize(job.user_id, source):
                         raise PermissionError("Booklet entitlement was revoked before media delivery")
                     result = self.api.send_protected_media(job.user_id, source)
+                elif kind == "booklet" and self._is_pdf(source) and self.original_booklet_delivery:
+                    if not self.authorize(job.user_id, source):
+                        raise PermissionError("Booklet access was revoked")
+                    result = self.api.send_original_booklet_pdf(
+                        job.user_id, source, expected_source_chat_id=self.original_booklet_source_chat_id
+                    )
                 elif self._is_pdf(source):
                     result = self._send_pdf(job, source)
                 else:

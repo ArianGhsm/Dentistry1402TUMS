@@ -367,6 +367,7 @@ def sessions_screen(
     ai_published_sessions: set[int] | None = None,
     ai_owned_sessions: set[int] | None = None,
     dentnote_action: str = "",
+    regular_booklet_count: int = 0,
     highlight_study_packs: bool = False,
 ) -> Screen:
     course = course_by_key(catalog, course_key)
@@ -398,6 +399,14 @@ def sessions_screen(
     if dentnote_action:
         rows.append([
             button("📕 دنت‌نوت | خرید و دریافت", action=dentnote_action, style="success")
+        ])
+    if regular_booklet_count > 0:
+        rows.append([
+            button(
+                f"📓 دریافت یکجای جزوات عادی · {to_persian_digits(regular_booklet_count)} فایل",
+                action=f"booklet-bulk:{course_key}",
+                style="primary",
+            )
         ])
     if highlight_study_packs:
         rows.append([
