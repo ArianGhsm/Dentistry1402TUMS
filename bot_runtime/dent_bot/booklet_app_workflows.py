@@ -53,6 +53,7 @@ class BookletAppWorkflows:
             (
                 "booklet-course:",
                 "booklet-dentnotes:",
+                "booklet-bulk:",
                 "booklet-session:",
                 "booklet-resource:",
                 "booklet-ai-buy:",
@@ -261,9 +262,12 @@ class BookletAppWorkflows:
         try:
             catalog = self._booklet_catalog(user_id)
             regular_resource = (
-                name.startswith("booklet-resource:")
-                and name.rsplit(":", 1)[-1]
-                not in {AI_BOOKLET_CONTENT_KIND, "dentnote", "flashcard"}
+                name.startswith("booklet-bulk:")
+                or (
+                    name.startswith("booklet-resource:")
+                    and name.rsplit(":", 1)[-1]
+                    not in {AI_BOOKLET_CONTENT_KIND, "dentnote", "flashcard"}
+                )
             )
             if regular_resource:
                 allowed, blocked_screen = self._booklet_access_screen(user_id)
@@ -448,9 +452,127 @@ class BookletAppWorkflows:
             "account": account,
         }
 
+    def _course_regular_booklets(self, catalog: dict, course_key: str) -> list[dict]:
+        """Read current ordinary booklets only, in syllabus order, without repeats."""
+        course = course_by_key(catalog, course_key)
+        if course is None:
+            return []
+        course_tag = str(course.get("bookletTag") or "").strip()
+        term = int(catalog.get("term") or 0)
+        if not course_tag or term != 7:
+            return []
+        valid_sessions = {
+            int(item.get("sessionNumber") or 0)
+            for item in course.get("sessions", [])
+            if isinstance(item, dict) and 1 <= int(item.get("sessionNumber") or 0) <= 40
+        }
+        available = self.state.protected_media_session_counts_for_tag(
+            course_tag=course_tag, term=term, content_kind="booklet",
+        )
+        sources: list[dict] = []
+        seen: set[str] = set()
+        for session_no in sorted(valid_sessions & set(available)):
+            for source in self.state.protected_media_for_tag(
+                course_tag=course_tag, term=term,
+                session_no=session_no, content_kind="booklet",
+            ):
+                if not isinstance(source, dict):
+                    continue
+                if (
+                    str(source.get("contentKind") or "") != "booklet"
+                    or str(source.get("courseTag") or "") != course_tag
+                    or int(source.get("term") or 0) != term
+                    or int(source.get("sessionNo") or 0) != session_no
+                    or int(source.get("id") or 0) <= 0
+                    or int(source.get("sourceChatId") or 0) >= 0
+                    or int(source.get("sourceMessageId") or 0) <= 0
+                    or str(source.get("telegramMethod") or "") != "sendDocument"
+                    or not str(source.get("fileId") or "").strip()
+                    or not (
+                        str(source.get("mimeType") or "").lower() == "application/pdf"
+                        or str(source.get("fileName") or "").lower().endswith(".pdf")
+                    )
+                ):
+                    continue
+                unique = str(source.get("fileUniqueId") or "").strip()
+                key = unique or (
+                    f"{int(source['sourceChatId'])}:{int(source['sourceMessageId'])}"
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                sources.append(source)
+        return sources
+
+    def _send_regular_booklets_bulk(
+        self, user_id: int, catalog: dict, course_key: str
+    ) -> Screen:
+        course = course_by_key(catalog, course_key)
+        back = keyboard(
+            [button("↩️ جلسات درس", action=f"booklet-course:{course_key}")],
+            [button("🏠 منوی اصلی", action="home")],
+        ) if course else keyboard([button("↩️ فهرست درس‌ها", action="notes")])
+        if course is None:
+            return Screen(frame_error("این درس در طرح درس مرجع پیدا نشد."), back)
+        sources = self._course_regular_booklets(catalog, course_key)
+        if not sources:
+            return Screen(
+                "<b>📓 دریافت یکجای جزوات عادی</b>\n\n"
+                "<blockquote>هنوز جزوهٔ عادی معتبری برای این درس ثبت نشده است.</blockquote>",
+                back,
+            )
+        # An old callback is no permission token: check fresh access here and
+        # individually again in the dispatcher and at delivery time.
+        if not self.booklet_access_allowed(user_id, sources[0]):
+            allowed, blocked = self._booklet_access_screen(user_id)
+            if not allowed and blocked is not None:
+                return blocked
+            return Screen(frame_error("دسترسی دریافت جزوات این درس تأیید نشد."), back)
+        if self.media_dispatcher is None:
+            return Screen(frame_error("صف ارسال فایل فعلاً در دسترس نیست."), back)
+        statuses = self.media_dispatcher.enqueue_batch(
+            user_id, [("booklet", int(source["id"])) for source in sources],
+        )
+        queued = sum(value == "queued" for value in statuses)
+        duplicate = sum(value == "duplicate" for value in statuses)
+        total = len(sources)
+        if queued:
+            line = (
+                f"✅ <b>{to_persian_digits(queued)}</b> جزوهٔ عادی از "
+                f"<b>{to_persian_digits(total)}</b> فایل در صف ارسال قرار گرفت."
+            )
+        elif duplicate == total:
+            line = "⏳ همهٔ این جزوات هم‌اکنون در صف ارسال هستند."
+        else:
+            line = self._booklet_enqueue_message(statuses)
+        if queued + duplicate < total:
+            line += (
+                "\n<blockquote>⚠️ برخی فایل‌ها به صف اضافه نشدند؛ "
+                "پس از دریافت فایل‌های قبلی دوباره تلاش کن.</blockquote>"
+            )
+            back = keyboard(
+                [button("↻ تلاش دوباره", action=f"booklet-bulk:{course_key}")],
+                [button("↩️ جلسات درس", action=f"booklet-course:{course_key}")],
+                [button("🏠 منوی اصلی", action="home")],
+            )
+        else:
+            line += "\n<blockquote>فایل‌ها به‌ترتیب جلسات ارسال می‌شوند.</blockquote>"
+        return Screen(
+            "<b><u>📓 دریافت یکجای جزوات عادی</u></b>\n\n"
+            f"<b>{html.escape(str(course.get('courseTitle') or 'درس'))}</b>\n\n"
+            + line,
+            back,
+        )
+
     def _booklet_sessions_screen(self, user_id: int, catalog: dict, course_key: str) -> Screen:
         context = self._ai_bulk_context(user_id, catalog, course_key)
         dentnotes = self._course_dentnote_entries(catalog, course_key)
+        regular_sources = self._course_regular_booklets(catalog, course_key)
+        regular_count = (
+            len(regular_sources)
+            if regular_sources and self.booklet_access_allowed(user_id, regular_sources[0])
+            else 0
+        )
         dentnote_action = ""
         if len(dentnotes) == 1:
             dentnote_action = f"booklet-resource:{course_key}:{dentnotes[0][1]}:dentnote"
@@ -462,6 +584,7 @@ class BookletAppWorkflows:
             ai_published_sessions=set(context["published"]),
             ai_owned_sessions=set(context["owned"]),
             dentnote_action=dentnote_action,
+            regular_booklet_count=regular_count,
             highlight_study_packs=(
                 course_key == ENDO_COURSE_KEY
                 and set(ENDO_SESSIONS).issubset(set(context["eligible"]))
@@ -812,6 +935,10 @@ class BookletAppWorkflows:
         if name.startswith("booklet-dentnotes:"):
             course_key = name.removeprefix("booklet-dentnotes:")
             return self._course_dentnotes_screen(user_id, catalog, course_key)
+
+        if name.startswith("booklet-bulk:"):
+            course_key = name.removeprefix("booklet-bulk:")
+            return self._send_regular_booklets_bulk(user_id, catalog, course_key)
 
         if name.startswith("booklet-course:"):
             course_key = name.removeprefix("booklet-course:")

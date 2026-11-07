@@ -148,6 +148,25 @@ behind disabled parity flags until the website contract and central-attempt
 migration pass authenticated acceptance; browser-local drafts are not a valid
 cross-platform synchronization layer.
 
+## Bulk ordinary booklet delivery
+
+In the Telegram course session list, show one **📓 دریافت یکجای جزوات عادی**
+button immediately after a course's available DentNote entry and before
+session buttons, only when the canonical private-channel index contains at
+least one valid ordinary PDF and the current user passes live authorization.
+The button is omitted for unavailable courses and unauthorized users; direct
+callbacks must independently recheck permission. It must never include
+DentNotes, AI booklets, flashcards, reference files, voices, or PowerPoints.
+
+The source is the same active term-7 per-session media index used for
+individual booklet delivery. Deduplicate cross-session source documents,
+retain syllabus session order and queue all through the existing bounded
+protected-media dispatcher with its per-file entitlement checks at enqueue
+and delivery time. A full/busy queue must report partial admission and
+allow a retry rather than claim that every file was sent. Do not add another
+source index, entitlement store, Telegram transport or temporary PDF artifact.
+Bale retains its existing transparent Telegram-only file-transfer fallback.
+
 ## Reference review
 
 The authorized Telegram CLI account reviewed `@sadshekanvpnbot` and

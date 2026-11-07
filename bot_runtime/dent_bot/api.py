@@ -583,6 +583,29 @@ class TelegramBotApi:
                 payload["parse_mode"] = str(self._parse_mode())
         return dict(self.call("copyMessage", payload, timeout=30) or {})
 
+    def send_original_booklet_pdf(
+        self, chat_id: int, source: dict, *, expected_source_chat_id: int
+    ) -> dict:
+        """Send the unmodified PDF, only from the authorized booklet source channel."""
+        if (
+            expected_source_chat_id >= 0
+            or int(source.get("sourceChatId") or 0) != expected_source_chat_id
+            or str(source.get("contentKind") or "") != "booklet"
+            or str(source.get("telegramMethod") or "") != "sendDocument"
+            or str(source.get("mimeType") or "").lower() != "application/pdf"
+            or not str(source.get("fileId") or "")
+        ):
+            raise BotApiError("Original booklet source failed validation")
+        payload = {
+            "chat_id": int(chat_id),
+            "document": str(source["fileId"]),
+            "protect_content": False,
+        }
+        caption = str(source.get("caption") or "").strip()
+        if caption:
+            payload["caption"] = caption[:1024]
+        return dict(self.call("sendDocument", payload, timeout=45) or {})
+
     def download_file(self, file_id: str, destination: Path, *, max_bytes: int = 20 * 1024 * 1024) -> dict:
         info = dict(self.call("getFile", {"file_id": str(file_id)}, timeout=15) or {})
         file_path = str(info.get("file_path") or "").lstrip("/")
