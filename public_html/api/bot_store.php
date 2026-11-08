@@ -401,6 +401,7 @@ function dent_bot_telegram_profile(array $payload): array
 
 function dent_bot_conflicting_link(array $store, string $identityHash, string $platform, string $studentNumber): ?array
 {
+    $linkedAccounts = 0;
     foreach ($store['links'] as $key => $link) {
         if (!is_array($link)) {
             continue;
@@ -411,8 +412,13 @@ function dent_bot_conflicting_link(array $store, string $identityHash, string $p
         if ((string) $key !== $identityHash
             && (string) ($link['platform'] ?? '') === $platform
             && (string) ($link['studentNumber'] ?? '') === $studentNumber) {
-            return ['type' => 'student', 'key' => (string) $key, 'link' => $link];
+            $linkedAccounts++;
         }
+    }
+    // Every account has its own platform identity; entitlements stay attached
+    // to the one canonical student record. A third account must fail closed.
+    if ($linkedAccounts >= 2) {
+        return ['type' => 'limit', 'key' => '', 'link' => []];
     }
     return null;
 }
@@ -694,23 +700,26 @@ function dent_bot_set_identity_mapping(array $owner, string $platform, array $pa
         dent_error('حساب سایت یا دلیل تغییر معتبر نیست.', 422);
     }
     $identityHash = dent_bot_identity_hash($platform, $targetPlatformUserId);
-    return dent_bot_store_with_lock(static function (array &$store) use ($platform, $targetPlatformUserId, $studentNumber, $reason, $identityHash): array {
-        foreach ($store['links'] as $key => $link) {
-            if (!is_array($link)) {
-                continue;
-            }
-            if ((string) $key === $identityHash
-                || ((string) ($link['platform'] ?? '') === $platform && (string) ($link['studentNumber'] ?? '') === $studentNumber)) {
-                unset($store['links'][$key]);
-            }
+    $profile = dent_bot_telegram_profile($payload);
+    return dent_bot_store_with_lock(static function (array &$store) use ($platform, $targetPlatformUserId, $studentNumber, $reason, $identityHash, $profile): array {
+        $conflict = dent_bot_conflicting_link($store, $identityHash, $platform, $studentNumber);
+        if (is_array($conflict)) {
+            dent_error('این شناسه به دانشجوی دیگری متصل است یا سقف دو حساب تکمیل شده است.', 409, ['code' => 'BOT_ACCOUNT_LINK_CONFLICT']);
+        }
+        if (is_array($store['links'][$identityHash] ?? null)) {
+            return ['success' => true, 'status' => 'already-linked', 'mappingRef' => substr($identityHash, 0, 16)];
         }
         $store['links'][$identityHash] = [
             'identityHash' => $identityHash,
             'platform' => $platform,
             'platformUserIdEncrypted' => dent_encrypt_secret_text($targetPlatformUserId),
+            'platformProfileEncrypted' => dent_encrypt_secret_text((string) json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
             'studentNumber' => $studentNumber,
             'linkedAt' => dent_iso_now(),
-            'source' => 'owner-manual',
+            'source' => 'owner-confirmed-secondary',
+            'authVersion' => dent_bot_canonical_auth_version(),
+            'authMethod' => 'owner-confirmed-secondary',
+            'authCompletedAt' => dent_iso_now(),
         ];
         if (is_array($store['identityClaims'][$identityHash] ?? null)) {
             $store['identityClaims'][$identityHash]['status'] = 'owner-linked';
@@ -782,39 +791,36 @@ function dent_bot_account_connections(array $user): array
     return dent_bot_store_read(static function (array $store) use ($studentNumber, $websiteName): array {
         $connections = [];
         foreach (['telegram', 'bale'] as $platform) {
-            $matches = [];
+            $accounts = [];
             foreach ($store['links'] as $identityHash => $link) {
                 if (!is_array($link)
                     || (string) ($link['platform'] ?? '') !== $platform
                     || dent_normalize_student_number((string) ($link['studentNumber'] ?? '')) !== $studentNumber) {
                     continue;
                 }
-                $matches[(string) $identityHash] = $link;
+                $profile = dent_bot_connection_profile($store, (string) $identityHash, $link);
+                $accounts[] = [
+                    'platformUserId' => dent_decrypt_secret_text($link['platformUserIdEncrypted'] ?? null),
+                    'platformDisplayName' => (string) ($profile['displayName'] ?? ''),
+                    'platformUsername' => (string) ($profile['username'] ?? ''),
+                    'linkedAt' => (string) ($link['linkedAt'] ?? ''),
+                    'source' => (string) ($link['source'] ?? 'secure-site-link'),
+                ];
             }
-            if (count($matches) > 1) {
+            if (count($accounts) > 2) {
                 dent_error('وضعیت اتصال این حساب نیازمند بررسی مالک است.', 409, ['code' => 'BOT_CONNECTION_CONFLICT']);
             }
-            if (!$matches) {
-                $connections[$platform] = [
-                    'platform' => $platform,
-                    'connected' => false,
-                    'websiteName' => $websiteName,
-                ];
-                continue;
-            }
-            $identityHash = (string) array_key_first($matches);
-            $link = $matches[$identityHash];
-            $profile = dent_bot_connection_profile($store, $identityHash, $link);
+            usort($accounts, static fn(array $a, array $b): int => strcmp($a['linkedAt'], $b['linkedAt']));
             $connections[$platform] = [
                 'platform' => $platform,
-                'connected' => true,
+                'connected' => $accounts !== [],
                 'websiteName' => $websiteName,
-                'platformUserId' => dent_decrypt_secret_text($link['platformUserIdEncrypted'] ?? null),
-                'platformDisplayName' => (string) ($profile['displayName'] ?? ''),
-                'platformUsername' => (string) ($profile['username'] ?? ''),
-                'linkedAt' => (string) ($link['linkedAt'] ?? ''),
-                'source' => (string) ($link['source'] ?? 'secure-site-link'),
+                'accounts' => $accounts,
             ];
+            // Keep existing clients of the single-account response compatible.
+            if ($accounts !== []) {
+                $connections[$platform] = array_merge($connections[$platform], $accounts[0]);
+            }
         }
         return [
             'success' => true,
@@ -824,7 +830,7 @@ function dent_bot_account_connections(array $user): array
     });
 }
 
-function dent_bot_disconnect_account(array $user, string $platform): array
+function dent_bot_disconnect_account(array $user, string $platform, string $targetPlatformUserId = ''): array
 {
     $platform = strtolower(trim($platform));
     if (!in_array($platform, ['telegram', 'bale'], true)) {
@@ -834,7 +840,10 @@ function dent_bot_disconnect_account(array $user, string $platform): array
     if ($studentNumber === '') {
         dent_error('حساب سایت نامعتبر است.', 422);
     }
-    return dent_bot_store_with_lock(static function (array &$store) use ($studentNumber, $platform): array {
+    if ($targetPlatformUserId !== '') {
+        [, $targetPlatformUserId] = dent_bot_identity($platform, $targetPlatformUserId);
+    }
+    return dent_bot_store_with_lock(static function (array &$store) use ($studentNumber, $platform, $targetPlatformUserId): array {
         dent_bot_cleanup_store($store, time());
         $matches = [];
         foreach ($store['links'] as $identityHash => $link) {
@@ -844,8 +853,12 @@ function dent_bot_disconnect_account(array $user, string $platform): array
                 $matches[(string) $identityHash] = $link;
             }
         }
+        if ($targetPlatformUserId !== '') {
+            $targetHash = dent_bot_identity_hash($platform, $targetPlatformUserId);
+            $matches = isset($matches[$targetHash]) ? [$targetHash => $matches[$targetHash]] : [];
+        }
         if (count($matches) > 1) {
-            dent_error('وضعیت اتصال این حساب نیازمند بررسی مالک است.', 409, ['code' => 'BOT_CONNECTION_CONFLICT']);
+            dent_error('برای قطع اتصال، اکانت موردنظر را مشخص کن.', 409, ['code' => 'BOT_CONNECTION_SELECTION_REQUIRED']);
         }
         if (!$matches) {
             dent_error('این حساب به پیام‌رسان انتخاب‌شده متصل نیست.', 404, ['code' => 'BOT_CONNECTION_NOT_FOUND']);
