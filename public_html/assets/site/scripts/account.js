@@ -2020,7 +2020,7 @@
         }).catch(networkErrorResponse);
     }
 
-    function botConnectionDisconnect(platform) {
+    function botConnectionDisconnect(platform, platformUserId) {
         return fetch("/api/bot_api.php", {
             method: "POST",
             credentials: "same-origin",
@@ -2031,7 +2031,8 @@
             },
             body: new URLSearchParams({
                 action: "disconnectAccount",
-                platform: platform
+                platform: platform,
+                platformUserId: platformUserId
             })
         }).then(function (response) {
             return response.json().catch(function () {
@@ -2053,40 +2054,43 @@
         var item = connection && typeof connection === "object" ? connection : {};
         var meta = botPlatformMeta(platform);
         var connected = item.connected === true;
+        var accounts = Array.isArray(item.accounts) ? item.accounts : (connected ? [item] : []);
         var statusClass = connected ? " is-connected" : "";
-        var statusLabel = connected ? "متصل" : "متصل نیست";
+        var statusLabel = connected ? (toPersianDigits(accounts.length) + " اکانت متصل") : "متصل نیست";
         var details = "";
         if (connected) {
-            var platformName = String(item.platformDisplayName || "").trim();
-            var username = String(item.platformUsername || "").trim();
-            var displayName = platformName || "در اتصال قدیمی ثبت نشده";
-            var usernameRow = username
-                ? '<div><dt>نام کاربری پیام‌رسان</dt><dd><bdi dir="ltr">@' + escapeHtml(username) + "</bdi></dd></div>"
-                : "";
-            details = [
-                '<dl class="bot-connection-details">',
-                '<div><dt>نام حساب سایت</dt><dd>' + escapeHtml(item.websiteName || "—") + "</dd></div>",
-                '<div><dt>نام اکانت پیام‌رسان</dt><dd>' + escapeHtml(displayName) + "</dd></div>",
-                usernameRow,
-                '<div><dt>شناسه عددی</dt><dd><bdi dir="ltr">' + escapeHtml(toPersianDigits(item.platformUserId || "—")) + "</bdi></dd></div>",
-                '<div><dt>زمان اتصال</dt><dd>' + escapeHtml(formatJalaliDateTime(item.linkedAt, "—", true)) + "</dd></div>",
-                "</dl>"
-            ].join("");
+            details = '<div class="bot-connection-accounts">' + accounts.map(function (account, index) {
+                var platformId = String(account.platformUserId || "").trim();
+                var platformName = String(account.platformDisplayName || "").trim();
+                var username = String(account.platformUsername || "").trim();
+                var displayName = platformName || "در اتصال قدیمی ثبت نشده";
+                var usernameRow = username
+                    ? '<div><dt>نام کاربری</dt><dd><bdi dir="ltr">@' + escapeHtml(username) + "</bdi></dd></div>"
+                    : "";
+                var busy = botConnectionsState.disconnectingPlatform === platform + ":" + platformId;
+                return [
+                    '<section class="bot-connection-account">',
+                    '<div class="bot-connection-account__head"><strong>اکانت ' + toPersianDigits(index + 1) + '</strong><span>' + (index === 0 ? "اتصال نخست" : "اتصال دوم") + '</span></div>',
+                    '<dl class="bot-connection-details">',
+                    '<div><dt>نام اکانت</dt><dd>' + escapeHtml(displayName) + "</dd></div>",
+                    usernameRow,
+                    '<div><dt>شناسه عددی</dt><dd><bdi dir="ltr">' + escapeHtml(toPersianDigits(platformId || "—")) + "</bdi></dd></div>",
+                    '<div><dt>زمان اتصال</dt><dd>' + escapeHtml(formatJalaliDateTime(account.linkedAt, "—", true)) + "</dd></div>",
+                    "</dl>",
+                    '<div class="bot-connection-card__actions"><button class="shell-action-btn bot-connection-card__disconnect" type="button" data-disconnect-bot="' + escapeHtml(platform) + '" data-platform-user-id="' + escapeHtml(platformId) + '"' + (busy || !!botConnectionsState.disconnectingPlatform ? " disabled" : "") + ">" + (busy ? "در حال قطع اتصال…" : "قطع اتصال این اکانت") + "</button></div>",
+                    "</section>"
+                ].join("");
+            }).join("") + "</div>";
         } else {
             details = '<p class="bot-connection-card__empty">این حساب سایت هنوز به ربات ' + escapeHtml(meta.label) + " متصل نشده است.</p>";
         }
-        var busy = botConnectionsState.disconnectingPlatform === platform;
-        var action = connected
-            ? '<div class="bot-connection-card__actions"><button class="shell-action-btn bot-connection-card__disconnect" type="button" data-disconnect-bot="' + escapeHtml(platform) + '"' + (busy ? " disabled" : "") + ">" + (busy ? "در حال قطع اتصال…" : "قطع اتصال") + "</button></div>"
-            : "";
         return [
             '<article class="bot-connection-card" data-bot-platform="' + escapeHtml(platform) + '">',
             '<div class="bot-connection-card__head">',
-            '<div class="bot-connection-card__identity"><span class="bot-connection-card__icon" aria-hidden="true">' + meta.icon + "</span><span><strong>ربات " + escapeHtml(meta.label) + "</strong><small>اتصال مستقل همین پیام‌رسان</small></span></div>",
+            '<div class="bot-connection-card__identity"><span class="bot-connection-card__icon" aria-hidden="true">' + meta.icon + "</span><span><strong>ربات " + escapeHtml(meta.label) + "</strong><small>اتصال‌های این پیام‌رسان به حساب دانشجویی</small></span></div>",
             '<span class="bot-connection-status' + statusClass + '">' + statusLabel + "</span>",
             "</div>",
             details,
-            action,
             "</article>"
         ].join("");
     }
@@ -2106,8 +2110,11 @@
             return item && item.connected === true;
         }).length;
         if (accountRowBotsMeta) {
+            var totalAccounts = [connections.telegram, connections.bale].reduce(function (sum, item) {
+                return sum + (item && Array.isArray(item.accounts) ? item.accounts.length : (item && item.connected ? 1 : 0));
+            }, 0);
             accountRowBotsMeta.textContent = connectedCount
-                ? (toPersianDigits(connectedCount) + " پیام‌رسان از ۲ پیام‌رسان متصل است")
+                ? (toPersianDigits(connectedCount) + " پیام‌رسان · " + toPersianDigits(totalAccounts) + " اکانت متصل")
                 : "تلگرام و بله به این حساب متصل نیستند";
         }
         if (botConnectionsRefresh) {
@@ -2147,20 +2154,26 @@
         }
     }
 
-    async function disconnectBotConnection(platform) {
+    async function disconnectBotConnection(platform, platformUserId) {
         var meta = botPlatformMeta(platform);
         var item = botConnectionsState.connections && botConnectionsState.connections[platform];
-        if (!item || item.connected !== true || botConnectionsState.disconnectingPlatform) {
+        var accounts = item && Array.isArray(item.accounts) ? item.accounts : (item && item.connected ? [item] : []);
+        var target = accounts.find(function (account) {
+            return String(account.platformUserId || "") === platformUserId;
+        });
+        if (!item || item.connected !== true || !target || botConnectionsState.disconnectingPlatform) {
             return;
         }
-        if (!window.confirm("اتصال ربات " + meta.label + " به حساب سایت قطع شود؟ دسترسی همان ربات فوراً بسته می‌شود.")) {
+        var username = String(target.platformUsername || "").trim();
+        var accountLabel = username ? ("@" + username) : ("شناسهٔ " + toPersianDigits(platformUserId));
+        if (!window.confirm("اتصال اکانت " + accountLabel + " در ربات " + meta.label + " قطع شود؟ فقط دسترسی همین اکانت بسته می‌شود.")) {
             return;
         }
-        botConnectionsState.disconnectingPlatform = platform;
-        setInlineFeedback(botConnectionsFeedback, "در حال قطع اتصال ربات " + meta.label + "…", "", true);
+        botConnectionsState.disconnectingPlatform = platform + ":" + platformUserId;
+        setInlineFeedback(botConnectionsFeedback, "در حال قطع اتصال اکانت " + accountLabel + "…", "", true);
         renderBotConnections();
         try {
-            var response = await botConnectionDisconnect(platform);
+            var response = await botConnectionDisconnect(platform, platformUserId);
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
                 return;
             }
@@ -2170,7 +2183,7 @@
             botConnectionsState.loadedForUserKey = "";
             botConnectionsState.connections = null;
             await loadBotConnections(true);
-            setInlineFeedback(botConnectionsFeedback, "اتصال ربات " + meta.label + " قطع شد و پیام اطلاع‌رسانی برای همان حساب در صف ارسال قرار گرفت.", "success");
+            setInlineFeedback(botConnectionsFeedback, "اتصال اکانت " + accountLabel + " قطع شد و اطلاع‌رسانی برای همان حساب در صف ارسال قرار گرفت.", "success");
         } catch (error) {
             setInlineFeedback(botConnectionsFeedback, String(error && error.message || "قطع اتصال انجام نشد."), "error");
         } finally {
@@ -5907,8 +5920,9 @@
             }
             event.preventDefault();
             var platform = String(button.dataset.disconnectBot || "").trim();
-            if (platform === "telegram" || platform === "bale") {
-                disconnectBotConnection(platform);
+            var platformUserId = String(button.dataset.platformUserId || "").trim();
+            if ((platform === "telegram" || platform === "bale") && /^[0-9]{1,24}$/.test(platformUserId)) {
+                disconnectBotConnection(platform, platformUserId);
             }
         });
     }

@@ -2456,6 +2456,30 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     background: rgba(37, 170, 119, 0.12);
 }
 
+.bot-connection-accounts {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.bot-connection-account {
+    display: grid;
+    gap: 0.55rem;
+    border-top: 1px solid var(--border-color, rgba(120, 125, 145, 0.25));
+    padding-top: 0.85rem;
+}
+
+.bot-connection-account__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.bot-connection-account__head span {
+    color: var(--text-secondary, #717684);
+    font-size: 0.85rem;
+}
+
 .bot-connection-details {
     display: grid;
     gap: 0;

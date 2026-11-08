@@ -60,7 +60,11 @@ if ($action === 'disconnectAccount') {
     }
     dent_auth_session_require_csrf();
     $user = dent_require_user();
-    dent_json_response(dent_bot_disconnect_account($user, (string) ($_POST['platform'] ?? '')));
+    dent_json_response(dent_bot_disconnect_account(
+        $user,
+        (string) ($_POST['platform'] ?? ''),
+        (string) ($_POST['platformUserId'] ?? '')
+    ));
 }
 
 dent_error('درخواست نامعتبر است.', 404);
