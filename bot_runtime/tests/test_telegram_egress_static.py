@@ -97,6 +97,9 @@ class TelegramEgressStaticTests(unittest.TestCase):
         self.assertIn('owner_site_connect_button = True', check)
         self.assertIn('owner_start_gate = "authenticated-home"', check)
         self.assertIn('"persian_digit_boundary": True', check)
+        self.assertIn('"keyboard_cleanup_message_retained": True', check)
+        self.assertIn('self.call("deleteMessage"', check)
+        self.assertNotIn('"keyboard_cleanup_carrier_deleted": True', check)
         self.assertIn("tehran_azad_missing_from_keyboard", check)
 
     def test_all_bale_activation_paths_reject_stale_processes(self) -> None:
