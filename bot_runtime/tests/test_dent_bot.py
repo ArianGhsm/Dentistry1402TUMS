@@ -1565,11 +1565,12 @@ class DentBotTests(unittest.TestCase):
                 method, payload, _timeout = api.calls[0]
                 self.assertEqual(method, "sendMessage")
                 self.assertEqual(payload["reply_markup"], {"remove_keyboard": True})
-                self.assertEqual(payload["text"], "⌨️")
+                self.assertEqual(payload["text"], "⌨️ دکمه‌های مرحلهٔ قبلی بسته شد.")
                 self.assertNotIn("احراز هویت", payload["text"])
                 self.assertEqual("HTML" in str(payload.get("parse_mode")), api_class is TelegramBotApi)
-                self.assertEqual(api.calls[1][0], "deleteMessage")
-                self.assertEqual(api.calls[1][1], {"chat_id": 10, "message_id": 42})
+                # Deleting this message immediately can leave stale buttons
+                # on either Telegram or Bale.
+                self.assertEqual(len(api.calls), 1)
 
     def test_telegram_transport_uses_only_configured_loopback_connect_proxy(self) -> None:
         pool = _HttpsConnectionPool(

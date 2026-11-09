@@ -3,7 +3,7 @@ from __future__ import annotations
 from .state import BotState
 
 
-KEYBOARD_CLEANUP_VERSION = "reply-keyboard-v2"
+KEYBOARD_CLEANUP_VERSION = "reply-keyboard-v3"
 
 
 class KeyboardInvariantApi:
