@@ -30,6 +30,24 @@ class CapturingApi:
 
 
 class KeyboardInvariantTests(unittest.TestCase):
+    def test_previous_deleted_cleanup_version_is_replayed_once(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            delegate = CapturingApi()
+            try:
+                # Previous releases marked success and then deleted the
+                # keyboard-removal message before the client could process it.
+                state.mark_reply_keyboard_removed(20, "reply-keyboard-v2")
+                api = KeyboardInvariantApi(delegate, state)
+                inline = {"inline_keyboard": [[{"text": "خانه", "callback_data": "v1:home"}]]}
+                api.send(20, "خانه", inline)
+                self.assertEqual(delegate.removed, [20])
+                self.assertFalse(state.reply_keyboard_needs_removal(20, KEYBOARD_CLEANUP_VERSION))
+                KeyboardInvariantApi(delegate, state).send(20, "کارنامه", inline)
+                self.assertEqual(delegate.removed, [20])
+            finally:
+                state.close()
+
     def test_legacy_unknown_and_every_reply_to_inline_transition_are_cleaned_once(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")

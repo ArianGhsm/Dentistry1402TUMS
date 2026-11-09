@@ -502,7 +502,7 @@ class TelegramBotApi:
     def remove_reply_keyboard(
         self,
         chat_id: int,
-        text: str = "⌨️",
+        text: str = "⌨️ دکمه‌های مرحلهٔ قبلی بسته شد.",
     ) -> dict:
         """Remove a persistent reply keyboard before returning to inline UI.
 
@@ -519,16 +519,9 @@ class TelegramBotApi:
         if self._parse_mode() is not None:
             payload["parse_mode"] = self._parse_mode()
         result = dict(self.call("sendMessage", payload) or {})
-        # Telegram/Bale require a message carrying remove_keyboard; delete that
-        # transport-only message immediately so authentication success is not
-        # announced again on a later /start. If an older Bale API cannot delete
-        # it, the harmless keyboard glyph remains instead of a false success.
-        try:
-            message_id = int(result.get("message_id") or 0)
-            if message_id > 0:
-                self.call("deleteMessage", {"chat_id": chat_id, "message_id": message_id})
-        except (BotApiError, TypeError, ValueError):
-            pass
+        # Do not delete the removal message: clients may never apply
+        # remove_keyboard when its carrier is deleted immediately.
+        # Keep one concise, user-facing message; the invariant deduplicates it.
         return result
 
     def send_protected_media(
