@@ -85,7 +85,8 @@ from dent_bot.ui import account_screen, notification_detail_screen
 settings = load_settings()
 telegram = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)
 cleanup_source = inspect.getsource(TelegramBotApi.remove_reply_keyboard)
-assert 'deleteMessage' in cleanup_source, "keyboard_cleanup_carrier_not_deleted"
+assert '"remove_keyboard": True' in cleanup_source, "keyboard_cleanup_marker_missing"
+assert 'self.call("deleteMessage"' not in cleanup_source, "keyboard_cleanup_carrier_deleted"
 me = dict(telegram.call("getMe") or {})
 required_channel = str(getattr(settings, "required_channel_username", "Dent1402Booklets") or "Dent1402Booklets").lstrip("@")
 bot_membership = dict(telegram.call("getChatMember", {
@@ -326,7 +327,7 @@ print(json.dumps({
     "owner_start_gate": owner_start_gate,
     "owner_site_connect_button": owner_site_connect_button,
     "generic_purchase_gate": True,
-    "keyboard_cleanup_carrier_deleted": True,
+    "keyboard_cleanup_message_retained": True,
     "persian_digit_boundary": True,
     "term7_schedule_version": term7_status.get("scheduleVersion"),
     "term7_assignment_count": term7_status.get("assignmentCount"),
