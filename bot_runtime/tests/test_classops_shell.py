@@ -29,7 +29,8 @@ class ClassOpsShellTests(unittest.TestCase):
                 ["🧭 مرکز همیاد"],
                 ["📚 جزوات", "💳 اشتراک جزوات"],
                 ["📊 نمرات", "🗂 امور کلاس"],
-                ["👤 حساب من", "🔔 اعلان‌ها", "❓ راهنما"],
+                ["👤 حساب من", "🔔 اعلان‌ها"],
+                ["⚙️ تنظیمات", "❓ راهنما"],
             ],
         )
         self.assertEqual(self._actions(screen), [[action for _label, action in row] for row in CANONICAL_HOME_ROWS])

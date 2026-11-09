@@ -105,6 +105,66 @@ def message(user_id: int, text: str = "", *, contact: dict | None = None) -> dic
     return {"message": value}
 
 
+class ButtonModeIntegrationTests(unittest.TestCase):
+    def test_both_platforms_switch_and_route_reply_actions_after_auth(self) -> None:
+        class LinkedSite(OnboardingSite):
+            def account(self, _user_id):
+                return {"linked": True, "authComplete": True, "onboardingProfile": {}}
+
+        for platform in ("telegram", "bale"):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
+                state = BotState(Path(directory) / "state.sqlite3")
+                api = FakeApi()
+                app = DentBotApp(api, state, owner_id=10, site_url="https://example.test",
+                                 site_api=LinkedSite(), platform=platform)
+                try:
+                    app.handle(message(20, "/settings"))
+                    self.assertEqual(state.button_mode(20), "inline")
+                    self.assertIn("inline_keyboard", api.sent[-1][2])
+                    app.handle({"callback_query": {
+                        "id": "callback1", "from": {"id": 20},
+                        "message": {"message_id": 88, "chat": {"id": 20, "type": "private"}},
+                        "data": "v1:ui-mode:reply",
+                    }})
+                    self.assertEqual(state.button_mode(20), "reply")
+                    self.assertIn("keyboard", api.sent[-1][2])
+                    self.assertIn("⚙️ تنظیمات نمایش دکمه‌ها", api.sent[-1][1])
+                    app.handle(message(20, "🏠 خانه"))
+                    self.assertIn("keyboard", api.sent[-1][2])
+                    self.assertIn("دنت‌یار", str(api.sent[-1][1]))
+                    self.assertEqual(api.edited, [])
+                    app.handle(message(20, "⚙️ تنظیمات"))
+                    self.assertIn("تنظیمات نمایش دکمه‌ها", api.sent[-1][1])
+                    self.assertEqual(state.button_mode(20), "reply")
+                    app.handle(message(20, "🟦 دکمه‌های شیشه‌ای"))
+                    self.assertEqual(state.button_mode(20), "inline")
+                    self.assertIn("inline_keyboard", api.sent[-1][2])
+                    self.assertIsNone(state.reply_navigation_choice(20, "⚙️ تنظیمات"))
+                    self.assertTrue(api.removed)
+                    self.assertTrue(all(not str(x[0]).startswith("reply-choice:") for x in api.answered))
+                finally:
+                    state.close()
+
+    def test_callback_mode_change_requires_verified_account(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            api = FakeApi()
+            app = DentBotApp(api, state, owner_id=10, site_url="https://example.test",
+                             site_api=OnboardingSite())
+            try:
+                app.handle({"callback_query": {
+                    "id": "callback2", "from": {"id": 20},
+                    "message": {"message_id": 99, "chat": {"id": 20, "type": "private"}},
+                    "data": "v1:ui-mode:reply",
+                }})
+                self.assertEqual(state.button_mode(20), "inline")
+                # The access gate uses its own authentication reply keyboard,
+                # not the selectable post-auth navigation.
+                self.assertTrue(api.sent)
+                self.assertNotIn("⚙️ تنظیمات نمایش دکمه‌ها", api.sent[-1][1])
+            finally:
+                state.close()
+
 class OnboardingTests(unittest.TestCase):
     def test_required_telegram_channel_blocks_every_interaction_until_membership(self) -> None:
         class MembershipApi(FakeApi):

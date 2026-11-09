@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 
 from .api import BotApiError, TelegramBotApi
 from .keyboard_invariant import KeyboardInvariantApi
+from .button_modes import button_mode_screen
 from .state import BotState
 from .payments import identity_from_account
 from .payment_app_workflows import PaymentAppWorkflows
@@ -394,10 +395,63 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         kind = "callback" if isinstance(update.get("callback_query"), dict) else "message"
         if self._block_without_required_channel(update):
             return
-        if isinstance(update.get("callback_query"), dict):
-            self._callback(dict(update["callback_query"]), interaction_version=interaction_version)
-        elif isinstance(update.get("message"), dict):
-            self._message(dict(update["message"]))
+        callback = dict(update.get("callback_query") or {})
+        message = dict(callback.get("message") or update.get("message") or {})
+        sender = dict(callback.get("from") or message.get("from") or {})
+        chat = dict(message.get("chat") or {})
+        user_id = sender.get("id")
+        allowed_reply = False
+        if (
+            isinstance(user_id, int)
+            and chat.get("type") == "private"
+            and self.state.button_mode(user_id) == "reply"
+        ):
+            # The preference is dormant when an account is disconnected or an
+            # onboarding dialog is active. The canonical site remains the gate.
+            allowed_reply = (
+                self._active_auth_dialog_screen(user_id) is None
+                and self._bot_entry_gate(user_id) is None
+            )
+        if isinstance(user_id, int) and chat.get("type") == "private":
+            self.api.begin_interaction(user_id, authenticated=allowed_reply)
+        try:
+            if callback:
+                self._callback(callback, interaction_version=interaction_version)
+            elif isinstance(update.get("message"), dict):
+                text = str(message.get("text") or "").strip()
+                choice = (
+                    self.state.reply_navigation_choice(user_id, text)
+                    if allowed_reply and text and not text.startswith("/") else None
+                )
+                if choice and choice.get("kind") == "callback":
+                    self.api.mark_reply_choice()
+                    synthetic = {
+                        "id": "reply-choice:" + str(message.get("message_id") or "0"),
+                        "from": sender,
+                        "message": message,
+                        "data": str(choice["data"]),
+                        "_membership_answered": True,
+                    }
+                    self._callback(synthetic, interaction_version=self._claim_interaction(user_id))
+                elif choice and choice.get("kind") == "url":
+                    url = str(choice.get("url") or "")
+                    self.api.send(
+                        int(chat["id"]),
+                        "🔗 <b>لینک درخواستی</b>\n\n" + html.escape(url),
+                        {"inline_keyboard": []},
+                    )
+                elif choice and choice.get("kind") == "inline-search":
+                    query = html.escape(str(choice.get("query") or ""))
+                    self.api.send(
+                        int(chat["id"]),
+                        "📤 برای اشتراک‌گذاری، از جست‌وجوی درون‌خطی ربات استفاده کنید: "
+                        f"<code>@{html.escape(self.bot_username.lstrip('@'))} {query}</code>",
+                        {"inline_keyboard": []},
+                    )
+                else:
+                    self._message(dict(update["message"]))
+        finally:
+            self.api.end_interaction()
         elapsed = time.monotonic() - started
         if elapsed >= 1.0:
             logging.warning("slow interactive update kind=%s elapsed_ms=%s", kind, int(elapsed * 1000))
@@ -591,6 +645,10 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             self.state.clear_dialog(user_id)
             self._remove_reply_keyboard(int(chat["id"]))
             screen = self._dynamic_screen("home", user_id)
+            self.api.send(int(chat["id"]), screen.text, screen.keyboard)
+            return
+        if command == "/settings":
+            screen = button_mode_screen(self.state.button_mode(user_id))
             self.api.send(int(chat["id"]), screen.text, screen.keyboard)
             return
         pending_dialog = self.state.dialog(user_id)
@@ -1101,6 +1159,17 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
                 if "message is not modified" not in str(error).lower():
                     raise
             return
+        if name in {"ui-settings", "ui-mode:inline", "ui-mode:reply"}:
+            if name.startswith("ui-mode:"):
+                self.state.set_button_mode(user_id, name.split(":", 1)[1])
+                # The current callback may have arrived while the user was
+                # still in inline mode. Permission was just checked above.
+                self.api.begin_interaction(user_id, authenticated=True)
+            screen = button_mode_screen(self.state.button_mode(user_id))
+            # A newly chosen reply keyboard must be sent as a fresh message.
+            # Switching to inline first removes the old persistent keyboard.
+            self.api.send(int(chat["id"]), screen.text, screen.keyboard)
+            return
         if name.startswith("payment-export-file:") and user_id == self.owner_id:
             parts = name.split(":")
             if len(parts) == 3 and re.fullmatch(r"(?:all|filtered|[A-Za-z0-9_-]{16,80})", parts[1]) and parts[2] in {"csv", "paid", "unpaid", "transactions"}:
@@ -1190,5 +1259,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         request_id: str = "",
         sender: dict | None = None,
     ) -> Screen:
+        if name == "ui-settings":
+            return button_mode_screen(self.state.button_mode(user_id))
         screen = self._dynamic_screen_core(name, user_id, request_id=request_id, sender=sender)
         return decorate_feature_screen(self, name, user_id, screen)
