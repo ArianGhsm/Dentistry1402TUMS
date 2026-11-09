@@ -149,6 +149,44 @@ def register_ai_source(state: BotState, session_no: int = 1) -> None:
 
 
 class AiBookletTests(unittest.TestCase):
+    def test_ai_checkout_deep_link_reuses_existing_booklet_action_and_gate(self) -> None:
+        from unittest.mock import Mock
+
+        app = DentBotApp.__new__(DentBotApp)
+        app.api = Mock()
+        app._account_cache = {}
+        app._product_state_cache = {}
+        app._bot_entry_gate = Mock(return_value=None)
+        app._private_access_gate = Mock(return_value=None)
+        app._handle_booklet_action = Mock()
+
+        app._message_core({
+            "chat": {"id": 20, "type": "private"},
+            "from": {"id": 20},
+            "text": "/start ai_endodontics-theory-1_13",
+        })
+        app._handle_booklet_action.assert_called_once_with(
+            chat_id=20,
+            user_id=20,
+            name="booklet-ai-buy:endodontics-theory-1:13",
+            message_id=0,
+        )
+        app._private_access_gate.assert_called_once_with(20)
+        app.api.send.assert_not_called()
+
+        from dent_bot.ui import Screen
+        app._handle_booklet_action.reset_mock()
+        app._bot_entry_gate = Mock(return_value=Screen("احراز هویت لازم است", None))
+        app._private_access_gate.reset_mock()
+        app._message_core({
+            "chat": {"id": 21, "type": "private"},
+            "from": {"id": 21},
+            "text": "/start ai_endodontics-theory-1_13",
+        })
+        app._handle_booklet_action.assert_not_called()
+        app._private_access_gate.assert_not_called()
+        app.api.send.assert_called_once()
+
     def test_ai_marker_is_exact_and_never_routes_as_ordinary_booklet(self) -> None:
         parsed = parse_source_caption(ai_caption(), CATALOG)
         self.assertIsNotNone(parsed)

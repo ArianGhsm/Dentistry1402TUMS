@@ -12,7 +12,7 @@ require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.13';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.14';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -470,6 +470,30 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
     $inTerm = strcmp($jalaliDate, (string) $schedule['activeFrom']) >= 0
         && strcmp($jalaliDate, (string) $schedule['activeThrough']) <= 0;
     $theory = $inTerm ? dent_term7_theory_events(is_array($schedule['theory'][$weekday] ?? null) ? $schedule['theory'][$weekday] : [], $jalaliDate) : [];
+    // Project owner date corrections share one source with the syllabus and
+    // therefore remain consistent in the bot, reminders, and ClassOps views.
+    if ($inTerm) {
+        foreach (classops_term7_syllabus_theory_date_moves() as $key => $move) {
+            if ((string) ($move['to'] ?? '') !== $jalaliDate) continue;
+            $parts = explode('|', (string) $key, 3);
+            if (count($parts) !== 3) continue;
+            foreach ($schedule['theory'] as $scheduledEvents) {
+                foreach ($scheduledEvents as $template) {
+                    if ((string) ($template['slug'] ?? '') !== $parts[0]) continue;
+                    $added = $template;
+                    if (empty($move['timeConfirmed'])) {
+                        $added['start'] = '';
+                        $added['end'] = '';
+                        $added['location'] = '';
+                    }
+                    $added['eventType'] = 'theory';
+                    $added['source'] = 'owner-confirmed-theory-reschedule';
+                    $theory[] = $added;
+                    break 2;
+                }
+            }
+        }
+    }
     $rotation = '';
     $matchRotation = '';
     $matchWeekday = $weekday;

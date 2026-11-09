@@ -4,8 +4,21 @@ declare(strict_types=1);
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
-// Quiz 5 with Dr. Hamidzadeh restored to its 1405/08/10 source session; refresh quiz reminder identities.
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.19';
+// Owner-confirmed changes to individual theory occurrences are keyed by their
+// original syllabus date; the PDF-derived source date remains intact.
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.20';
+
+function classops_term7_syllabus_theory_date_moves(): array
+{
+    return [
+        'partial-basics-theory|1405/09/18|13' => [
+            'to' => '1405/09/16',
+            'timeConfirmed' => false,
+            'reason' => 'انتقال جلسه دکتر بهرامی از چهارشنبه ۱۸ آذر به دوشنبه ۱۶ آذر، طبق اطلاعیه آموزشی',
+        ],
+    ];
+}
+
 
 function classops_term7_syllabus_mode_label(string $mode): string
 {
@@ -98,7 +111,14 @@ function classops_term7_syllabus_catalog(): array
     foreach (is_array($partial['sessions'] ?? null) ? $partial['sessions'] : [] as $session) {
         if (!is_array($session)) continue;
         $date = trim((string) ($session['jalaliDate'] ?? ''));
-        $session['dates'] = $date !== '' ? [$date] : [];
+        $moveKey = 'partial-basics-theory|' . $date . '|' . (int) ($session['sessionNumber'] ?? 0);
+        $move = classops_term7_syllabus_theory_date_moves()[$moveKey] ?? null;
+        $session['dates'] = $date !== '' ? [is_array($move) ? (string) $move['to'] : $date] : [];
+        if (is_array($move)) {
+            $session['rescheduledFrom'] = $date;
+            $session['rescheduleReason'] = (string) ($move['reason'] ?? '');
+            $session['oneOffTimeUnconfirmed'] = empty($move['timeConfirmed']);
+        }
         $session['sessionNumbers'] = isset($session['sessionNumber']) ? [(int) $session['sessionNumber']] : [];
         $session['sessionMode'] = (string) ($session['sessionMode'] ?? 'in_person');
         $partialSessions[] = $session;
@@ -238,6 +258,12 @@ function classops_term7_syllabus_source_occurrence_decision(
 
 function classops_term7_syllabus_theory_occurrence_cancelled(string $eventSlug, string $jalaliDate): bool
 {
+    foreach (classops_term7_syllabus_theory_date_moves() as $key => $move) {
+        $parts = explode('|', (string) $key, 3);
+        if (count($parts) === 3 && $parts[0] === $eventSlug && $parts[1] === $jalaliDate) {
+            return true;
+        }
+    }
     $mapping = classops_term7_syllabus_course_for_slug($eventSlug);
     if ($mapping === null) return false;
     $course = $mapping['course'];
