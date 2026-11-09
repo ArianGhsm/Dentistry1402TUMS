@@ -12,7 +12,8 @@ CANONICAL_HOME_ROWS: tuple[tuple[tuple[str, str], ...], ...] = (
     (("🧭 مرکز همیاد", "hamiad-center"),),
     (("📚 جزوات", "notes"), ("💳 اشتراک جزوات", "term-subscription:7")),
     (("📊 نمرات", "grades"), ("🗂 امور کلاس", "class-operations")),
-    (("👤 حساب من", "account"), ("🔔 اعلان‌ها", "notifications"), ("❓ راهنما", "help")),
+    (("👤 حساب من", "account"), ("🔔 اعلان‌ها", "notifications")),
+    (("⚙️ تنظیمات", "ui-settings"), ("❓ راهنما", "help")),
 )
 
 STATUS_MARKERS = {

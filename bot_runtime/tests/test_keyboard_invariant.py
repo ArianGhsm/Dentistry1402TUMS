@@ -30,6 +30,73 @@ class CapturingApi:
 
 
 class KeyboardInvariantTests(unittest.TestCase):
+    def test_authenticated_reply_mode_uses_the_same_actions_and_persists_mapping(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            delegate = CapturingApi()
+            try:
+                state.set_button_mode(20, "reply")
+                api = KeyboardInvariantApi(delegate, state)
+                api.begin_interaction(20, authenticated=True)
+                markup = {"inline_keyboard": [
+                    [{"text": "📚 جزوات", "callback_data": "v1:notes"},
+                     {"text": "📚 جزوات", "callback_data": "v1:notes-other"}],
+                    [{"text": "📎 فایل", "url": "https://example.test/document?id=20"}],
+                ]}
+                api.send(20, "جزوات من", markup)
+                self.assertIn("keyboard", delegate.sent[-1][2])
+                labels = [item["text"] for row in delegate.sent[-1][2]["keyboard"] for item in row]
+                self.assertEqual(len(labels), len(set(labels)))
+                self.assertEqual(state.reply_navigation_choice(20, "📚 جزوات"),
+                                 {"kind": "callback", "data": "v1:notes"})
+                self.assertEqual(state.reply_navigation_choice(20, "📚 جزوات (۲)"),
+                                 {"kind": "callback", "data": "v1:notes-other"})
+                self.assertEqual(state.reply_navigation_choice(20, "📎 فایل"),
+                                 {"kind": "url", "url": "https://example.test/document?id=20"})
+                self.assertEqual(state.reply_navigation_choice(20, "⚙️ تنظیمات ربات")["data"],
+                                 "v1:ui-settings")
+                api.send(20, "اعلان بدون دکمه", {"inline_keyboard": []})
+                self.assertEqual(state.reply_navigation_choice(20, "📚 جزوات")["data"], "v1:notes")
+                self.assertEqual(delegate.removed, [])
+                api.mark_reply_choice()
+                api.edit(20, 77, "صفحه دیگر", markup)
+                self.assertEqual(delegate.sent[-1][1], "صفحه دیگر")
+                self.assertTrue(state.reply_keyboard_needs_removal(20, KEYBOARD_CLEANUP_VERSION))
+            finally:
+                state.close()
+
+    def test_disconnected_account_never_uses_custom_navigation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            delegate = CapturingApi()
+            try:
+                state.set_button_mode(20, "reply")
+                api = KeyboardInvariantApi(delegate, state)
+                api.begin_interaction(20, authenticated=False)
+                markup = {"inline_keyboard": [[{"text": "تنظیمات", "callback_data": "v1:ui-settings"}]]}
+                api.send(20, "اتصال حساب لازم است", markup)
+                self.assertEqual(delegate.sent[-1][2], markup)
+                self.assertIsNone(state.reply_navigation_choice(20, "تنظیمات"))
+            finally:
+                state.close()
+
+    def test_switching_to_inline_clears_stale_action_mapping(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            delegate = CapturingApi()
+            try:
+                state.set_button_mode(20, "reply")
+                api = KeyboardInvariantApi(delegate, state)
+                api.begin_interaction(20, authenticated=True)
+                api.send(20, "صفحه", {"inline_keyboard": [[{"text": "پرداخت", "callback_data": "v1:pay"}]]})
+                state.set_button_mode(20, "inline")
+                api.send(20, "تنظیمات", {"inline_keyboard": [[{"text": "خانه", "callback_data": "v1:home"}]]})
+                self.assertEqual(delegate.removed, [20])
+                self.assertIn("inline_keyboard", delegate.sent[-1][2])
+                self.assertIsNone(state.reply_navigation_choice(20, "پرداخت"))
+            finally:
+                state.close()
+
     def test_previous_deleted_cleanup_version_is_replayed_once(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = BotState(Path(directory) / "state.sqlite3")

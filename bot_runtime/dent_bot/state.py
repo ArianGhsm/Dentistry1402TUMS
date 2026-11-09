@@ -518,6 +518,16 @@ class BotState:
                 cleanup_version TEXT NOT NULL DEFAULT '',
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS bot_ui_preferences (
+                user_id INTEGER PRIMARY KEY,
+                button_mode TEXT NOT NULL DEFAULT 'inline' CHECK(button_mode IN ('inline','reply')),
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS bot_reply_navigation (
+                user_id INTEGER PRIMARY KEY,
+                choices_json TEXT NOT NULL DEFAULT '{}',
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS protected_media_sources (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 source_chat_id INTEGER NOT NULL,
@@ -3127,6 +3137,61 @@ class BotState:
             self.connection.execute("DELETE FROM bot_dialogs WHERE user_id=?", (user_id,))
             self.connection.commit()
 
+    def button_mode(self, user_id: int) -> str:
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT button_mode FROM bot_ui_preferences WHERE user_id=?", (int(user_id),)
+            ).fetchone()
+        return "reply" if row and str(row[0]) == "reply" else "inline"
+
+    def set_button_mode(self, user_id: int, mode: str) -> None:
+        if mode not in {"inline", "reply"}:
+            raise ValueError("Unknown button mode")
+        with self._lock:
+            self.connection.execute(
+                "INSERT INTO bot_ui_preferences(user_id,button_mode) VALUES(?,?) "
+                "ON CONFLICT(user_id) DO UPDATE SET button_mode=excluded.button_mode,"
+                "updated_at=CURRENT_TIMESTAMP",
+                (int(user_id), mode),
+            )
+            if mode == "inline":
+                self.connection.execute("DELETE FROM bot_reply_navigation WHERE user_id=?", (int(user_id),))
+            self.connection.commit()
+
+    def remember_reply_navigation(self, user_id: int, choices: dict[str, dict]) -> None:
+        if len(choices) > 100 or any(len(key) > 80 for key in choices):
+            raise ValueError("Too many reply navigation choices")
+        encoded = json.dumps(choices, ensure_ascii=False, separators=(",", ":"))
+        with self._lock:
+            self.connection.execute(
+                "INSERT INTO bot_reply_navigation(user_id,choices_json) VALUES(?,?) "
+                "ON CONFLICT(user_id) DO UPDATE SET choices_json=excluded.choices_json,"
+                "updated_at=CURRENT_TIMESTAMP",
+                (int(user_id), encoded),
+            )
+            self.connection.commit()
+
+    def clear_reply_navigation(self, user_id: int) -> None:
+        with self._lock:
+            self.connection.execute(
+                "DELETE FROM bot_reply_navigation WHERE user_id=?", (int(user_id),)
+            )
+            self.connection.commit()
+
+    def reply_navigation_choice(self, user_id: int, label: str) -> dict | None:
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT choices_json FROM bot_reply_navigation WHERE user_id=?", (int(user_id),)
+            ).fetchone()
+        if not row:
+            return None
+        try:
+            choices = json.loads(str(row[0]))
+        except (ValueError, TypeError):
+            return None
+        choice = choices.get(str(label)) if isinstance(choices, dict) else None
+        return dict(choice) if isinstance(choice, dict) else None
+
     def mark_reply_keyboard_active(self, user_id: int) -> None:
         with self._lock:
             self.connection.execute(
@@ -3966,6 +4031,17 @@ class BotState:
                 (str(offset),),
             )
             self.connection.commit()
+
+    def known_private_bot_users(self) -> list[int]:
+        """Known private chat users, including early onboarding visitors."""
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT telegram_user_id FROM bot_users WHERE telegram_user_id>0 "
+                "UNION SELECT user_id FROM reply_keyboard_state WHERE user_id>0 "
+                "UNION SELECT user_id FROM bot_dialogs WHERE user_id>0 "
+                "ORDER BY 1"
+            ).fetchall()
+        return [int(row[0]) for row in rows]
 
     def touch_user(self, user_id: int, section: str = "home") -> None:
         with self._lock:
