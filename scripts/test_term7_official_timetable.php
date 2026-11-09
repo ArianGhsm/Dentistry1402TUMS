@@ -132,5 +132,36 @@ foreach ([
     $assert(($event['start'] ?? '') === '12:40' && ($event['end'] ?? '') === '13:40', "Orthodontics session {$sessionNumber} clock unchanged");
 }
 
+// Dr. Bahrami's session 13 moved from Wednesday 18 Azar to Monday 16 Azar.
+// Time is intentionally unconfirmed: inheriting Wednesday's 07:00 slot
+// would conflict with the actual Monday ENT class.
+$movedMonday = dent_term7_resolve_jalali('1405/09/16', 1, []);
+$movedWednesday = dent_term7_resolve_jalali('1405/09/18', 3, []);
+$movedRows = array_values(array_filter(
+    dent_term7_ordered_schedule_rows($movedMonday),
+    static fn(array $event): bool => str_contains((string) ($event['title'] ?? ''), 'رست و جایگاه رست')
+));
+$assert(count($movedRows) === 1, 'Moved partial session appears exactly once on Monday 16 Azar');
+if (count($movedRows) === 1) {
+    $assert(
+        ($movedRows[0]['instructor'] ?? '') === 'دکتر بهرامی'
+            && ($movedRows[0]['start'] ?? 'x') === ''
+            && ($movedRows[0]['end'] ?? 'x') === '',
+        'Moved Dr Bahrami class preserves instructor without inventing Monday time'
+    );
+}
+$assert(
+    array_values(array_filter($movedWednesday['theory'] ?? [], static fn(array $e): bool => ($e['slug'] ?? '') === 'partial-basics-theory')) === [],
+    'Moved partial class absent from Wednesday 18 Azar'
+);
+$syllabus = classops_term7_syllabus_catalog()['partial-basics-theory']['sessions'];
+$session13 = array_values(array_filter($syllabus, static fn(array $e): bool => (int) ($e['sessionNumber'] ?? 0) === 13));
+$assert(count($session13) === 1
+    && ($session13[0]['dates'] ?? []) === ['1405/09/16']
+    && ($session13[0]['rescheduledFrom'] ?? '') === '1405/09/18'
+    && ($session13[0]['sourceDate'] ?? '') === '05/09/18',
+    'Single traceable source-date correction feeds class and reminder timetable'
+);
+
 echo "Official Term 7 timetable tests: {$checks}; failures: {$failures}\n";
 exit($failures === 0 ? 0 : 1);

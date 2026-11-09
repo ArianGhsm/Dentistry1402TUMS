@@ -531,6 +531,22 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         if command == "/start":
             self._account_cache.pop(user_id, None)
             self._product_state_cache.pop(user_id, None)
+        # Shareable AI-booklet checkout route. Reuse the canonical catalog,
+        # account gate, entitlement lookup, and existing checkout renderer.
+        ai_link = re.fullmatch(r"ai_([a-z0-9-]{1,48})_([1-9][0-9]?)", command_argument)
+        if command == "/start" and ai_link is not None:
+            blocked = self._bot_entry_gate(user_id)
+            if blocked is None:
+                blocked = self._private_access_gate(user_id)
+            if blocked is not None:
+                self.api.send(int(chat["id"]), blocked.text, blocked.keyboard)
+            else:
+                course_key, session_no = ai_link.groups()
+                self._handle_booklet_action(
+                    chat_id=int(chat["id"]), user_id=user_id,
+                    name=f"booklet-ai-buy:{course_key}:{session_no}", message_id=0,
+                )
+            return
         if command == "/start" and command_argument.startswith("product_"):
             blocked = self._bot_entry_gate(user_id)
             if blocked is not None:
