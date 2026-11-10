@@ -28,4 +28,40 @@ $browser = file_get_contents(dirname(__DIR__) . '/public_html/hamiad/index.php')
 check(!str_contains($browser, 'ARIANgh@'), 'No password hardcoded');
 check(str_contains($browser, 'type="password"'), 'Password input');
 check(str_contains($browser, 'value="') === false, 'No prefilled input values');
+// Regression: the first GET after a valid POST may be an Arvan 307.
+// Verification must preserve WAF cookies, retry the exact URL, and accept
+// only a Moodle authenticated home (never a redirect or anonymous form).
+$seenCookies = [];
+$redirectThenHome = static function (string $method, string $url, array $options) use (&$seenCookies): array {
+    $seenCookies[] = $options['cookies'];
+    if (count($seenCookies) === 1) {
+        return [
+            'ok' => true, 'status' => 307,
+            'headers' => ['Location: ' . $url],
+            'cookies' => [['name' => 'arvan', 'value' => 'validated']],
+            'body' => '',
+        ];
+    }
+    return [
+        'ok' => true, 'status' => 200, 'headers' => [],
+        'cookies' => [['name' => 'MoodleSession', 'value' => 'new-session']],
+        'body' => '<a href="/login/logout.php?sesskey=test">خروج</a>',
+    ];
+};
+$verifiedCookies = [['name' => 'prior', 'value' => 'preserved']];
+check(hamiad_verify_home($verifiedCookies, $redirectThenHome), 'Arvan 307 then authenticated Moodle home');
+check(count($seenCookies) === 2, '307 retries exactly once before verified 200');
+check(str_contains(hamiad_build_cookie_header($seenCookies[1]), 'arvan=validated'), 'Retains WAF cookie during retry');
+check(str_contains(hamiad_build_cookie_header($verifiedCookies), 'MoodleSession=new-session'), 'Retains refreshed Moodle session');
+$anonymousRedirect = static fn(string $method, string $url, array $options): array => [
+    'ok' => true, 'status' => 303, 'headers' => ['Location: ' . HAMIAD_LOGIN],
+    'cookies' => [], 'body' => '',
+];
+$anonymousCookies = [];
+check(!hamiad_verify_home($anonymousCookies, $anonymousRedirect), 'Fail closed on redirect to login');
+$anonymousHtml = static fn(string $method, string $url, array $options): array => [
+    'ok' => true, 'status' => 200, 'headers' => [], 'cookies' => [],
+    'body' => '<form id="login"><input name="login_captcha_id0"></form>',
+];
+check(!hamiad_verify_home($anonymousCookies, $anonymousHtml), 'Fail closed on anonymous login HTML');
 echo "HAMIAD_BRIDGE_TESTS_OK\n";
