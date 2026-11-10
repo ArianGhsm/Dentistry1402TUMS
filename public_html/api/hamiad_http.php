@@ -296,10 +296,11 @@ function hamiad_response_header_value(array $headers, string $name): string
  * Handle the provider's same-URL 307 challenge while retaining short-lived
  * WAF cookies. All destinations remain fixed to the approved LMS host.
  */
-function hamiad_get_html_with_waf_retry(string $url, array &$cookies): string
+function hamiad_get_html_with_waf_retry(string $url, array &$cookies, ?callable $request = null): string
 {
+    $request ??= 'hamiad_http_request';
     for ($attempt = 0; $attempt < 5; $attempt++) {
-        $result = hamiad_http_request('GET', $url, [
+        $result = $request('GET', $url, [
             'cookies' => $cookies,
             'timeoutSec' => 22,
             'referer' => 'https://lms.tums.ac.ir/my/',

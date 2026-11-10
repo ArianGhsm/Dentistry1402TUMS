@@ -106,6 +106,21 @@ function hamiad_challenge(): array
     return ['image' => 'data:image/png;base64,' . base64_encode($bytes)];
 }
 
+/**
+ * Verify a successful Moodle login across Arvan's bounded same-URL 307
+ * challenge, preserving its refreshed cookies before storing the session.
+ * A redirect to /login or an anonymous HTML response is never success.
+ */
+function hamiad_verify_home(array &$cookies, ?callable $request = null): bool
+{
+    try {
+        $content = hamiad_get_html_with_waf_retry(HAMIAD_HOME, $cookies, $request);
+    } catch (RuntimeException $error) {
+        return false;
+    }
+    return str_contains($content, 'login/logout.php');
+}
+
 function hamiad_login(string $username, string $password, string $captcha): array
 {
     $challenge = $_SESSION['hamiad_challenge'] ?? null;
@@ -143,15 +158,9 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         throw new RuntimeException('ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.');
     }
     $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
-    $verified = hamiad_http_request('GET', HAMIAD_HOME, [
-        'cookies' => $cookies, 'referer' => HAMIAD_LOGIN, 'timeoutSec' => 20,
-    ]);
-    $content = (string) ($verified['body'] ?? '');
-    if (empty($verified['ok']) || (int) ($verified['status'] ?? 0) !== 200
-        || !str_contains($content, 'login/logout.php')) {
+    if (!hamiad_verify_home($cookies)) {
         throw new RuntimeException('نشست همیاد هنوز تأیید نشده است.');
     }
-    $cookies = hamiad_merge_cookies($cookies, (array) ($verified['cookies'] ?? []));
     dent_write_json_file(hamiad_session_path(), [
         'schemaVersion' => 1,
         'origin' => HAMIAD_BASE,
