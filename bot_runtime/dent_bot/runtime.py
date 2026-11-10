@@ -35,6 +35,7 @@ from .ui import (
 from .persian_datetime import to_persian_digits
 from .navid import decode_image_data_uri, local_now, send_daily_challenge
 from .protected_media import ProtectedMediaDispatcher
+from .subscription_booklet_delivery import dispatch_verified_subscription_booklets
 
 
 def configure_profile_safely(api, platform_name: str) -> bool:
@@ -854,6 +855,17 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
                     )
             except SiteApiError as error:
                 logging.warning("%s payment result unavailable code=%s", platform_name, error.code)
+            # Durable customer-requested delivery: only paid, active subscriptions
+            # pass the shared entitlement and media authorization gates.
+            try:
+                delivery_counts = dispatch_verified_subscription_booklets(
+                    settings=settings, api=api, state=state,
+                    site_api=site_api, media_dispatcher=media_dispatcher,
+                )
+                if delivery_counts["queued"]:
+                    logging.info("%s verified subscription booklet queued=%s", platform_name, delivery_counts["queued"])
+            except (SiteApiError, BotApiError, ValueError) as error:
+                logging.warning("%s verified subscription booklet deferred: %s", platform_name, type(error).__name__)
             next_payment_result_poll = time.monotonic() + int(
                 getattr(settings, "payment_result_poll_seconds", 30)
             )

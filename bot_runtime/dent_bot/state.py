@@ -3226,6 +3226,17 @@ class BotState:
             row = self.connection.execute("SELECT value FROM runtime_state WHERE key=?", (key,)).fetchone()
         return str(row[0]) if row else ""
 
+    def runtime_values_with_prefix(self, prefix: str) -> dict[str, str]:
+        """Fetch server-side pending workflow records without exposing other keys."""
+        if not prefix or len(prefix) > 100 or any(ch in prefix for ch in "%_"):
+            raise ValueError("Invalid runtime state prefix")
+        with self._lock:
+            rows = self.connection.execute(
+                "SELECT key,value FROM runtime_state WHERE key LIKE ? ORDER BY key LIMIT 100",
+                (prefix + "%",),
+            ).fetchall()
+        return {str(key): str(value) for key, value in rows}
+
     def set_runtime_value(self, key: str, value: str) -> None:
         with self._lock:
             self.connection.execute(

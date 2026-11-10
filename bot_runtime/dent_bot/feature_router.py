@@ -31,6 +31,16 @@ def route_feature_callback(
 
 def route_feature_message(app: "DentBotApp", message: dict[str, Any]) -> bool:
     """Route feature dialogs/commands before the base DentBot message flow."""
+    chat = dict(message.get("chat") or {})
+    sender = dict(message.get("from") or {})
+    if (str(message.get("text") or "").strip() == "/start subscription_7"
+            and chat.get("type") == "private" and isinstance(sender.get("id"), int)):
+        user_id = int(sender["id"])
+        app._account_cache.pop(user_id, None)
+        app._product_state_cache.pop(user_id, None)
+        screen = app._dynamic_screen("term-subscription", user_id)
+        app.api.send(int(chat["id"]), screen.text, screen.keyboard)
+        return True
     if handle_classops_ui_message(app, message):
         return True
     return handle_class_operations_message(app, message)
