@@ -120,6 +120,32 @@ classops_v3_assert(
     'Rotation A Endodontics Foundations 2 reaches the bot timeline with session, quiz, instructor, canonical clock and location'
 );
 
+$shakibSundayRows = classops_bot_ui_term7_records(
+    $student, new DateTimeImmutable('2026-11-15 00:00:00', $timezone), $state
+);
+$shakibMondayRows = classops_bot_ui_term7_records(
+    $student, new DateTimeImmutable('2026-11-16 00:00:00', $timezone), $state
+);
+$shakibSundayRows = array_values(array_filter(
+    $shakibSundayRows,
+    static fn(array $row): bool => ($row['type'] ?? '') === 'theory'
+        && ($row['sessionNumber'] ?? 0) === 18
+        && ($row['instructor'] ?? '') === 'دکتر شکیب'
+));
+$shakibMondayRows = array_values(array_filter(
+    $shakibMondayRows,
+    static fn(array $row): bool => ($row['type'] ?? '') === 'theory'
+        && ($row['sessionNumber'] ?? 0) === 18
+        && ($row['instructor'] ?? '') === 'دکتر شکیب'
+));
+classops_v3_assert(
+    count($shakibSundayRows) === 1
+        && str_contains((string) ($shakibSundayRows[0]['startsAt'] ?? ''), 'T07:00:00')
+        && str_contains((string) ($shakibSundayRows[0]['endsAt'] ?? ''), 'T08:00:00')
+        && $shakibMondayRows === [],
+    'Student ClassOps timeline shows moved Shakib session once on Sunday and not Monday'
+);
+
 $rotationBStart = new DateTimeImmutable('2026-11-14 00:00:00', $timezone); // 1405/08/23
 $rotationBRows = classops_bot_ui_term7_records($student, $rotationBStart, $state);
 $rotationBHealth = array_values(array_filter(

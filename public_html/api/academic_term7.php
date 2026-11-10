@@ -474,7 +474,7 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
     // therefore remain consistent in the bot, reminders, and ClassOps views.
     if ($inTerm) {
         foreach (classops_term7_syllabus_theory_date_moves() as $key => $move) {
-            if ((string) ($move['to'] ?? '') !== $jalaliDate) continue;
+            if ((string) ($move['to'] ?? '') !== $jalaliDate || !empty($move['reuseExistingSlot'])) continue;
             $parts = explode('|', (string) $key, 3);
             if (count($parts) !== 3) continue;
             foreach ($schedule['theory'] as $scheduledEvents) {

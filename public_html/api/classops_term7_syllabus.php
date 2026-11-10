@@ -11,6 +11,12 @@ const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.20';
 function classops_term7_syllabus_theory_date_moves(): array
 {
     return [
+        'diagnostic-dentistry-3-mon|1405/08/25|18' => [
+            'to' => '1405/08/24',
+            'timeConfirmed' => true,
+            'reuseExistingSlot' => true,
+            'reason' => 'انتقال کلاس دکتر شکیب از دوشنبه ۲۵ آبان ساعت ۱۱:۳۰–۱۲:۳۰ به یکشنبه ۲۴ آبان ساعت ۰۷:۰۰–۰۸:۰۰',
+        ],
         'partial-basics-theory|1405/09/18|13' => [
             'to' => '1405/09/16',
             'timeConfirmed' => false,
@@ -138,7 +144,27 @@ function classops_term7_syllabus_catalog(): array
         $sessions = [];
         foreach (is_array($course['sessions'] ?? null) ? $course['sessions'] : [] as $session) {
             if (!is_array($session)) continue;
-            $sessions[] = classops_term7_syllabus_apply_one_off_override((string) $courseKey, $session);
+            $session = classops_term7_syllabus_apply_one_off_override((string) $courseKey, $session);
+            $sourceDates = is_array($session['dates'] ?? null) ? $session['dates'] : [];
+            $numbers = is_array($session['sessionNumbers'] ?? null)
+                ? $session['sessionNumbers']
+                : [$session['sessionNumber'] ?? 0];
+            foreach (is_array($course['eventSlugs'] ?? null) ? $course['eventSlugs'] : [] as $slug) {
+                foreach ($sourceDates as $sourceDate) {
+                    foreach ($numbers as $number) {
+                        $key = (string) $slug . '|' . (string) $sourceDate . '|' . (int) $number;
+                        $move = classops_term7_syllabus_theory_date_moves()[$key] ?? null;
+                        if (!is_array($move)) continue;
+                        $session['dates'] = [(string) $move['to']];
+                        $session['sourceDate'] = (string) $sourceDate;
+                        $session['rescheduledFrom'] = (string) $sourceDate;
+                        $session['rescheduleReason'] = (string) ($move['reason'] ?? '');
+                        if (empty($move['timeConfirmed'])) $session['oneOffTimeUnconfirmed'] = true;
+                        break 3;
+                    }
+                }
+            }
+            $sessions[] = $session;
         }
         $course['sessions'] = $sessions;
     }

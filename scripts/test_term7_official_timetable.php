@@ -163,5 +163,62 @@ $assert(count($session13) === 1
     'Single traceable source-date correction feeds class and reminder timetable'
 );
 
+// One-off diagnostic session 18 (Shakib) moves onto the existing Sunday slot.
+$diagnosticSessions = array_values(array_filter(
+    $catalog['diagnostic-dentistry-3']['sessions'] ?? [],
+    static fn(array $session): bool => (int) ($session['sessionNumber'] ?? 0) === 18
+));
+$assert(
+    count($diagnosticSessions) === 1
+        && ($diagnosticSessions[0]['dates'] ?? []) === ['1405/08/24']
+        && ($diagnosticSessions[0]['sourceDate'] ?? '') === '1405/08/25'
+        && ($diagnosticSessions[0]['instructor'] ?? '') === 'دکتر شکیب',
+    'Shakib session 18 moves once with preserved instructor and source date'
+);
+$diagnosticSunday = dent_term7_enriched_event_groups(
+    dent_term7_resolve_jalali('1405/08/24', 7, [])
+)['theory'];
+$diagnosticMonday = dent_term7_enriched_event_groups(
+    dent_term7_resolve_jalali('1405/08/25', 1, [])
+)['theory'];
+$diagnosticOnSunday = array_values(array_filter(
+    $diagnosticSunday,
+    static fn(array $event): bool => str_starts_with((string) ($event['slug'] ?? ''), 'diagnostic-dentistry-3-')
+));
+$shakibOnSunday = array_values(array_filter(
+    $diagnosticOnSunday,
+    static fn(array $event): bool => (int) ($event['sessionNumber'] ?? 0) === 18
+));
+$originalSunday = array_values(array_filter(
+    $diagnosticOnSunday,
+    static fn(array $event): bool => (int) ($event['sessionNumber'] ?? 0) === 17
+));
+$shakibOnMonday = array_values(array_filter(
+    $diagnosticMonday,
+    static fn(array $event): bool => ($event['slug'] ?? '') === 'diagnostic-dentistry-3-mon'
+));
+$assert(
+    count($diagnosticOnSunday) === 2 && count($shakibOnSunday) === 1
+        && ($shakibOnSunday[0]['instructor'] ?? '') === 'دکتر شکیب'
+        && ($shakibOnSunday[0]['start'] ?? '') === '07:00'
+        && ($shakibOnSunday[0]['end'] ?? '') === '08:00'
+        && ($shakibOnSunday[0]['location'] ?? '') === 'آمفی‌تئاتر ۹۰',
+    'Shakib appears exactly once on Sunday at 07:00–08:00 with original venue'
+);
+$assert(
+    count($originalSunday) === 1
+        && ($originalSunday[0]['instructor'] ?? '') === 'دکتر شیرازیان'
+        && ($originalSunday[0]['sessionMode'] ?? '') === 'offline',
+    'Original Sunday asynchronous session 17 is not overwritten'
+);
+$assert(
+    $shakibOnMonday === []
+        && count(array_filter(
+            $diagnosticMonday,
+            static fn(array $event): bool => ($event['slug'] ?? '') === 'ent'
+        )) === 1,
+    'Cancelled Monday Shakib occurrence is absent without affecting ENT'
+);
+
 echo "Official Term 7 timetable tests: {$checks}; failures: {$failures}\n";
 exit($failures === 0 ? 0 : 1);
