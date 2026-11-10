@@ -273,3 +273,18 @@
     .hamiad-metric-label,.hamiad-course-meta,.hamiad-resource-type,.hamiad-empty {color:#aeb9c8;}
     .hamiad-view-tabs .is-active {color:#7ad4c0;border-color:#7ad4c0;}
 }
+
+/* Owner vault extends the existing Hamiad login design primitives. */
+.hamiad-vault { border-top:1px solid #d9e0e9; margin-top:24px; padding-top:20px; scroll-margin-top:20px; }
+.hamiad-vault-status { margin:0; font-size:.9rem; line-height:1.8; color:#596579; }
+.hamiad-vault-status.is-saved { color:#176c5d; font-weight:700; }
+.hamiad-vault-status.is-error { color:#b42318; }
+.hamiad-vault .hamiad-form .bot-link-primary { margin-top:7px; }
+.hamiad-vault .bot-link-secondary { width:100%; }
+.hamiad-vault .bot-link-secondary:disabled { opacity:.52; cursor:not-allowed; }
+@media (prefers-color-scheme: dark) {
+    .hamiad-vault { border-color:#46546a; }
+    .hamiad-vault-status { color:#aeb9c8; }
+    .hamiad-vault-status.is-saved { color:#7ad4c0; }
+    .hamiad-vault-status.is-error { color:#ffa49b; }
+}

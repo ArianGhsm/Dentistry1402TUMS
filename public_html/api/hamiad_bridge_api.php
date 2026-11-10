@@ -6,6 +6,7 @@ require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/hamiad_bridge_service.php';
 require_once __DIR__ . '/hamiad_courses.php';
 require_once __DIR__ . '/hamiad_dashboard.php';
+require_once __DIR__ . '/hamiad_credentials.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Referrer-Policy: no-referrer');
@@ -37,6 +38,13 @@ if (dent_request_method() === 'GET' && $action === 'assignment') {
         dent_error($error->getMessage(), 422);
     }
 }
+if (dent_request_method() === 'GET' && $action === 'credentialsStatus') {
+    try {
+        dent_json_response(['success'=>true,'credentials'=>hamiad_credentials_status()]);
+    } catch (RuntimeException $error) {
+        dent_error($error->getMessage(),422);
+    }
+}
 if (dent_request_method() === 'GET' && $action === 'status') {
     dent_json_response(['success' => true, 'status' => hamiad_session_status()]);
 }
@@ -59,6 +67,14 @@ if (dent_request_method() !== 'POST') {
 }
 dent_auth_session_require_csrf();
 try {
+    if ($action === 'saveCredentials') {
+        dent_json_response(['success'=>true,'credentials'=>hamiad_credentials_save(
+            (string)($_POST['username']??''),(string)($_POST['password']??'')
+        )]);
+    }
+    if ($action === 'deleteCredentials') {
+        dent_json_response(['success'=>true,'credentials'=>hamiad_credentials_delete()]);
+    }
     if ($action === 'challenge') {
         dent_json_response(['success' => true] + hamiad_challenge());
     }

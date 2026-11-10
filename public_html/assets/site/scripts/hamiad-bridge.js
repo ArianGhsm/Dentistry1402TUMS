@@ -107,6 +107,96 @@
 
     refresh.addEventListener("click", newCaptcha);
 
+    // Independent owner-only vault: save without requesting a live LMS session.
+    const vaultForm = document.getElementById("hamiad-credentials-form");
+    const vaultUser = document.getElementById("hamiad-vault-username");
+    const vaultPassword = document.getElementById("hamiad-vault-password");
+    const vaultSave = document.getElementById("hamiad-credentials-save");
+    const vaultDelete = document.getElementById("hamiad-credentials-delete");
+    const vaultStatus = document.getElementById("hamiad-credentials-status");
+    const vaultFeedback = document.getElementById("hamiad-credentials-feedback");
+    let vaultBusy = false;
+
+    function showVaultState(saved) {
+        const exists = saved?.saved === true;
+        vaultStatus.textContent = exists
+            ? "✅ مشخصات ذخیره شده‌اند · حساب: " + persianDigits(saved.usernameMasked || "پوشانده‌شده")
+            : "مشخصات ورود هنوز ذخیره نشده‌اند.";
+        vaultStatus.classList.toggle("is-saved", exists);
+        vaultStatus.classList.remove("is-error");
+        vaultDelete.disabled = !exists || vaultBusy;
+    }
+
+    async function refreshVault() {
+        try {
+            const response = await fetch("/api/hamiad_bridge_api.php?action=credentialsStatus", {
+                credentials: "same-origin", cache: "no-store", redirect: "error",
+            });
+            const data = await response.json();
+            if (!response.ok || data.success !== true) {
+                throw new Error(data.error || "بررسی مشخصات ناموفق بود.");
+            }
+            showVaultState(data.credentials);
+        } catch (error) {
+            vaultStatus.textContent = error.message;
+            vaultStatus.classList.add("is-error");
+            vaultDelete.disabled = true;
+        }
+    }
+
+    vaultForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (vaultBusy || !vaultForm.reportValidity()) return;
+        vaultBusy = true;
+        vaultSave.disabled = true;
+        vaultDelete.disabled = true;
+        vaultFeedback.textContent = "در حال ذخیره امن…";
+        vaultFeedback.classList.remove("is-error");
+        try {
+            const body = new URLSearchParams({
+                username: vaultUser.value.trim(),
+                password: vaultPassword.value,
+            });
+            const data = await request("saveCredentials", body.toString());
+            vaultPassword.value = "";
+            showVaultState(data.credentials);
+            vaultFeedback.textContent = "مشخصات روی سرور ایران ذخیره شدند. برای ورودهای بعدی نیازی به واردکردن دوباره رمز نیست.";
+        } catch (error) {
+            vaultPassword.value = "";
+            vaultFeedback.textContent = error.message;
+            vaultFeedback.classList.add("is-error");
+        } finally {
+            vaultBusy = false;
+            vaultSave.disabled = false;
+            await refreshVault();
+        }
+    });
+
+    vaultDelete.addEventListener("click", async () => {
+        if (vaultBusy || vaultDelete.disabled) return;
+        if (!window.confirm("مشخصات ذخیره‌شده همیاد حذف شوند؟ پس از حذف برای ورود دوباره به رمز نیاز است.")) return;
+        vaultBusy = true;
+        vaultSave.disabled = true;
+        vaultDelete.disabled = true;
+        vaultFeedback.textContent = "";
+        try {
+            const data = await request("deleteCredentials");
+            showVaultState(data.credentials);
+            vaultUser.value = "";
+            vaultPassword.value = "";
+            vaultFeedback.textContent = "مشخصات ذخیره‌شده حذف شدند.";
+            vaultFeedback.classList.remove("is-error");
+        } catch (error) {
+            vaultFeedback.textContent = error.message;
+            vaultFeedback.classList.add("is-error");
+        } finally {
+            vaultBusy = false;
+            vaultSave.disabled = false;
+            await refreshVault();
+        }
+    });
+    refreshVault();
+
     const connectPanel = document.getElementById("hamiad-success-panel");
     const loginPanel = document.getElementById("hamiad-form-panel");
     const courseButton = document.getElementById("hamiad-load-courses");
