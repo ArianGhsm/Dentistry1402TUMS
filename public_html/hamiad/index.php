@@ -23,7 +23,7 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
     <title>ورود به همیاد | دنت‌یار</title>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20261022-hamiad1">
     <link rel="stylesheet" href="/assets/site/styles/bot-link.css?v=20261022-hamiad1">
-    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261022-hamiad-center1">
+    <link rel="stylesheet" href="/assets/site/styles/hamiad-bridge.css?v=20261110-vault1">
 </head>
 <body class="bot-link-page">
 <main class="bot-link-shell">
@@ -86,11 +86,27 @@ $csrf = $isOwner ? dent_auth_session_csrf_token() : '';
             <button id="hamiad-reconnect" class="bot-link-secondary" type="button">ورود مجدد و تعویض نشست</button>
             <a class="bot-link-secondary" href="/app/">بازگشت به دنتیستری</a>
         </div>
+        <div id="hamiad-credentials-panel" class="bot-link-state hamiad-vault">
+            <div class="hamiad-summary">
+                <strong>🔐 ذخیره امن مشخصات ورود</strong>
+                <p>نام کاربری و رمز همیاد را یک‌بار ثبت کن. اطلاعات فقط روی سرور ایران، رمزنگاری‌شده و خارج از پوشه عمومی سایت نگه‌داری می‌شوند. این کار بدون نیاز به کپچا انجام می‌شود.</p>
+            </div>
+            <p id="hamiad-credentials-status" class="hamiad-vault-status" role="status" aria-live="polite">در حال بررسی مشخصات ذخیره‌شده…</p>
+            <form id="hamiad-credentials-form" class="hamiad-form" method="post" autocomplete="off">
+                <label for="hamiad-vault-username">نام کاربری همیاد</label>
+                <input id="hamiad-vault-username" name="username" type="text" dir="ltr" inputmode="numeric" required maxlength="80" autocomplete="off" placeholder="شماره دانشجویی">
+                <label for="hamiad-vault-password">رمز عبور همیاد</label>
+                <input id="hamiad-vault-password" name="password" type="password" dir="ltr" required maxlength="256" autocomplete="off" placeholder="رمز عبور">
+                <button id="hamiad-credentials-save" class="bot-link-primary" type="submit">ذخیره امن مشخصات</button>
+            </form>
+            <button id="hamiad-credentials-delete" class="bot-link-secondary" type="button" disabled>حذف مشخصات ذخیره‌شده</button>
+            <p id="hamiad-credentials-feedback" class="hamiad-feedback" role="status" aria-live="polite"></p>
+        </div>
         <?php endif; ?>
     </section>
-    <p class="bot-link-security">این صفحه فقط برای مالک سامانه است. رمز عبور در پایگاه داده ذخیره نمی‌شود و داخل لینک قرار نمی‌گیرد.</p>
+    <p class="bot-link-security">این صفحه فقط برای مالک سامانه است. رمز همیاد تنها با انتخاب «ذخیره امن مشخصات» رمزنگاری و نگه‌داری می‌شود؛ رمز داخل لینک قرار نمی‌گیرد.</p>
 </main>
 <div id="hamiad-config" data-csrf="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" hidden></div>
-<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261025-hamiad-dates"></script><?php endif; ?>
+<?php if ($isOwner): ?><script src="/assets/site/scripts/hamiad-bridge.js?v=20261110-vault1"></script><?php endif; ?>
 </body>
 </html>
