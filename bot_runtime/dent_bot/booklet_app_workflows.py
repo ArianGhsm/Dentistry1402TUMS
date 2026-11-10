@@ -28,6 +28,7 @@ from .message_frames import frame_error
 from .payments import identity_from_account
 from .persian_datetime import to_persian_digits
 from .site_api import SiteApiError
+from .regular_booklet_sources import course_regular_booklets
 from .subscriptions import policy_is_effective, subscription_identity_from_account
 from .study_campaign import (
     BUNDLES, ENDO_COURSE_KEY, ENDO_SESSIONS,
@@ -453,56 +454,7 @@ class BookletAppWorkflows:
         }
 
     def _course_regular_booklets(self, catalog: dict, course_key: str) -> list[dict]:
-        """Read current ordinary booklets only, in syllabus order, without repeats."""
-        course = course_by_key(catalog, course_key)
-        if course is None:
-            return []
-        course_tag = str(course.get("bookletTag") or "").strip()
-        term = int(catalog.get("term") or 0)
-        if not course_tag or term != 7:
-            return []
-        valid_sessions = {
-            int(item.get("sessionNumber") or 0)
-            for item in course.get("sessions", [])
-            if isinstance(item, dict) and 1 <= int(item.get("sessionNumber") or 0) <= 40
-        }
-        available = self.state.protected_media_session_counts_for_tag(
-            course_tag=course_tag, term=term, content_kind="booklet",
-        )
-        sources: list[dict] = []
-        seen: set[str] = set()
-        for session_no in sorted(valid_sessions & set(available)):
-            for source in self.state.protected_media_for_tag(
-                course_tag=course_tag, term=term,
-                session_no=session_no, content_kind="booklet",
-            ):
-                if not isinstance(source, dict):
-                    continue
-                if (
-                    str(source.get("contentKind") or "") != "booklet"
-                    or str(source.get("courseTag") or "") != course_tag
-                    or int(source.get("term") or 0) != term
-                    or int(source.get("sessionNo") or 0) != session_no
-                    or int(source.get("id") or 0) <= 0
-                    or int(source.get("sourceChatId") or 0) >= 0
-                    or int(source.get("sourceMessageId") or 0) <= 0
-                    or str(source.get("telegramMethod") or "") != "sendDocument"
-                    or not str(source.get("fileId") or "").strip()
-                    or not (
-                        str(source.get("mimeType") or "").lower() == "application/pdf"
-                        or str(source.get("fileName") or "").lower().endswith(".pdf")
-                    )
-                ):
-                    continue
-                unique = str(source.get("fileUniqueId") or "").strip()
-                key = unique or (
-                    f"{int(source['sourceChatId'])}:{int(source['sourceMessageId'])}"
-                )
-                if key in seen:
-                    continue
-                seen.add(key)
-                sources.append(source)
-        return sources
+        return course_regular_booklets(self.state, catalog, course_key)
 
     def _send_regular_booklets_bulk(
         self, user_id: int, catalog: dict, course_key: str

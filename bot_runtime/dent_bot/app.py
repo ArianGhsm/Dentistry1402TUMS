@@ -272,8 +272,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             "booklet-sales", "booklet-sales-ai", "booklet-sales-subscriptions",
             "payment-audience-new", "payment-transaction-filters", "payment-tx-clear", "payment-tx-product",
             "payment-audience-search", "payment-audience-search-more", "payment-audience-selection-save",
-            "term-subscription", "term-access-policies", "term-access-policy-add",
-            "cart", "cart-checkout", "cart-discount", "cart-discount-remove",
+            "term-access-policies", "term-access-policy-add",
             "discount-codes", "discount-new",
         }
         prefixes = (
@@ -292,9 +291,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             "payment-transaction:", "payment-transaction-status:",
             "notification-action:", "notification-read:", "notification:",
             "notification-audience:", "assistant-action:", "exam-action:",
-            "term-subscription:", "term-subscription-buy:", "term-subscription-info:",
-            "cart-add:", "cart-add-ai:", "cart-add-subscription:", "cart-remove:", "cart-clear:",
-            "cart-deliver:", "discount-new-kind:", "discount-toggle:",
+            "discount-new-kind:", "discount-toggle:",
             "term-subscription-admin:", "term-subscription-settings:", "term-subscription-price:",
             "term-subscription-start:",
             "term-subscription-toggle:", "term-subscription-mode:", "term-subscription-reminders:",

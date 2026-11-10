@@ -6,6 +6,7 @@ import hashlib
 import re
 
 from .payments import normalize_student_number, parse_iso, utc_now
+from .cart import commerce_identity_from_account
 from .persian_datetime import (
     PERSIAN_MONTH_NAMES,
     gregorian_to_jalali,
@@ -115,26 +116,15 @@ def policy_is_effective(policy: dict, now: datetime | None = None) -> bool:
 
 
 def subscription_identity_from_account(account: object) -> SubscriptionIdentity | None:
-    source = dict(account) if isinstance(account, dict) else {}
-    if source.get("linked") is not True or source.get("authComplete") is not True:
+    """Use the shared commerce identity for linked students and OTP-verified outsiders.
+
+    Unverified onboarding and incomplete class links remain fail-closed. The
+    canonical profile reference also supports outsiders without student numbers.
+    """
+    identity = commerce_identity_from_account(account)
+    if identity is None:
         return None
-    user = dict(source.get("user") or {}) if isinstance(source.get("user"), dict) else {}
-    profile = dict(source.get("onboardingProfile") or {}) if isinstance(source.get("onboardingProfile"), dict) else {}
-    student_number = normalize_student_number(user.get("studentNumber") or profile.get("studentNumber"))
-    if not student_number:
-        return None
-    name = " ".join(str(user.get("name") or "").split())
-    if not name:
-        name = " ".join(
-            part for part in (
-                " ".join(str(profile.get("firstName") or "").split()),
-                " ".join(str(profile.get("lastName") or "").split()),
-            ) if part
-        )
-    # The canonical student number is hashed in the internal subject key so the
-    # authorization join does not depend on a display name or platform handle.
-    subject = "student:" + hashlib.sha256(student_number.encode("ascii")).hexdigest()
-    return SubscriptionIdentity(subject, student_number, name[:160])
+    return SubscriptionIdentity(identity.subject_key, identity.student_number, identity.display_name)
 
 
 def subscription_identity_from_directory(item: object) -> SubscriptionIdentity | None:
