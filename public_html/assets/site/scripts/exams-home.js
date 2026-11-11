@@ -1188,10 +1188,18 @@
     }
 
     function hubTotals() {
+        /* Count each course once: one course can sit in several terms/units. */
         var exams = 0;
         var questions = 0;
-        curriculumTerms().forEach(function (term) {
-            var stats = term && term.stats ? term.stats : {};
+        var seen = {};
+        var courses = state.catalog && Array.isArray(state.catalog.courses) ? state.catalog.courses : [];
+        courses.forEach(function (course) {
+            var key = String(course && (course.slug || course.path) || "");
+            if (!key || seen[key]) {
+                return;
+            }
+            seen[key] = true;
+            var stats = course.stats || {};
             exams += Number(stats.examCount) || 0;
             questions += Number(stats.questionCount) || 0;
         });
@@ -1202,10 +1210,19 @@
         return { exams: exams, questions: questions, references: references };
     }
 
+    function hubCohortMatches(pointerCohort) {
+        var requested = String(state.catalog && state.catalog.requestedCohort || "");
+        var normalize = function (key) {
+            key = String(key || "").trim();
+            return key === "dentistry-1402" ? "" : key;
+        };
+        return normalize(pointerCohort) === normalize(requested);
+    }
+
     function hubResumeHtml() {
         try {
             var data = JSON.parse(window.localStorage.getItem("dent1402-last-exam-v1") || "null");
-            if (!data || !data.href || data.finished || !data.total || !data.draftKey) {
+            if (!data || !data.href || data.finished || !data.total || !data.draftKey || !hubCohortMatches(data.cohort)) {
                 return "";
             }
             if (String(data.href).charAt(0) !== "/" || String(data.href).indexOf("//") === 0) {

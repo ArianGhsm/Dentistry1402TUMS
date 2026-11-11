@@ -149,6 +149,13 @@
             }
             /* Exam restoration is tab-scoped (sessionStorage). Only advertise a
                position that following the link will actually restore. */
+            var normalizeCohort = function (key) {
+                key = String(key || "").trim();
+                return key === "dentistry-1402" ? "" : key;
+            };
+            if (normalizeCohort(data.cohort) !== normalizeCohort(activeCohortKey(authState()))) {
+                return null;
+            }
             var draft = data.draftKey ? JSON.parse(window.sessionStorage.getItem(String(data.draftKey)) || "null") : null;
             if (!draft || !draft.started) {
                 return null;
@@ -163,7 +170,14 @@
         var card = $("[data-h26-continue]");
         var start = $("[data-h26-start]");
         var data = readLastExam();
-        if (!card || !data) {
+        if (!card) {
+            return;
+        }
+        if (!data) {
+            card.hidden = true;
+            if (start) {
+                start.hidden = false;
+            }
             return;
         }
         var total = Math.max(1, Number(data.total) || 1);
@@ -414,6 +428,7 @@
 
     function syncAuth(state) {
         renderHello(state);
+        renderContinue();
         renderShelf(state);
         renderWeek(state);
     }
