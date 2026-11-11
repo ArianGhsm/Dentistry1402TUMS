@@ -196,8 +196,9 @@ def check_shared_nav_contracts(repo_root: Path) -> list[tuple[Path, int, str, st
         issues.append(issue(shell_path.relative_to(repo_root), 0, "missing-desktop-side-nav", "shell.js must render the desktop side navigation."))
 
     guest_nav_match = re.search(r"if \(!canUseChat\) \{(?P<guest>.*?)\}\s*else if", shell_text, re.DOTALL)
-    if guest_nav_match is None or guest_nav_match.group("guest").count("items.push(") != 2:
-        issues.append(issue(shell_path.relative_to(repo_root), 0, "invalid-guest-nav-count", "Guest/shared bottom nav must contain home plus exactly two branch items."))
+    # Resources were retired 2026-11-12 (owner): guests get home + exams only.
+    if guest_nav_match is None or guest_nav_match.group("guest").count("items.push(") != 1 or '"/resources/"' in guest_nav_match.group("guest"):
+        issues.append(issue(shell_path.relative_to(repo_root), 0, "invalid-guest-nav-count", "Guest/shared bottom nav must contain home plus exams only (resources retired)."))
 
     logged_nav_match = re.search(
         r"else if \(!isProsthesis\) \{(?P<dental>.*?)\}\s*else \{(?P<prosthesis>.*?)\}\s*return items;",

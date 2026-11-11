@@ -277,7 +277,8 @@
         });
 
         if (!canUseChat) {
-            items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
+            /* Resources were retired (2026-11-12): study files now live in the
+               Telegram/Bale bots; the site is the exams + payment gateway. */
             items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         } else if (!isProsthesis) {
             items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
@@ -480,7 +481,6 @@
             return key !== "dentistry-1402" ? scopedPath(path, key) : path;
         };
         var items = navItems(state).slice(0, 1);
-        items.push({ href: cohortPath(canUseChatState(state) || !state.loggedIn ? "/notes/" : "/resources/"), label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
         items.push({ href: cohortPath("/exams/"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         if (canUseChatState(state)) {
             items.push({ href: cohortPath("/chat/"), label: "چت", icon: "chat", active: ["/chat/"], badgeCount: Math.max(0, Number(navBadgeState.chatCount || 0)) });
@@ -729,7 +729,6 @@
             '      <a href="/account/" role="menuitem"><span class="shell-account-panel__icon">' + icon("account") + '</span><span><strong>حساب کاربری</strong><small>پروفایل، امنیت و تنظیمات</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
             '      <a href="/account/#notifications" role="menuitem"><span class="shell-account-panel__icon">' + accountMenuIconMarkup("bell") + '</span><span><strong>اعلان‌ها</strong><small>پیام‌ها و یادآوری‌های مهم</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
             '      <a href="/grades/" role="menuitem"><span class="shell-account-panel__icon">' + icon("grades") + '</span><span><strong>کارنامه و نمرات</strong><small>آخرین وضعیت آموزشی</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
-            '      <a href="/resources/" role="menuitem"><span class="shell-account-panel__icon">' + icon("resources") + '</span><span><strong>منابع ذخیره‌شده</strong><small>جزوات و موارد مطالعه</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
             '      <a href="/admin/" role="menuitem" data-account-owner-link hidden><span class="shell-account-panel__icon">' + accountMenuIconMarkup("admin") + '</span><span><strong>مدیریت سایت</strong><small>وضعیت و ابزارهای مالک</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
             "    </nav>",
             '    <div class="shell-account-panel__actions">',
@@ -740,7 +739,7 @@
             '  <div class="shell-account-panel__guest" data-account-logged-out>',
             '    <span class="shell-account-panel__guest-icon" aria-hidden="true">' + icon("account") + "</span>",
             '    <strong>حساب کاربری</strong>',
-            '    <p>برای دیدن نمرات، اعلان‌ها، فرم‌ها و منابع شخصی وارد شو.</p>',
+            '    <p>برای خرید و ادامهٔ آزمون‌ها، نمرات، اعلان‌ها و فرم‌ها وارد شو.</p>',
             '    <a class="shell-account-panel__login" href="/account/" role="menuitem" data-account-login>ورود به حساب</a>',
             '    <a class="shell-account-panel__signup" href="/account/?mode=signup" role="menuitem" data-account-signup>ساخت حساب جدید</a>',
             '    <button class="shell-account-panel__guest-theme" type="button" data-account-theme-action role="menuitem"><span>' + accountMenuIconMarkup("theme") + '</span><span><strong>حالت تیره</strong><small>برای محیط کم‌نور مناسب‌تر است</small></span></button>',
@@ -2524,7 +2523,7 @@
         panel.innerHTML = [
             '<form class="shell-search-form" role="search" autocomplete="off">',
             '  <span class="shell-search-form__icon" aria-hidden="true">' + searchIconMarkup() + "</span>",
-            '  <input type="search" class="shell-search-input" enterkeyhint="search" placeholder="جستجوی منابع و آزمون‌ها..." aria-label="عبارت جستجو">',
+            '  <input type="search" class="shell-search-input" enterkeyhint="search" placeholder="جستجوی آزمون‌ها و دروس..." aria-label="عبارت جستجو">',
             '  <button type="button" class="shell-search-close" aria-label="بستن جستجو">' + closeIconMarkup() + "</button>",
             "</form>",
             '<p class="shell-search-status" aria-live="polite"></p>',
