@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,7 +38,8 @@ assert 'data-home-quick="hamiad"' in home
 assert 'hamiad: {' in home_js
 assert 'نوید' not in account_js
 assert 'نوید' not in home_js
-assert '20261024-hamiad-assignments' in pwa
+_sw_version = re.search(r'const APP_VERSION = "(\d{8})-[^"]+";', pwa)
+assert _sw_version and _sw_version.group(1) >= '20261024', 'PWA cache must rotate on or after the Hamiad assignments release'
 assert 'hamiadAssignmentAlerts' in (ROOT / 'public_html/api/notifications_store.php').read_text()
 assert '⏳' in (ROOT / 'public_html/assets/site/scripts/hamiad-bridge.js').read_text()
 

@@ -186,8 +186,14 @@ def check_shared_nav_contracts(repo_root: Path) -> list[tuple[Path, int, str, st
     has_exams_href = 'sharedNavHref("/exams/", state)' in shell_text or 'href: "/exams/"' in shell_text
     if not has_exams_label or not has_exams_href:
         issues.append(issue(shell_path.relative_to(repo_root), 0, "missing-exams-bottom-nav", "shell.js navItems must expose /exams/."))
-    if 'label: "خرید"' in shell_text:
-        issues.append(issue(shell_path.relative_to(repo_root), 0, "forbidden-buy-bottom-nav", 'Shared shell nav must not expose "خرید".'))
+    # The mobile bottom nav (navItems) must never expose "خرید". The desktop
+    # side navigation (sideNavItems, brand 2026) lists it by owner approval.
+    nav_items_match = re.search(r"function navItems\(state\) \{.*?\n    \}\n", shell_text, re.DOTALL)
+    nav_items_text = nav_items_match.group(0) if nav_items_match else shell_text
+    if 'label: "خرید"' in nav_items_text:
+        issues.append(issue(shell_path.relative_to(repo_root), 0, "forbidden-buy-bottom-nav", 'Shared bottom nav must not expose "خرید".'))
+    if "function sideNavItems(state)" not in shell_text:
+        issues.append(issue(shell_path.relative_to(repo_root), 0, "missing-desktop-side-nav", "shell.js must render the desktop side navigation."))
 
     guest_nav_match = re.search(r"if \(!canUseChat\) \{(?P<guest>.*?)\}\s*else if", shell_text, re.DOTALL)
     if guest_nav_match is None or guest_nav_match.group("guest").count("items.push(") != 2:

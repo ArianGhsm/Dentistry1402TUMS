@@ -2692,6 +2692,38 @@
         } catch (_error) {
             return;
         }
+        recordLastExam("assessment", state.assessment);
+    }
+
+    /* Device-local "continue exam" pointer for the home page. Only the
+       position, counts and titles leave this page; never answers. */
+    function recordLastExam(mode, block) {
+        if (!block || !block.started) {
+            return;
+        }
+        try {
+            var answered = 0;
+            (block.answers || []).forEach(function (answer) {
+                if (answer !== null && answer !== undefined) {
+                    answered++;
+                }
+            });
+            var href = window.location.pathname + "?mode=" + mode + (cohortKey ? "&cohort=" + encodeURIComponent(cohortKey) : "");
+            window.localStorage.setItem("dent1402-last-exam-v1", JSON.stringify({
+                href: href,
+                title: exam.title,
+                courseTitle: exam.courseTitle,
+                mode: mode,
+                index: Number(block.currentQuestionIndex || 0),
+                total: exam.questions.length,
+                answered: answered,
+                flagged: state.flags ? state.flags.size : 0,
+                finished: !!(mode === "assessment" && state.assessment.report),
+                updatedAt: new Date().toISOString()
+            }));
+        } catch (_error) {
+            return;
+        }
     }
 
     function persistLearningState() {
@@ -2709,6 +2741,7 @@
         } catch (_error) {
             return;
         }
+        recordLastExam("learning", state.learning);
     }
 
     function assessmentDraftTotals() {
