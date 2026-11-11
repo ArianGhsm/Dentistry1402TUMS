@@ -66,3 +66,9 @@ This UI version introduces no Telegram-specific, Bale-specific, or shadow ClassO
 - existing payment and grade authorities
 
 Both `service.py` and `bale_service.py` install the same shared navigation layer after the existing ClassOps and Term 7 integrations. Any future menu change must update both surfaces through the shared semantic layer and retain deterministic stale-callback routing.
+
+## No dead ends (owner rule, 2026-11-12)
+
+- `KeyboardInvariantApi` guarantees that every non-empty inline keyboard sent or edited in a private chat contains `v1:home` (it appends `🏠 منوی اصلی` when missing). Groups, text-only notices and pre-auth interactions (onboarding/login, where home is gated) are untouched.
+- Pressing `v1:home` closes any stale input dialog (profile edit, payment wizard, search, compose…) so the next typed text is not captured by it; `onboarding-v1`, `class-auth-v1` and `phone-enroll-v1` keep their progress.
+- Sub-screens keep their deterministic `↩️ <parent>` button (e.g. transaction filters → تراکنش‌ها, payment center → مدیریت ربات). Covered by `tests/test_bot_no_dead_ends.py`.

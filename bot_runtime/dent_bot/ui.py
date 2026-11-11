@@ -1244,7 +1244,8 @@ def payment_control_center_screen(offers: list[dict], summary: dict | None = Non
             [button("👥 مخاطبان", action="payment-audiences"), button("🏷 کدهای تخفیف", action="discount-codes")],
             [button("📤 خروجی", action="payment-export")],
             [button("🔔 اعلان‌ها", action="payment-reminders"), button("⚙️ تنظیمات", action="payment-settings")],
-            [button("↻ تازه‌سازی", action="admin-payments"), button("🏠 منوی اصلی", action="home")],
+            [button("↻ تازه‌سازی", action="admin-payments")],
+            [button("↩️ مدیریت ربات", action="admin"), button("🏠 منوی اصلی", action="home")],
         ),
     )
 
@@ -1774,7 +1775,11 @@ def payment_transaction_filters_screen(filters: dict, offers: list[dict]) -> Scr
     ]
     for item in offers[:8]:
         rows.append([button(f"📦 {str(item.get('title') or 'محصول')[:28]}", action=f"payment-tx-product:{item.get('ref', '')}")])
-    rows.extend(([button("نمایش نتایج", action="payment-transactions", style="success")], [button("پاک‌کردن همه", action="payment-tx-clear")]))
+    rows.extend((
+        [button("نمایش نتایج", action="payment-transactions", style="success")],
+        [button("پاک‌کردن همه", action="payment-tx-clear")],
+        [button("↩️ تراکنش‌ها", action="payment-transactions"), button("🏠 منوی اصلی", action="home")],
+    ))
     summary = " · ".join(labels) if labels else "بدون فیلتر"
     return Screen(f"<b>🧰 فیلتر تراکنش‌ها</b>\n\n<blockquote>{html.escape(summary)}</blockquote>\nهر انتخاب جایگزین فیلتر همان گروه می‌شود.", keyboard(*rows))
 

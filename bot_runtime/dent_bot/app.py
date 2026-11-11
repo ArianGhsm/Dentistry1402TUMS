@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 from .api import BotApiError, TelegramBotApi
+from .navigation import close_stale_dialog_for_home, home_guarantee_allowed_for
 from .keyboard_invariant import KeyboardInvariantApi
 from .button_modes import button_mode_screen
 from .state import BotState
@@ -95,6 +96,7 @@ from .onboarding import (
     prompt_screen as onboarding_prompt_screen,
     success_screen as onboarding_success_screen,
 )
+
 
 
 
@@ -410,7 +412,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
                 and self._bot_entry_gate(user_id) is None
             )
         if isinstance(user_id, int) and chat.get("type") == "private":
-            self.api.begin_interaction(user_id, authenticated=allowed_reply)
+            self.api.begin_interaction(user_id, authenticated=allowed_reply, home_allowed=home_guarantee_allowed_for(self.state, user_id))
         try:
             if callback:
                 self._callback(callback, interaction_version=interaction_version)
@@ -1114,6 +1116,8 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         name = data[3:] if data.startswith("v1:") else "home"
         if name == "submit-note":
             name = "notes"
+        if name == "home":
+            close_stale_dialog_for_home(self.state, user_id)
         owner_action = name in {
             "admin", "system-status", "admin-grades", "admin-payments", "navid", "navid-check",
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
