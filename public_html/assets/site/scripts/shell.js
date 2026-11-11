@@ -811,6 +811,94 @@
         syncHeaderAccountThemeLabel();
     }
 
+    /* ------------------------------------------------------------------
+     * Back navigation (owner rule 2026-11-12: no dead ends). Every page
+     * except home gets a back button. Most visitors land from a Telegram or
+     * Bale link, so history.back() is used only when the previous page is
+     * on this site; otherwise we go one level up the URL (course -> exams ->
+     * home).
+     * ------------------------------------------------------------------ */
+    function isHomePath(path) {
+        return path === "/" || path === "/app/" || path === "/index.html";
+    }
+
+    function parentPath() {
+        var path = currentPath();
+        var search = window.location.search || "";
+        var cohort = "";
+        try {
+            cohort = new URLSearchParams(search).get("cohort") || "";
+        } catch (_error) {
+            cohort = "";
+        }
+        var keep = function (target) {
+            return cohort && target !== "/app/" ? target + "?cohort=" + encodeURIComponent(cohort) : target;
+        };
+        var params = null;
+        try {
+            params = new URLSearchParams(search);
+        } catch (_error) {
+            params = null;
+        }
+        /* The exam pay page goes back to its own course page. */
+        if (path === "/exams/pay/" && params && /^[a-z0-9_-]+$/i.test(params.get("course") || "")) {
+            return keep("/exams/" + params.get("course") + "/");
+        }
+        /* Query-driven sub-views of the exams hub go back to the hub itself. */
+        if (path === "/exams/" && search && /[?&](mode|term|unit|specialty|ref)=/.test(search)) {
+            return keep(path);
+        }
+        var parts = path.split("/").filter(Boolean);
+        parts.pop();
+        if (!parts.length) {
+            return "/app/";
+        }
+        var parent = "/" + parts.join("/") + "/";
+        /* Utility sub-routes without their own landing page. */
+        if (/^\/(payment|payments|exams\/pay)\/?$/.test(parent) || parent === "/payments/pay/") {
+            return "/app/";
+        }
+        return keep(parent);
+    }
+
+    function cameFromThisSite() {
+        try {
+            return !!document.referrer
+                && new URL(document.referrer).origin === window.location.origin
+                && window.history.length > 1;
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function ensureHeaderBack() {
+        if (shellDisabled || shellHeaderDisabled || isHomePath(currentPath()) || document.body.dataset.shellBack === "off") {
+            return;
+        }
+        var actions = document.querySelector(".site-header .header-actions");
+        if (!actions) {
+            return;
+        }
+        var button = actions.querySelector(".shell-back-btn");
+        if (!button) {
+            button = document.createElement("a");
+            button.className = "shell-back-btn";
+            button.setAttribute("aria-label", "بازگشت");
+            button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>بازگشت</span>';
+            button.addEventListener("click", function (event) {
+                if (cameFromThisSite()) {
+                    event.preventDefault();
+                    window.history.back();
+                }
+            });
+        }
+        button.href = parentPath();
+        var anchor = headerAccount.root && headerAccount.root.parentNode === actions ? headerAccount.root : actions.firstChild;
+        if (button.parentNode !== actions || button.nextSibling !== anchor) {
+            actions.insertBefore(button, anchor);
+        }
+    }
+
     function renderHeaderAccount(state) {
         ensureHeaderAccountMenu();
         if (!headerAccount.root) {
@@ -858,6 +946,7 @@
             headerAccount.logoutButton.querySelector("strong").textContent = "خروج از حساب";
         }
         syncHeaderAccountThemeLabel();
+        ensureHeaderBack();
     }
 
     function createMinimalSiteHeader() {
@@ -2710,6 +2799,7 @@
         bindInstallButtons();
         normalizeSiteHeader();
         normalizePageTopbars();
+        ensureHeaderBack();
         ensureHeaderSearch();
         applySiteAppearance(authState());
         syncAuthUi(authState());
