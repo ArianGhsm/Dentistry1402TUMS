@@ -2719,3 +2719,108 @@ body.exams-page :is(.exam-btn, .exams-filter-launch, .exams-filter-chip):active 
         border-radius: 9px !important;
     }
 }
+
+/* --------------------------------------------------------------------------
+ * Course sales view 2026 (Navy & Brass): paid course, viewer without access.
+ * Rendered by exams-course.js courseSalesHtml(); tokens from brand-2026.css.
+ * -------------------------------------------------------------------------- */
+.exams-course-shell.is-selling { max-width: 1180px; margin-inline: auto; }
+.excourse {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas: "hero buy" "blocks buy";
+    gap: 1.25rem 2.75rem;
+    align-items: start;
+    margin: 0.5rem 0 2.25rem;
+}
+.excourse-hero { grid-area: hero; }
+.excourse-kicker { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--brand-brass-ink); font-weight: 700; font-size: 0.88rem; }
+.excourse-kicker::before { content: ""; width: 22px; height: 1.5px; background: var(--brand-brass); }
+.excourse-hero h1 { margin: 0.35rem 0 0.6rem; font: 900 clamp(1.6rem, 3.2vw, 2.4rem)/1.45 var(--font-accent); color: var(--text-primary); text-wrap: balance; }
+.excourse-lede { margin: 0; max-width: 58ch; color: var(--text-secondary); font-size: 1.05rem; line-height: 1.9; }
+.excourse-facts { display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; margin-top: 1.25rem; }
+.excourse-facts div { font-size: 0.85rem; color: var(--text-tertiary); }
+.excourse-facts b { display: block; font: 900 1.6rem/1.25 var(--font-accent); color: var(--text-primary); }
+
+.excourse-buy {
+    grid-area: buy;
+    position: sticky;
+    top: calc(var(--shell-header-offset, 64px) + 1rem);
+    display: grid;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    border-radius: 22px;
+    background: var(--brand-navy-900);
+    color: #f3efe4;
+}
+html[data-theme="dark"] .excourse-buy { background: linear-gradient(160deg, #22306f, #172057); box-shadow: inset 0 0 0 1px #2e3a7a; }
+.excourse-buy__label { color: #aeb4d6; font-size: 0.88rem; }
+.excourse-price { display: flex; align-items: baseline; gap: 0.5rem; }
+.excourse-price b { font: 900 2.6rem/1.15 var(--font-accent); color: #fff; }
+.excourse-price span { font-weight: 700; color: #c9cde6; }
+.excourse-buy__once { color: var(--brand-brass); font-size: 0.86rem; font-weight: 700; }
+.excourse-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 52px;
+    margin-top: 0.4rem;
+    padding: 0 1.25rem;
+    border-radius: 13px;
+    background: var(--brand-brass);
+    color: #1a1405 !important;
+    font: 800 1.02rem var(--font-accent);
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: background-color var(--motion-fast) var(--motion-ease-standard), transform var(--motion-fast) var(--motion-ease-standard);
+}
+.excourse-cta svg { width: 20px; height: 20px; }
+.excourse-cta:hover { background: #c9a35b; }
+.excourse-cta:active { transform: scale(0.98); }
+.excourse-cta:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.excourse-buy__note { margin: 0; color: #aeb4d6; font-size: 0.82rem; line-height: 1.8; }
+.excourse-trust { list-style: none; margin: 0.6rem 0 0; padding: 0.8rem 0 0; border-top: 1px solid rgba(255, 255, 255, 0.1); display: grid; gap: 0.4rem; font-size: 0.84rem; color: #c9cde6; }
+.excourse-trust li { display: flex; align-items: center; gap: 0.5rem; }
+.excourse-trust svg { width: 16px; height: 16px; color: var(--brand-brass); flex: none; }
+
+.excourse-block { grid-column: 1; }
+.excourse-block h2 { margin: 0.75rem 0 0.4rem; font: 800 1.15rem var(--font-accent); color: var(--text-primary); }
+.excourse-points { list-style: none; margin: 0; padding: 0; }
+.excourse-points li { display: flex; gap: 0.7rem; padding: 0.7rem 0; border-top: 1px solid var(--border-color); color: var(--text-primary); line-height: 1.85; }
+.excourse-points svg { width: 18px; height: 18px; flex: none; margin-top: 0.35rem; color: var(--brand-brass-ink); }
+.excourse-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }
+.excourse-mode { padding: 0.8rem 0; border-top: 2px solid var(--text-primary); }
+.excourse-mode strong { display: block; font: 800 1rem var(--font-accent); color: var(--text-primary); }
+.excourse-mode span { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; }
+.excourse-sessions-title { margin: 0 0 0.4rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); font: 800 1.15rem var(--font-accent); color: var(--text-primary); }
+
+.excourse-bar { display: none; }
+
+@media (max-width: 899.98px) {
+    .excourse { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "buy" "blocks"; gap: 1.25rem; }
+    .excourse-buy { position: static; padding: 1.25rem; }
+    .excourse-price b { font-size: 2.2rem; }
+    .excourse-modes { grid-template-columns: minmax(0, 1fr); }
+    body.excourse-selling { --shell-nav-content-reserve: calc(var(--shell-nav-offset, 76px) + 76px); }
+    body.excourse-selling .exams-course-shell { padding-bottom: 5.5rem; }
+    .excourse-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        position: fixed;
+        inset-inline: 0;
+        bottom: var(--shell-nav-offset, 76px);
+        z-index: 205;
+        padding: 0.65rem 1rem;
+        background: var(--surface-solid);
+        border-top: 1px solid var(--border-color);
+        box-shadow: 0 -10px 24px -18px rgba(11, 18, 48, 0.35);
+    }
+    .excourse-bar__price b { display: block; font: 900 1.3rem/1.2 var(--font-accent); color: var(--text-primary); }
+    .excourse-bar__price span { font-size: 0.74rem; color: var(--text-tertiary); }
+    .excourse-bar .excourse-cta { flex: 1; margin: 0; min-height: 48px; }
+    .excourse-bar { transition: transform var(--motion-base) var(--motion-ease-standard), opacity var(--motion-base) var(--motion-ease-standard); }
+    .excourse-bar.is-hidden { transform: translateY(110%); opacity: 0; pointer-events: none; }
+}
+@media (prefers-reduced-motion: reduce) { .excourse-cta { transition: none; } }

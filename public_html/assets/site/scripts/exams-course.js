@@ -1028,6 +1028,103 @@
         }
     }
 
+    /* ------------------------------------------------------------------
+     * Course sales view 2026: people arrive here from Telegram/Bale links.
+     * Shown when the course is paid and the viewer has no access yet.
+     * ------------------------------------------------------------------ */
+    function courseTomanLabel(course) {
+        var text = String(course && course.amountLabel || "");
+        var amount = Number(text.replace(/[^\d۰-۹]/g, "").replace(/[۰-۹]/g, function (d) {
+            return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+        })) || Number(course && course.amount) || 0;
+        if (!amount) {
+            return "";
+        }
+        if (text.indexOf("ریال") !== -1 || (!text && Number(course.amount))) {
+            amount = Math.round(amount / 10);
+        }
+        return formatValue(amount);
+    }
+
+    function courseBuyAction(course) {
+        var access = course.access || {};
+        var payPath = appendCohortPath(course.paymentPath || course.path || "/exams/");
+        if (access.requiresLogin) {
+            var target = window.Dent1402Auth && typeof window.Dent1402Auth.loginUrl === "function"
+                ? window.Dent1402Auth.loginUrl(payPath)
+                : loginHref();
+            return { href: target, label: "ورود و خرید", note: "اول وارد حسابت می‌شوی، بعد مستقیم به پرداخت می‌روی." };
+        }
+        if (access.canPurchase) {
+            return { href: payPath, label: "خرید و شروع آزمون", note: "" };
+        }
+        return { href: appendCohortPath("/exams/"), label: "بازگشت به آزمون‌ها", note: "" };
+    }
+
+    function courseSalesHtml(course, items) {
+        var stats = course.stats || {};
+        var curriculumMeta = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
+        var title = cleanCourseTitle(course.title || course.heroTitle || "") || String(course.title || "");
+        var lede = String(course.cardDescription || "").trim() || compactText(course.heroDescription, "", 160);
+        var price = courseTomanLabel(course);
+        var action = courseBuyAction(course);
+        var kicker = joinMetaParts([curriculumMeta.termLabel, curriculumMeta.unitTitle]) || "آزمون تمرینی";
+        var noun = courseItemNoun(course);
+        var buyers = Number(stats.totalOrders) || 0;
+        var facts = [];
+        if (Number(stats.questionCount)) {
+            facts.push("<div><b>" + formatValue(stats.questionCount) + "</b>سؤال</div>");
+        }
+        if (items.length) {
+            facts.push("<div><b>" + formatValue(items.length) + "</b>" + escapeHtml(noun === "بخش" ? "بخش" : "جلسه/آزمون") + "</div>");
+        }
+        if (buyers >= 5) {
+            facts.push("<div><b>" + formatValue(buyers) + "</b>سفارش ثبت‌شده</div>");
+        }
+        var highlights = (Array.isArray(course.paymentHighlights) ? course.paymentHighlights : []).map(function (line) {
+            return String(line || "").trim();
+        }).filter(Boolean).slice(0, 4);
+        var modes = [];
+        var firstExam = (Array.isArray(course.exams) ? course.exams : [])[0] || {};
+        (Array.isArray(firstExam.modes) ? firstExam.modes : []).forEach(function (mode) {
+            if (mode && mode.title) {
+                modes.push('<div class="excourse-mode"><strong>' + escapeHtml(mode.title) + "</strong><span>" + escapeHtml(mode.tagline || mode.description || "") + "</span></div>");
+            }
+        });
+        var check = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var priceHtml = price ? '<div class="excourse-price"><b>' + price + "</b><span>تومان</span></div>" : "";
+        return [
+            '<section class="excourse">',
+            '  <header class="excourse-hero">',
+            '    <span class="excourse-kicker">' + escapeHtml(kicker) + "</span>",
+            "    <h1>" + escapeHtml(title) + "</h1>",
+            lede ? '    <p class="excourse-lede">' + escapeHtml(lede) + "</p>" : "",
+            facts.length ? '    <div class="excourse-facts">' + facts.join("") + "</div>" : "",
+            "  </header>",
+            '  <aside class="excourse-buy" aria-label="خرید دسترسی">',
+            '    <span class="excourse-buy__label">دسترسی کامل به این مجموعه</span>',
+            priceHtml,
+            '    <span class="excourse-buy__once">یک بار پرداخت، دسترسی همیشگی روی حساب خودت</span>',
+            '    <a class="excourse-cta" href="' + escapeHtml(action.href) + '">' + escapeHtml(action.label) + '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m5-5-5 5 5 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>',
+            action.note ? '    <p class="excourse-buy__note">' + escapeHtml(action.note) + "</p>" : "",
+            '    <ul class="excourse-trust">',
+            "      <li>" + check + "پرداخت امن از درگاه زیبال</li>",
+            "      <li>" + check + "فعال‌سازی فوری بعد از پرداخت</li>",
+            "      <li>" + check + "روی گوشی و کامپیوتر، از همان‌جا که ماندی</li>",
+            "    </ul>",
+            "  </aside>",
+            highlights.length ? '  <section class="excourse-block"><h2>چرا این آزمون</h2><ul class="excourse-points">' + highlights.map(function (line) {
+                return "<li>" + check + "<span>" + escapeHtml(line) + "</span></li>";
+            }).join("") + "</ul></section>" : "",
+            modes.length ? '  <section class="excourse-block"><h2>دو حالت تمرین</h2><div class="excourse-modes">' + modes.join("") + "</div></section>" : "",
+            "</section>",
+            '<div class="excourse-bar" role="region" aria-label="خرید سریع">',
+            price ? '  <div class="excourse-bar__price"><b>' + price + "</b><span>تومان · یک بار</span></div>" : "",
+            '  <a class="excourse-cta" href="' + escapeHtml(action.href) + '">' + escapeHtml(action.label) + "</a>",
+            "</div>"
+        ].join("");
+    }
+
     function renderCourse(options) {
         var course = state.course;
         var uiSnapshot = options && options.preserveUi ? captureCourseUiSnapshot() : null;
@@ -1044,19 +1141,23 @@
             return matchesQuery(item) && matchesFilter(item);
         });
 
+        var salesMode = course.paymentMode === "paid" && !(course.access && course.access.hasAccess) && !(course.ownerSettings && course.ownerSettings.canManage);
+        document.body.classList.toggle("excourse-selling", salesMode);
         root.innerHTML = [
-            '<section class="exams-course-shell">',
-            '  <div class="exams-course-head">',
-                     summaryHtml(course),
-            "  </div>",
+            '<section class="exams-course-shell' + (salesMode ? " is-selling" : "") + '">',
+            salesMode ? courseSalesHtml(course, items) : "",
+            salesMode ? '<h2 class="excourse-sessions-title">' + escapeHtml(courseItemNoun(course) === "بخش" ? "بخش‌ها" : "جلسه‌ها و آزمون‌ها") + "</h2>" : "",
+            salesMode ? "" : '  <div class="exams-course-head">',
+            salesMode ? "" : summaryHtml(course),
+            salesMode ? "" : "  </div>",
             '  <div class="exams-course-scroll">',
-                     toolbarHtml(items),
+            salesMode && items.length < 6 ? "" : toolbarHtml(items),
             filteredItems.length
                 ? '<section class="catalog-simple-stack">' + filteredItems.map(function (item, index) {
                     return sessionCardHtml(item, index);
                 }).join("") + "</section>"
                 : emptyStateHtml("برای این جستجو یا فیلتر، جلسه‌ای پیدا نشد."),
-                     paywallHtml(course),
+            salesMode ? "" : paywallHtml(course),
                      ownerPanelHtml(course),
                      ownerBuyersHtml(course),
             "  </div>",
@@ -1064,6 +1165,28 @@
         ].join("");
 
         restoreCourseUiSnapshot(uiSnapshot);
+        bindCourseSalesBar();
+    }
+
+    var courseSalesObserver = null;
+    function bindCourseSalesBar() {
+        if (courseSalesObserver) {
+            courseSalesObserver.disconnect();
+            courseSalesObserver = null;
+        }
+        var box = root.querySelector(".excourse-buy");
+        var bar = root.querySelector(".excourse-bar");
+        if (!box || !bar || typeof window.IntersectionObserver !== "function") {
+            return;
+        }
+        /* The quick-buy bar only appears once the main buy box is off screen. */
+        courseSalesObserver = new window.IntersectionObserver(function (entries) {
+            var visible = entries.some(function (entry) {
+                return entry.isIntersecting;
+            });
+            bar.classList.toggle("is-hidden", visible);
+        }, { threshold: 0.01 });
+        courseSalesObserver.observe(box);
     }
 
     function scheduleCourseRender() {
