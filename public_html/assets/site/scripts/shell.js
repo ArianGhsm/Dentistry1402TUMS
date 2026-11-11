@@ -859,15 +859,43 @@
 
     var BACK_FALLBACK_KEY = "dent1402-back-fallback";
 
-    function isFallbackEntry() {
-        /* True when this page itself was reached through the back button's
-           fallback, so its referrer must not send the user back down. */
+    var fallbackMarkerConsumed = false;
+
+    function consumeFallbackMarker() {
+        /* The back button's fallback stores its target in sessionStorage just
+           before location.replace(). On arrival, move that flag onto this exact
+           history entry and drop the stored marker, so a later normal visit to
+           the same URL is not mistaken for a fallback entry. */
+        if (fallbackMarkerConsumed) {
+            return;
+        }
+        fallbackMarkerConsumed = true;
         try {
             var marked = window.sessionStorage.getItem(BACK_FALLBACK_KEY) || "";
-            return !!marked && new URL(marked, window.location.origin).href === window.location.href;
+            if (!marked) {
+                return;
+            }
+            window.sessionStorage.removeItem(BACK_FALLBACK_KEY);
+            if (new URL(marked, window.location.origin).href !== window.location.href) {
+                return;
+            }
+            var base = window.history.state && typeof window.history.state === "object" ? window.history.state : {};
+            var next = {};
+            Object.keys(base).forEach(function (key) {
+                next[key] = base[key];
+            });
+            next.__dentFallback = true;
+            window.history.replaceState(next, "", window.location.href);
         } catch (_error) {
-            return false;
+            // ignore storage/history failures; replace() alone still avoids loops
         }
+    }
+
+    function isFallbackEntry() {
+        /* True when this history entry itself was reached through the back
+           button's fallback, so its referrer must not send the user back down. */
+        var current = window.history.state;
+        return !!(current && typeof current === "object" && current.__dentFallback);
     }
 
     /* In-document navigation (e.g. exams tabs/filters via pushState) is
@@ -891,13 +919,16 @@
             return;
         }
         historyTracking = true;
-        var withDepth = function (state, depth) {
+        var withDepth = function (state, depth, keepFallback) {
             var base = state && typeof state === "object" ? state : {};
             var next = {};
             Object.keys(base).forEach(function (key) {
                 next[key] = base[key];
             });
             next.__dentDepth = depth;
+            if (keepFallback && isFallbackEntry()) {
+                next.__dentFallback = true;
+            }
             return next;
         };
         var originalPush = window.history.pushState;
@@ -908,7 +939,7 @@
             return result;
         };
         window.history.replaceState = function (state, title, url) {
-            var result = originalReplace.call(window.history, withDepth(state, inDocumentDepth()), title, url);
+            var result = originalReplace.call(window.history, withDepth(state, inDocumentDepth(), true), title, url);
             refreshHeaderBack();
             return result;
         };
@@ -930,6 +961,7 @@
             return;
         }
         trackInDocumentHistory();
+        consumeFallbackMarker();
         var actions = document.querySelector(".site-header .header-actions");
         if (!actions) {
             return;
