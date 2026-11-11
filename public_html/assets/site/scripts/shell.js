@@ -861,6 +861,19 @@
         return keep(parent);
     }
 
+    var BACK_FALLBACK_KEY = "dent1402-back-fallback";
+
+    function isFallbackEntry() {
+        /* True when this page itself was reached through the back button's
+           fallback, so its referrer must not send the user back down. */
+        try {
+            var marked = window.sessionStorage.getItem(BACK_FALLBACK_KEY) || "";
+            return !!marked && new URL(marked, window.location.origin).href === window.location.href;
+        } catch (_error) {
+            return false;
+        }
+    }
+
     function cameFromThisSite() {
         try {
             return !!document.referrer
@@ -886,10 +899,22 @@
             button.setAttribute("aria-label", "بازگشت");
             button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>بازگشت</span>';
             button.addEventListener("click", function (event) {
-                if (cameFromThisSite()) {
-                    event.preventDefault();
-                    window.history.back();
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
                 }
+                event.preventDefault();
+                if (cameFromThisSite() && !isFallbackEntry()) {
+                    window.history.back();
+                    return;
+                }
+                /* Going "up" replaces the current entry and marks the target, so
+                   course -> exams -> home never loops back down. */
+                try {
+                    window.sessionStorage.setItem(BACK_FALLBACK_KEY, button.href);
+                } catch (_error) {
+                    // ignore storage failures; replace() alone still avoids loops
+                }
+                window.location.replace(button.href);
             });
         }
         button.href = parentPath();
