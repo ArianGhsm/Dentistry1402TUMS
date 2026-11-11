@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 
 from .api import _persianize_plain_visible_text
 from .persian_datetime import to_persian_digits
+from .navigation import home_guarantee_allowed_for
 from .state import BotState
 
 
@@ -129,7 +130,9 @@ class KeyboardInvariantApi:
         active_user = int(getattr(self._interaction, "user_id", 0) or 0)
         if active_user == int(chat_id) and not bool(getattr(self._interaction, "home_allowed", False)):
             return False
-        return True
+        # Re-read the dialog at send time: a flow may enter an auth dialog
+        # (e.g. phone enrolment) during this very interaction.
+        return home_guarantee_allowed_for(self._state, int(chat_id))
 
     @staticmethod
     def _with_home_row(reply_markup: dict) -> dict:

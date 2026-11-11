@@ -139,6 +139,17 @@ class NoDeadEndTests(unittest.TestCase):
             finally:
                 state.close()
 
+    def test_auth_dialog_started_mid_interaction_gets_no_injected_home(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state, delegate, api = self._api(directory)
+            try:
+                api.begin_interaction(34, authenticated=False, home_allowed=True)
+                state.start_dialog(34, "phone-enroll-v1", "phone", {})
+                api.send(34, "شماره", DEAD_END)
+                self.assertEqual(_actions(delegate.sent[-1][2]), ["v1:account-relink"])
+            finally:
+                state.close()
+
     def test_production_path_inline_mode_user_gets_main_menu(self) -> None:
         """Regression: the guarantee must not depend on reply-button mode."""
         with tempfile.TemporaryDirectory() as directory:
