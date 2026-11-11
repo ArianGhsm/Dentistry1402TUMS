@@ -2748,17 +2748,16 @@ body.exams-page :is(.exam-btn, .exams-filter-launch, .exams-filter-chip):active 
     top: calc(var(--shell-header-offset, 64px) + 1rem);
     display: grid;
     gap: 0.6rem;
-    padding: 1.5rem;
-    border-radius: 22px;
-    background: var(--brand-navy-900);
-    color: #f3efe4;
+    padding: 1.1rem 0 1.25rem;
+    border-top: 3px solid var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
-html[data-theme="dark"] .excourse-buy { background: linear-gradient(160deg, #22306f, #172057); box-shadow: inset 0 0 0 1px #2e3a7a; }
-.excourse-buy__label { color: #aeb4d6; font-size: 0.88rem; }
+.excourse-buy__label { color: var(--text-secondary); font-size: 0.88rem; }
 .excourse-price { display: flex; align-items: baseline; gap: 0.5rem; }
-.excourse-price b { font: 900 2.6rem/1.15 var(--font-accent); color: #fff; }
-.excourse-price span { font-weight: 700; color: #c9cde6; }
-.excourse-buy__once { color: var(--brand-brass); font-size: 0.86rem; font-weight: 700; }
+.excourse-price b { font: 900 2.6rem/1.15 var(--font-accent); color: var(--text-primary); }
+.excourse-price span { font-weight: 700; color: var(--text-secondary); }
+.excourse-buy__once { color: var(--brand-brass-ink); font-size: 0.86rem; font-weight: 700; }
 .excourse-cta {
     display: inline-flex;
     align-items: center;
@@ -2766,23 +2765,25 @@ html[data-theme="dark"] .excourse-buy { background: linear-gradient(160deg, #223
     gap: 0.6rem;
     min-height: 52px;
     margin-top: 0.4rem;
-    padding: 0 1.25rem;
-    border-radius: 13px;
-    background: var(--brand-brass);
-    color: #1a1405 !important;
-    font: 800 1.02rem var(--font-accent);
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    background: var(--brand-navy-900);
+    color: #fff !important;
+    font: 800 1.02rem/1.5 var(--font-accent);
+    text-align: center;
     text-decoration: none !important;
-    white-space: nowrap;
     transition: background-color var(--motion-fast) var(--motion-ease-standard), transform var(--motion-fast) var(--motion-ease-standard);
 }
-.excourse-cta svg { width: 20px; height: 20px; }
-.excourse-cta:hover { background: #c9a35b; }
+html[data-theme="dark"] .excourse-cta { background: var(--brand-brass); color: #1a1405 !important; }
+.excourse-cta svg { width: 20px; height: 20px; flex: none; }
+.excourse-cta:hover { background: var(--brand-navy-800); }
+html[data-theme="dark"] .excourse-cta:hover { background: var(--brand-brass-strong); }
 .excourse-cta:active { transform: scale(0.98); }
-.excourse-cta:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-.excourse-buy__note { margin: 0; color: #aeb4d6; font-size: 0.82rem; line-height: 1.8; }
-.excourse-trust { list-style: none; margin: 0.6rem 0 0; padding: 0.8rem 0 0; border-top: 1px solid rgba(255, 255, 255, 0.1); display: grid; gap: 0.4rem; font-size: 0.84rem; color: #c9cde6; }
+.excourse-cta:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.excourse-buy__note { margin: 0; color: var(--text-tertiary); font-size: 0.82rem; line-height: 1.8; }
+.excourse-trust { list-style: none; margin: 0.4rem 0 0; padding: 0.8rem 0 0; border-top: 1px solid var(--border-color); display: grid; gap: 0.4rem; font-size: 0.84rem; color: var(--text-secondary); }
 .excourse-trust li { display: flex; align-items: center; gap: 0.5rem; }
-.excourse-trust svg { width: 16px; height: 16px; color: var(--brand-brass); flex: none; }
+.excourse-trust svg { width: 16px; height: 16px; color: var(--brand-brass-ink); flex: none; }
 
 .excourse-block { grid-column: 1; }
 .excourse-block h2 { margin: 0.75rem 0 0.4rem; font: 800 1.15rem var(--font-accent); color: var(--text-primary); }
@@ -2799,7 +2800,7 @@ html[data-theme="dark"] .excourse-buy { background: linear-gradient(160deg, #223
 
 @media (max-width: 899.98px) {
     .excourse { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "buy" "blocks"; gap: 1.25rem; }
-    .excourse-buy { position: static; padding: 1.25rem; }
+    .excourse-buy { position: static; }
     .excourse-price b { font-size: 2.2rem; }
     .excourse-modes { grid-template-columns: minmax(0, 1fr); }
     body.excourse-selling { --shell-nav-content-reserve: calc(var(--shell-nav-offset, 76px) + 76px); }
