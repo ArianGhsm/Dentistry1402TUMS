@@ -15,10 +15,6 @@
     var LAST_EXAM_KEY = "dent1402-last-exam-v1";
     var LAST_EXAM_MAX_AGE_MS = 21 * 24 * 60 * 60 * 1000;
     var COVER_TONES = 6;
-    var TYPE_LABELS = {
-        announcement: "اطلاعیه", event: "رویداد", class_change: "تغییر برنامه", deadline: "ددلاین",
-        task: "تکلیف", requirement: "الزام", exam: "امتحان", critical_notice: "اطلاعیه مهم", service_reminder: "یادآوری"
-    };
 
     function $(selector) {
         return document.querySelector(selector);
@@ -293,6 +289,65 @@
     }
 
     var shelfLoadedFor = null;
+    /* ---------- sample-question sets (the site's main product) ---------- */
+
+    var SAMPLE_PATTERN = /نمونه|سوالات|سؤالات/;
+
+    function sampleRow(course) {
+        var link = document.createElement("a");
+        link.className = "h26-sample";
+        link.href = course.path;
+        var copy = document.createElement("span");
+        copy.className = "h26-sample__copy";
+        var title = document.createElement("strong");
+        title.textContent = String(course.title || "").replace(/\s*\|\s*/g, " · ");
+        var meta = document.createElement("small");
+        var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
+        var stats = course.stats || {};
+        meta.textContent = [
+            curriculum.termLabel || "",
+            Number(stats.questionCount) ? faNumber(stats.questionCount) + " سؤال" : (course.badge || "")
+        ].filter(Boolean).join(" · ");
+        copy.appendChild(title);
+        copy.appendChild(meta);
+        var status = document.createElement("b");
+        var access = course.access || {};
+        if (access.hasAccess) {
+            status.className = "h26-sample__owned";
+            status.textContent = "فعال";
+        } else {
+            status.textContent = priceLabel(course) || access.unlockLabel || "";
+        }
+        link.appendChild(copy);
+        link.appendChild(status);
+        return link;
+    }
+
+    function renderSamples(catalog) {
+        var box = $("[data-h26-samples]");
+        var list = $("[data-h26-samples-list]");
+        if (!box || !list) {
+            return;
+        }
+        var seen = {};
+        var courses = (catalog && Array.isArray(catalog.courses) ? catalog.courses : []).filter(function (course) {
+            var key = String(course && (course.slug || course.path) || "");
+            if (!key || seen[key] || !course.path || !SAMPLE_PATTERN.test(String(course.title || ""))) {
+                return false;
+            }
+            seen[key] = true;
+            return true;
+        });
+        courses.sort(function (a, b) {
+            return String(b.addedAt || "").localeCompare(String(a.addedAt || ""));
+        });
+        list.textContent = "";
+        courses.slice(0, 6).forEach(function (course) {
+            list.appendChild(sampleRow(course));
+        });
+        box.hidden = courses.length === 0;
+    }
+
     function renderShelf(state) {
         var shelf = $("[data-h26-shelf]");
         var holder = $("[data-h26-covers]");
@@ -313,6 +368,7 @@
                 return;
             }
             var catalog = payload && payload.catalog ? payload.catalog : null;
+            renderSamples(catalog);
             var courses = collectCourses(catalog && catalog.referenceCatalog, []).filter(function (course) {
                 return String(course.title).indexOf("|") !== -1;
             });
@@ -336,91 +392,133 @@
         });
     }
 
-    /* ---------- upcoming class items (ClassOps student list) ---------- */
+    /* ---------- class plan: weekly ClassOps digest (same source as the bots) ---------- */
 
-    function itemTime(item) {
+    function digestTime(item) {
         var timing = item && item.timing ? item.timing : {};
-        var isDeadlineItem = item && (item.type === "task" || item.type === "requirement");
-        var dateValue = isDeadlineItem ? (timing.dueAt || timing.startsAt) : (timing.startsAt || timing.dueAt);
-        return Date.parse(dateValue || "") || 0;
+        if (timing.localDate) {
+            return Date.parse(timing.localDate + "T00:00:00+03:30") || 0;
+        }
+        return Date.parse(timing.startsAtUtc || timing.dueAtUtc || "") || 0;
     }
 
-    function weekRow(item) {
-        var when = new Date(itemTime(item));
-        var row = document.createElement("div");
-        row.className = "h26-day";
-        var day = document.createElement("span");
-        day.className = "h26-day__date";
-        var dayNum = document.createElement("b");
-        var dayName = document.createElement("small");
-        try {
-            dayNum.textContent = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { day: "numeric" }).format(when);
-            dayName.textContent = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { weekday: "long" }).format(when);
-        } catch (_error) {
-            dayNum.textContent = fa(when.getDate());
+    function dayLabel(time) {
+        if (!time) {
+            return "";
         }
-        day.appendChild(dayNum);
-        day.appendChild(dayName);
+        try {
+            var parts = {};
+            new Intl.DateTimeFormat("fa-IR-u-ca-persian", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Tehran" })
+                .formatToParts(new Date(time)).forEach(function (part) {
+                    parts[part.type] = part.value;
+                });
+            return [parts.weekday, parts.day, parts.month].filter(Boolean).join(" ");
+        } catch (_error) {
+            return "";
+        }
+    }
 
-        var copy = document.createElement("span");
-        copy.className = "h26-day__copy";
+    function timeLabel(item) {
+        var timing = item && item.timing ? item.timing : {};
+        var raw = timing.startsAtUtc || timing.dueAtUtc;
+        if (!raw || timing.allDay) {
+            return "";
+        }
+        try {
+            return new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tehran" }).format(new Date(raw));
+        } catch (_error) {
+            return "";
+        }
+    }
+
+    function planGroup(title, items, render) {
+        var group = document.createElement("div");
+        group.className = "h26-plan__group";
+        var heading = document.createElement("h4");
+        heading.textContent = title;
+        group.appendChild(heading);
+        items.forEach(function (item) {
+            group.appendChild(render(item));
+        });
+        return group;
+    }
+
+    function planRow(item, withDay) {
+        var row = document.createElement("div");
+        row.className = "h26-plan__row";
         var title = document.createElement("strong");
         title.textContent = item.title || "";
         var meta = document.createElement("small");
-        var bits = [];
-        try {
-            bits.push(new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit" }).format(when));
-        } catch (_error) {
-            // ignore
+        meta.textContent = [withDay ? dayLabel(digestTime(item)) : "", timeLabel(item), item.location || ""].filter(Boolean).join(" · ");
+        row.appendChild(title);
+        if (meta.textContent) {
+            row.appendChild(meta);
         }
-        if (item.location) {
-            bits.push(typeof item.location === "string" ? item.location : (item.location.label || item.location.name || ""));
-        }
-        meta.textContent = bits.filter(Boolean).join(" · ");
-        copy.appendChild(title);
-        copy.appendChild(meta);
-
-        var tag = document.createElement("span");
-        tag.className = "h26-tag";
-        tag.textContent = TYPE_LABELS[item.type] || "کلاس";
-
-        row.appendChild(day);
-        row.appendChild(copy);
-        row.appendChild(tag);
         return row;
     }
 
-    var weekLoadedFor = "";
-    function renderWeek(state) {
+    function scheduleRow(item) {
+        var row = document.createElement("div");
+        row.className = "h26-plan__row h26-plan__row--schedule";
+        var day = document.createElement("strong");
+        day.textContent = dayLabel(digestTime(item)) || (item.title || "");
+        var body = document.createElement("p");
+        body.textContent = String(item.description || "").trim();
+        row.appendChild(day);
+        if (body.textContent) {
+            row.appendChild(body);
+        }
+        return row;
+    }
+
+    var planLoadedFor = "";
+    function renderPlan(state) {
         var box = $("[data-h26-week]");
-        var list = $("[data-h26-week-list]");
-        if (!box || !list) {
+        var holder = $("[data-h26-plan]");
+        if (!box || !holder) {
             return;
         }
         var user = state && state.loggedIn && state.user ? state.user : null;
         var key = user ? String(user.id || user.studentNumber || user.name || "user") : "";
-        if (!user || user.isOwner || user.isExternalExamUser) {
+        if (!user || user.isExternalExamUser) {
             box.hidden = true;
-            weekLoadedFor = "";
+            planLoadedFor = "";
             return;
         }
-        if (weekLoadedFor === key) {
+        if (planLoadedFor === key) {
             return;
         }
-        weekLoadedFor = key;
-        getJson("/api/classops_api.php?action=student-list").then(function (payload) {
-            var items = payload && payload.data && Array.isArray(payload.data.items) ? payload.data.items : [];
-            var now = Date.now() - 60 * 60 * 1000;
-            var upcoming = items.filter(function (item) {
-                return itemTime(item) >= now;
-            }).sort(function (a, b) {
-                return itemTime(a) - itemTime(b);
-            }).slice(0, 3);
-            list.textContent = "";
-            upcoming.forEach(function (item) {
-                list.appendChild(weekRow(item));
+        planLoadedFor = key;
+        getJson("/api/classops_api.php?action=weekly-digest").then(function (payload) {
+            var digest = payload && payload.digest ? payload.digest : null;
+            var sections = digest && Array.isArray(digest.sections) ? digest.sections : [];
+            var byKey = {};
+            sections.forEach(function (section) {
+                byKey[section.key] = Array.isArray(section.items) ? section.items : [];
             });
-            box.hidden = upcoming.length === 0;
+            var schedule = (byKey.schedule || []).filter(function (item) {
+                return item.itemType === "schedule_ref" && String(item.description || "").trim();
+            }).slice(0, 1);
+            var events = (byKey.schedule || []).filter(function (item) {
+                return item.itemType !== "schedule_ref";
+            });
+            var exams = byKey.exams || [];
+            var tasks = (byKey.deadlines || []).concat(byKey.outstanding_tasks || [], byKey.critical_ack || []);
+            holder.textContent = "";
+            if (schedule.length) {
+                holder.appendChild(planGroup("برنامهٔ کلاس‌ها", schedule, scheduleRow));
+            }
+            if (exams.length || events.length) {
+                holder.appendChild(planGroup("امتحان‌ها و رویدادها", exams.concat(events).slice(0, 4), function (item) {
+                    return planRow(item, true);
+                }));
+            }
+            if (tasks.length) {
+                holder.appendChild(planGroup("تکلیف‌ها و مهلت‌ها", tasks.slice(0, 4), function (item) {
+                    return planRow(item, true);
+                }));
+            }
+            box.hidden = holder.childElementCount === 0;
         }).catch(function () {
             box.hidden = true;
         });
@@ -430,7 +528,7 @@
         renderHello(state);
         renderContinue();
         renderShelf(state);
-        renderWeek(state);
+        renderPlan(state);
     }
 
     function init() {

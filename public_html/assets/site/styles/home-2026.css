@@ -77,6 +77,7 @@ body.home-2026 .h26-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
     gap: 1.25rem;
+    align-items: start;
     margin-bottom: 2.75rem;
 }
 body.home-2026 .h26-hero:not(:has(.h26-week:not([hidden]))) { grid-template-columns: minmax(0, 1fr); }
@@ -171,6 +172,7 @@ body.home-2026 .h26-day {
     border-top: 1px solid var(--border-color);
 }
 body.home-2026 .h26-day:first-child { border-top: 0; }
+body.home-2026 .h26-plan__group .h26-plan__row:first-of-type { border-top: 0; }
 body.home-2026 .h26-day__date { text-align: center; padding-inline-end: 0.75rem; border-inline-end: 1px solid var(--border-color); }
 body.home-2026 .h26-day__date b { display: block; font: 800 1.35rem/1.15 var(--font-accent); color: var(--brand-brass-ink); }
 body.home-2026 .h26-day__date small { font-size: 0.74rem; color: var(--text-tertiary); }
@@ -185,6 +187,39 @@ body.home-2026 .h26-tag {
     font-weight: 800;
     white-space: nowrap;
 }
+
+/* ---- class plan (weekly ClassOps digest) ---- */
+body.home-2026 .h26-head__meta { font-size: 0.8rem; color: var(--text-tertiary); }
+body.home-2026 .h26-plan { display: grid; gap: 1rem; }
+body.home-2026 .h26-plan__group h4 { margin: 0 0 0.2rem; font: 800 0.86rem var(--font-accent); color: var(--brand-brass-ink); }
+body.home-2026 .h26-plan__row { padding: 0.55rem 0; border-top: 1px solid var(--border-color); }
+body.home-2026 .h26-plan__row strong { display: block; font-weight: 700; color: var(--text-primary); }
+body.home-2026 .h26-plan__row small { font-size: 0.82rem; color: var(--text-tertiary); }
+body.home-2026 .h26-plan__row--schedule p { margin: 0.2rem 0 0; white-space: pre-line; font-size: 0.88rem; line-height: 1.9; color: var(--text-secondary); }
+
+/* ---- sample-question sets ---- */
+body.home-2026 .h26-samples { margin-bottom: 2.75rem; }
+body.home-2026 .h26-samples[hidden] { display: none; }
+body.home-2026 .h26-samples__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2.5rem; }
+body.home-2026 .h26-sample {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 64px;
+    padding: 0.8rem 0;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: padding var(--motion-fast) var(--motion-ease-standard);
+}
+body.home-2026 .h26-sample:hover { padding-inline-start: 0.4rem; }
+body.home-2026 .h26-sample:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+body.home-2026 .h26-sample__copy { min-width: 0; }
+body.home-2026 .h26-sample__copy strong { display: block; font-weight: 700; line-height: 1.7; }
+body.home-2026 .h26-sample__copy small { font-size: 0.82rem; color: var(--text-tertiary); }
+body.home-2026 .h26-sample b { flex: none; font: 800 0.95rem var(--font-accent); color: var(--brand-brass-ink); white-space: nowrap; }
+body.home-2026 .h26-sample__owned { padding: 0.05rem 0.6rem; border-radius: 999px; background: var(--brand-brass-soft); font-size: 0.8rem !important; }
 
 /* ---- reference shelf ---- */
 body.home-2026 .h26-shelf { margin-bottom: 2.75rem; }
@@ -378,6 +413,7 @@ body.home-2026 .home-promo-card { margin-top: 2.5rem; }
     body.home-2026 .h26-cover { flex: 0 0 40%; scroll-snap-align: start; }
     body.home-2026 .h26-cover h4 { font-size: 1.45rem !important; }
     body.home-2026 .h26-cols { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+    body.home-2026 .h26-samples__list { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
