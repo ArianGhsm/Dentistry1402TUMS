@@ -117,6 +117,35 @@ class KeyboardInvariantApi:
         # adapters both implement it and have an explicit transport test.
         self._state.mark_reply_keyboard_removed(chat_id, KEYBOARD_CLEANUP_VERSION)
 
+    def _home_guarantee_allowed(self, chat_id: int) -> bool:
+        """Private chats only, and never inside a pre-auth interaction where
+        home is gated (onboarding/login keep their own back/cancel steps)."""
+        if int(chat_id) <= 0:
+            return False
+        active_user = int(getattr(self._interaction, "user_id", 0) or 0)
+        if active_user == int(chat_id) and not bool(getattr(self._interaction, "authenticated", False)):
+            return False
+        return True
+
+    @staticmethod
+    def _with_home_row(reply_markup: dict) -> dict:
+        """Owner rule 2026-11-12: no inline screen may be a dead end. Append a
+        main-menu row when a non-empty inline keyboard has no v1:home button."""
+        if not isinstance(reply_markup, dict):
+            return reply_markup
+        rows = reply_markup.get("inline_keyboard")
+        if not isinstance(rows, list) or not rows:
+            return reply_markup
+        for row in rows:
+            if not isinstance(row, list):
+                return reply_markup
+            for item in row:
+                if isinstance(item, dict) and item.get("callback_data") == "v1:home":
+                    return reply_markup
+        markup = dict(reply_markup)
+        markup["inline_keyboard"] = [list(row) for row in rows] + [[{"text": "🏠 منوی اصلی", "callback_data": "v1:home"}]]
+        return markup
+
     def send(self, chat_id: int, text: str, reply_markup: dict) -> dict:
         if self._has_reply_keyboard(reply_markup):
             # Authentication input and contact sharing keep their existing
@@ -139,6 +168,8 @@ class KeyboardInvariantApi:
                 return dict(self._delegate.send(chat_id, text, reply_markup) or {})
         self._ensure_removed(chat_id)
         self._state.clear_reply_navigation(chat_id)
+        if self._home_guarantee_allowed(chat_id):
+            reply_markup = self._with_home_row(reply_markup)
         return dict(self._delegate.send(chat_id, text, reply_markup) or {})
 
     def edit(self, chat_id: int, message_id: int, text: str, reply_markup: dict) -> dict:
@@ -154,6 +185,8 @@ class KeyboardInvariantApi:
             return dict(self._delegate.edit(chat_id, message_id, text, reply_markup) or {})
         self._ensure_removed(chat_id)
         self._state.clear_reply_navigation(chat_id)
+        if self._home_guarantee_allowed(chat_id):
+            reply_markup = self._with_home_row(reply_markup)
         return dict(self._delegate.edit(chat_id, message_id, text, reply_markup) or {})
 
     def remove_reply_keyboard(self, chat_id: int, text: str = "") -> dict:

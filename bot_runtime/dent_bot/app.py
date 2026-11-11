@@ -101,6 +101,9 @@ from .onboarding import (
 
 
 
+
+HOME_PRESERVED_DIALOG_KINDS = frozenset({"onboarding-v1", "class-auth-v1", "phone-enroll-v1"})
+
 class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows):
     def __init__(
         self,
@@ -1114,6 +1117,14 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         name = data[3:] if data.startswith("v1:") else "home"
         if name == "submit-note":
             name = "notes"
+        if name == "home":
+            # "Main menu" must really leave the current flow (owner rule
+            # 2026-11-12, no dead ends): a stale input dialog would otherwise
+            # capture the next typed text. Authentication flows keep their
+            # progress because home is gated until they finish.
+            pending = self.state.dialog(user_id)
+            if pending is not None and str(pending.get("kind") or "") not in HOME_PRESERVED_DIALOG_KINDS:
+                self.state.clear_dialog(user_id)
         owner_action = name in {
             "admin", "system-status", "admin-grades", "admin-payments", "navid", "navid-check",
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
