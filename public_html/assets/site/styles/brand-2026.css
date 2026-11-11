@@ -1,0 +1,280 @@
+/*
+ * Brand 2026: "Navy & Brass" (owner-approved 2026-11-11)
+ * ---------------------------------------------------------------------------
+ * Loaded last through theme.css, so these semantic tokens win over core.css
+ * and the older redesign-pilot layer without rewriting hundreds of generated
+ * pages. Ivory paper canvas, ink-navy text taken from the ۱۴۰۲ logo, and a
+ * restrained brass accent. Typography: Estedad for headings (--font-accent),
+ * YekanBakh for body (--font-main), AbarHigh only for special display moments
+ * (--font-special).
+ */
+
+@font-face { font-family: "Estedad"; src: url("/fonts/Estedad-Arabic-500.woff2") format("woff2"); font-weight: 400 500; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Estedad"; src: url("/fonts/Estedad-Arabic-700.woff2") format("woff2"); font-weight: 600 700; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Estedad"; src: url("/fonts/Estedad-Arabic-800.woff2") format("woff2"); font-weight: 800; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Estedad"; src: url("/fonts/Estedad-Arabic-900.woff2") format("woff2"); font-weight: 900; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Estedad"; src: url("/fonts/Estedad-Latin-700.woff2") format("woff2"); font-weight: 400 700; font-display: swap; unicode-range: U+0000-00FF, U+2010-2027; }
+@font-face { font-family: "Estedad"; src: url("/fonts/Estedad-Latin-900.woff2") format("woff2"); font-weight: 800 900; font-display: swap; unicode-range: U+0000-00FF, U+2010-2027; }
+
+:root,
+html[data-theme="light"] {
+    color-scheme: light;
+    --brand-navy-950: #0b1230;
+    --brand-navy-900: #111a44;
+    --brand-navy-800: #1a2560;
+    --brand-navy-600: #33438f;
+    --brand-brass: #b8914a;
+    --brand-brass-strong: #9c7633;
+    --brand-brass-ink: #7a5c22;
+    --brand-brass-soft: #efe3c8;
+    --brand-paper: #f6f2ea;
+
+    --bg-body: #f6f2ea;
+    --bg-body-strong: #efe9dd;
+    --surface: #fffdf8;
+    --surface-solid: #fffdf8;
+    --surface-muted: #f2ede2;
+    --surface-strong: #e9e1d2;
+    --surface-contrast: #efe9dd;
+    --text-primary: #121733;
+    --text-secondary: #474d6d;
+    --text-tertiary: #6c7190;
+    --accent-color: #1f2b6b;
+    --accent-strong: #111a44;
+    --accent-soft: rgba(31, 43, 107, 0.08);
+    --commerce-accent: #7a5c22;
+    --commerce-accent-strong: #5f461a;
+    --commerce-accent-soft: rgba(184, 145, 74, 0.16);
+    --commerce-cta: #111a44;
+    --commerce-cta-strong: #0b1230;
+    --commerce-cta-soft: rgba(17, 26, 68, 0.08);
+    --commerce-surface: #fffdf8;
+    --commerce-surface-muted: #f2ede2;
+    --text-on-accent: #ffffff;
+    --success-color: #3d7a5c;
+    --warning-color: #9c6f1e;
+    --danger-color: #b2473a;
+    --border-color: #e2dacb;
+    --border-color-strong: #d2c6b0;
+    --focus-ring: rgba(51, 67, 143, 0.24);
+    --focus-ring-soft: rgba(51, 67, 143, 0.1);
+    --btn-gradient: #111a44;
+    --btn-shadow: none;
+    --shell-nav-inner-bg: #fffdf8;
+    --shell-nav-inner-border: #e2dacb;
+    --shell-nav-active-bg: rgba(184, 145, 74, 0.16);
+    --shell-nav-active-fill: #111a44;
+    --shell-nav-active-text: #ffffff;
+    --shell-nav-active-shadow: none;
+    --footer-title-color: #1f2b6b;
+    --footer-credit-color: #6c7190;
+    --font-accent: "Estedad", "YekanBakh", "Yekan", "IRANSans", system-ui, sans-serif;
+    --font-special: "AbarHigh", "Estedad", "YekanBakh", sans-serif;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --brand-brass-ink: #e2c286;
+    --brand-brass-soft: #3a3324;
+
+    --bg-body: #0d1330;
+    --bg-body-strong: #0a0f28;
+    --surface: #151c42;
+    --surface-solid: #151c42;
+    --surface-muted: #1a2250;
+    --surface-strong: #222b5c;
+    --surface-contrast: #10173a;
+    --text-primary: #eef0fb;
+    --text-secondary: #b5bad6;
+    --text-tertiary: #8d93b6;
+    --accent-color: #d0aa62;
+    --accent-strong: #e2c286;
+    --accent-soft: rgba(208, 170, 98, 0.14);
+    --commerce-accent: #e2c286;
+    --commerce-accent-strong: #f0d7a6;
+    --commerce-accent-soft: rgba(208, 170, 98, 0.16);
+    --commerce-cta: #d0aa62;
+    --commerce-cta-strong: #e2c286;
+    --commerce-cta-soft: rgba(208, 170, 98, 0.14);
+    --commerce-surface: #151c42;
+    --commerce-surface-muted: #1a2250;
+    --text-on-accent: #1a1405;
+    --success-color: #6cc39a;
+    --warning-color: #e2b45e;
+    --danger-color: #ef8a7c;
+    --border-color: #262f5e;
+    --border-color-strong: #323c72;
+    --focus-ring: rgba(208, 170, 98, 0.3);
+    --focus-ring-soft: rgba(208, 170, 98, 0.14);
+    --btn-gradient: #d0aa62;
+    --shell-nav-inner-bg: #121a3e;
+    --shell-nav-inner-border: #262f5e;
+    --shell-nav-active-bg: rgba(208, 170, 98, 0.16);
+    --shell-nav-active-fill: #d0aa62;
+    --shell-nav-active-text: #1a1405;
+    --footer-title-color: #e2c286;
+    --footer-credit-color: #8d93b6;
+}
+
+/* Headings follow the new heading face everywhere except chat, which keeps
+   its own messenger typography. */
+body:not(.chat-page) :where(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-accent);
+    letter-spacing: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Shell: desktop side navigation (rendered by shell.js renderSideNav)
+ * ------------------------------------------------------------------------- */
+:root { --shell-side-width: 264px; }
+
+.shell-side-nav { display: none; }
+
+@media (min-width: 1024px) {
+    body.has-side-nav:not(.chat-page) {
+        padding-inline-start: var(--shell-side-width) !important;
+    }
+    body.has-side-nav:not(.chat-page) .shell-bottom-nav { display: none !important; }
+    body.has-side-nav:not(.chat-page) {
+        --shell-nav-offset: 0px;
+        --shell-nav-content-reserve: 1.5rem;
+    }
+    body.has-side-nav .site-header--minimal .shell-brand-link { visibility: hidden; }
+
+    body > .shell-side-nav {
+        position: fixed !important;
+        inset-block: 0 !important;
+        inset-inline-start: 0 !important;
+        z-index: 340 !important;
+        margin: 0 !important;
+        width: var(--shell-side-width);
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 1.25rem 1rem 1rem;
+        background: var(--brand-navy-950);
+        color: #c9cde6;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+}
+
+.shell-side-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.2rem 0.5rem 1.2rem;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    text-decoration: none;
+}
+.shell-side-nav__brand img { width: 48px; height: 48px; border-radius: 12px; background: #fff; padding: 3px; }
+.shell-side-nav__brand b { display: block; font: 800 1rem/1.4 var(--font-accent); }
+.shell-side-nav__brand small { color: var(--brand-brass); font-size: 0.8rem; font-weight: 600; }
+
+.shell-side-nav__list { display: grid; gap: 2px; }
+.shell-side-nav__list--secondary {
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.shell-side-nav__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    color: #c9cde6;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background-color var(--motion-fast) var(--motion-ease-standard), color var(--motion-fast) var(--motion-ease-standard);
+}
+.shell-side-nav__link:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+.shell-side-nav__link:focus-visible { outline: 2px solid var(--brand-brass); outline-offset: 2px; }
+.shell-side-nav__link.is-active { background: rgba(184, 145, 74, 0.14); color: #fff; }
+.shell-side-nav__link.is-active::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1rem;
+    inset-block: 0.55rem;
+    width: 3px;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+    background: var(--brand-brass);
+}
+.shell-side-nav__icon { display: inline-grid; width: 20px; height: 20px; flex: none; }
+.shell-side-nav__icon svg { width: 20px; height: 20px; }
+.shell-side-nav__link.is-active .shell-side-nav__icon { color: var(--brand-brass); }
+.shell-side-nav__badge {
+    margin-inline-start: auto;
+    min-width: 1.4rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--brand-brass);
+    color: #1a1405;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: center;
+}
+.shell-side-nav__me {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 0.4rem 0.2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.shell-side-nav__avatar {
+    width: 38px; height: 38px; flex: none;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--brand-brass);
+    color: #1a1405;
+    font: 800 0.9rem var(--font-accent);
+}
+.shell-side-nav__who { min-width: 0; }
+.shell-side-nav__who b { display: block; color: #fff; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shell-side-nav__who small { font-size: 0.75rem; }
+.shell-side-nav__theme {
+    margin-inline-start: auto;
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    border: 0; border-radius: 10px;
+    background: transparent;
+    color: #c9cde6;
+    cursor: pointer;
+}
+.shell-side-nav__theme:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.shell-side-nav__theme svg { width: 20px; height: 20px; }
+
+/* ---------------------------------------------------------------------------
+ * Shell: mobile header and bottom navigation
+ * ------------------------------------------------------------------------- */
+@media (max-width: 1023.98px) {
+    body:not(.chat-page) .site-header.site-header--minimal {
+        background: var(--brand-navy-950) !important;
+        border-bottom: 0 !important;
+        color: #fff;
+        --text-primary: #ffffff;
+    }
+    body:not(.chat-page) .site-header--minimal .site-info h1 { color: #fff; font-family: var(--font-accent); }
+    body:not(.chat-page) .site-header--minimal .shell-brand-mark { background: #fff; border-radius: 10px; }
+    body:not(.chat-page) .site-header--minimal .shell-header-tools .shell-search-trigger,
+    body:not(.chat-page) .site-header--minimal .shell-header-tools .theme-toggle-btn { color: #c9cde6; }
+}
+
+.shell-bottom-nav__inner {
+    background: var(--shell-nav-inner-bg) !important;
+    border-top: 1px solid var(--shell-nav-inner-border) !important;
+}
+.shell-bottom-nav__link.is-active { color: var(--text-primary) !important; }
+.shell-bottom-nav__link.is-active .shell-bottom-nav__icon { color: var(--brand-brass-ink) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    .shell-side-nav__link { transition: none; }
+}
+html[data-theme="dark"] body > .shell-side-nav { box-shadow: inset 1px 0 0 #262f5e; }

@@ -125,6 +125,7 @@
             resources: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 5.5H18.5A1.5 1.5 0 0 1 20 7V18.5A1.5 1.5 0 0 1 18.5 20H7A2 2 0 0 1 5 18V6A.5.5 0 0 1 5.5 5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 5.5V17.5A2.5 2.5 0 0 0 10.5 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M11 9H16.5M11 12.5H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             buy: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.2A2.2 2.2 0 0 1 6.2 5h11.6A2.2 2.2 0 0 1 20 7.2v9.6a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 16.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 9.4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 14.2h3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.7 14.2h1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             polls: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5V12L18.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 20A8 8 0 1 1 20 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+            bell: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 9.5a6 6 0 1 0-12 0c0 6-2.5 7.5-2.5 7.5h17S18 15.5 18 9.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             account: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12.25A3.75 3.75 0 1 0 12 4.75A3.75 3.75 0 0 0 12 12.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.25C5.93 16.74 8.48 15 12 15C15.52 15 18.07 16.74 19 19.25" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
         };
 
@@ -408,6 +409,7 @@
 
         renderHeaderAccount(state);
         ensureBottomNav();
+        renderSideNav(state);
         var items = navItems(state);
         var signature = JSON.stringify({
             status: authStatus(state),
@@ -460,6 +462,105 @@
         });
         navInner.appendChild(fragment);
         warmBottomNavigation(items);
+    }
+
+    /* Desktop side navigation (brand 2026). The bottom nav stays the mobile
+       contract; on wide screens CSS hides it and shows this rail instead. */
+    var sideNav = { root: null, list: null, user: null, signature: "" };
+
+    function sideNavItems(state) {
+        var isProsthesis = isProsthesisState(state);
+        var user = state && state.loggedIn && state.user ? state.user : null;
+        var cohort = user && user.cohort && typeof user.cohort === "object" ? user.cohort : null;
+        var services = cohort && cohort.services && typeof cohort.services === "object" ? cohort.services : {};
+        var routes = cohort && cohort.routes && typeof cohort.routes === "object" ? cohort.routes : {};
+        var cohortKey = String(user && (user.cohortKey || (cohort && cohort.key)) || "");
+        var cohortPath = function (path) {
+            var key = cohortKey || (isProsthesis ? "prosthesis-1402" : "dentistry-1402");
+            return key !== "dentistry-1402" ? scopedPath(path, key) : path;
+        };
+        var items = navItems(state).slice(0, 1);
+        items.push({ href: cohortPath(canUseChatState(state) || !state.loggedIn ? "/notes/" : "/resources/"), label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
+        items.push({ href: cohortPath("/exams/"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
+        if (canUseChatState(state)) {
+            items.push({ href: cohortPath("/chat/"), label: "چت", icon: "chat", active: ["/chat/"], badgeCount: Math.max(0, Number(navBadgeState.chatCount || 0)) });
+        }
+        if (user && services.grades) {
+            items.push({ href: String(routes.grades || cohortPath("/grades/")), label: "نمرات", icon: "grades", active: ["/grades/"] });
+        }
+        if (user && services.forms) {
+            items.push({ href: String(routes.forms || cohortPath("/forms/")), label: "فرم‌ها", icon: "forms", active: ["/forms/"] });
+        }
+        if (!isProsthesis) {
+            items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payment/", "/payments/"] });
+        }
+        return items;
+    }
+
+    function sideNavLink(item) {
+        var active = isActive(item);
+        var count = Number(item.badgeCount || 0);
+        var badge = count ? '<span class="shell-side-nav__badge">' + (count > 9 ? "۹+" : localeDigits(count)) + "</span>" : "";
+        return '<a class="shell-side-nav__link' + (active ? " is-active" : "") + '" href="' + item.href + '"' + (active ? ' aria-current="page"' : "") + ">"
+            + '<span class="shell-side-nav__icon" aria-hidden="true">' + icon(item.icon) + "</span>"
+            + '<span class="shell-side-nav__label">' + item.label + "</span>" + badge + "</a>";
+    }
+
+    function renderSideNav(state) {
+        if (shellDisabled || document.body.classList.contains("chat-page")) {
+            return;
+        }
+        if (!sideNav.root) {
+            sideNav.root = document.createElement("aside");
+            sideNav.root.className = "shell-side-nav";
+            sideNav.root.setAttribute("aria-label", "ناوبری اصلی");
+            document.body.appendChild(sideNav.root);
+            document.body.classList.add("has-side-nav");
+        }
+        var user = state && state.loggedIn && state.user ? state.user : null;
+        var notifications = user ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
+        var items = sideNavItems(state);
+        var secondary = [];
+        if (user) {
+            secondary.push({ href: "/account/#notifications", label: "اعلان‌ها", icon: "bell", active: ["/account/notifications/"], badgeCount: notifications });
+            secondary.push({ href: "/account/", label: "حساب کاربری", icon: "account", active: ["/account/"] });
+            if (user.isOwner) {
+                secondary.push({ href: "/admin/", label: "مدیریت سایت", icon: "forms", active: ["/admin/"] });
+            }
+        } else {
+            secondary.push({ href: authLinkHref(false), label: "ورود به حساب", icon: "account", active: ["/account/login/"] });
+        }
+        var name = user ? accountMenuDisplayName(user) : "";
+        var signature = JSON.stringify([currentPath(), brandName(state), name, items, secondary]);
+        if (signature === sideNav.signature) {
+            return;
+        }
+        sideNav.signature = signature;
+        var brandSub = isProsthesisState(state) ? "ورودی ۱۴۰۲ پروتز" : "ورودی ۱۴۰۲";
+        var html = '<a class="shell-side-nav__brand" href="/app/"><img src="/assets/images/logo.png" alt="لوگوی ۱۴۰۲" width="48" height="48">'
+            + '<span><b>دندانپزشکی تهران</b><small>' + brandSub + "</small></span></a>"
+            + '<nav class="shell-side-nav__list">' + items.map(sideNavLink).join("") + "</nav>"
+            + '<nav class="shell-side-nav__list shell-side-nav__list--secondary">' + secondary.map(sideNavLink).join("") + "</nav>";
+        if (user) {
+            var meta = user.studentNumber ? localeDigits(user.studentNumber) : (user.isOwner ? "مالک سایت" : "دانشجو");
+            html += '<div class="shell-side-nav__me"><span class="shell-side-nav__avatar" aria-hidden="true">' + accountMenuInitials(user) + "</span>"
+                + '<span class="shell-side-nav__who"><b></b><small></small></span>'
+                + '<button type="button" class="shell-side-nav__theme" data-side-theme aria-label="تغییر حالت روز و شب">' + themeIconMarkup("dark") + "</button></div>";
+            sideNav.root.innerHTML = html;
+            sideNav.root.querySelector(".shell-side-nav__who b").textContent = name;
+            sideNav.root.querySelector(".shell-side-nav__who small").textContent = meta;
+            sideNav.root.querySelector(".shell-side-nav__avatar").textContent = accountMenuInitials(user);
+        } else {
+            sideNav.root.innerHTML = html;
+        }
+        var themeButton = sideNav.root.querySelector("[data-side-theme]");
+        if (themeButton) {
+            themeButton.addEventListener("click", function () {
+                if (window.Dent1402Theme && typeof window.Dent1402Theme.toggle === "function") {
+                    window.Dent1402Theme.toggle();
+                }
+            });
+        }
     }
 
     function themeIconMarkup(targetTheme) {
