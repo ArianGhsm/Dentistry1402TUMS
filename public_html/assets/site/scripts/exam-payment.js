@@ -139,7 +139,8 @@
     }
 
     function formatMoney(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
+        /* Amounts are stored in rials; students think and pay in tomans. */
+        return Math.round(Math.max(0, Number(value) || 0) / 10).toLocaleString("fa-IR") + " تومان";
     }
 
     function defaultQuote(course) {
