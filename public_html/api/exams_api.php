@@ -2444,7 +2444,7 @@ function dent_exams_api_course_summary_payload(
             'directAttemptableExamCount' => $courseStats['directAttemptableExamCount'] ?? 0,
             'totalOrders' => $collectionStats['totalOrders'],
             'successCount' => $viewerIsOwner ? $collectionStats['successCount'] : null,
-            'receivedAmount' => $collectionStats['receivedAmount'],
+            'receivedAmount' => $viewerIsOwner ? $collectionStats['receivedAmount'] : null,
             'showApprovedAccessCount' => $viewerIsOwner,
             'completedAssessmentCount' => $completedAssessmentCount,
             'viewerAveragePercent' => $viewerPercents ? round(array_sum($viewerPercents) / count($viewerPercents), 1) : null,
