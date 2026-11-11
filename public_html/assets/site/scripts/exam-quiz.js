@@ -2695,8 +2695,10 @@
         recordLastExam("assessment", state.assessment);
     }
 
-    /* Device-local "continue exam" pointer for the home page. Only the
-       position, counts and titles leave this page; never answers. */
+    /* "Continue exam" pointer for the home page. Only the position, counts,
+       titles and the session draft key are stored; never answers. The home
+       card is shown only while that tab-scoped draft still exists, because
+       restoration reads sessionStorage. */
     function recordLastExam(mode, block) {
         if (!block || !block.started) {
             return;
@@ -2711,6 +2713,7 @@
             var href = window.location.pathname + "?mode=" + mode + (cohortKey ? "&cohort=" + encodeURIComponent(cohortKey) : "");
             window.localStorage.setItem("dent1402-last-exam-v1", JSON.stringify({
                 href: href,
+                draftKey: mode === "learning" ? learningDraftKey : assessmentDraftKey,
                 title: exam.title,
                 courseTitle: exam.courseTitle,
                 mode: mode,

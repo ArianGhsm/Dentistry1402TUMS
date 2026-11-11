@@ -409,6 +409,7 @@
 
         renderHeaderAccount(state);
         ensureBottomNav();
+        renderSideNav(state);
         var items = navItems(state);
         var signature = JSON.stringify({
             status: authStatus(state),
@@ -461,7 +462,6 @@
         });
         navInner.appendChild(fragment);
         warmBottomNavigation(items);
-        renderSideNav(state);
     }
 
     /* Desktop side navigation (brand 2026). The bottom nav stays the mobile

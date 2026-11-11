@@ -47,9 +47,23 @@
         return api && typeof api.getState === "function" ? api.getState() || {} : {};
     }
 
-    function cohortUrl(path) {
-        var api = auth();
-        return api && typeof api.appendCohortQuery === "function" ? api.appendCohortQuery(path) : path;
+    function activeCohortKey(state) {
+        var user = state && state.loggedIn && state.user ? state.user : null;
+        if (user && user.cohort && user.cohort.key) {
+            return String(user.cohort.key);
+        }
+        if (user && user.isProsthesisStudent) {
+            return "prosthesis-1402";
+        }
+        var param = new URLSearchParams(window.location.search).get("cohort");
+        return param ? String(param) : "";
+    }
+
+    function cohortUrl(path, cohortKey) {
+        if (!cohortKey) {
+            return path;
+        }
+        return path + (path.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(cohortKey);
     }
 
     function getJson(url) {
@@ -131,6 +145,12 @@
                 return null;
             }
             if (String(data.href).charAt(0) !== "/" || String(data.href).indexOf("//") === 0) {
+                return null;
+            }
+            /* Exam restoration is tab-scoped (sessionStorage). Only advertise a
+               position that following the link will actually restore. */
+            var draft = data.draftKey ? JSON.parse(window.sessionStorage.getItem(String(data.draftKey)) || "null") : null;
+            if (!draft || !draft.started) {
                 return null;
             }
             return data;
@@ -258,13 +278,26 @@
         return link;
     }
 
-    function renderShelf() {
+    var shelfLoadedFor = null;
+    function renderShelf(state) {
         var shelf = $("[data-h26-shelf]");
         var holder = $("[data-h26-covers]");
         if (!shelf || !holder) {
             return;
         }
-        getJson(cohortUrl("/api/exams_api.php?action=catalog")).then(function (payload) {
+        var status = state && state.status ? String(state.status) : "";
+        if (!state || (!state.loggedIn && /restor|logging|pending|loading|boot/.test(status))) {
+            return;
+        }
+        var cohortKey = activeCohortKey(state);
+        if (shelfLoadedFor === cohortKey) {
+            return;
+        }
+        shelfLoadedFor = cohortKey;
+        getJson(cohortUrl("/api/exams_api.php?action=catalog", cohortKey)).then(function (payload) {
+            if (shelfLoadedFor !== cohortKey) {
+                return;
+            }
             var catalog = payload && payload.catalog ? payload.catalog : null;
             var courses = collectCourses(catalog && catalog.referenceCatalog, []).filter(function (course) {
                 return String(course.title).indexOf("|") !== -1;
@@ -283,7 +316,9 @@
             holder.appendChild(fragment);
             shelf.hidden = false;
         }).catch(function () {
-            shelf.hidden = true;
+            if (shelfLoadedFor === cohortKey) {
+                shelf.hidden = true;
+            }
         });
     }
 
@@ -377,6 +412,7 @@
 
     function syncAuth(state) {
         renderHello(state);
+        renderShelf(state);
         renderWeek(state);
     }
 
@@ -384,7 +420,6 @@
         renderToday();
         bindSearch();
         renderContinue();
-        renderShelf();
         syncAuth(authState());
         var api = auth();
         if (api && typeof api.onChange === "function") {
