@@ -310,3 +310,46 @@ body:not(.chat-page) :where(h1, h2, h3, h4, h5, h6) {
     .shell-side-nav__link { transition: none; }
 }
 html[data-theme="dark"] body > .shell-side-nav { box-shadow: inset 1px 0 0 #262f5e; }
+
+/* ---------------------------------------------------------------------------
+ * Back navigation (shell.js ensureHeaderBack): no page is a dead end.
+ * ------------------------------------------------------------------------- */
+.site-header .shell-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-width: 44px;
+    height: 40px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    font: 700 0.88rem var(--font-main);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color var(--motion-fast) var(--motion-ease-standard), transform var(--motion-fast) var(--motion-ease-standard);
+}
+.site-header .shell-back-btn svg { width: 18px; height: 18px; flex: none; }
+.site-header .shell-back-btn:hover { background: var(--surface-muted); }
+.site-header .shell-back-btn:active { transform: scale(0.96); }
+.site-header .shell-back-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+@media (max-width: 1023.98px) {
+    body:not(.chat-page) .site-header .shell-back-btn {
+        padding: 0;
+        width: 40px;
+        border-color: rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+    }
+    body:not(.chat-page) .site-header .shell-back-btn span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+}
+@media (prefers-reduced-motion: reduce) { .site-header .shell-back-btn { transition: none; } }

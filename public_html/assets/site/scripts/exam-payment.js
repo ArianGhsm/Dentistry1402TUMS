@@ -311,6 +311,14 @@
                 throw new Error((payload && payload.error) || "بارگذاری اطلاعات پرداخت انجام نشد.");
             }
             state.course = payload.course;
+            /* The shared header Back button returns to the canonical course page. */
+            if (document.body && payload.course && /^\/[^/]/.test(String(payload.course.path || ""))) {
+                document.body.dataset.backHref = String(payload.course.path);
+                var backButton = document.querySelector(".site-header .shell-back-btn");
+                if (backButton) {
+                    backButton.href = String(payload.course.path);
+                }
+            }
             state.quote = defaultQuote(payload.course);
             state.discountCode = "";
             state.viewer = payload.viewer || null;

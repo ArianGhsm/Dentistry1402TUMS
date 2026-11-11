@@ -811,6 +811,194 @@
         syncHeaderAccountThemeLabel();
     }
 
+    /* ------------------------------------------------------------------
+     * Back navigation (owner rule 2026-11-12: no dead ends). Every page
+     * except home gets a back button. Most visitors land from a Telegram or
+     * Bale link, so history.back() is used only when the previous page is
+     * on this site; otherwise we go one level up the URL (course -> exams ->
+     * home).
+     * ------------------------------------------------------------------ */
+    function isHomePath(path) {
+        return path === "/" || path === "/app/" || path === "/index.html";
+    }
+
+    function parentPath() {
+        var path = currentPath();
+        var search = window.location.search || "";
+        var cohort = "";
+        try {
+            cohort = new URLSearchParams(search).get("cohort") || "";
+        } catch (_error) {
+            cohort = "";
+        }
+        var keep = function (target) {
+            return cohort && target !== "/app/" ? target + "?cohort=" + encodeURIComponent(cohort) : target;
+        };
+        /* A page may declare its canonical parent (e.g. the exam pay page sets
+           its course's real path once loaded). Same-origin paths only. */
+        var declared = document.body ? String(document.body.dataset.backHref || "") : "";
+        if (/^\/[^/]/.test(declared)) {
+            return declared;
+        }
+        /* Query-driven sub-views of the exams hub go back to the hub itself. */
+        if (path === "/exams/" && search && /[?&](mode|term|unit|specialty|ref)=/.test(search)) {
+            return keep(path);
+        }
+        var parts = path.split("/").filter(Boolean);
+        parts.pop();
+        if (!parts.length) {
+            return "/app/";
+        }
+        var parent = "/" + parts.join("/") + "/";
+        /* Utility sub-routes without their own landing page. */
+        if (/^\/(payment|payments|exams\/pay)\/?$/.test(parent) || parent === "/payments/pay/") {
+            return "/app/";
+        }
+        return keep(parent);
+    }
+
+    var BACK_FALLBACK_KEY = "dent1402-back-fallback";
+
+    var fallbackMarkerConsumed = false;
+
+    function consumeFallbackMarker() {
+        /* The back button's fallback stores its target in sessionStorage just
+           before location.replace(). On arrival, move that flag onto this exact
+           history entry and drop the stored marker, so a later normal visit to
+           the same URL is not mistaken for a fallback entry. */
+        if (fallbackMarkerConsumed) {
+            return;
+        }
+        fallbackMarkerConsumed = true;
+        try {
+            var marked = window.sessionStorage.getItem(BACK_FALLBACK_KEY) || "";
+            if (!marked) {
+                return;
+            }
+            window.sessionStorage.removeItem(BACK_FALLBACK_KEY);
+            if (new URL(marked, window.location.origin).href !== window.location.href) {
+                return;
+            }
+            var base = window.history.state && typeof window.history.state === "object" ? window.history.state : {};
+            var next = {};
+            Object.keys(base).forEach(function (key) {
+                next[key] = base[key];
+            });
+            next.__dentFallback = true;
+            window.history.replaceState(next, "", window.location.href);
+        } catch (_error) {
+            // ignore storage/history failures; replace() alone still avoids loops
+        }
+    }
+
+    function isFallbackEntry() {
+        /* True when this history entry itself was reached through the back
+           button's fallback, so its referrer must not send the user back down. */
+        var current = window.history.state;
+        return !!(current && typeof current === "object" && current.__dentFallback);
+    }
+
+    /* In-document navigation (e.g. exams tabs/filters via pushState) is
+       tracked in history.state so Back returns to the previous view first. */
+    var historyTracking = false;
+
+    function inDocumentDepth() {
+        var current = window.history.state;
+        return current && typeof current === "object" ? Math.max(0, Number(current.__dentDepth) || 0) : 0;
+    }
+
+    function refreshHeaderBack() {
+        var button = document.querySelector(".site-header .shell-back-btn");
+        if (button) {
+            button.href = parentPath();
+        }
+    }
+
+    function trackInDocumentHistory() {
+        if (historyTracking || !window.history || typeof window.history.pushState !== "function") {
+            return;
+        }
+        historyTracking = true;
+        var withDepth = function (state, depth, keepFallback) {
+            var base = state && typeof state === "object" ? state : {};
+            var next = {};
+            Object.keys(base).forEach(function (key) {
+                next[key] = base[key];
+            });
+            next.__dentDepth = depth;
+            if (keepFallback && isFallbackEntry()) {
+                next.__dentFallback = true;
+            }
+            return next;
+        };
+        var originalPush = window.history.pushState;
+        var originalReplace = window.history.replaceState;
+        window.history.pushState = function (state, title, url) {
+            var result = originalPush.call(window.history, withDepth(state, inDocumentDepth() + 1), title, url);
+            refreshHeaderBack();
+            return result;
+        };
+        window.history.replaceState = function (state, title, url) {
+            var result = originalReplace.call(window.history, withDepth(state, inDocumentDepth(), true), title, url);
+            refreshHeaderBack();
+            return result;
+        };
+        window.addEventListener("popstate", refreshHeaderBack);
+    }
+
+    function cameFromThisSite() {
+        try {
+            return !!document.referrer
+                && new URL(document.referrer).origin === window.location.origin
+                && window.history.length > 1;
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function ensureHeaderBack() {
+        if (shellDisabled || shellHeaderDisabled || isHomePath(currentPath()) || document.body.dataset.shellBack === "off") {
+            return;
+        }
+        trackInDocumentHistory();
+        consumeFallbackMarker();
+        var actions = document.querySelector(".site-header .header-actions");
+        if (!actions) {
+            return;
+        }
+        var button = actions.querySelector(".shell-back-btn");
+        if (!button) {
+            button = document.createElement("a");
+            button.className = "shell-back-btn";
+            button.setAttribute("aria-label", "بازگشت");
+            button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>بازگشت</span>';
+            button.addEventListener("click", function (event) {
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+                event.preventDefault();
+                button.href = parentPath();
+                if (inDocumentDepth() > 0 || (cameFromThisSite() && !isFallbackEntry())) {
+                    window.history.back();
+                    return;
+                }
+                /* Going "up" replaces the current entry and marks the target, so
+                   course -> exams -> home never loops back down. */
+                try {
+                    window.sessionStorage.setItem(BACK_FALLBACK_KEY, button.href);
+                } catch (_error) {
+                    // ignore storage failures; replace() alone still avoids loops
+                }
+                window.location.replace(button.href);
+            });
+        }
+        button.href = parentPath();
+        var anchor = headerAccount.root && headerAccount.root.parentNode === actions ? headerAccount.root : actions.firstChild;
+        if (button.parentNode !== actions || button.nextSibling !== anchor) {
+            actions.insertBefore(button, anchor);
+        }
+    }
+
     function renderHeaderAccount(state) {
         ensureHeaderAccountMenu();
         if (!headerAccount.root) {
@@ -858,6 +1046,7 @@
             headerAccount.logoutButton.querySelector("strong").textContent = "خروج از حساب";
         }
         syncHeaderAccountThemeLabel();
+        ensureHeaderBack();
     }
 
     function createMinimalSiteHeader() {
@@ -2710,6 +2899,7 @@
         bindInstallButtons();
         normalizeSiteHeader();
         normalizePageTopbars();
+        ensureHeaderBack();
         ensureHeaderSearch();
         applySiteAppearance(authState());
         syncAuthUi(authState());
