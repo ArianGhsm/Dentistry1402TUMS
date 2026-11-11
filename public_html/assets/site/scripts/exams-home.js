@@ -1131,6 +1131,263 @@
         ].join("");
     }
 
+    /* ------------------------------------------------------------------
+     * Exams hub 2026 (Navy & Brass): one page with two tabs instead of a
+     * mode chooser. Deeper views (unit / reference collections) keep the
+     * existing renderers and URL state.
+     * ------------------------------------------------------------------ */
+    var HUB_TONES = 6;
+
+    function hubCourseMap() {
+        var map = {};
+        (function walk(node) {
+            if (!node || typeof node !== "object") {
+                return;
+            }
+            if (Array.isArray(node)) {
+                node.forEach(walk);
+                return;
+            }
+            if (node.access && node.path) {
+                map[String(node.path)] = node;
+            }
+            Object.keys(node).forEach(function (key) {
+                if (node[key] && typeof node[key] === "object") {
+                    walk(node[key]);
+                }
+            });
+        })(state.catalog);
+        return map;
+    }
+
+    function hubPrice(course) {
+        var text = String(course && course.amountLabel || "");
+        var amount = Number(text.replace(/[^\d۰-۹]/g, "").replace(/[۰-۹]/g, function (d) {
+            return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+        }));
+        if (!amount) {
+            return "";
+        }
+        if (text.indexOf("ریال") !== -1) {
+            amount = Math.round(amount / 10);
+        }
+        return formatValue(amount) + " تومان";
+    }
+
+    function hubSplitTitle(title) {
+        var parts = String(title || "").split("|").map(function (part) {
+            return part.trim();
+        });
+        if (parts.length < 2) {
+            return { name: parts[0] || "", sub: "" };
+        }
+        var words = function (text) {
+            return text ? text.split(/\s+/).length : 99;
+        };
+        return words(parts[1]) < words(parts[0]) ? { name: parts[1], sub: parts[0] } : { name: parts[0], sub: parts[1] };
+    }
+
+    function hubTotals() {
+        var exams = 0;
+        var questions = 0;
+        curriculumTerms().forEach(function (term) {
+            var stats = term && term.stats ? term.stats : {};
+            exams += Number(stats.examCount) || 0;
+            questions += Number(stats.questionCount) || 0;
+        });
+        var references = 0;
+        referenceSpecialties().forEach(function (specialty) {
+            references += Array.isArray(specialty.references) ? specialty.references.length : 0;
+        });
+        return { exams: exams, questions: questions, references: references };
+    }
+
+    function hubResumeHtml() {
+        try {
+            var data = JSON.parse(window.localStorage.getItem("dent1402-last-exam-v1") || "null");
+            if (!data || !data.href || data.finished || !data.total || !data.draftKey) {
+                return "";
+            }
+            if (String(data.href).charAt(0) !== "/" || String(data.href).indexOf("//") === 0) {
+                return "";
+            }
+            var draft = JSON.parse(window.sessionStorage.getItem(String(data.draftKey)) || "null");
+            if (!draft || !draft.started) {
+                return "";
+            }
+            var total = Math.max(1, Number(data.total) || 1);
+            var current = Math.min(total, Math.max(1, (Number(data.index) || 0) + 1));
+            var answered = Math.min(total, Math.max(0, Number(data.answered) || 0));
+            var percent = Math.round((answered / total) * 100);
+            return [
+                '<a class="exhub-resume" href="' + escapeHtml(data.href) + '">',
+                '  <span class="exhub-resume__kicker">ادامهٔ آزمون</span>',
+                '  <strong>' + escapeHtml(data.courseTitle || data.title || "آزمون") + "</strong>",
+                '  <span class="exhub-resume__meta">سؤال ' + formatValue(current) + " از " + formatValue(total) + " · " + formatValue(answered) + " پاسخ</span>",
+                '  <span class="exhub-resume__go">ادامه</span>',
+                '  <span class="exhub-resume__bar" aria-hidden="true"><i style="width:' + percent + '%"></i></span>',
+                "</a>"
+            ].join("");
+        } catch (_error) {
+            return "";
+        }
+    }
+
+    function hubHeadHtml(tab) {
+        var totals = hubTotals();
+        var summary = formatValue(totals.exams) + " آزمون و " + formatValue(totals.questions) + " سؤال";
+        if (totals.references) {
+            summary += "، از " + formatValue(totals.references) + " رفرنس و درس‌های هر ترم.";
+        }
+        return [
+            '<header class="exhub-head">',
+            '  <div><span class="exhub-kicker">آزمون‌های تمرینی</span><h1>آزمون‌ها</h1><p>' + summary + "</p></div>",
+            "</header>",
+            hubResumeHtml(),
+            '<nav class="exhub-tabs" role="tablist" aria-label="نحوهٔ مرور آزمون‌ها">',
+            '  <button type="button" role="tab" aria-selected="' + (tab === "reference") + '" class="' + (tab === "reference" ? "is-on" : "") + '" data-open-mode="reference">بر اساس رفرنس<small>' + formatValue(totals.references) + " کتاب</small></button>",
+            '  <button type="button" role="tab" aria-selected="' + (tab === "term") + '" class="' + (tab === "term" ? "is-on" : "") + '" data-open-mode="term">بر اساس ترم<small>درس‌های هر ترم</small></button>',
+            "</nav>"
+        ].join("");
+    }
+
+    function hubCoverHtml(specialty, reference, tone, courses) {
+        var collections = Array.isArray(reference.collections) ? reference.collections : [];
+        var split = hubSplitTitle(collections.length === 1 && collections[0].title ? collections[0].title : reference.title);
+        var stats = reference.stats || {};
+        var action = referenceActionConfig(reference);
+        var course = courses[String(reference.entryHref || "")] || null;
+        var access = course && course.access ? course.access : null;
+        var status = "";
+        if (access && access.hasAccess) {
+            status = '<b class="exhub-cover__owned">فعال</b>';
+        } else if (course && hubPrice(course)) {
+            status = "<b>" + escapeHtml(hubPrice(course)) + "</b>";
+        } else if (collections.length > 1) {
+            status = "<b>" + formatValue(collections.length) + " مجموعه</b>";
+        }
+        var latin = /[A-Za-z]/.test(split.name);
+        var inner = [
+            '<small class="exhub-cover__spec">' + escapeHtml(specialty.title || "") + "</small>",
+            "<small>" + escapeHtml(split.sub || reference.title || "") + "</small>",
+            '<h3 class="' + (latin ? "is-latin" : "") + '"' + (latin ? ' dir="ltr"' : "") + ">" + escapeHtml(split.name) + "</h3>",
+            reference.editionLabel ? '<span class="exhub-cover__ed">' + escapeHtml(reference.editionLabel) + "</span>" : "",
+            '<span class="exhub-cover__foot"><span>' + formatValue(stats.examCount) + " آزمون · " + formatValue(stats.questionCount) + " سؤال</span>" + status + "</span>"
+        ].join("");
+        if (action.type === "link") {
+            return '<a class="exhub-cover" data-tone="' + tone + '" href="' + escapeHtml(action.href) + '">' + inner + "</a>";
+        }
+        return '<button type="button" class="exhub-cover" data-tone="' + tone + '" data-ref-specialty="' + escapeHtml(specialty.key || "") + '"' + action.attrs + ">" + inner + "</button>";
+    }
+
+    function hubReferenceHtml() {
+        var specialties = referenceSpecialties();
+        var courses = hubCourseMap();
+        var active = state.specialtyKey;
+        var chips = ['<button type="button" class="' + (active ? "" : "is-on") + '" data-open-mode="reference">همه</button>'];
+        var available = [];
+        var soon = [];
+        specialties.forEach(function (specialty) {
+            var refs = Array.isArray(specialty.references) ? specialty.references : [];
+            var withExams = refs.filter(function (reference) {
+                return cleanUnitKey(reference.entryMode) === "direct" || cleanUnitKey(reference.entryMode) === "collections";
+            });
+            if (withExams.length) {
+                chips.push('<button type="button" class="' + (active === specialty.key ? "is-on" : "") + '" data-open-specialty="' + escapeHtml(specialty.key || "") + '">' + escapeHtml(specialty.title || "") + "<small>" + formatValue(withExams.length) + "</small></button>");
+            }
+            if (active && active !== specialty.key) {
+                return;
+            }
+            refs.forEach(function (reference) {
+                var mode = cleanUnitKey(reference.entryMode);
+                if (mode === "direct" || mode === "collections") {
+                    available.push([specialty, reference]);
+                } else {
+                    soon.push([specialty, reference]);
+                }
+            });
+        });
+        var covers = available.map(function (pair, index) {
+            return hubCoverHtml(pair[0], pair[1], index % HUB_TONES, courses);
+        }).join("");
+        var soonHtml = soon.length ? [
+            '<h2 class="exhub-soon__title">به‌زودی</h2>',
+            '<div class="exhub-soon">',
+            soon.map(function (pair) {
+                return '<div class="exhub-soon__row"><strong>' + escapeHtml(pair[1].title || "") + "</strong><small>" + escapeHtml(joinMetaParts([pair[0].title, pair[1].editionLabel])) + "</small></div>";
+            }).join(""),
+            "</div>"
+        ].join("") : "";
+        return [
+            '<nav class="exhub-chips" aria-label="فیلتر تخصص">' + chips.join("") + "</nav>",
+            covers ? '<div class="exhub-covers">' + covers + "</div>" : '<p class="exhub-empty">برای این تخصص هنوز آزمونی ثبت نشده است.</p>',
+            soonHtml
+        ].join("");
+    }
+
+    function hubDefaultTerm() {
+        var terms = curriculumTerms();
+        for (var i = 0; i < terms.length; i++) {
+            if (terms[i] && terms[i].stats && Number(terms[i].stats.examCount) > 0) {
+                return terms[i];
+            }
+        }
+        return terms[0] || null;
+    }
+
+    function hubUnitRowHtml(unit) {
+        var stats = unit.stats || {};
+        var hasExams = Number(stats.examCount) > 0;
+        var action = unitActionConfig(unit);
+        var collections = Array.isArray(unit.collections) ? unit.collections.length : 0;
+        var meta = hasExams ? formatValue(stats.examCount) + " آزمون · " + formatValue(stats.questionCount) + " سؤال" : "هنوز آزمونی ثبت نشده";
+        var inner = [
+            '<span class="exhub-unit__dot" aria-hidden="true"></span>',
+            "<span><strong>" + escapeHtml(unit.title || "") + "</strong><small>" + meta + "</small></span>",
+            collections > 1 ? '<span class="exhub-unit__tag">' + formatValue(collections) + " مجموعه</span>" : "<span></span>",
+            '<svg class="exhub-unit__go" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.5 6-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        ].join("");
+        if (!hasExams || action.type === "static") {
+            return '<div class="exhub-unit is-off">' + inner + "</div>";
+        }
+        if (action.type === "link") {
+            return '<a class="exhub-unit" href="' + escapeHtml(action.href) + '">' + inner + "</a>";
+        }
+        return '<button type="button" class="exhub-unit"' + action.attrs + ">" + inner + "</button>";
+    }
+
+    function hubTermHtml(term) {
+        var pills = curriculumTerms().map(function (item) {
+            var count = item && item.stats ? Number(item.stats.examCount) || 0 : 0;
+            var on = item.number === term.number;
+            return '<button type="button" class="' + (on ? "is-on" : "") + (count ? "" : " is-empty") + '"' + (on ? ' aria-current="true"' : "") + ' data-open-term="' + escapeHtml(item.number) + '"><b>' + escapeHtml(item.label || ("ترم " + formatValue(item.number))) + "</b><small>" + (count ? formatValue(count) + " آزمون" : "به‌زودی") + "</small></button>";
+        }).join("");
+        var stats = term.stats || {};
+        var categories = (Array.isArray(term.categories) ? term.categories : []).map(function (category) {
+            var units = (Array.isArray(category.units) ? category.units.slice() : []).sort(function (a, b) {
+                return (Number(b.stats && b.stats.examCount) > 0 ? 1 : 0) - (Number(a.stats && a.stats.examCount) > 0 ? 1 : 0);
+            });
+            if (!units.length) {
+                return "";
+            }
+            return '<section class="exhub-cat"><h2>' + escapeHtml(category.title || "") + "</h2>" + units.map(hubUnitRowHtml).join("") + "</section>";
+        }).join("");
+        return [
+            '<nav class="exhub-pills" aria-label="انتخاب ترم">' + pills + "</nav>",
+            '<div class="exhub-stats">',
+            "  <div><b>" + formatValue(stats.examCount) + "</b>آزمون</div>",
+            "  <div><b>" + formatValue(stats.questionCount) + "</b>سؤال</div>",
+            "  <div><b>" + formatValue(stats.availableUnitCount) + " از " + formatValue(stats.unitCount) + "</b>واحد دارای آزمون</div>",
+            "</div>",
+            '<div class="exhub-cats">' + categories + "</div>"
+        ].join("");
+    }
+
+    function hubHtml(tab, term) {
+        var body = tab === "term" ? hubTermHtml(term) : hubReferenceHtml();
+        return '<div class="exhub">' + hubHeadHtml(tab) + '<div class="exhub-panel exhub-panel--' + tab + '">' + body + "</div></div>";
+    }
+
     function render() {
         if (!state.catalog) {
             root.innerHTML = '<div class="exams-card exams-loading">در حال بارگذاری آزمون‌ها...</div>';
@@ -1145,19 +1402,14 @@
 
         normalizeViewState(false);
 
-        if (!state.mode) {
-            root.innerHTML = modeChooserHtml();
+        if (!state.mode || (state.mode === "reference" && !referenceSpecialties().length)) {
+            root.innerHTML = referenceSpecialties().length ? hubHtml("reference") : hubHtml("term", hubDefaultTerm());
             return;
         }
 
         if (state.mode === "reference") {
             var specialty = selectedReferenceSpecialty();
-            if (!specialty) {
-                root.innerHTML = referenceSpecialtyGridHtml();
-                return;
-            }
-
-            if (state.referenceKey) {
+            if (specialty && state.referenceKey) {
                 var reference = selectedReference();
                 if (reference) {
                     root.innerHTML = referenceCollectionsHtml(specialty, reference);
@@ -1165,18 +1417,13 @@
                 }
             }
 
-            root.innerHTML = referenceListHtml(specialty);
+            root.innerHTML = hubHtml("reference");
             return;
         }
 
-        if (state.mode !== "term" || !state.termNumber) {
-            root.innerHTML = termGridHtml();
-            return;
-        }
-
-        var term = selectedTerm();
+        var term = state.mode === "term" && state.termNumber ? selectedTerm() : null;
         if (!term) {
-            root.innerHTML = termGridHtml();
+            root.innerHTML = hubHtml("term", hubDefaultTerm());
             return;
         }
 
@@ -1188,7 +1435,7 @@
             }
         }
 
-        root.innerHTML = termDetailHtml(term);
+        root.innerHTML = hubHtml("term", term);
     }
 
     function setLoading() {
@@ -1268,7 +1515,7 @@
         var referenceButton = event.target.closest("[data-open-reference]");
         if (referenceButton) {
             event.preventDefault();
-            commitReferenceView(state.specialtyKey, referenceButton.getAttribute("data-open-reference"), false);
+            commitReferenceView(referenceButton.getAttribute("data-ref-specialty") || state.specialtyKey, referenceButton.getAttribute("data-open-reference"), false);
             return;
         }
 
