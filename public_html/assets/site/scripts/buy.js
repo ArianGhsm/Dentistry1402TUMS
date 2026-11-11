@@ -2309,9 +2309,24 @@
 
         apiGet("publicOrderResult", { orderToken: orderToken }).then(function (payload) {
             if (payload && (payload.loggedOut || payload.httpStatus === 401)) {
-                /* Only orders that really need an account ask for login;
-                   guest-payable collections show their receipt directly. */
-                showBuyLoginRequired();
+                /* Only orders that really need an account ask for login, and
+                   only after the canonical auth endpoint confirms the session
+                   is gone; a transient/malformed 401 keeps a recoverable error. */
+                var auth = window.Dent1402Auth;
+                var verify = auth && typeof auth.verifySession === "function"
+                    ? auth.verifySession({ attempts: 2, delayMs: 600 })
+                    : Promise.resolve(null);
+                verify.then(function (result) {
+                    if (result === false) {
+                        if (auth && typeof auth.handleUnauthorizedPayload === "function") {
+                            auth.handleUnauthorizedPayload(payload);
+                        }
+                        showBuyLoginRequired();
+                        return;
+                    }
+                    if (titleNode) titleNode.textContent = "نتیجه پرداخت فعلاً در دسترس نیست";
+                    if (messageNode) messageNode.textContent = "دریافت وضعیت پرداخت موقتاً ناموفق بود. چند لحظه بعد صفحه را دوباره باز کنید.";
+                });
                 return;
             }
             if (!payload || !payload.success || !payload.order) {
