@@ -35,6 +35,13 @@ class FakeBotApi:
         return {}
 
 
+class LinkedSite:
+    """Site stub for a user who already passed the entry gate."""
+
+    def account(self, _user_id):
+        return {"success": True, "linked": True, "authComplete": True, "identity": {}, "onboardingProfile": {}}
+
+
 class CapturingApi:
     def __init__(self) -> None:
         self.sent: list[tuple[int, str, dict]] = []
@@ -129,6 +136,30 @@ class NoDeadEndTests(unittest.TestCase):
                 state.start_dialog(20, "onboarding-v1", "phone", {})
                 home()
                 self.assertEqual((state.dialog(20) or {}).get("kind"), "onboarding-v1")
+            finally:
+                state.close()
+
+    def test_production_path_inline_mode_user_gets_main_menu(self) -> None:
+        """Regression: the guarantee must not depend on reply-button mode."""
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                api = FakeBotApi()
+                app = DentBotApp(api, state, owner_id=10, site_url="https://example.test",
+                                 site_api=LinkedSite(), platform="telegram")
+                self.assertEqual(state.button_mode(21), "inline")
+                # Any routed screen that forgets its home row must still get one.
+                app._dynamic_screen = lambda *_args, **_kwargs: ui.Screen("صفحهٔ بدون خانه", DEAD_END)
+                app.handle({"callback_query": {
+                    "id": "cb2", "from": {"id": 21},
+                    "message": {"message_id": 9, "chat": {"id": 21, "type": "private"}},
+                    "data": "v1:help",
+                }})
+                markups = [entry[-1] for entry in api.sent + api.edited]
+                inline = [m for m in markups if isinstance(m, dict) and m.get("inline_keyboard")]
+                self.assertTrue(inline)
+                for markup in inline:
+                    self.assertIn("v1:home", _actions(markup))
             finally:
                 state.close()
 

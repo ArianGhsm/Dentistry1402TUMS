@@ -22,14 +22,18 @@ class KeyboardInvariantApi:
     def __getattr__(self, name: str):
         return getattr(self._delegate, name)
 
-    def begin_interaction(self, user_id: int, *, authenticated: bool) -> None:
+    def begin_interaction(self, user_id: int, *, authenticated: bool, home_allowed: bool | None = None) -> None:
         self._interaction.user_id = int(user_id)
         self._interaction.authenticated = bool(authenticated)
+        # `authenticated` gates reply-keyboard mode; the main-menu guarantee
+        # only needs "not inside an auth/onboarding dialog".
+        self._interaction.home_allowed = bool(authenticated) if home_allowed is None else bool(home_allowed)
         self._interaction.reply_choice = False
 
     def end_interaction(self) -> None:
         self._interaction.user_id = 0
         self._interaction.authenticated = False
+        self._interaction.home_allowed = False
         self._interaction.reply_choice = False
 
     def mark_reply_choice(self) -> None:
@@ -123,7 +127,7 @@ class KeyboardInvariantApi:
         if int(chat_id) <= 0:
             return False
         active_user = int(getattr(self._interaction, "user_id", 0) or 0)
-        if active_user == int(chat_id) and not bool(getattr(self._interaction, "authenticated", False)):
+        if active_user == int(chat_id) and not bool(getattr(self._interaction, "home_allowed", False)):
             return False
         return True
 

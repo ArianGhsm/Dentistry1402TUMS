@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 from .api import BotApiError, TelegramBotApi
+from .navigation import close_stale_dialog_for_home, home_guarantee_allowed_for
 from .keyboard_invariant import KeyboardInvariantApi
 from .button_modes import button_mode_screen
 from .state import BotState
@@ -101,8 +102,6 @@ from .onboarding import (
 
 
 
-
-HOME_PRESERVED_DIALOG_KINDS = frozenset({"onboarding-v1", "class-auth-v1", "phone-enroll-v1"})
 
 class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, DynamicScreenWorkflows, PaymentAppWorkflows):
     def __init__(
@@ -413,7 +412,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
                 and self._bot_entry_gate(user_id) is None
             )
         if isinstance(user_id, int) and chat.get("type") == "private":
-            self.api.begin_interaction(user_id, authenticated=allowed_reply)
+            self.api.begin_interaction(user_id, authenticated=allowed_reply, home_allowed=home_guarantee_allowed_for(self.state, user_id))
         try:
             if callback:
                 self._callback(callback, interaction_version=interaction_version)
@@ -1118,13 +1117,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         if name == "submit-note":
             name = "notes"
         if name == "home":
-            # "Main menu" must really leave the current flow (owner rule
-            # 2026-11-12, no dead ends): a stale input dialog would otherwise
-            # capture the next typed text. Authentication flows keep their
-            # progress because home is gated until they finish.
-            pending = self.state.dialog(user_id)
-            if pending is not None and str(pending.get("kind") or "") not in HOME_PRESERVED_DIALOG_KINDS:
-                self.state.clear_dialog(user_id)
+            close_stale_dialog_for_home(self.state, user_id)
         owner_action = name in {
             "admin", "system-status", "admin-grades", "admin-payments", "navid", "navid-check",
             "identity-mappings", "identity-mapping-remove-cancel", "identity-mapping-remove-confirm",
