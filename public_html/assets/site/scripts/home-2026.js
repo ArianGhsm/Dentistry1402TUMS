@@ -394,12 +394,22 @@
 
     /* ---------- class plan: weekly ClassOps digest (same source as the bots) ---------- */
 
+    var DEADLINE_TYPES = { task: true, requirement: true, deadline: true };
+
+    function digestMoment(item) {
+        /* Deadlines show their due time; events show their start. */
+        var timing = item && item.timing ? item.timing : {};
+        return DEADLINE_TYPES[item && item.itemType]
+            ? (timing.dueAtUtc || timing.startsAtUtc || "")
+            : (timing.startsAtUtc || timing.dueAtUtc || "");
+    }
+
     function digestTime(item) {
         var timing = item && item.timing ? item.timing : {};
         if (timing.localDate) {
             return Date.parse(timing.localDate + "T00:00:00+03:30") || 0;
         }
-        return Date.parse(timing.startsAtUtc || timing.dueAtUtc || "") || 0;
+        return Date.parse(digestMoment(item)) || 0;
     }
 
     function dayLabel(time) {
@@ -420,7 +430,7 @@
 
     function timeLabel(item) {
         var timing = item && item.timing ? item.timing : {};
-        var raw = timing.startsAtUtc || timing.dueAtUtc;
+        var raw = digestMoment(item);
         if (!raw || timing.allDay) {
             return "";
         }
@@ -498,7 +508,7 @@
             });
             var schedule = (byKey.schedule || []).filter(function (item) {
                 return item.itemType === "schedule_ref" && String(item.description || "").trim();
-            }).slice(0, 1);
+            });
             var events = (byKey.schedule || []).filter(function (item) {
                 return item.itemType !== "schedule_ref";
             });
@@ -506,7 +516,20 @@
             var tasks = (byKey.deadlines || []).concat(byKey.outstanding_tasks || [], byKey.critical_ack || []);
             holder.textContent = "";
             if (schedule.length) {
-                holder.appendChild(planGroup("برنامهٔ کلاس‌ها", schedule, scheduleRow));
+                var scheduleGroup = planGroup("برنامهٔ کلاس‌ها", schedule.slice(0, 1), scheduleRow);
+                if (schedule.length > 1) {
+                    /* The rest of the week stays one tap away, never discarded. */
+                    var more = document.createElement("details");
+                    more.className = "h26-plan__more";
+                    var summary = document.createElement("summary");
+                    summary.textContent = "برنامهٔ " + faNumber(schedule.length - 1) + " روز بعد";
+                    more.appendChild(summary);
+                    schedule.slice(1).forEach(function (item) {
+                        more.appendChild(scheduleRow(item));
+                    });
+                    scheduleGroup.appendChild(more);
+                }
+                holder.appendChild(scheduleGroup);
             }
             if (exams.length || events.length) {
                 holder.appendChild(planGroup("امتحان‌ها و رویدادها", exams.concat(events).slice(0, 4), function (item) {

@@ -195,6 +195,12 @@ body.home-2026 .h26-plan__group h4 { margin: 0 0 0.2rem; font: 800 0.86rem var(-
 body.home-2026 .h26-plan__row { padding: 0.55rem 0; border-top: 1px solid var(--border-color); }
 body.home-2026 .h26-plan__row strong { display: block; font-weight: 700; color: var(--text-primary); }
 body.home-2026 .h26-plan__row small { font-size: 0.82rem; color: var(--text-tertiary); }
+body.home-2026 .h26-plan__more { border-top: 1px solid var(--border-color); }
+body.home-2026 .h26-plan__more summary { min-height: 44px; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-weight: 700; font-size: 0.88rem; color: var(--brand-brass-ink); list-style: none; }
+body.home-2026 .h26-plan__more summary::-webkit-details-marker { display: none; }
+body.home-2026 .h26-plan__more summary::before { content: "▾"; transition: transform var(--motion-fast) var(--motion-ease-standard); }
+body.home-2026 .h26-plan__more[open] summary::before { transform: rotate(180deg); }
+body.home-2026 .h26-plan__more summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 body.home-2026 .h26-plan__row--schedule p { margin: 0.2rem 0 0; white-space: pre-line; font-size: 0.88rem; line-height: 1.9; color: var(--text-secondary); }
 
 /* ---- sample-question sets ---- */
