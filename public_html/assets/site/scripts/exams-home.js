@@ -189,7 +189,9 @@
     }
 
     function commitMode(mode, replace) {
-        commitState({ mode: cleanViewMode(mode) }, replace);
+        var nextMode = cleanViewMode(mode);
+        var selected = nextMode === "term" ? (selectedTerm() || hubDefaultTerm()) : null;
+        commitState({ mode: nextMode, termNumber: selected ? selected.number : 0 }, replace);
     }
 
     function commitView(termNumber, unitKey, replace) {
@@ -570,11 +572,18 @@
             }
 
             var term = selectedTerm();
-            if (!term && state.termNumber > 0) {
-                state.termNumber = 0;
+            if (!term) {
+                // The default term must be reflected in state before its unit
+                // controls are rendered, including direct ?mode=term visits.
+                var fallbackTerm = hubDefaultTerm();
+                if (!fallbackTerm) {
+                    commitHome(replaceHistory);
+                    return;
+                }
+                state.termNumber = readTermNumber(fallbackTerm.number);
                 state.unitKey = "";
                 if (replaceHistory) {
-                    commitView(0, "", true);
+                    commitView(state.termNumber, "", true);
                 }
                 return;
             }
