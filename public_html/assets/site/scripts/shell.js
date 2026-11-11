@@ -834,15 +834,11 @@
         var keep = function (target) {
             return cohort && target !== "/app/" ? target + "?cohort=" + encodeURIComponent(cohort) : target;
         };
-        var params = null;
-        try {
-            params = new URLSearchParams(search);
-        } catch (_error) {
-            params = null;
-        }
-        /* The exam pay page goes back to its own course page. */
-        if (path === "/exams/pay/" && params && /^[a-z0-9_-]+$/i.test(params.get("course") || "")) {
-            return keep("/exams/" + params.get("course") + "/");
+        /* A page may declare its canonical parent (e.g. the exam pay page sets
+           its course's real path once loaded). Same-origin paths only. */
+        var declared = document.body ? String(document.body.dataset.backHref || "") : "";
+        if (/^\/[^/]/.test(declared)) {
+            return declared;
         }
         /* Query-driven sub-views of the exams hub go back to the hub itself. */
         if (path === "/exams/" && search && /[?&](mode|term|unit|specialty|ref)=/.test(search)) {
@@ -949,6 +945,7 @@
                     return;
                 }
                 event.preventDefault();
+                button.href = parentPath();
                 if (inDocumentDepth() > 0 || (cameFromThisSite() && !isFallbackEntry())) {
                     window.history.back();
                     return;
