@@ -192,6 +192,9 @@ html[data-theme="dark"] .exhub-resume { background: linear-gradient(160deg, #223
 }
 a.exhub-unit:hover,
 button.exhub-unit:hover { padding-inline-start: 0.35rem !important; }
+.exhub-unit .catalog-simple-row__schedule-list { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin-top: 0.3rem; }
+.exhub-unit .catalog-simple-row__schedule { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700; color: var(--brand-brass-ink); }
+.exhub-unit .catalog-simple-row__schedule::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-brass); }
 .exhub-unit__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-brass); }
 .exhub-unit strong { display: block; font-weight: 700; }
 .exhub-unit small { font-size: 0.82rem; color: var(--text-tertiary); }

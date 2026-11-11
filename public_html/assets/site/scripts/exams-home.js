@@ -303,7 +303,8 @@
     function finalExamLinesHtml(finalExams) {
         var items = Array.isArray(finalExams) ? finalExams : [];
         var lines = items.map(function (item) {
-            return String(item && item.displayLabel ? item.displayLabel : "").trim();
+            /* RLM after the colon keeps "ورودی ۱۴۰۲: ۱۴۰۵/۰۵/۳۱" in RTL order. */
+            return String(item && item.displayLabel ? item.displayLabel : "").trim().replace(/:\s*/g, ":\u200f ");
         }).filter(Boolean);
         if (!lines.length) {
             return "";
@@ -1360,7 +1361,7 @@
         var meta = hasExams ? formatValue(stats.examCount) + " آزمون · " + formatValue(stats.questionCount) + " سؤال" : "هنوز آزمونی ثبت نشده";
         var inner = [
             '<span class="exhub-unit__dot" aria-hidden="true"></span>',
-            "<span><strong>" + escapeHtml(unit.title || "") + "</strong><small>" + meta + "</small></span>",
+            "<span><strong>" + escapeHtml(unit.title || "") + "</strong><small>" + meta + "</small>" + finalExamLinesHtml(unit.finalExams) + "</span>",
             collections > 1 ? '<span class="exhub-unit__tag">' + formatValue(collections) + " مجموعه</span>" : "<span></span>",
             '<svg class="exhub-unit__go" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.5 6-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         ].join("");
