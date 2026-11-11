@@ -116,6 +116,38 @@ html[data-theme="dark"] {
     --footer-credit-color: #8d93b6;
 }
 
+/* Shared exam-hub presentation colors. Keep page styles token-only. */
+:root,
+html[data-theme="light"] {
+    --exhub-resume-background: var(--brand-navy-900);
+    --exhub-resume-frame: none;
+    --exhub-resume-text: #f3efe4;
+    --exhub-resume-title: #ffffff;
+    --exhub-resume-muted: #aeb4d6;
+    --exhub-resume-button-text: #1a1405;
+    --exhub-resume-track: rgba(255, 255, 255, 0.12);
+    --exhub-cover-0: var(--brand-navy-800);
+    --exhub-cover-1: var(--brand-brass-ink);
+    --exhub-cover-2: #3f6455;
+    --exhub-cover-3: #8e4c37;
+    --exhub-cover-4: #5a4170;
+    --exhub-cover-5: #23606b;
+    --exhub-cover-text: #ffffff;
+    --exhub-cover-spine: rgba(0, 0, 0, 0.18);
+    --exhub-cover-rule: rgba(255, 255, 255, 0.28);
+    --exhub-cover-hover-shadow: 0 14px 28px -16px rgba(11, 18, 48, 0.55);
+    --exhub-cover-owned-bg: rgba(255, 255, 255, 0.18);
+}
+html[data-theme="dark"] {
+    --exhub-resume-background: linear-gradient(160deg, #22306f, #172057);
+    --exhub-resume-frame: inset 0 0 0 1px #2e3a7a;
+    --exhub-resume-text: #f3efe4;
+    --exhub-resume-title: #ffffff;
+    --exhub-resume-muted: #aeb4d6;
+    --exhub-resume-button-text: #1a1405;
+    --exhub-cover-1: #7a5c22;
+}
+
 /* Headings follow the new heading face everywhere except chat, which keeps
    its own messenger typography. */
 body:not(.chat-page) :where(h1, h2, h3, h4, h5, h6) {
