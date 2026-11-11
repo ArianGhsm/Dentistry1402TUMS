@@ -1,0 +1,228 @@
+/*
+ * Exams hub 2026 (Navy & Brass): /exams/ landing with reference and term
+ * tabs. Tokens come from brand-2026.css; scoped to .exhub.
+ */
+
+.exams-page .exams-main:has(.exhub) {
+    width: min(100%, 1220px);
+    margin-inline: auto;
+    padding: 2rem clamp(1.1rem, 3.4vw, 3rem) 3rem;
+}
+
+.exhub button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: inherit;
+}
+
+.exhub-head { margin-bottom: 1.4rem; }
+.exhub-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--brand-brass-ink);
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+.exhub-kicker::before { content: ""; width: 22px; height: 1.5px; background: var(--brand-brass); }
+.exhub-head h1 { margin: 0.2rem 0 0.15rem; font: 900 clamp(1.9rem, 3.2vw, 2.6rem)/1.35 var(--font-accent); color: var(--text-primary); }
+.exhub-head p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+
+/* resume strip */
+.exhub-resume {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.4rem 1.1rem;
+    margin-bottom: 1.6rem;
+    padding: 0.9rem 1.25rem 0.75rem;
+    border-radius: 16px;
+    background: var(--exhub-resume-background);
+    box-shadow: var(--exhub-resume-frame);
+    color: var(--exhub-resume-text);
+    text-decoration: none;
+}
+.exhub-resume__kicker { color: var(--brand-brass); font-weight: 700; font-size: 0.82rem; }
+.exhub-resume strong { font: 800 1.05rem var(--font-accent); color: var(--exhub-resume-title); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exhub-resume__meta { color: var(--exhub-resume-muted); font-size: 0.86rem; white-space: nowrap; }
+.exhub-resume__go {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 1rem;
+    border-radius: 10px;
+    background: var(--brand-brass);
+    color: var(--exhub-resume-button-text);
+    font: 800 0.9rem var(--font-accent);
+}
+.exhub-resume__bar { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--exhub-resume-track); overflow: hidden; }
+.exhub-resume__bar i { display: block; height: 100%; border-radius: 2px; background: var(--brand-brass); }
+
+/* tabs */
+.exhub-tabs { display: flex; gap: 1.75rem; margin-bottom: 1.6rem; border-bottom: 1px solid var(--border-color); }
+.exhub-tabs button {
+    position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.75rem 0.1rem 0.85rem !important;
+    color: var(--text-tertiary) !important;
+    font: 800 1.1rem var(--font-accent) !important;
+}
+.exhub-tabs button small { font: 600 0.8rem var(--font-main); color: var(--text-tertiary); }
+.exhub-tabs button.is-on { color: var(--text-primary) !important; }
+.exhub-tabs button.is-on::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--brand-brass);
+}
+.exhub-tabs button:focus-visible,
+.exhub-chips button:focus-visible,
+.exhub-pills button:focus-visible,
+.exhub-cover:focus-visible,
+.exhub-unit:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+
+/* reference tab */
+.exhub-chips { display: flex; gap: 1.25rem; overflow-x: auto; scrollbar-width: none; margin-bottom: 1.4rem; border-bottom: 1px solid var(--border-color); }
+.exhub-chips button {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.4rem 0.1rem 0.65rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+.exhub-chips button small { font-size: 0.75rem; color: var(--text-tertiary); }
+.exhub-chips button.is-on { color: var(--text-primary) !important; }
+.exhub-chips button.is-on::after { content: ""; position: absolute; inset-inline: 0; bottom: -1px; height: 3px; background: var(--brand-brass); }
+.exhub-chips button.is-on small { color: var(--brand-brass-ink); }
+
+.exhub-covers { display: grid; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); gap: 1rem; }
+.exhub-cover {
+    --tone: var(--exhub-cover-0);
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 4.15;
+    display: flex !important;
+    flex-direction: column;
+    padding: 1rem 1rem 0.9rem 0.9rem !important;
+    border-radius: 6px 16px 16px 6px !important;
+    background: var(--tone) !important;
+    color: var(--exhub-cover-text) !important;
+    text-decoration: none;
+    text-align: right !important;
+    transition: transform var(--motion-base) var(--motion-ease-standard), box-shadow var(--motion-base) var(--motion-ease-standard);
+}
+.exhub-cover::before { content: ""; position: absolute; inset-block: 0; inset-inline-end: 0; width: 10px; background: var(--exhub-cover-spine); }
+.exhub-cover::after { content: ""; position: absolute; inset-inline: 1rem 1.6rem; top: 60%; height: 1px; background: var(--exhub-cover-rule); }
+.exhub-cover:hover { transform: translateY(-4px); box-shadow: var(--exhub-cover-hover-shadow); }
+.exhub-cover small { font-size: 0.74rem; opacity: 0.85; }
+.exhub-cover .exhub-cover__spec { font-size: 0.66rem; opacity: 0.65; margin-bottom: 0.1rem; }
+.exhub-cover h3 { margin: 0.25rem 0 0; font: 900 1.65rem/1.3 var(--font-special); color: var(--exhub-cover-text); }
+.exhub-cover h3.is-latin { font: 900 1.25rem/1.3 var(--font-accent); text-align: right; }
+.exhub-cover__ed { font-size: 0.7rem; opacity: 0.7; margin-top: 0.15rem; }
+.exhub-cover__foot { margin-top: auto; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.74rem; }
+.exhub-cover__foot b { font: 800 0.92rem var(--font-accent); }
+.exhub-cover__owned { align-self: flex-start; padding: 0.05rem 0.55rem; border-radius: 999px; background: var(--exhub-cover-owned-bg); font-size: 0.75rem !important; }
+.exhub-cover[data-tone="1"] { --tone: var(--exhub-cover-1); }
+.exhub-cover[data-tone="2"] { --tone: var(--exhub-cover-2); }
+.exhub-cover[data-tone="3"] { --tone: var(--exhub-cover-3); }
+.exhub-cover[data-tone="4"] { --tone: var(--exhub-cover-4); }
+.exhub-cover[data-tone="5"] { --tone: var(--exhub-cover-5); }
+
+.exhub-soon__title { margin: 2rem 0 0.3rem; font: 800 1.05rem var(--font-accent); color: var(--text-primary); }
+.exhub-soon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.75rem; }
+.exhub-soon__row { padding: 0.75rem 0; border-top: 1px solid var(--border-color); }
+.exhub-soon__row strong { display: block; font-weight: 700; color: var(--text-secondary); }
+.exhub-soon__row small { font-size: 0.8rem; color: var(--text-tertiary); }
+.exhub-empty { color: var(--text-tertiary); }
+
+/* term tab */
+.exhub-pills { display: flex; gap: 1rem; overflow-x: auto; scrollbar-width: none; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border-color); }
+.exhub-pills button {
+    position: relative;
+    flex: none;
+    display: grid !important;
+    min-width: 68px;
+    padding: 0.55rem 0.25rem 0.8rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    text-align: center !important;
+}
+.exhub-pills button b { font: 800 0.98rem var(--font-accent); color: var(--text-secondary); }
+.exhub-pills button small { font-size: 0.74rem; color: var(--text-tertiary); }
+.exhub-pills button.is-on::after { content: ""; position: absolute; inset-inline: 0; bottom: -1px; height: 3px; background: var(--brand-brass); }
+.exhub-pills button.is-on b { color: var(--text-primary); }
+.exhub-pills button.is-on small { color: var(--brand-brass-ink); }
+.exhub-pills button.is-empty { opacity: 0.55; }
+
+.exhub-stats { display: flex; gap: 2rem; margin: 0.3rem 0 1.5rem; }
+.exhub-stats div { font-size: 0.82rem; color: var(--text-tertiary); }
+.exhub-stats b { display: block; font: 900 1.6rem/1.25 var(--font-accent); color: var(--text-primary); }
+
+.exhub-cats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem 3rem; align-items: start; }
+.exhub-cat h2 { margin: 0 0 0.1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--text-primary); font: 800 1.05rem var(--font-accent); color: var(--text-primary); }
+.exhub-unit {
+    display: grid !important;
+    grid-template-columns: 10px minmax(0, 1fr) auto 16px;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 56px;
+    padding: 0.75rem 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    text-decoration: none;
+    text-align: right !important;
+    transition: padding var(--motion-fast) var(--motion-ease-standard);
+}
+a.exhub-unit:hover,
+button.exhub-unit:hover { padding-inline-start: 0.35rem !important; }
+.exhub-unit .catalog-simple-row__schedule-list { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin-top: 0.3rem; }
+.exhub-unit .catalog-simple-row__schedule { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700; color: var(--brand-brass-ink); }
+.exhub-unit .catalog-simple-row__schedule::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-brass); }
+.exhub-unit__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-brass); }
+.exhub-unit strong { display: block; font-weight: 700; }
+.exhub-unit small { font-size: 0.82rem; color: var(--text-tertiary); }
+.exhub-unit__tag { padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--text-secondary); font-size: 0.74rem; font-weight: 700; white-space: nowrap; }
+.exhub-unit__go { width: 16px; height: 16px; color: var(--text-tertiary); }
+.exhub-unit.is-off { opacity: 0.5; }
+.exhub-unit.is-off .exhub-unit__dot { background: var(--border-color-strong); }
+.exhub-unit.is-off .exhub-unit__go { visibility: hidden; }
+
+@media (max-width: 899.98px) {
+    .exams-page .exams-main:has(.exhub) { padding-top: 1.2rem; }
+    .exhub-resume { grid-template-columns: minmax(0, 1fr) auto; padding: 0.85rem 1rem 0.7rem; }
+    .exhub-resume__kicker { grid-column: 1 / -1; }
+    .exhub-resume__go { grid-row: 2 / 4; grid-column: 2; }
+    .exhub-tabs { gap: 1.2rem; }
+    .exhub-tabs button small { display: none; }
+    .exhub-covers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+    .exhub-cover h3 { font-size: 1.4rem; }
+    .exhub-soon { grid-template-columns: minmax(0, 1fr); }
+    .exhub-stats { gap: 1.3rem; }
+    .exhub-stats b { font-size: 1.3rem; }
+    .exhub-cats { grid-template-columns: minmax(0, 1fr); gap: 1.4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .exhub-cover, .exhub-unit { transition: none; }
+}
+html[data-performance-mode="lite"] .exhub-cover { transition: none; }

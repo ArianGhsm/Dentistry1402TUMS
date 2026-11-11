@@ -389,10 +389,10 @@ def check_mature_flat_design_contract(repo_root: Path) -> list[tuple[Path, int, 
     flat_path = styles_root / "mature-flat.css"
     htaccess_path = repo_root / "public_html" / ".htaccess"
     expected_theme_version = "20260812-phase4b"
-    expected_home_theme_version = "20260812-mobile-foundation3"
+    expected_home_theme_version = "20261112-exams-hub3"
     expected_devices_theme_version = "20260812-mobile-foundation3"
     expected_account_theme_version = "20260813-login-refine4"
-    expected_exams_theme_version = "20260813-exams-contrast1"
+    expected_exams_theme_version = "20261112-exams-hub3"
     expected_pilot_version = "20260823-mobile-rail3"
     expected_flat_version = "20260823-mobile-rail3"
     expected_pilot_import = f'redesign-pilot.css?v={expected_pilot_version}'

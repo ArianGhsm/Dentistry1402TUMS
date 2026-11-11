@@ -2714,6 +2714,7 @@
             window.localStorage.setItem("dent1402-last-exam-v1", JSON.stringify({
                 href: href,
                 draftKey: mode === "learning" ? learningDraftKey : assessmentDraftKey,
+                cohort: cohortKey,
                 title: exam.title,
                 courseTitle: exam.courseTitle,
                 mode: mode,
