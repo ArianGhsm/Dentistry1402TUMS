@@ -874,6 +874,51 @@
         }
     }
 
+    /* In-document navigation (e.g. exams tabs/filters via pushState) is
+       tracked in history.state so Back returns to the previous view first. */
+    var historyTracking = false;
+
+    function inDocumentDepth() {
+        var current = window.history.state;
+        return current && typeof current === "object" ? Math.max(0, Number(current.__dentDepth) || 0) : 0;
+    }
+
+    function refreshHeaderBack() {
+        var button = document.querySelector(".site-header .shell-back-btn");
+        if (button) {
+            button.href = parentPath();
+        }
+    }
+
+    function trackInDocumentHistory() {
+        if (historyTracking || !window.history || typeof window.history.pushState !== "function") {
+            return;
+        }
+        historyTracking = true;
+        var withDepth = function (state, depth) {
+            var base = state && typeof state === "object" ? state : {};
+            var next = {};
+            Object.keys(base).forEach(function (key) {
+                next[key] = base[key];
+            });
+            next.__dentDepth = depth;
+            return next;
+        };
+        var originalPush = window.history.pushState;
+        var originalReplace = window.history.replaceState;
+        window.history.pushState = function (state, title, url) {
+            var result = originalPush.call(window.history, withDepth(state, inDocumentDepth() + 1), title, url);
+            refreshHeaderBack();
+            return result;
+        };
+        window.history.replaceState = function (state, title, url) {
+            var result = originalReplace.call(window.history, withDepth(state, inDocumentDepth()), title, url);
+            refreshHeaderBack();
+            return result;
+        };
+        window.addEventListener("popstate", refreshHeaderBack);
+    }
+
     function cameFromThisSite() {
         try {
             return !!document.referrer
@@ -888,6 +933,7 @@
         if (shellDisabled || shellHeaderDisabled || isHomePath(currentPath()) || document.body.dataset.shellBack === "off") {
             return;
         }
+        trackInDocumentHistory();
         var actions = document.querySelector(".site-header .header-actions");
         if (!actions) {
             return;
@@ -903,7 +949,7 @@
                     return;
                 }
                 event.preventDefault();
-                if (cameFromThisSite() && !isFallbackEntry()) {
+                if (inDocumentDepth() > 0 || (cameFromThisSite() && !isFallbackEntry())) {
                     window.history.back();
                     return;
                 }
