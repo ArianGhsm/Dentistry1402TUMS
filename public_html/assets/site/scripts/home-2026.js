@@ -326,7 +326,9 @@
 
     function itemTime(item) {
         var timing = item && item.timing ? item.timing : {};
-        return Date.parse(timing.startsAt || timing.dueAt || "") || 0;
+        var isDeadlineItem = item && (item.type === "task" || item.type === "requirement");
+        var dateValue = isDeadlineItem ? (timing.dueAt || timing.startsAt) : (timing.startsAt || timing.dueAt);
+        return Date.parse(dateValue || "") || 0;
     }
 
     function weekRow(item) {
