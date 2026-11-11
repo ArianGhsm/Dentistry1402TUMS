@@ -470,8 +470,14 @@
 
     function sideNavItems(state) {
         var isProsthesis = isProsthesisState(state);
+        var user = state && state.loggedIn && state.user ? state.user : null;
+        var cohort = user && user.cohort && typeof user.cohort === "object" ? user.cohort : null;
+        var services = cohort && cohort.services && typeof cohort.services === "object" ? cohort.services : {};
+        var routes = cohort && cohort.routes && typeof cohort.routes === "object" ? cohort.routes : {};
+        var cohortKey = String(user && (user.cohortKey || (cohort && cohort.key)) || "");
         var cohortPath = function (path) {
-            return isProsthesis ? scopedPath(path, "prosthesis-1402") : path;
+            var key = cohortKey || (isProsthesis ? "prosthesis-1402" : "dentistry-1402");
+            return key !== "dentistry-1402" ? scopedPath(path, key) : path;
         };
         var items = navItems(state).slice(0, 1);
         items.push({ href: cohortPath(canUseChatState(state) || !state.loggedIn ? "/notes/" : "/resources/"), label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
@@ -479,9 +485,11 @@
         if (canUseChatState(state)) {
             items.push({ href: cohortPath("/chat/"), label: "چت", icon: "chat", active: ["/chat/"], badgeCount: Math.max(0, Number(navBadgeState.chatCount || 0)) });
         }
-        if (state.loggedIn) {
-            items.push({ href: cohortPath("/grades/"), label: "نمرات", icon: "grades", active: ["/grades/"] });
-            items.push({ href: cohortPath("/forms/"), label: "فرم‌ها", icon: "forms", active: ["/forms/"] });
+        if (user && services.grades) {
+            items.push({ href: String(routes.grades || cohortPath("/grades/")), label: "نمرات", icon: "grades", active: ["/grades/"] });
+        }
+        if (user && services.forms) {
+            items.push({ href: String(routes.forms || cohortPath("/forms/")), label: "فرم‌ها", icon: "forms", active: ["/forms/"] });
         }
         if (!isProsthesis) {
             items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payment/", "/payments/"] });
