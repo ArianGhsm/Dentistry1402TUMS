@@ -1449,7 +1449,12 @@
 
         /* term-by-term is the default view; references are an archive tab */
         if (!state.mode || (state.mode === "reference" && !referenceSpecialties().length)) {
-            root.innerHTML = hubHtml("term", hubDefaultTerm());
+            /* adopt the default term as the real selection so unit controls
+               (commitView) carry a term number, as on the ?mode=term path */
+            var defaultTerm = hubDefaultTerm();
+            state.mode = "term";
+            state.termNumber = defaultTerm ? Number(defaultTerm.number) || 0 : 0;
+            root.innerHTML = hubHtml("term", defaultTerm);
             return;
         }
 
