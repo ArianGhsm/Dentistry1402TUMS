@@ -39,6 +39,14 @@ html[data-theme="light"] {
     --tape-done-line: #5a463f;
     --tape-flag: #1b8077;
     --shell-mark: #f0c7d1;
+    /* ink and tape on the teal shell band (same in both themes) */
+    --on-shell: #e3f1ee;
+    --on-shell-strong: #ffffff;
+    --on-shell-muted: #a9d3cc;
+    --shell-tape-raw: #f0c7d1;
+    --shell-tape-raw-line: #e3a3b4;
+    --shell-tape-done: #3b2c27;
+    --shell-tape-done-line: #5a463f;
 
     --bg-body: #f3f6f4;
     --bg-body-strong: #e9f0ed;

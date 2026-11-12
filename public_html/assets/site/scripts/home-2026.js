@@ -185,20 +185,20 @@
         var modeLabel = data.mode === "learning" ? "حالت یادگیری" : "حالت آزمون";
 
         card.href = data.href;
-        $("[data-h26-continue-kicker]").textContent = "ادامهٔ آزمون" + (data.updatedAt ? " · " + relativeTime(data.updatedAt) : "");
         $("[data-h26-continue-title]").textContent = heading;
-        $("[data-h26-continue-meta]").textContent = (sub ? sub + " · " : "") + modeLabel;
-        $("[data-h26-ring-num]").textContent = faNumber(current);
-        $("[data-h26-ring-of]").textContent = "از " + faNumber(total) + " سؤال";
-        $("[data-h26-stat-answered]").textContent = faNumber(answered);
-        $("[data-h26-stat-flagged]").textContent = faNumber(flagged);
-        $("[data-h26-stat-left]").textContent = faNumber(total - answered);
+        $("[data-h26-continue-meta]").textContent = [sub, modeLabel, data.updatedAt ? relativeTime(data.updatedAt) : ""].filter(Boolean).join("، ");
         $("[data-h26-continue-cta]").textContent = "ادامه از سؤال " + faNumber(current);
-        var ring = $("[data-h26-ring]");
-        if (ring) {
-            var length = 2 * Math.PI * 51;
-            ring.style.strokeDasharray = String(length);
-            ring.style.strokeDashoffset = String(length * (1 - answered / total));
+        $("[data-h26-continue-count]").textContent = faNumber(answered) + " از " + faNumber(total) + " پاسخ‌داده" + (flagged ? "، " + faNumber(flagged) + " نشان‌دار" : "");
+        var tape = $("[data-h26-tape]");
+        if (tape) {
+            /* indicator tape: one cell per question, grouped past 60 */
+            var cells = Math.min(total, 60);
+            var doneCells = Math.round((answered / total) * cells);
+            tape.style.setProperty("--cells", String(cells));
+            tape.innerHTML = new Array(cells + 1).join("<i></i>");
+            Array.prototype.slice.call(tape.children, 0, doneCells).forEach(function (cell) {
+                cell.className = "is-done";
+            });
         }
         card.hidden = false;
         if (start) {
@@ -300,14 +300,14 @@
         var copy = document.createElement("span");
         copy.className = "h26-sample__copy";
         var title = document.createElement("strong");
-        title.textContent = String(course.title || "").replace(/\s*\|\s*/g, " · ");
+        title.textContent = String(course.title || "").replace(/\s*\|\s*/g, "، ");
         var meta = document.createElement("small");
         var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
         var stats = course.stats || {};
         meta.textContent = [
             curriculum.termLabel || "",
             Number(stats.questionCount) ? faNumber(stats.questionCount) + " سؤال" : (course.badge || "")
-        ].filter(Boolean).join(" · ");
+        ].filter(Boolean).join("، ");
         copy.appendChild(title);
         copy.appendChild(meta);
         var status = document.createElement("b");
@@ -459,7 +459,7 @@
         var title = document.createElement("strong");
         title.textContent = item.title || "";
         var meta = document.createElement("small");
-        meta.textContent = [withDay ? dayLabel(digestTime(item)) : "", timeLabel(item), item.location || ""].filter(Boolean).join(" · ");
+        meta.textContent = [withDay ? dayLabel(digestTime(item)) : "", timeLabel(item), item.location || ""].filter(Boolean).join("، ");
         row.appendChild(title);
         if (meta.textContent) {
             row.appendChild(meta);

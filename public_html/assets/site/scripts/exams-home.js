@@ -1245,14 +1245,19 @@
             var total = Math.max(1, Number(data.total) || 1);
             var current = Math.min(total, Math.max(1, (Number(data.index) || 0) + 1));
             var answered = Math.min(total, Math.max(0, Number(data.answered) || 0));
-            var percent = Math.round((answered / total) * 100);
+            /* indicator tape: one cell per question, grouped past 60 */
+            var cells = Math.min(total, 60);
+            var doneCells = Math.round((answered / total) * cells);
+            var tape = "";
+            for (var cell = 0; cell < cells; cell++) {
+                tape += cell < doneCells ? '<i class="is-done"></i>' : "<i></i>";
+            }
             return [
                 '<a class="exhub-resume" href="' + escapeHtml(data.href) + '">',
-                '  <span class="exhub-resume__kicker">ادامهٔ آزمون</span>',
                 '  <strong>' + escapeHtml(data.courseTitle || data.title || "آزمون") + "</strong>",
-                '  <span class="exhub-resume__meta">سؤال ' + formatValue(current) + " از " + formatValue(total) + " · " + formatValue(answered) + " پاسخ</span>",
-                '  <span class="exhub-resume__go">ادامه</span>',
-                '  <span class="exhub-resume__bar" aria-hidden="true"><i style="width:' + percent + '%"></i></span>',
+                '  <span class="exhub-resume__meta">' + formatValue(answered) + " از " + formatValue(total) + " پاسخ‌داده</span>",
+                '  <span class="exhub-resume__go">ادامه از سؤال ' + formatValue(current) + "</span>",
+                '  <span class="exhub-resume__bar" style="--cells:' + cells + '" aria-hidden="true">' + tape + "</span>",
                 "</a>"
             ].join("");
         } catch (_error) {
@@ -1268,7 +1273,7 @@
         }
         return [
             '<header class="exhub-head">',
-            '  <div><span class="exhub-kicker">آزمون‌های تمرینی</span><h1>آزمون‌ها</h1><p>' + summary + "</p></div>",
+            '  <div><h1>آزمون‌ها</h1><p>' + summary + "</p></div>",
             "</header>",
             hubResumeHtml(),
             '<nav class="exhub-tabs" role="tablist" aria-label="نحوهٔ مرور آزمون‌ها">',
@@ -1299,7 +1304,7 @@
             "<small>" + escapeHtml(split.sub || reference.title || "") + "</small>",
             '<h3 class="' + (latin ? "is-latin" : "") + '"' + (latin ? ' dir="ltr"' : "") + ">" + escapeHtml(split.name) + "</h3>",
             reference.editionLabel ? '<span class="exhub-cover__ed">' + escapeHtml(reference.editionLabel) + "</span>" : "",
-            '<span class="exhub-cover__foot"><span>' + formatValue(stats.examCount) + " آزمون · " + formatValue(stats.questionCount) + " سؤال</span>" + status + "</span>"
+            '<span class="exhub-cover__foot"><span>' + formatValue(stats.examCount) + " آزمون، " + formatValue(stats.questionCount) + " سؤال</span>" + status + "</span>"
         ].join("");
         if (action.type === "link") {
             return '<a class="exhub-cover" data-tone="' + tone + '" href="' + escapeHtml(action.href) + '">' + inner + "</a>";
@@ -1367,7 +1372,7 @@
         var hasExams = Number(stats.examCount) > 0;
         var action = unitActionConfig(unit);
         var collections = Array.isArray(unit.collections) ? unit.collections.length : 0;
-        var meta = hasExams ? formatValue(stats.examCount) + " آزمون · " + formatValue(stats.questionCount) + " سؤال" : "هنوز آزمونی ثبت نشده";
+        var meta = hasExams ? formatValue(stats.examCount) + " آزمون، " + formatValue(stats.questionCount) + " سؤال" : "هنوز آزمونی ثبت نشده";
         var inner = [
             '<span class="exhub-unit__dot" aria-hidden="true"></span>',
             "<span><strong>" + escapeHtml(unit.title || "") + "</strong><small>" + meta + "</small>" + finalExamLinesHtml(unit.finalExams) + "</span>",
