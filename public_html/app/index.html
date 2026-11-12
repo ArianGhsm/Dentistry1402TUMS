@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20261112-exams-hub3">
-    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261112-terms1">
+    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261112-newest1">
 </head>
 <body class="app-dashboard-page app-dashboard-page--digipay home-2026">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -45,6 +45,14 @@
             </button>
         </section>
 
+        <section class="h26-samples" data-h26-samples hidden aria-labelledby="h26-samples-title">
+            <header class="h26-head">
+                <div><h3 id="h26-samples-title">تازه‌ترین نمونه‌سؤال‌ها</h3><p>میان‌ترم و پایان‌ترم، با یک بار پرداخت برای همیشه</p></div>
+                <a href="/exams/?mode=term">همهٔ درس‌ها</a>
+            </header>
+            <div class="h26-samples__list" data-h26-samples-list></div>
+        </section>
+
         <section class="h26-hero" data-h26-hero>
             <a class="h26-continue" data-h26-continue href="/exams/" hidden>
                 <h3 class="h26-continue__title" data-h26-continue-title></h3>
@@ -59,13 +67,6 @@
             </section>
         </section>
 
-        <section class="h26-samples" data-h26-samples hidden aria-labelledby="h26-samples-title">
-            <header class="h26-head">
-                <div><h3 id="h26-samples-title">نمونه‌سؤالات امتحان‌ها</h3><p>سؤال‌های میان‌ترم و پایان‌ترم درس‌ها، آمادهٔ تمرین روی همین سایت</p></div>
-                <a href="/exams/?mode=term">همهٔ درس‌ها</a>
-            </header>
-            <div class="h26-samples__list" data-h26-samples-list></div>
-        </section>
 
         <section class="h26-terms" data-h26-shelf hidden aria-labelledby="h26-terms-title">
             <header class="h26-head">
@@ -81,19 +82,6 @@
 
 
 
-        <section id="home-active-exams" class="home-active-exams" aria-labelledby="home-active-exams-title" aria-live="polite" hidden>
-            <div class="home-active-exams__head">
-                <span class="home-active-exams__signal" aria-hidden="true">
-                    <span></span>
-                </span>
-                <div class="home-active-exams__heading">
-                    <span class="home-active-exams__eyebrow">جدید</span>
-                    <h3 id="home-active-exams-title">تازه‌ها</h3>
-                </div>
-                <span class="home-active-exams__count" aria-label="دو آزمون فعال">۲</span>
-            </div>
-            <div id="home-active-exams-list" class="home-active-exams__list"></div>
-        </section>
         </div>
         <div class="h26-cols__side">
 
@@ -212,21 +200,6 @@
         </div>
         </div>
 
-        <section class="home-promo-card" data-install-card aria-labelledby="home-promo-title" role="status" hidden>
-            <div class="home-promo-card__visual" aria-hidden="true">
-                <img src="/assets/images/logo.png?v=20260722-200509" alt="">
-            </div>
-            <div class="home-promo-card__copy">
-                <span class="portal-section-title">وب‌اپ</span>
-                <h3 id="home-promo-title">دسترسی سریع‌تر روی گوشی</h3>
-                <p>می‌توانی این سایت را مثل اپلیکیشن از صفحه خانه گوشی باز کنی.</p>
-            </div>
-            <div class="home-promo-card__actions">
-                <button class="shell-action-btn" type="button" data-install-dismiss>بعداً</button>
-                <button class="shell-action-btn shell-action-btn-primary" type="button" data-install-app>نصب روی گوشی</button>
-            </div>
-            <p class="shell-install-hint" data-install-hint>اگر مرورگر پشتیبانی کند، دکمه نصب فعال می‌شود.</p>
-        </section>
 
         <section id="home-identity-panel" class="portal-panel portal-panel--identity" data-auth-state="restoring" aria-live="polite" hidden>
             <div class="portal-identity">
@@ -253,7 +226,7 @@
     <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/app-home.js?v=20260813-home-access1"></script>
-    <script src="/assets/site/scripts/home-2026.js?v=20261112-terms1"></script>
+    <script src="/assets/site/scripts/home-2026.js?v=20261112-newest1"></script>
     <script src="/assets/site/scripts/shell.js?v=20261111-side-nav1"></script>
 </body>
 </html>

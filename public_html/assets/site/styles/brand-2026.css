@@ -651,3 +651,15 @@ html body.account-page .account-card--identity::after { content: none !important
 html body.account-page .account-session-badge::before { content: none; }
 html body.account-page .account-role-badge::after { content: "،"; }
 html body.account-page .account-list-row__chevron { border: 0 !important; font-size: 1.2rem !important; }
+
+/* Notifications are bot-only (owner, 2026-11-12). Students see no
+   notification row, feed, preferences or browser-push card on the site; the
+   owner keeps only the composer that sends to the bots. */
+html body.account-page:not(.account-can-broadcast) .account-list-group--notifications { display: none !important; }
+html body.account-page #account-navid-alert-card,
+html body.account-page #notifications-summary,
+html body.account-page #notifications-prefs-card,
+html body.account-page #notifications-push-card,
+html body.account-page .account-notifications-card--feed { display: none !important; }
+html body .shell-account-trigger__badge,
+html body .shell-notification-banner { display: none !important; }
