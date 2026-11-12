@@ -70,7 +70,9 @@
     }
 
     function money(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
+        /* API amounts are rials; every shop surface shows toman, like the
+           exam pages and the receipt. */
+        return moneyToman(value);
     }
 
     /* Student-facing receipt amounts: stored in rials, shown in tomans. */
