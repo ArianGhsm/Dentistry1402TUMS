@@ -71,6 +71,7 @@ from .ui import (
     section as base_section,
 )
 from .navid import local_now, send_daily_challenge
+from .hamiad_login import is_hamiad_captcha_reply, start_hamiad_login, complete_hamiad_captcha, show_hamiad_overview
 from .student_assistant import challenge_expired, clean_captcha_answer, send_private_challenge
 from .academic_term7_rich import decorate_academic_notification_screen
 from .classops_shell import canonical_home_screen, owner_management_screen, hamiad_overview_screen
@@ -670,6 +671,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
         private_message = (
             (self.student_assistant_v1_enabled and self._is_integration_captcha_reply(user_id, message))
             or (user_id == self.owner_id and command in {"/hamiad", "/navid"})
+            or (user_id == self.owner_id and is_hamiad_captcha_reply(self, message))
             or (user_id == self.owner_id and self._is_navid_captcha_reply(message))
             or text.startswith("/setgrade")
             or command in {"/product", "/payform"}
@@ -688,16 +690,13 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             self._complete_integration_captcha(int(chat["id"]), user_id, message, text)
             return
         if user_id == self.owner_id and command in {"/hamiad", "/navid"}:
-            try:
-                result = self.site_api.request("hamiadDashboardV1", user_id)
-                screen = hamiad_overview_screen(dict(result.get("dashboard") or {}), site_url=self.site_url)
-            except SiteApiError as error:
-                screen = Screen(
-                    "<b>🎓 مرکز همیاد</b>\n\n<blockquote>" + html.escape(str(error)) + "</blockquote>",
-                    keyboard([button("🌐 ورود به همیاد", url=self.site_url.rstrip("/") + "/hamiad/")],
-                             [button("🏠 خانه", action="home")]),
-                )
-            self.api.send(int(chat["id"]), screen.text, screen.keyboard)
+            if command == "/hamiad":
+                start_hamiad_login(self, int(chat["id"]))
+            else:
+                show_hamiad_overview(self, int(chat["id"]), user_id)
+            return
+        if user_id == self.owner_id and is_hamiad_captcha_reply(self, message):
+            complete_hamiad_captcha(self, int(chat["id"]), text, message)
             return
         if user_id == self.owner_id and self._is_navid_captcha_reply(message):
             self._complete_navid_captcha(int(chat["id"]), text)

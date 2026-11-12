@@ -1769,6 +1769,12 @@ function dent_bot_service_dispatch(array $payload): array
     if ($action === 'notificationAudience') {
         return dent_bot_notification_audience($user, $payload);
     }
+    if ($action === 'hamiadLoginStartV1') {
+        return dent_bot_hamiad_login_start($user, $platform);
+    }
+    if ($action === 'hamiadLoginCompleteV1') {
+        return dent_bot_hamiad_login_complete($user, $platform, $payload);
+    }
     if ($action === 'hamiadDashboardV1') {
         return dent_bot_hamiad_dashboard($user);
     }

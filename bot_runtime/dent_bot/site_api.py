@@ -62,7 +62,13 @@ class SiteApiClient:
             headers=headers,
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+            # Provider login may perform several bounded Arvan/Moodle requests.
+            # Keep normal app actions short while allowing the login handoff.
+            request_timeout = (
+                150.0 if action == "hamiadLoginCompleteV1"
+                else (75.0 if action == "hamiadLoginStartV1" else self.timeout)
+            )
+            with urllib.request.urlopen(request, timeout=request_timeout) as response:
                 raw = response.read(256 * 1024)
                 status = int(response.status)
         except urllib.error.HTTPError as error:
@@ -275,6 +281,15 @@ class SiteApiClient:
             deliveryId=delivery_id,
             delivered=delivered,
             reasonCode=reason_code,
+        )
+
+    def hamiad_login_start(self, owner_id: int) -> dict:
+        return self.request("hamiadLoginStartV1", owner_id)
+
+    def hamiad_login_complete(self, owner_id: int, *, challenge_ref: str, captcha_code: str) -> dict:
+        return self.request(
+            "hamiadLoginCompleteV1", owner_id,
+            challengeRef=challenge_ref, captchaCode=captcha_code,
         )
 
     def navid_daily_start(self, owner_id: int, *, date: str, refresh: bool = False) -> dict:
