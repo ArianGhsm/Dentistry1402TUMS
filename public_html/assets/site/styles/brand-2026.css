@@ -617,3 +617,37 @@ html body:not(.chat-page) .site-header--minimal .shell-account-panel {
     inset-inline-end: 0 !important;
     max-width: calc(100vw - 24px) !important;
 }
+
+/* ---------------------------------------------------------------------------
+ * Account (/account/) in the clinic world: who you are as one line, then
+ * plain settings rows. No gradient avatar, no pill badges, no eyebrow.
+ * ------------------------------------------------------------------------- */
+html body.account-page .account-avatar-fallback {
+    background: var(--shell-mark) !important;
+    background-image: none !important;
+    color: var(--brand-navy-950) !important;
+    font-family: var(--font-accent) !important;
+}
+html body.account-page .account-identity__avatar { box-shadow: none !important; }
+html body.account-page .account-card--identity .account-section-kicker { display: none !important; }
+html body.account-page :is(.account-role-badge, .account-session-badge) {
+    background: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    color: var(--text-tertiary) !important;
+    font-weight: 600 !important;
+}
+html body.account-page .account-session-badge::before { content: "، "; }
+html body.account-page .account-card--identity { background-image: none !important; }
+html body.account-page .account-list-row__chevron {
+    background: none !important;
+    color: var(--text-tertiary) !important;
+}
+html body.account-page .account-list-row__icon,
+html body.account-page .account-list-row [class*="icon"] { color: var(--accent-color) !important; }
+html body.account-page .account-list-group__title { font: 800 1rem var(--font-accent) !important; color: var(--text-primary) !important; }
+html body.account-page .account-card--identity::before,
+html body.account-page .account-card--identity::after { content: none !important; background: none !important; }
+html body.account-page .account-session-badge::before { content: none; }
+html body.account-page .account-role-badge::after { content: "،"; }
+html body.account-page .account-list-row__chevron { border: 0 !important; font-size: 1.2rem !important; }

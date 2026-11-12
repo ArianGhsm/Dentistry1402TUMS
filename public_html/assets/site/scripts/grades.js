@@ -405,17 +405,36 @@
     }
 
     function renderSummary(result) {
+        /* one plain sentence, not a row of metric tiles */
         summaryGrid.innerHTML = "";
+        var cards = summaryCards(result);
+        var average = cards[0];
+        var best = cards[1];
+        var line = document.createElement("p");
+        line.className = "grades-summary-line";
+        if (average.value === "—") {
+            line.textContent = "هنوز نمره‌ای ثبت نشده است.";
+        } else {
+            line.innerHTML = "میانگین تو <b>" + average.value + "</b> در " + average.meta.replace(" نمره ثبت‌شده", " درس") +
+                (best.value !== "—" ? "؛ بهترین نمره <b>" + best.value + "</b> در " + best.meta : "") + ".";
+        }
+        summaryGrid.appendChild(line);
+    }
 
-        summaryCards(result).forEach(function (card) {
-            var article = document.createElement("article");
-            article.className = "grades-summary-card";
-            article.innerHTML =
-                '<span class="grades-summary-card__label">' + card.label + "</span>" +
-                '<strong class="grades-summary-card__value">' + card.value + "</strong>" +
-                '<span class="grades-summary-card__meta">' + card.meta + "</span>";
-            summaryGrid.appendChild(article);
-        });
+    function gradeTapeHtml(numeric, maxScore, classAverage) {
+        /* indicator tape on a 20-cell scale: answered ink up to your grade,
+           the class average marked with a teal tick */
+        var max = Number(maxScore) > 0 ? Number(maxScore) : 20;
+        var cells = 20;
+        var filled = Math.round(Math.max(0, Math.min(1, numeric / max)) * cells);
+        var avgCell = classAverage !== null && classAverage !== undefined && Number.isFinite(Number(classAverage))
+            ? Math.min(cells - 1, Math.max(0, Math.round((Number(classAverage) / max) * cells) - 1))
+            : -1;
+        var html = "";
+        for (var i = 0; i < cells; i++) {
+            html += '<i class="' + (i < filled ? "is-done" : "") + (i === avgCell ? " is-avg" : "") + '"></i>';
+        }
+        return '<div class="grades-row__tape" aria-hidden="true">' + html + "</div>";
     }
 
     function renderGrades(result) {
@@ -471,9 +490,10 @@
             row.innerHTML =
                 '<div class="grades-row__main">' +
                     '<h4>' + grade.label + "</h4>" +
-                    '<p>' + (meta.length ? meta.join(" • ") : "هنوز نمره‌ای برای این درس ثبت نشده است.") + "</p>" +
+                    '<p>' + (meta.length ? meta.join("، ") : "هنوز نمره‌ای برای این درس ثبت نشده است.") + "</p>" +
                 "</div>" +
-                '<div class="grades-row__value">' + ((grade.value === undefined || grade.value === "") ? "—" : grade.value) + "</div>";
+                '<div class="grades-row__value">' + ((grade.value === undefined || grade.value === "") ? "—" : grade.value) + "</div>" +
+                (numeric === null ? "" : gradeTapeHtml(numeric, grade.maxScore, stat ? stat.classAverage : null));
             gradesList.appendChild(row);
         });
     }

@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/forms.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260812-phase4b">
+    <link rel="stylesheet" href="/assets/site/styles/forms-2026.css?v=20261112-clinic2">
 </head>
 <body class="forms-page forms-page--fill">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -52,13 +53,8 @@
 
         <section id="fill-stage" class="forms-panel" hidden>
             <article class="forms-card forms-card--accent">
-                <div class="forms-card-head">
-                    <div>
-                        <span id="fill-kind" class="forms-chip">فرم</span>
-                        <h2 id="fill-title">—</h2>
-                    </div>
-                    <span id="fill-status" class="forms-chip forms-chip--soft">—</span>
-                </div>
+                <h2 id="fill-title">—</h2>
+                <p class="forms-fill-meta"><span id="fill-kind" class="forms-chip">فرم</span><span id="fill-status" class="forms-chip forms-chip--soft">—</span></p>
                 <p id="fill-description" class="forms-muted"></p>
             </article>
 
@@ -66,7 +62,6 @@
                 <section id="fill-guest-box" class="forms-card" hidden>
                     <div class="forms-card-head">
                         <div>
-                            <span class="forms-chip forms-chip--soft">Guest</span>
                             <h2>اطلاعات شرکت‌کننده</h2>
                         </div>
                     </div>
@@ -85,18 +80,14 @@
                 <div id="fill-fields" class="forms-fill-fields"></div>
 
                 <section class="forms-card forms-submit-card">
-                    <div>
-                        <strong>ثبت پاسخ</strong>
-                        <p id="fill-feedback" class="forms-feedback" aria-live="polite"></p>
-                    </div>
-                    <button id="fill-submit" class="forms-btn forms-btn--primary" type="submit">ثبت</button>
+                    <button id="fill-submit" class="forms-btn forms-btn--primary" type="submit">ثبت پاسخ</button>
+                    <p id="fill-feedback" class="forms-feedback" aria-live="polite"></p>
                 </section>
             </form>
 
             <section id="fill-results-card" class="forms-card" hidden>
                 <div class="forms-card-head">
                     <div>
-                        <span class="forms-chip forms-chip--soft">Results</span>
                         <h2>نتایج</h2>
                     </div>
                     <span id="fill-results-total" class="forms-chip forms-chip--soft">۰</span>
@@ -108,8 +99,7 @@
             <section class="forms-card">
                 <div class="forms-card-head">
                     <div>
-                        <span class="forms-chip forms-chip--soft">Share</span>
-                        <h2>لینک</h2>
+                        <h2>لینک این فرم</h2>
                     </div>
                     <button id="fill-copy-link" class="forms-btn" type="button">کپی</button>
                 </div>
