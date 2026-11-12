@@ -1071,16 +1071,18 @@
         var kicker = joinMetaParts([curriculumMeta.termLabel, curriculumMeta.unitTitle]) || "آزمون تمرینی";
         var noun = courseItemNoun(course);
         var buyers = Number(stats.totalOrders) || 0;
-        var facts = [];
-        if (Number(stats.questionCount)) {
-            facts.push("<div><b>" + formatValue(stats.questionCount) + "</b>سؤال</div>");
-        }
-        if (items.length) {
-            facts.push("<div><b>" + formatValue(items.length) + "</b>" + escapeHtml(noun === "بخش" ? "بخش" : "جلسه/آزمون") + "</div>");
-        }
-        if (buyers >= 5) {
-            facts.push("<div><b>" + formatValue(buyers) + "</b>سفارش ثبت‌شده</div>");
-        }
+        var questionCount = Number(stats.questionCount) || 0;
+        var meta = [];
+        if (questionCount) meta.push("<b>" + formatValue(questionCount) + " سؤال</b>");
+        if (items.length) meta.push(escapeHtml(formatValue(items.length) + " " + (noun === "بخش" ? "بخش" : "جلسه/آزمون")));
+        if (kicker) meta.push(escapeHtml(kicker));
+        if (buyers >= 5) meta.push(escapeHtml(formatValue(buyers) + " سفارش"));
+        /* the set's size as indicator tape: one raw cell per question
+           (grouped past 60 so the cells stay readable) */
+        var tapeCells = questionCount ? Math.min(questionCount, 60) : 0;
+        var tapeHtml = tapeCells
+            ? '    <div class="excourse-tape" style="--cells:' + tapeCells + '" role="img" aria-label="' + escapeHtml(formatValue(questionCount) + " سؤال") + '">' + new Array(tapeCells + 1).join("<i></i>") + "</div>"
+            : "";
         var highlights = (Array.isArray(course.paymentHighlights) ? course.paymentHighlights : []).map(function (line) {
             return String(line || "").trim();
         }).filter(Boolean).slice(0, 4);
@@ -1096,10 +1098,10 @@
         return [
             '<section class="excourse">',
             '  <header class="excourse-hero">',
-            '    <span class="excourse-kicker">' + escapeHtml(kicker) + "</span>",
             "    <h1>" + escapeHtml(title) + "</h1>",
+            meta.length ? '    <p class="excourse-meta">' + meta.join("، ") + "</p>" : "",
+            tapeHtml,
             lede ? '    <p class="excourse-lede">' + escapeHtml(lede) + "</p>" : "",
-            facts.length ? '    <div class="excourse-facts">' + facts.join("") + "</div>" : "",
             "  </header>",
             '  <aside class="excourse-buy" aria-label="خرید دسترسی">',
             '    <span class="excourse-buy__label">دسترسی کامل به این مجموعه</span>',
@@ -1119,7 +1121,7 @@
             modes.length ? '  <section class="excourse-block"><h2>دو حالت تمرین</h2><div class="excourse-modes">' + modes.join("") + "</div></section>" : "",
             "</section>",
             '<div class="excourse-bar" role="region" aria-label="خرید سریع">',
-            price ? '  <div class="excourse-bar__price"><b>' + price + "</b><span>تومان · یک بار</span></div>" : "",
+            price ? '  <div class="excourse-bar__price"><b>' + price + "</b><span>تومان، یک بار</span></div>" : "",
             '  <a class="excourse-cta" href="' + escapeHtml(action.href) + '">' + escapeHtml(action.label) + "</a>",
             "</div>"
         ].join("");

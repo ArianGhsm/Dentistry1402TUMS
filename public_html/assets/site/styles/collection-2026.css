@@ -19,19 +19,6 @@ body[data-buy-page="collection-pay"] .payment-collection-media img {
     margin-bottom: 18px;
 }
 body[data-buy-page="collection-pay"] .payment-collection-card__head { text-align: start; }
-body[data-buy-page="collection-pay"] .payment-collection-card__head .buy-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--brand-brass-ink);
-    letter-spacing: 0;
-}
-body[data-buy-page="collection-pay"] .payment-collection-card__head .buy-kicker::before {
-    content: "";
-    width: 22px;
-    height: 1px;
-    background: var(--brand-brass);
-}
 body[data-buy-page="collection-pay"] .payment-collection-card__head h2 {
     margin: 6px 0 8px;
     font-family: var(--font-accent);
@@ -173,3 +160,6 @@ body[data-buy-page="collection-pay"] .buy-alert {
     border-radius: 8px;
     box-shadow: none;
 }
+
+/* no label above the heading: the title says what this is */
+body[data-buy-page="collection-pay"] .payment-collection-card__head .buy-kicker { display: none; }

@@ -289,3 +289,7 @@ body[data-buy-page="cart"] .buy-info-grid p { color: var(--text-secondary); font
     body[data-buy-page="cart"] .buy-cart-step-actions { justify-content: center; }
     body[data-buy-page="cart"] .buy-info-grid { grid-template-columns: 1fr; }
 }
+
+/* the step rail already names the step; the section heading needs no label */
+body[data-buy-page="cart"] :is(.buy-cart-step__head, .buy-section-title) > .buy-kicker,
+body[data-buy-page="cart"] .buy-section-title > div > .buy-kicker { display: none; }
