@@ -1228,7 +1228,7 @@
                 String(form.statusLabel || "نامشخص"),
                 "پاسخ‌ها: " + Number(form.responseCount || 0).toLocaleString("fa-IR"),
                 "دسترسی: " + String(form.settings && form.settings.audienceLabel ? form.settings.audienceLabel : "")
-            ].filter(Boolean).join(" • ");
+            ].filter(Boolean).join("، ");
             copy.appendChild(meta);
             head.appendChild(copy);
             var chip = document.createElement("span");

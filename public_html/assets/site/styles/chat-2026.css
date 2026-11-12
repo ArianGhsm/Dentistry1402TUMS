@@ -1,0 +1,49 @@
+/* Chat in the clinic world. The messenger keeps its familiar Bale-like
+   structure (people know how a messenger works); only its palette moves onto
+   the shared tokens: teal accent, pouch-paper ground, tinted own bubbles. */
+html:root body.chat-page.chat-page {
+    --chat-bale-green: var(--accent-color);
+    --chat-bale-green-soft: var(--accent-soft);
+    --chat-bale-blue: var(--accent-color);
+    --chat-bale-bg: var(--bg-body);
+    --chat-bale-surface: var(--surface-solid);
+    --chat-bale-surface-soft: var(--bg-body);
+    --chat-bale-surface-strong: var(--surface-muted);
+    --chat-bale-text: var(--text-primary);
+    --chat-bale-muted: var(--text-tertiary);
+    --chat-bale-line-strong: var(--border-color);
+    --chat-accent: var(--accent-color);
+    --chat-accent-soft: var(--accent-soft);
+    --chat-bubble-me: color-mix(in srgb, var(--accent-color) 12%, var(--surface-solid));
+    --chat-bg: var(--bg-body);
+    --chat-stream-bg: var(--bg-body);
+    --chat-stream-pattern: none;
+    --chat-shell-gradient: none;
+    --chat-header-bg: var(--surface-solid);
+    --chat-header-solid: var(--surface-solid);
+    --chat-pane-bg: var(--surface-solid);
+    --chat-pane-bg-strong: var(--surface-solid);
+    --chat-panel-solid: var(--surface-solid);
+    --chat-surface: var(--surface-solid);
+    --chat-surface-strong: var(--surface-muted);
+    --chat-border: var(--border-color);
+    --chat-border-strong: var(--border-color-strong);
+    --chat-text: var(--text-primary);
+    --chat-muted: var(--text-tertiary);
+    --chat-toast-bg: var(--brand-navy-950);
+    --chat-input-bg: var(--surface-solid);
+    --chat-composer-bg: var(--surface-solid);
+    --chat-list-active-bg: var(--accent-soft);
+    --chat-row-hover: var(--surface-muted);
+    --chat-chip-bg: var(--surface-muted);
+    --chat-control-bg: var(--surface-muted);
+    --chat-control-bg-hover: var(--surface-strong);
+}
+/* primary chat controls (compose, send, active filter) use the accent ink */
+body.chat-page :is(.chat-compose-btn, .composer-send, .chat-send-btn, [data-chat-send]) {
+    background: var(--brand-navy-900) !important;
+    color: var(--text-on-accent) !important;
+}
+html[data-theme="dark"] body.chat-page :is(.chat-compose-btn, .composer-send, .chat-send-btn, [data-chat-send]) {
+    background: var(--brand-brass) !important;
+}

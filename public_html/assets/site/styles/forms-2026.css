@@ -1,0 +1,113 @@
+/* Forms (/forms/, /forms/fill/) in the clinic world: a form is read top to
+   bottom on one ground — no stacked cards, one primary action at the end. */
+body.forms-page .forms-shell { max-width: 720px; margin-inline: auto; }
+
+/* the shared header already carries back + section; drop the page's own bar */
+body.forms-page--fill .forms-topbar { display: none !important; }
+
+body.forms-page .forms-card {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 18px 2px !important;
+}
+body.forms-page .forms-card + .forms-card,
+body.forms-page .forms-fill-fields + .forms-card { border-top: 1px solid var(--border-color) !important; }
+body.forms-page .forms-card--accent { padding-top: 26px !important; }
+body.forms-page .forms-card--accent .forms-card-head { display: block !important; }
+html body.forms-page .forms-card--accent h2#fill-title {
+    margin: 4px 0 0 !important;
+    font: 800 clamp(1.45rem, 5vw, 1.95rem)/1.45 var(--font-accent) !important;
+    color: var(--text-primary) !important;
+}
+/* kind and status read as one quiet line, not as pills */
+body.forms-page .forms-card--accent .forms-chip {
+    display: inline !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: var(--text-tertiary) !important;
+    font: 600 0.88rem var(--font-main) !important;
+}
+body.forms-page .forms-card--accent #fill-status::before { content: "، "; }
+body.forms-page .forms-fill-meta { margin: 2px 0 10px; }
+body.forms-page .forms-muted { color: var(--text-secondary) !important; line-height: 1.9; }
+body.forms-page .forms-card-head h2 { font: 800 1.1rem var(--font-accent) !important; }
+body.forms-page .forms-card-head .forms-chip--soft {
+    border-radius: 8px !important;
+    background: var(--surface-muted) !important;
+    border: 0 !important;
+    color: var(--text-secondary) !important;
+}
+
+/* questions */
+body.forms-page .forms-fill-fields > * {
+    border: 0 !important;
+    border-top: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 18px 2px !important;
+}
+body.forms-page .forms-fill-fields h3,
+body.forms-page .forms-fill-fields legend { font: 700 1.02rem/1.7 var(--font-accent) !important; color: var(--text-primary) !important; }
+body.forms-page :is(.forms-field input, .forms-field textarea, .forms-field select, .forms-fill-fields input:not([type=radio]):not([type=checkbox]), .forms-fill-fields textarea, .forms-fill-fields select) {
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color-strong) !important;
+    background: var(--surface-solid) !important;
+    box-shadow: none !important;
+    min-height: 46px;
+    font-size: 16px !important;
+}
+body.forms-page .forms-fill-fields :is(input[type=radio], input[type=checkbox]) { accent-color: var(--accent-color); width: 18px; height: 18px; }
+
+/* submit: one full-width primary under the thumb */
+body.forms-page .forms-submit-card {
+    display: grid !important;
+    gap: 8px;
+    border-top: 1px solid var(--border-color) !important;
+}
+body.forms-page .forms-btn {
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+body.forms-page .forms-btn--primary {
+    background: var(--brand-navy-900) !important;
+    border-color: var(--brand-navy-900) !important;
+    color: var(--text-on-accent) !important;
+}
+html[data-theme="dark"] body.forms-page .forms-btn--primary {
+    background: var(--brand-brass) !important;
+    border-color: var(--brand-brass) !important;
+}
+html body.forms-page .forms-submit-card #fill-submit {
+    width: 100%;
+    min-height: 54px;
+    font: 800 1.05rem var(--font-accent) !important;
+}
+body.forms-page .forms-feedback:empty { display: none; }
+
+/* share link: a quiet utility at the very end */
+body.forms-page .forms-share-input {
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    background: var(--surface-muted) !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.86rem !important;
+    box-shadow: none !important;
+}
+
+/* management list (/forms/): rows on hairlines */
+body.forms-page .forms-item {
+    border: 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 16px 2px !important;
+}
+body.forms-page .forms-item h3 { font: 700 1.02rem var(--font-accent) !important; }
+body.forms-page .forms-item__meta { color: var(--text-tertiary) !important; font-size: 0.84rem; }
+html body.forms-page .forms-submit-card #fill-submit { width: 100% !important; justify-self: stretch !important; flex: 1 1 100%; }
+html body.forms-page .forms-submit-card { justify-items: stretch !important; grid-template-columns: minmax(0, 1fr) !important; }
