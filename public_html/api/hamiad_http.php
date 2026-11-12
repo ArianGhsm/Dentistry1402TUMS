@@ -358,7 +358,8 @@ function hamiad_complete_login_handoff(
     string $location,
     array &$cookies,
     ?callable $request = null,
-    ?array &$trace = null
+    ?array &$trace = null,
+    ?string &$rejectedLoginHtml = null
 ): bool {
     $request ??= 'hamiad_http_request';
     $url = hamiad_login_handoff_url($location, 'https://lms.tums.ac.ir/login/index.php');
@@ -397,9 +398,15 @@ function hamiad_complete_login_handoff(
         }
         if (empty($result['ok'])) return false;
         if ($status === 200) {
-            return !str_contains($body, 'login_captcha_id0')
-                && !str_contains($body, 'id="login"')
-                && $body !== '';
+            $hasLoginForm = str_contains($body, 'login_captcha_id0')
+                || str_contains($body, 'id="login"');
+            if ($hasLoginForm) {
+                // Transient in-memory response only. Do not write remote HTML
+                // (potentially containing challenge values) to diagnostics.
+                $rejectedLoginHtml = strlen($body) <= 524288 ? $body : '';
+                return false;
+            }
+            return $body !== '';
         }
         if (!in_array($status, [302, 303, 307], true) || $next === null) return false;
         $url = $next;

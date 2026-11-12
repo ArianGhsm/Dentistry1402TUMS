@@ -129,4 +129,46 @@ $wafCookies = [];
 check(!hamiad_complete_login_handoff(HAMIAD_LOGIN.'?testsession=4',$wafCookies,$loopingWaf), 'Bound repeated WAF redirects');
 check($loopCount === 8, 'At most eight provider handoff requests');
 
+
+// A valid CAPTCHA may still be sent back to the login page with 303.
+// The provider's reason is on the *followed* HTML response. Preserve it
+// only in memory for strict allowlisted classification, never in logs.
+$rejectedHtml = null;
+$loginErrorPage = '<html><form id="login"><input name="login_captcha_id0"></form>'
+    . '<div id="loginerrormessage">نام کاربری یا رمز عبور اشتباه است.</div></html>';
+$followLoginFailure = static fn(string $method, string $url, array $options): array => [
+    'ok'=>true,'status'=>200,'headers'=>[],'cookies'=>[],
+    'body'=>$loginErrorPage,
+];
+$rejectedCookies = [];
+$rejectedSteps = [];
+check(!hamiad_complete_login_handoff(
+    HAMIAD_LOGIN, $rejectedCookies, $followLoginFailure,
+    $rejectedSteps, $rejectedHtml
+), 'Login page on 303 follow-up must not authenticate');
+check($rejectedHtml === $loginErrorPage, 'Return rejected page only to local login classifier');
+check(str_contains(hamiad_login_failure_message($rejectedHtml), 'رمز عبور'),
+    'Correctly report denied username/password');
+check($rejectedSteps[0]['loginForm'] === true, 'Sanitized trace marks anonymous HTML');
+check(!array_key_exists('body', $rejectedSteps[0]), 'Sanitized trace omits HTML');
+check(!array_key_exists('errorMessage', $rejectedSteps[0]), 'Sanitized trace omits error text');
+$captchaErrorHtml='<html><form id="login"><input name="login_captcha_id0"></form>'
+    . '<div class="loginerrors">کد کپچا اشتباه است.</div></html>';
+check(str_contains(hamiad_login_failure_message($captchaErrorHtml), 'کپچا'),
+    'Custom Moodle theme captcha error classified');
+$unknownSensitiveHtml='<html><form id="login"><input name="login_captcha_id0"></form>'
+    . '<div class="alert-danger">private-provider-string-9935</div></html>';
+check(!str_contains(hamiad_login_failure_message($unknownSensitiveHtml), 'private-provider-string-9935'),
+    'Unknown remote message never echoed');
+$successHtml=null;
+$successCookies=[];
+$successfulFlow=static fn(string $method, string $url, array $options): array => [
+    'ok'=>true,'status'=>200,'headers'=>[],'cookies'=>[],
+    'body'=>'<a href="/login/logout.php?sesskey=fake">خروج</a>',
+];
+$successSteps=[];
+check(hamiad_complete_login_handoff(HAMIAD_HOME,$successCookies,$successfulFlow,$successSteps,$successHtml),
+    'Authenticated page is accepted');
+check($successHtml===null,'No failure page on successful login');
+
 echo "HAMIAD_BRIDGE_TESTS_OK\n";
