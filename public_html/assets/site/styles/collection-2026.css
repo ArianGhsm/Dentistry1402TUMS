@@ -1,0 +1,175 @@
+/* Collection payment (/payments/pay/?token=…): a deep-link landing from
+   Telegram/Bale, so it reads like a flat invoice — title, amount, payer
+   fields, gateway rows, one primary action. Navy & Brass tokens only. */
+body[data-buy-page="collection-pay"] .payment-collection-card {
+    max-width: 560px;
+    margin: 8px auto 32px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: start;
+}
+body[data-buy-page="collection-pay"] .payment-collection-media img {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 18px;
+}
+body[data-buy-page="collection-pay"] .payment-collection-card__head { text-align: start; }
+body[data-buy-page="collection-pay"] .payment-collection-card__head .buy-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--brand-brass-ink);
+    letter-spacing: 0;
+}
+body[data-buy-page="collection-pay"] .payment-collection-card__head .buy-kicker::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--brand-brass);
+}
+body[data-buy-page="collection-pay"] .payment-collection-card__head h2 {
+    margin: 6px 0 8px;
+    font-family: var(--font-accent);
+    font-weight: 800;
+    font-size: clamp(1.45rem, 4.6vw, 1.9rem);
+    line-height: 1.35;
+}
+body[data-buy-page="collection-pay"] .payment-collection-card__head p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.9;
+}
+
+body[data-buy-page="collection-pay"] .payment-collection-amount {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 22px 0 6px;
+    padding: 14px 0;
+    background: none;
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--text-primary);
+    border-radius: 0;
+    box-shadow: none;
+    font-family: var(--font-accent);
+    font-weight: 900;
+    font-size: clamp(1.6rem, 6vw, 2.1rem);
+    color: var(--text-primary);
+}
+body[data-buy-page="collection-pay"] .payment-collection-amount::before {
+    content: "مبلغ قابل پرداخت";
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+body[data-buy-page="collection-pay"] .payment-collection-form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+}
+body[data-buy-page="collection-pay"] .payments-field { display: grid; gap: 6px; }
+body[data-buy-page="collection-pay"] .payments-field span { font-weight: 700; font-size: 0.88rem; }
+body[data-buy-page="collection-pay"] .payments-field input {
+    min-height: 46px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-strong);
+    background: var(--surface-solid);
+    box-shadow: none;
+}
+body[data-buy-page="collection-pay"] .payments-field input:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+}
+
+/* The return-link helper is for people who leave mid-payment: keep it quiet */
+body[data-buy-page="collection-pay"] .payment-collection-return {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+    align-items: center;
+    padding: 10px 0;
+    background: none;
+    border: 0;
+    border-top: 1px dashed var(--border-color);
+    border-bottom: 1px dashed var(--border-color);
+    border-radius: 0;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+}
+body[data-buy-page="collection-pay"] .payment-collection-return > span { grid-column: 1 / -1; font-weight: 700; color: var(--text-secondary); }
+body[data-buy-page="collection-pay"] .payment-collection-return code {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+body[data-buy-page="collection-pay"] .payment-collection-return small { grid-column: 1 / -1; line-height: 1.7; }
+body[data-buy-page="collection-pay"] .payment-collection-return .forms-copy-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: none;
+    box-shadow: none;
+    color: var(--text-secondary);
+}
+
+body[data-buy-page="collection-pay"] .payment-collection-gateways {
+    display: block;
+    border-top: 1px solid var(--border-color);
+}
+body[data-buy-page="collection-pay"] .payment-collection-gateways .buy-gateway-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 4px;
+    margin: 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    box-shadow: none;
+    cursor: pointer;
+}
+body[data-buy-page="collection-pay"] .buy-gateway-option input {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    accent-color: var(--brand-navy-900);
+}
+html[data-theme="dark"] body[data-buy-page="collection-pay"] .buy-gateway-option input { accent-color: var(--brand-brass); }
+body[data-buy-page="collection-pay"] .buy-gateway-option span { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex: 1; }
+body[data-buy-page="collection-pay"] .buy-gateway-option strong { font-weight: 700; font-size: 0.95rem; }
+body[data-buy-page="collection-pay"] .buy-gateway-option small { color: var(--text-tertiary); font-size: 0.78rem; }
+body[data-buy-page="collection-pay"] .buy-gateway-option:has(input:checked) strong { color: var(--text-primary); }
+body[data-buy-page="collection-pay"] .buy-gateway-option:has(input:checked) { box-shadow: inset -3px 0 0 var(--brand-brass); }
+
+body[data-buy-page="collection-pay"] .payment-collection-form .buy-primary-btn {
+    min-height: 52px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--brand-navy-900);
+    color: var(--text-on-accent);
+    box-shadow: none;
+    font-weight: 800;
+    font-size: 1rem;
+    white-space: normal;
+}
+html[data-theme="dark"] body[data-buy-page="collection-pay"] .payment-collection-form .buy-primary-btn { background: var(--brand-brass); }
+body[data-buy-page="collection-pay"] .payment-collection-form .buy-primary-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+body[data-buy-page="collection-pay"] .buy-alert {
+    border-radius: 8px;
+    box-shadow: none;
+}

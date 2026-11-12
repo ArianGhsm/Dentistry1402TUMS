@@ -77,7 +77,8 @@
     }
 
     function money(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
+        /* API amounts are rials; the site shows toman everywhere. */
+        return Math.round(Math.max(0, Number(value) || 0) / 10).toLocaleString("fa-IR") + " تومان";
     }
 
     function collectionReturnUrl() {
@@ -236,7 +237,7 @@
             collectionPayerFields(collection),
             '    <div class="payment-collection-return"><span>نشانی بازگشت پس از پرداخت</span><code dir="ltr">' + escapeHtml(collectionReturnUrl()) + '</code><button class="forms-copy-mini" type="button" data-copy-collection-return="' + escapeHtml(collectionReturnUrl()) + '" aria-label="کپی نشانی بازگشت">⧉</button><small>پس از پرداخت، روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</small></div>',
             '    <div class="payment-collection-gateways">' + gatewayOptions(collection) + "</div>",
-            '    <button class="buy-primary-btn" type="submit"' + (disabled ? " disabled" : "") + '>' + (paid ? "پرداخت شده" : "پرداخت") + "</button>",
+            '    <button class="buy-primary-btn" type="submit"' + (disabled ? " disabled" : "") + '>' + (paid ? "پرداخت شده" : "پرداخت " + escapeHtml(money(collection.amount || 0))) + "</button>",
             '    <div id="payment-collection-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>',
             "  </form>",
             "</section>"
@@ -260,9 +261,21 @@
         root.innerHTML = '<div class="buy-empty">در حال دریافت اطلاعات پرداخت...</div>';
         try {
             var response = await apiGet("publicCollection", { token: token });
-            if (response && response.httpStatus === 401) {
-                renderLogin();
-                return;
+            if (response && (response.httpStatus === 401 || response.loggedOut)) {
+                /* Ask for login only once the canonical auth endpoint confirms
+                   there is no session; a transient 401 stays a retryable error. */
+                var auth = window.Dent1402Auth;
+                var verified = auth && typeof auth.verifySession === "function"
+                    ? await auth.verifySession({ attempts: 2, delayMs: 600 })
+                    : null;
+                if (verified === false) {
+                    if (typeof auth.handleUnauthorizedPayload === "function") {
+                        auth.handleUnauthorizedPayload(response);
+                    }
+                    renderLogin();
+                    return;
+                }
+                throw new Error("دریافت اطلاعات پرداخت موقتاً ناموفق بود. چند لحظه بعد صفحه را دوباره باز کنید.");
             }
             if (!response || !response.success || !response.collection) {
                 throw new Error((response && response.error) || "بارگذاری لینک پرداخت انجام نشد.");
@@ -300,9 +313,21 @@
                 payerStudentNumber: studentNumberInput ? normalizeDigits(studentNumberInput.value || "") : "",
                 gateway: selectedGateway ? selectedGateway.value : ""
             });
-            if (response && response.httpStatus === 401) {
-                renderLogin();
-                return;
+            if (response && (response.httpStatus === 401 || response.loggedOut)) {
+                /* Ask for login only once the canonical auth endpoint confirms
+                   there is no session; a transient 401 stays a retryable error. */
+                var auth = window.Dent1402Auth;
+                var verified = auth && typeof auth.verifySession === "function"
+                    ? await auth.verifySession({ attempts: 2, delayMs: 600 })
+                    : null;
+                if (verified === false) {
+                    if (typeof auth.handleUnauthorizedPayload === "function") {
+                        auth.handleUnauthorizedPayload(response);
+                    }
+                    renderLogin();
+                    return;
+                }
+                throw new Error("دریافت اطلاعات پرداخت موقتاً ناموفق بود. چند لحظه بعد صفحه را دوباره باز کنید.");
             }
             if (!response || !response.success || !response.redirectUrl) {
                 throw new Error((response && response.error) || "ایجاد پرداخت انجام نشد.");

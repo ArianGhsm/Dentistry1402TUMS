@@ -389,3 +389,55 @@ html body.account-page .account-card--auth .otp-slot.is-active { box-shadow: 0 0
         background: transparent;
     }
 }
+
+/* ---------------------------------------------------------------------------
+ * Shared login guard (Dent1402Auth.renderLoginRequiredGuard): every caller
+ * gets the same two clear actions — filled login, outlined way back —
+ * whatever button classes the page passed in (some pages pass none).
+ * ------------------------------------------------------------------------- */
+html body .site-login-guard .site-login-guard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+html body .site-login-guard .site-login-guard__actions > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    min-width: 168px;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-strong);
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    box-shadow: none;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: normal;
+}
+html body .site-login-guard .site-login-guard__actions > a:first-child {
+    background: var(--brand-navy-900);
+    border-color: var(--brand-navy-900);
+    color: var(--text-on-accent);
+}
+html[data-theme="dark"] body .site-login-guard .site-login-guard__actions > a:first-child {
+    background: var(--brand-brass);
+    border-color: var(--brand-brass);
+}
+html body .site-login-guard .site-login-guard__actions > a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+/* forms: the state card's accent rail reads as a stray line next to a guard */
+html body .forms-state-card.site-login-guard {
+    border: 0 !important;
+    padding-inline: 0 !important;
+    box-shadow: none !important;
+}
+/* chat: the guard fills the pane edge to edge; give the copy its margins */
+html body .chat-login-panel.site-login-guard {
+    padding-inline: 20px !important;
+    border-inline: 0 !important;
+}
