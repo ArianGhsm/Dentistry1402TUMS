@@ -67,6 +67,6 @@ body[data-buy-page="result"] .buy-actions .shell-action-btn {
     text-align: center;
     text-decoration: none;
 }
-body[data-buy-page="result"] .buy-actions .buy-primary-btn { background: var(--brand-navy-900); color: #fff; }
-html[data-theme="dark"] body[data-buy-page="result"] .buy-actions .buy-primary-btn { background: var(--brand-brass); color: #1a1405; }
+body[data-buy-page="result"] .buy-actions .buy-primary-btn { background: var(--brand-navy-900); color: var(--text-on-accent); }
+html[data-theme="dark"] body[data-buy-page="result"] .buy-actions .buy-primary-btn { background: var(--brand-brass); color: var(--text-on-accent); }
 body[data-buy-page="result"] .buy-result-row strong.is-ltr { unicode-bidi: isolate; font-family: "Estedad", var(--font-main); letter-spacing: 0; }
