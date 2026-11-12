@@ -1,0 +1,110 @@
+/* Exam session (body.quiz-page) in the Navy & Brass language.
+   exam-quiz.css keeps its own --exam-* palette (blue glass); remap it onto
+   the shared brand tokens so light/dark follow brand-2026.css, and flatten
+   the frame. The quiz engine and its markup stay untouched. */
+html:root body.quiz-page.quiz-page {
+    --exam-page-start: var(--bg-body);
+    --exam-page-end: var(--bg-body);
+    --exam-panel-bg: var(--surface-solid);
+    --exam-panel-bg-strong: var(--surface-solid);
+    --exam-panel-top: var(--surface-solid);
+    --exam-panel-bottom: var(--surface-solid);
+    --exam-card-bg: var(--surface-solid);
+    --exam-card-bg-strong: var(--surface-solid);
+    --exam-card-bg-soft: var(--surface-muted);
+    --exam-card-top: var(--surface-solid);
+    --exam-card-bottom: var(--surface-solid);
+    --exam-surface: var(--surface-solid);
+    --exam-surface-strong: var(--surface-muted);
+    --exam-surface-soft: var(--surface-muted);
+    --exam-button-bg: var(--surface-solid);
+    --exam-chip-bg: var(--surface-muted);
+    --exam-chip-bg-strong: var(--surface-muted);
+    --exam-line: var(--border-color);
+    --exam-line-strong: var(--border-color-strong);
+    --exam-text: var(--text-primary);
+    --exam-text-soft: var(--text-secondary);
+    --exam-text-muted: var(--text-tertiary);
+    --exam-accent: var(--accent-color);
+    --exam-accent-strong: var(--accent-strong);
+    --exam-accent-soft: var(--accent-soft);
+    --exam-success: var(--success-color);
+    --exam-warning: var(--warning-color);
+    --exam-danger: var(--danger-color);
+    --exam-shadow-ambient: transparent;
+    --exam-highlight-a: transparent;
+    --exam-highlight-b: transparent;
+    background: var(--bg-body) !important;
+}
+
+/* Flat frame: hairlines, 8px controls, no glass shadows */
+body.quiz-page :is(.exam-panel, .exam-stage, .exam-question-card, .exam-launch-panel, .exam-session-bar, .exam-sidebar) {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+body.quiz-page :is(.exam-btn, .exam-mode-pill, .exam-head-chip, .exam-meta-chip, .back-btn.exam-back-link) {
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+body.quiz-page .exam-btn--primary {
+    background: var(--brand-navy-900) !important;
+    border-color: var(--brand-navy-900) !important;
+    color: var(--text-on-accent) !important;
+}
+html[data-theme="dark"] body.quiz-page .exam-btn--primary {
+    background: var(--brand-brass) !important;
+    border-color: var(--brand-brass) !important;
+}
+body.quiz-page .exam-btn--primary:disabled,
+body.quiz-page .exam-btn--primary[aria-disabled="true"] {
+    background: var(--surface-muted) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-tertiary) !important;
+}
+
+/* Launch screen */
+body.quiz-page .exam-stage-title {
+    font-family: var(--font-accent);
+    font-weight: 800;
+}
+body.quiz-page .exam-kicker,
+body.quiz-page .exam-launch-panel__eyebrow { color: var(--brand-brass-ink); }
+body.quiz-page .exam-launch-panel {
+    border: 0 !important;
+    border-top: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    background: none !important;
+    padding-inline: 0 !important;
+}
+body.quiz-page .exam-mode-pill {
+    background: var(--surface-solid) !important;
+    border: 1px solid var(--border-color) !important;
+}
+body.quiz-page .exam-mode-pill.is-active,
+body.quiz-page .exam-mode-pill[aria-pressed="true"] {
+    border-color: var(--brand-brass) !important;
+    box-shadow: inset -3px 0 0 var(--brand-brass) !important;
+}
+body.quiz-page .back-btn.exam-back-link {
+    background: none !important;
+    border: 0 !important;
+    color: var(--text-secondary) !important;
+}
+
+@media (max-width: 640px) {
+    body.quiz-page .exam-main { padding-inline: 16px !important; }
+}
+
+@media (min-width: 1024px) {
+    body.quiz-page .exam-launch-grid {
+        align-items: start;
+        gap: 48px;
+    }
+}
+
+body.quiz-page :is(.exam-head-chip, .exam-meta-chip) {
+    background: var(--surface-muted) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
