@@ -466,7 +466,7 @@ body.home-2026 .h26-unit__end.is-owned {
     body.home-2026 .h26-terms__list { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* ---- minimal search: a quiet chip, not a full-width field ---- */
+/* ---- minimal search: a quiet compact button, not a full-width field ---- */
 body.home-2026 .h26-search {
     flex: 0 0 auto;
     align-self: center;
@@ -475,7 +475,7 @@ body.home-2026 .h26-search {
     gap: 8px;
     border: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
-    border-radius: 999px;
+    border-radius: 8px;
     background: var(--surface-solid);
     color: var(--text-tertiary);
     font-size: 0.92rem;
