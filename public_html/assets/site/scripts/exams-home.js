@@ -1268,17 +1268,15 @@
     function hubHeadHtml(tab) {
         var totals = hubTotals();
         var summary = formatValue(totals.exams) + " آزمون و " + formatValue(totals.questions) + " سؤال";
-        if (totals.references) {
-            summary += "، از " + formatValue(totals.references) + " رفرنس و درس‌های هر ترم.";
-        }
+        summary += "، درس به درس و ترم به ترم.";
         return [
             '<header class="exhub-head">',
             '  <div><h1>آزمون‌ها</h1><p>' + summary + "</p></div>",
             "</header>",
             hubResumeHtml(),
             '<nav class="exhub-tabs" role="tablist" aria-label="نحوهٔ مرور آزمون‌ها">',
-            '  <button type="button" role="tab" aria-selected="' + (tab === "reference") + '" class="' + (tab === "reference" ? "is-on" : "") + '" data-open-mode="reference">بر اساس رفرنس<small>' + formatValue(totals.references) + " کتاب</small></button>",
             '  <button type="button" role="tab" aria-selected="' + (tab === "term") + '" class="' + (tab === "term" ? "is-on" : "") + '" data-open-mode="term">بر اساس ترم<small>درس‌های هر ترم</small></button>',
+            totals.references ? '  <button type="button" role="tab" aria-selected="' + (tab === "reference") + '" class="' + (tab === "reference" ? "is-on" : "") + '" data-open-mode="reference">آرشیو رفرنس‌ها<small>' + formatValue(totals.references) + " کتاب</small></button>" : "",
             "</nav>"
         ].join("");
     }
@@ -1359,6 +1357,21 @@
 
     function hubDefaultTerm() {
         var terms = curriculumTerms();
+        /* open on the term of the newest midterm/sample set: that is what
+           students are buying and practising right now */
+        var courses = state.catalog && Array.isArray(state.catalog.courses) ? state.catalog.courses.slice() : [];
+        courses.sort(function (a, b) { return String(b.addedAt || "").localeCompare(String(a.addedAt || "")); });
+        for (var c = 0; c < courses.length; c++) {
+            if (!/نمونه|سوالات|سؤالات|میان‌?ترم/.test(String(courses[c].title || ""))) continue;
+            for (var t = 0; t < terms.length; t++) {
+                var found = (terms[t].categories || []).some(function (category) {
+                    return (category.units || []).some(function (unit) {
+                        return (unit.collections || []).some(function (collection) { return collection && collection.slug === courses[c].slug; });
+                    });
+                });
+                if (found) return terms[t];
+            }
+        }
         for (var i = 0; i < terms.length; i++) {
             if (terms[i] && terms[i].stats && Number(terms[i].stats.examCount) > 0) {
                 return terms[i];
@@ -1434,8 +1447,14 @@
 
         normalizeViewState(false);
 
+        /* term-by-term is the default view; references are an archive tab */
         if (!state.mode || (state.mode === "reference" && !referenceSpecialties().length)) {
-            root.innerHTML = referenceSpecialties().length ? hubHtml("reference") : hubHtml("term", hubDefaultTerm());
+            /* adopt the default term as the real selection so unit controls
+               (commitView) carry a term number, as on the ?mode=term path */
+            var defaultTerm = hubDefaultTerm();
+            state.mode = "term";
+            state.termNumber = defaultTerm ? Number(defaultTerm.number) || 0 : 0;
+            root.innerHTML = hubHtml("term", defaultTerm);
             return;
         }
 

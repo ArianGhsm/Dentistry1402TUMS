@@ -375,18 +375,6 @@ html[data-theme="dark"] body > .shell-side-nav { box-shadow: inset 1px 0 0 #1f35
         background: rgba(255, 255, 255, 0.06);
         color: #fff;
     }
-    /* back button + account sit together at the start edge: keep the
-       title clear of both instead of centring it under them */
-    body:not(.chat-page) .site-header--minimal:has(.shell-back-btn) .logo-area {
-        padding-inline-start: 6.4rem;
-        padding-inline-end: 3.3rem;
-    }
-    body:not(.chat-page) .site-header--minimal:has(.shell-back-btn) .site-info h1 { font-size: 0.92rem; }
-    body:not(.chat-page) .site-header--minimal .site-info h1 {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
     body:not(.chat-page) .site-header .shell-back-btn span {
         position: absolute;
         width: 1px;
@@ -472,4 +460,160 @@ html body .forms-state-card.site-login-guard {
 html body .chat-login-panel.site-login-guard {
     padding-inline: 20px !important;
     border-inline: 0 !important;
+}
+
+
+/* ---------------------------------------------------------------------------
+ * Header (clinic): one row that says where you are.
+ *   [back | ۱۴۰۲] [section name / site name]   [search theme] [avatar]
+ * Mobile: the teal shell band. Desktop: a quiet bar on the page ground
+ * beside the teal rail, which already carries the brand.
+ * ------------------------------------------------------------------------- */
+html body:not(.chat-page) .site-header.site-header--minimal {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "back title tools account";
+    align-items: center;
+    column-gap: 10px;
+    min-height: calc(60px + env(safe-area-inset-top, 0px)) !important;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 14px 8px !important;
+    box-shadow: none !important;
+}
+html body:not(.chat-page) .site-header--minimal .logo-area {
+    grid-area: title;
+    display: flex !important;
+    justify-content: flex-start !important;
+    min-width: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+}
+html body:not(.chat-page) .site-header--minimal .shell-brand-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    min-width: 0;
+    max-width: 100%;
+    text-decoration: none;
+}
+html body:not(.chat-page) .site-header--minimal .site-info { display: grid; min-width: 0; text-align: start; }
+html body:not(.chat-page) .site-header--minimal .site-info h1 {
+    margin: 0 !important;
+    font: 800 1.02rem/1.35 var(--font-accent) !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+html body:not(.chat-page) .site-header--minimal .shell-page-label {
+    font: 800 1.08rem/1.3 var(--font-accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+html body:not(.chat-page) .site-header--minimal.has-page-label .site-info h1 {
+    font: 500 0.74rem/1.3 var(--font-main) !important;
+}
+html body:not(.chat-page) .site-header--minimal .header-actions { display: contents !important; }
+html body:not(.chat-page) .site-header--minimal .shell-back-btn { grid-area: back; }
+html body:not(.chat-page) .site-header--minimal .shell-account-menu { grid-area: account; position: relative !important; inset: auto !important; }
+html body:not(.chat-page) .site-header--minimal .shell-header-tools {
+    grid-area: tools;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    display: flex !important;
+    gap: 4px;
+}
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger {
+    min-height: 40px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar {
+    width: 36px !important;
+    height: 36px !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: var(--shell-mark) !important;
+    color: var(--brand-navy-950) !important;
+    box-shadow: none !important;
+    font: 800 0.86rem var(--font-accent) !important;
+}
+
+@media (max-width: 1023.98px) {
+    html body:not(.chat-page) .site-header.site-header--minimal {
+        background: var(--brand-navy-950) !important;
+        border-bottom: 0 !important;
+        color: var(--on-shell-strong);
+    }
+    html body:not(.chat-page) .site-header--minimal .site-info h1,
+    html body:not(.chat-page) .site-header--minimal .shell-page-label { color: var(--on-shell-strong) !important; }
+    html body:not(.chat-page) .site-header--minimal.has-page-label .site-info h1 { color: var(--on-shell-muted) !important; }
+    /* the ۱۴۰۲ mark leads on home; inner pages lead with the way back */
+    html body:not(.chat-page) .site-header--minimal .shell-brand-mark {
+        display: inline-flex !important;
+        width: 36px !important;
+        height: 36px !important;
+        flex: 0 0 36px !important;
+        padding: 3px !important;
+        border: 0 !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+    }
+    html body:not(.chat-page) .site-header--minimal:has(.shell-back-btn) .shell-brand-mark { display: none !important; }
+    html body:not(.chat-page) .site-header--minimal .shell-account-trigger__copy,
+    html body:not(.chat-page) .site-header--minimal .shell-account-trigger__chevron { display: none !important; }
+    html body:not(.chat-page) .site-header--minimal .shell-search-trigger,
+    html body:not(.chat-page) .site-header--minimal .theme-toggle-btn {
+        width: 40px !important;
+        height: 40px !important;
+        border: 0 !important;
+        background: none !important;
+        color: var(--on-shell) !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    html body:not(.chat-page) .site-header.site-header--minimal {
+        min-height: 64px !important;
+        padding: 10px 28px !important;
+        background: var(--bg-body) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    /* the rail carries the brand; the bar carries the section */
+    html body.has-side-nav:not(.chat-page) .site-header--minimal .shell-brand-link { visibility: visible !important; pointer-events: none; }
+    html body.has-side-nav:not(.chat-page) .site-header--minimal .shell-brand-mark,
+    html body.has-side-nav:not(.chat-page) .site-header--minimal.has-page-label .site-info h1 { display: none !important; }
+    html body.has-side-nav:not(.chat-page) .site-header--minimal:not(.has-page-label) .site-info { visibility: hidden; }
+    html body:not(.chat-page) .site-header--minimal .shell-page-label { color: var(--text-primary); font-size: 1.2rem; }
+    html body:not(.chat-page) .site-header--minimal .shell-account-trigger { gap: 10px; padding-inline: 4px 8px !important; border-radius: 8px !important; }
+    html body:not(.chat-page) .site-header--minimal .shell-account-trigger:hover { background: var(--surface-muted) !important; }
+    html body:not(.chat-page) .site-header--minimal .shell-search-trigger,
+    html body:not(.chat-page) .site-header--minimal .theme-toggle-btn {
+        width: 40px !important;
+        height: 40px !important;
+        border: 0 !important;
+        border-radius: 8px !important;
+        background: none !important;
+        color: var(--text-secondary) !important;
+    }
+    html body:not(.chat-page) .site-header--minimal :is(.shell-search-trigger, .theme-toggle-btn):hover { background: var(--surface-muted) !important; color: var(--text-primary) !important; }
+}
+@media (max-width: 1023.98px) {
+    /* home has no section name: let the site name breathe instead of cutting it */
+    html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .site-info h1 {
+        white-space: normal !important;
+        font-size: 0.98rem !important;
+        line-height: 1.4 !important;
+    }
+}
+/* the account trigger now sits at the far (left, in RTL) edge: open its
+   panel toward the page, and never wider than the viewport */
+html body:not(.chat-page) .site-header--minimal .shell-account-panel {
+    inset-inline-start: auto !important;
+    inset-inline-end: 0 !important;
+    max-width: calc(100vw - 24px) !important;
 }

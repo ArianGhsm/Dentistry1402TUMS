@@ -348,6 +348,109 @@
         box.hidden = courses.length === 0;
     }
 
+    function unitCourses(unit) {
+        var list = Array.isArray(unit.collections) ? unit.collections : [];
+        return list.filter(function (course) { return course && course.path; });
+    }
+
+    function termsWithCourses(catalog) {
+        var terms = catalog && catalog.curriculum && Array.isArray(catalog.curriculum.terms) ? catalog.curriculum.terms : [];
+        var seen = {};
+        return terms.map(function (term) {
+            var units = [];
+            (Array.isArray(term.categories) ? term.categories : []).forEach(function (category) {
+                (Array.isArray(category.units) ? category.units : []).forEach(function (unit) {
+                    if (!unit || !unit.stats || !unit.stats.examCount || !unitCourses(unit).length) {
+                        return;
+                    }
+                    var key = String(term.number) + ":" + String(unit.title || unit.key);
+                    if (seen[key]) {
+                        return;
+                    }
+                    seen[key] = true;
+                    units.push(unit);
+                });
+            });
+            return { number: Number(term.number) || 0, label: String(term.label || ""), units: units };
+        }).filter(function (term) { return term.units.length; });
+    }
+
+    function preferredTermNumber(catalog, terms) {
+        /* open on the term of the newest sample-question set when there is one */
+        var courses = catalog && Array.isArray(catalog.courses) ? catalog.courses.slice() : [];
+        courses.sort(function (a, b) { return String(b.addedAt || "").localeCompare(String(a.addedAt || "")); });
+        for (var i = 0; i < courses.length; i++) {
+            if (!SAMPLE_PATTERN.test(String(courses[i].title || ""))) continue;
+            for (var t = 0; t < terms.length; t++) {
+                for (var u = 0; u < terms[t].units.length; u++) {
+                    if (unitCourses(terms[t].units[u]).some(function (course) { return course.slug === courses[i].slug; })) {
+                        return terms[t].number;
+                    }
+                }
+            }
+        }
+        return terms[0].number;
+    }
+
+    function unitRow(unit) {
+        var courses = unitCourses(unit);
+        var href = unit.entryMode === "direct" && unit.entryHref ? unit.entryHref : courses[0].path;
+        if (courses.length > 1) {
+            href = "/exams/?mode=term&term=" + encodeURIComponent(String(unit.termNumber || "")) + "&unit=" + encodeURIComponent(String(unit.key || ""));
+        }
+        var owned = courses.every(function (course) { return course.access && course.access.hasAccess; });
+        var price = courses.length === 1 ? priceLabel(courses[0]) : "";
+        var row = document.createElement("a");
+        row.className = "h26-unit";
+        row.href = href;
+        var copy = document.createElement("span");
+        copy.className = "h26-unit__copy";
+        var title = document.createElement("strong");
+        title.textContent = String(unit.title || "");
+        var meta = document.createElement("small");
+        meta.textContent = [
+            faNumber(unit.stats.questionCount) + " سؤال",
+            courses.length > 1 ? faNumber(courses.length) + " مجموعه" : ""
+        ].filter(Boolean).join("، ");
+        copy.appendChild(title);
+        copy.appendChild(meta);
+        var end = document.createElement("span");
+        end.className = "h26-unit__end" + (owned ? " is-owned" : "");
+        end.textContent = owned ? "فعال" : (price || "مشاهده");
+        row.appendChild(copy);
+        row.appendChild(end);
+        return row;
+    }
+
+    function renderTermTabs(terms, activeNumber, holder) {
+        var tabs = $("[data-h26-term-tabs]");
+        var show = function (number) {
+            var term = terms.filter(function (item) { return item.number === number; })[0] || terms[0];
+            holder.textContent = "";
+            term.units.forEach(function (unit) { holder.appendChild(unitRow(unit)); });
+            if (tabs) {
+                Array.prototype.forEach.call(tabs.children, function (button) {
+                    var on = Number(button.getAttribute("data-term")) === term.number;
+                    button.setAttribute("aria-selected", on ? "true" : "false");
+                    button.classList.toggle("is-on", on);
+                });
+            }
+        };
+        if (tabs) {
+            tabs.textContent = "";
+            terms.forEach(function (term) {
+                var button = document.createElement("button");
+                button.type = "button";
+                button.setAttribute("role", "tab");
+                button.setAttribute("data-term", String(term.number));
+                button.textContent = term.label;
+                button.addEventListener("click", function () { show(term.number); });
+                tabs.appendChild(button);
+            });
+        }
+        show(activeNumber);
+    }
+
     function renderShelf(state) {
         var shelf = $("[data-h26-shelf]");
         var holder = $("[data-h26-covers]");
@@ -369,21 +472,14 @@
             }
             var catalog = payload && payload.catalog ? payload.catalog : null;
             renderSamples(catalog);
-            var courses = collectCourses(catalog && catalog.referenceCatalog, []).filter(function (course) {
-                return String(course.title).indexOf("|") !== -1;
-            });
-            if (!courses.length) {
+            /* Reference-by-reference shelves are retired from home: courses are
+               listed term by term, the way the faculty teaches them. */
+            var terms = termsWithCourses(catalog);
+            if (!terms.length) {
                 return;
             }
-            courses.sort(function (a, b) {
-                return (b.access && b.access.hasAccess ? 1 : 0) - (a.access && a.access.hasAccess ? 1 : 0);
-            });
-            var fragment = document.createDocumentFragment();
-            courses.slice(0, 6).forEach(function (course, index) {
-                fragment.appendChild(coverNode(course, index % COVER_TONES));
-            });
-            holder.textContent = "";
-            holder.appendChild(fragment);
+            var preferred = preferredTermNumber(catalog, terms);
+            renderTermTabs(terms, preferred, holder);
             shelf.hidden = false;
         }).catch(function () {
             if (shelfLoadedFor === cohortKey) {
