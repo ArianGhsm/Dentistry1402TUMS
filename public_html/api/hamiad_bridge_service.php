@@ -142,18 +142,39 @@ function hamiad_login_failure_message(string $body): string
         return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
     }
     $xpath = new DOMXPath($dom);
-    $nodes = $xpath->query('//*[@id="loginerrormessage"]');
-    $message = $nodes instanceof DOMNodeList && $nodes->length > 0
-        ? trim((string) ($nodes->item(0)?->textContent ?? ''))
-        : '';
-    if (str_contains($message, 'عبارت') && str_contains($message, 'امنیتی')) {
-        return 'کد کپچا توسط همیاد رد شد. تصویر تازه بگیر و حروف و اعداد را دقیق وارد کن.';
+    // Prefer Moodle's known error container; some themes use loginerrors
+    // or an alert-danger instead. Never return arbitrary remote content.
+    $message = '';
+    foreach ([
+        '//*[@id="loginerrormessage"]',
+        '//*[contains(concat(" ", normalize-space(@class), " "), " loginerrors ")]',
+        '//*[contains(concat(" ", normalize-space(@class), " "), " alert-danger ")]',
+    ] as $selector) {
+        $nodes = $xpath->query($selector);
+        if (!$nodes instanceof DOMNodeList) continue;
+        foreach ($nodes as $node) {
+            $candidate = trim((string)$node->textContent);
+            if ($candidate !== '' && mb_strlen($candidate) <= 800) {
+                $message = mb_strtolower($candidate);
+                break 2;
+            }
+        }
     }
-    if (str_contains($message, 'نام کاربری')
-        || str_contains($message, 'رمز') || str_contains($message, 'کلمه عبور')) {
-        return 'همیاد نام کاربری یا رمز عبور سیپاد را نپذیرفت؛ مشخصات ذخیره‌شده را از سایت بررسی کن.';
+    $captchaKeywords = ['کپچا', 'captcha', 'عبارت امنیتی', 'عبارت‌امنیتی',
+        'کد امنیتی', 'verification code', 'security code'];
+    foreach ($captchaKeywords as $needle) {
+        if (str_contains($message, $needle)) {
+            return 'همیاد کد کپچا را نپذیرفت؛ کد تصویر جدید را بررسی کن.';
+        }
     }
-    return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
+    $credentialKeywords = ['نام کاربری', 'رمز عبور', 'کلمه عبور',
+        'username', 'password', 'invalid login', 'incorrect login'];
+    foreach ($credentialKeywords as $needle) {
+        if (str_contains($message, $needle)) {
+            return 'همیاد نام کاربری یا رمز عبور را رد کرد؛ مشخصات ذخیره‌شده را در پنل امن همیاد بررسی و اصلاح کن.';
+        }
+    }
+    return 'همیاد ورود را رد کرد؛ علت مشخصی در پیام صفحه ورود اعلام نکرده است. رمز ذخیره‌شده و ارتباط کپچا را بررسی کن.';
 }
 
 /**
@@ -278,8 +299,12 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         throw new RuntimeException('همیاد پاسخ غیرمنتظره‌ای به ورود داد؛ کپچای تازه بگیر.');
     }
     $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
-    if (!hamiad_complete_login_handoff($location, $cookies, null, $postTrace['hops'])) {
+    $rejectedLoginHtml = null;
+    if (!hamiad_complete_login_handoff($location, $cookies, null, $postTrace['hops'], $rejectedLoginHtml)) {
         hamiad_record_login_diagnostic('handoff_failed', $postTrace);
+        if (is_string($rejectedLoginHtml)) {
+            throw new RuntimeException(hamiad_login_failure_message($rejectedLoginHtml));
+        }
         throw new RuntimeException(hamiad_handoff_failure_message($postTrace['hops']));
     }
     if (!hamiad_verify_home($cookies)) {
