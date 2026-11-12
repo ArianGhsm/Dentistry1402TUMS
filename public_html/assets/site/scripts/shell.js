@@ -485,14 +485,10 @@
         if (canUseChatState(state)) {
             items.push({ href: cohortPath("/chat/"), label: "چت", icon: "chat", active: ["/chat/"], badgeCount: Math.max(0, Number(navBadgeState.chatCount || 0)) });
         }
-        if (user && services.grades) {
-            items.push({ href: String(routes.grades || cohortPath("/grades/")), label: "نمرات", icon: "grades", active: ["/grades/"] });
-        }
+        /* Bot-first (owner, 2026-11-12): grades, the general shop and
+           notifications live in the bots; their pages stay reachable by link. */
         if (user && services.forms) {
             items.push({ href: String(routes.forms || cohortPath("/forms/")), label: "فرم‌ها", icon: "forms", active: ["/forms/"] });
-        }
-        if (!isProsthesis) {
-            items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payment/", "/payments/"] });
         }
         return items;
     }
@@ -518,11 +514,9 @@
             document.body.classList.add("has-side-nav");
         }
         var user = state && state.loggedIn && state.user ? state.user : null;
-        var notifications = user ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
         var items = sideNavItems(state);
         var secondary = [];
         if (user) {
-            secondary.push({ href: "/account/#notifications", label: "اعلان‌ها", icon: "bell", active: ["/account/notifications/"], badgeCount: notifications });
             secondary.push({ href: "/account/", label: "حساب کاربری", icon: "account", active: ["/account/"] });
             if (user.isOwner) {
                 secondary.push({ href: "/admin/", label: "مدیریت سایت", icon: "forms", active: ["/admin/"] });
@@ -727,8 +721,6 @@
             "    </div>",
             '    <nav class="shell-account-panel__nav" aria-label="دسترسی‌های حساب">',
             '      <a href="/account/" role="menuitem"><span class="shell-account-panel__icon">' + icon("account") + '</span><span><strong>حساب کاربری</strong><small>پروفایل، امنیت و تنظیمات</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
-            '      <a href="/account/#notifications" role="menuitem"><span class="shell-account-panel__icon">' + accountMenuIconMarkup("bell") + '</span><span><strong>اعلان‌ها</strong><small>پیام‌ها و یادآوری‌های مهم</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
-            '      <a href="/grades/" role="menuitem"><span class="shell-account-panel__icon">' + icon("grades") + '</span><span><strong>کارنامه و نمرات</strong><small>آخرین وضعیت آموزشی</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
             '      <a href="/admin/" role="menuitem" data-account-owner-link hidden><span class="shell-account-panel__icon">' + accountMenuIconMarkup("admin") + '</span><span><strong>مدیریت سایت</strong><small>وضعیت و ابزارهای مالک</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
             "    </nav>",
             '    <div class="shell-account-panel__actions">',
@@ -739,7 +731,7 @@
             '  <div class="shell-account-panel__guest" data-account-logged-out>',
             '    <span class="shell-account-panel__guest-icon" aria-hidden="true">' + icon("account") + "</span>",
             '    <strong>حساب کاربری</strong>',
-            '    <p>برای خرید و ادامهٔ آزمون‌ها، نمرات، اعلان‌ها و فرم‌ها وارد شو.</p>',
+            '    <p>برای خرید و ادامهٔ آزمون‌ها وارد شو.</p>',
             '    <a class="shell-account-panel__login" href="/account/" role="menuitem" data-account-login>ورود به حساب</a>',
             '    <a class="shell-account-panel__signup" href="/account/?mode=signup" role="menuitem" data-account-signup>ساخت حساب جدید</a>',
             '    <button class="shell-account-panel__guest-theme" type="button" data-account-theme-action role="menuitem"><span>' + accountMenuIconMarkup("theme") + '</span><span><strong>حالت تیره</strong><small>برای محیط کم‌نور مناسب‌تر است</small></span></button>',
