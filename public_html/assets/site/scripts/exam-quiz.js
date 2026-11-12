@@ -184,70 +184,116 @@
     }
 
     function renderLaunchStage() {
-        var selected = state.mode ? modeDefinition(state.mode) : null;
+        /* One screen, one tap: title, the indicator tape (one cell per
+           question, darkened once answered) and direct actions for each mode.
+           There is no separate mode-selection step. */
         var report = state.assessment.report;
+        var reviewOnly = !!(exam.essayOnly || exam.learningOnly);
+        var assessmentAllowed = canUseAssessmentMode() && !reviewOnly;
         var learningStats = learningTotals();
-        var assessmentStats = report ? reportTotals(report) : assessmentDraftTotals();
-        var launchMeta = [
-            renderMetaChip(formatValue(exam.questions.length) + " سوال", "neutral"),
-            state.flags.size ? renderMetaChip(formatValue(state.flags.size) + " نشان‌دار", "flagged") : "",
-            report ? renderMetaChip("کارنامه ذخیره‌شده", "success") : ""
-        ].filter(Boolean);
-        var previewTitle = selected ? selected.title : "اول حالت آزمون را انتخاب کن";
-        var previewCopy = selected
-            ? selected.description
-            : "برای همین جلسه دو مسیر جدا در دسترس است: آموزشی برای پاسخ فوری و سنجشی برای ثبت کارنامه.";
-        if (exam.essayOnly || exam.learningOnly) {
-            previewTitle = "مرور سوال‌ها";
-            previewCopy = "سوال‌ها به‌ترتیب نمایش داده می‌شوند؛ روی دکمه نمایش پاسخ بزن تا کارت توضیح همان مورد را ببینی.";
-        }
-        var previewStats = [];
+        var assessmentStats = report ? null : assessmentDraftTotals();
+        var assessmentInProgress = !!(assessmentAllowed && exam.viewerState.canPersist && !report && assessmentStats && assessmentStats.answered > 0);
+        var primaryMode = assessmentInProgress && learningStats.answered === 0 ? "assessment" : "learning";
+        var total = exam.questions.length;
+        var tapeMode = primaryMode;
+        var done = tapeMode === "assessment" ? assessmentStats.answered : learningStats.answered;
+        var minutes = Number(exam.durationMinutes) || 0;
+        var metaParts = [formatValue(total) + " سؤال"];
+        if (minutes > 0) metaParts.push(formatValue(minutes) + " دقیقه");
+        var course = headerCourseLabel();
+        var context = headerContextLabel();
+        if (state.flags.size) metaParts.push(formatValue(state.flags.size) + " نشان‌دار");
 
-        if (state.mode === "assessment") {
+        var resumeIndex = tapeMode === "assessment"
+            ? Number(state.assessment.currentQuestionIndex) || 0
+            : Number(state.learning.currentQuestionIndex) || 0;
+        var learningLabel = reviewOnly ? "مرور سؤال‌ها" : "تمرین";
+        var primaryLabel;
+        if (primaryMode === "assessment") {
+            primaryLabel = "ادامهٔ آزمون از سؤال " + formatValue(resumeIndex + 1);
+        } else if (learningStats.answered > 0) {
+            primaryLabel = "ادامهٔ " + learningLabel + " از سؤال " + formatValue(resumeIndex + 1);
+        } else {
+            primaryLabel = reviewOnly ? "شروع مرور سؤال‌ها" : "شروع تمرین";
+        }
+
+        var secondary = [];
+        if (primaryMode === "assessment") {
+            secondary.push(renderLaunchAlt("learning", learningLabel, reviewOnly ? "پاسخ‌ها قدم‌به‌قدم" : "جواب هر سؤال همان لحظه"));
+        } else if (assessmentAllowed) {
             if (report) {
-                previewStats.push(renderMiniStat("درصد", formatPercent(report.percent)));
-                previewStats.push(renderMiniStat("صحیح", formatValue(report.correct)));
-                previewStats.push(renderMiniStat("غلط", formatValue(report.wrong)));
+                secondary.push(renderLaunchAlt("assessment", "کارنامهٔ آزمون", formatPercent(report.percent) + "، " + formatValue(report.correct) + " درست"));
+            } else if (!exam.viewerState.canPersist) {
+                secondary.push('<a class="exam26-alt" href="' + escapeHtml(loginHref()) + '"><strong>آزمون با کارنامه</strong><small>برای ثبت کارنامه وارد شو</small></a>');
             } else {
-                previewStats.push(renderMiniStat("پاسخ‌داده‌شده", formatValue(assessmentStats.answered)));
-                previewStats.push(renderMiniStat("بی‌پاسخ", formatValue(assessmentStats.unanswered)));
-                previewStats.push(renderMiniStat("کارنامه", exam.viewerState.canPersist ? "فعال" : "نیاز به ورود"));
+                secondary.push(renderLaunchAlt("assessment", minutes > 0 ? "آزمون زمان‌دار" : "آزمون با کارنامه", minutes > 0 ? formatValue(minutes) + " دقیقه، کارنامه در پایان" : "جواب‌ها در پایان، با کارنامه"));
             }
-        } else if (state.mode === "learning") {
-            previewStats.push(renderMiniStat("حل‌شده", formatValue(learningStats.answered)));
-            previewStats.push(renderMiniStat("باقی‌مانده", formatValue(learningStats.unanswered)));
-            previewStats.push(renderMiniStat(exam.essayOnly || exam.learningOnly ? "نمایش پاسخ" : "پاسخ فوری", "فعال"));
         }
 
         return [
-            '<section class="exam-panel exam-stage exam-stage--launch">',
-            renderLaunchHeader(launchMeta),
-            '  <div class="exam-launch-grid">',
-            '    <section class="exam-launch-copy">',
-            '      <span class="exam-kicker">شروع آزمون</span>',
-            '      <h1 class="exam-stage-title">' + escapeHtml(exam.title) + "</h1>",
-            '      <p class="exam-stage-subtitle">' + escapeHtml(exam.subtitle) + "</p>",
-            "    </section>",
-            '    <section class="exam-launch-panel">',
-            '      <div class="exam-launch-panel__head">',
-            '        <div>',
-            '          <span class="exam-launch-panel__eyebrow">انتخاب حالت</span>',
-            '          <h2 class="exam-launch-panel__title">' + escapeHtml(previewTitle) + "</h2>",
-            "        </div>",
-            '        <div class="exam-mode-pills">',
-            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", "ثبت پاسخ‌ها و کارنامه نهایی", !state.mode) : "",
-            renderModePill("learning", exam.essayOnly || exam.learningOnly ? "مرور سوال‌ها" : "آموزشی", exam.essayOnly || exam.learningOnly ? "پاسخ‌ها را قدم‌به‌قدم مرور کن" : "پاسخ و توضیح را همان لحظه ببین", !state.mode),
-            "        </div>",
-            "      </div>",
-            '      <p class="exam-launch-panel__copy">' + escapeHtml(previewCopy) + "</p>",
-            previewStats.length ? '<div class="exam-mini-stats">' + previewStats.join("") + "</div>" : "",
-            state.layout.chooserHintExpanded && canUseAssessmentMode()
-                ? '<div class="exam-note-card">در حالت سنجشی همه سوال‌ها با کارنامه، رتبه و ذخیره نتیجه اجرا می‌شود. در حالت آموزشی پس از هر پاسخ، جواب درست و توضیح همان سوال را می‌بینی.</div>'
-                : "",
+            '<section class="exam-panel exam-stage exam-stage--launch exam26-launch">',
+            state.feedback.text ? '<div class="exam-feedback exam-feedback--' + escapeHtml(state.feedback.kind || "neutral") + '">' + escapeHtml(state.feedback.text) + "</div>" : "",
+            '  <header class="exam26-head">',
+            course ? '    <a class="exam26-course" href="' + escapeHtml(exam.backHref || "/exams/") + '">' + escapeHtml(course) + (context && context !== course ? '<span> · ' + escapeHtml(context) + "</span>" : "") + "</a>" : "",
+            '    <h1 class="exam-stage-title exam26-title">' + escapeHtml(exam.title) + "</h1>",
+            '    <p class="exam26-meta">' + metaParts.map(function (part, index) { return index === 0 ? "<b>" + escapeHtml(part) + "</b>" : escapeHtml(part); }).join("، ") + "</p>",
+            "  </header>",
+            renderIndicatorTape(tapeMode, done, total),
             renderCustomPracticeBuilder(),
-            renderLaunchActions(),
-            "    </section>",
+            '  <div class="exam26-go">',
+            '    <button class="exam26-primary" type="button" data-action="start-mode" data-mode="' + primaryMode + '">' + escapeHtml(primaryLabel) + '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m5-5-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>',
+            secondary.length ? '    <div class="exam26-alts">' + secondary.join("") + "</div>" : "",
             "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function renderLaunchAlt(mode, label, hint) {
+        return '<button class="exam26-alt" type="button" data-action="start-mode" data-mode="' + escapeHtml(mode) + '"><strong>' + escapeHtml(label) + "</strong><small>" + escapeHtml(hint) + "</small></button>";
+    }
+
+    function tapeMaxCells() {
+        /* a function, not a var: render() runs before later var assignments */
+        return 60;
+    }
+
+    function renderTapeCells(mode, currentIndex) {
+        /* One cell per question; past tapeMaxCells() questions are grouped so
+           every cell keeps a visible width (a 225-question bank becomes 60
+           cells). A group reads as done once all its questions are answered. */
+        var total = exam.questions.length;
+        var cellCount = Math.min(total, tapeMaxCells());
+        var cells = [];
+        for (var cell = 0; cell < cellCount; cell++) {
+            var from = Math.floor((cell * total) / cellCount);
+            var to = Math.floor(((cell + 1) * total) / cellCount);
+            var allDone = true;
+            var flagged = false;
+            var current = false;
+            for (var index = from; index < to; index++) {
+                var question = exam.questions[index];
+                var answered = mode === "assessment"
+                    ? state.assessment.answers[index] !== null && state.assessment.answers[index] !== undefined
+                    : (question.isEssay ? !!state.learning.revealed[index] : state.learning.answers[index] !== null && state.learning.answers[index] !== undefined);
+                if (!answered) allDone = false;
+                if (state.flags.has(index)) flagged = true;
+                if (index === currentIndex) current = true;
+            }
+            var classes = [];
+            if (allDone) classes.push("is-done");
+            if (flagged) classes.push("is-flag");
+            if (current) classes.push("is-current");
+            cells.push('<i class="' + classes.join(" ") + '"></i>');
+        }
+        return cells.join("");
+    }
+
+    function renderIndicatorTape(mode, done, total) {
+        var cells = renderTapeCells(mode, -1);
+        return [
+            '<section class="exam26-tape" aria-label="پیشرفت: ' + escapeHtml(formatValue(done) + " از " + formatValue(total)) + '">',
+            '  <div class="exam26-tape__head"><span>' + (done > 0 ? "پیشرفت تو در این مجموعه" : "هنوز سؤالی جواب نداده‌ای") + '</span><strong>' + escapeHtml(formatValue(done) + " از " + formatValue(total)) + "</strong></div>",
+            '  <div class="exam26-tape__strip" style="--cells:' + Math.min(total, tapeMaxCells()) + '" aria-hidden="true">' + cells + "</div>",
             "</section>"
         ].join("");
     }
@@ -258,7 +304,7 @@
         var activeCount = Array.isArray(state.learning.customIndexes) ? state.learning.customIndexes.length : 0;
         return [
             '<details class="exam-custom-builder"' + (activeCount ? " open" : "") + '>',
-            '  <summary><span><strong>آزمون شخصی</strong><small>جلسه تمرینی از همین بانک سؤال</small></span><span>' + escapeHtml(activeCount ? formatValue(activeCount) + " سؤال فعال" : "ساخت") + '</span></summary>',
+            '  <summary><span><strong>آزمون شخصی</strong><small>فقط بعضی مباحث، سؤال‌های غلط یا نشان‌دارها</small></span><span>' + escapeHtml(activeCount ? formatValue(activeCount) + " سؤال فعال" : "ساختن") + '</span></summary>',
             '  <div class="exam-custom-builder__grid">',
             renderBuilderSelect("custom-topic", "مبحث", [{ value: "all", label: "همه مباحث" }].concat(topics.map(function (value) { return { value: value, label: value }; }))),
             renderBuilderSelect("custom-difficulty", "سختی", [{ value: "all", label: "همه سطوح" }].concat(difficulties.map(function (value) { return { value: value, label: value }; }))),
@@ -483,12 +529,12 @@
             "  </div>",
             '  <div class="exam-focus-bar__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + escapeHtml(String(progress)) + '" aria-label="' + escapeHtml(formatValue(progress) + " درصد پیشرفت") + '">',
             '    <span class="exam-focus-bar__progress-copy">' + escapeHtml(formatValue(totals.answered) + " پاسخ") + "</span>",
-            '    <span class="exam-focus-bar__progress-track" aria-hidden="true"><span style="inline-size:' + escapeHtml(String(progress)) + '%"></span></span>',
+            '    <span class="exam-focus-bar__progress-track exam26-tape__strip exam26-tape__strip--bar" style="--cells:' + Math.min(exam.questions.length, tapeMaxCells()) + '" aria-hidden="true">' + renderTapeCells(isAssessment ? "assessment" : "learning", currentIndex) + "</span>",
             "  </div>",
             '  <div class="exam-focus-bar__tools">',
             '    <span class="exam-focus-bar__timer" data-exam-timer aria-live="off">' + escapeHtml(timerLabel()) + "</span>",
             '    <span class="exam-focus-bar__save is-' + escapeHtml(saveStatus.tone) + '" data-exam-save-status role="status" aria-live="polite">' + escapeHtml(saveStatus.label) + "</span>",
-            '    <button class="exam-focus-bar__button" type="button" data-action="open-question-map" aria-haspopup="dialog">نقشه سؤال‌ها</button>',
+            '    <button class="exam-focus-bar__button" type="button" data-action="open-question-map" aria-haspopup="dialog" aria-label="نقشه سؤال‌ها">نقشه</button>',
             '    <button class="exam-focus-bar__button exam-focus-bar__button--exit" type="button" data-action="leave-focus-mode">خروج</button>',
             "  </div>",
             "</section>"
