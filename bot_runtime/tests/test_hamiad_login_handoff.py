@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from dent_bot.app import DentBotApp
-from dent_bot.hamiad_login import hamiad_captcha_caption, send_hamiad_login_challenge
+from dent_bot.hamiad_login import hamiad_captcha_caption, send_hamiad_login_challenge, enlarge_hamiad_captcha
 from dent_bot.state import BotState
 
 
@@ -66,6 +66,24 @@ def msg(uid, text, reply_to=None):
 
 
 class HamiadHandoffTests(unittest.TestCase):
+    def test_captcha_image_upscale_preserves_png_and_source(self):
+        try:
+            from PIL import Image
+            from io import BytesIO
+        except ImportError:
+            self.skipTest("Pillow is optional")
+        source = Image.new("RGB", (130, 40), (255, 255, 255))
+        source.putpixel((6, 5), (23, 44, 60))
+        buffer = BytesIO()
+        source.save(buffer, format="PNG")
+        original = buffer.getvalue()
+        enlarged = enlarge_hamiad_captcha(original)
+        self.assertEqual(original, buffer.getvalue(), "The source bytes must not be modified")
+        with Image.open(BytesIO(enlarged)) as result:
+            self.assertEqual(result.size, (650, 200))
+            self.assertEqual(result.getpixel((30, 25)), (23, 44, 60))
+        self.assertEqual(enlarge_hamiad_captcha(b"invalid-image"), b"invalid-image")
+
     def test_caption_is_farsi_and_clear(self):
         text = hamiad_captcha_caption("2026-11-12T12:00:00+03:30")
         self.assertIn("همیاد", text)

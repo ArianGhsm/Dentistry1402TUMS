@@ -121,6 +121,41 @@ function hamiad_verify_home(array &$cookies, ?callable $request = null): bool
     return str_contains($content, 'login/logout.php');
 }
 
+/**
+ * Extract only the known, non-sensitive login failure category returned by
+ * Moodle. Never return raw remote HTML or arbitrary provider error content.
+ */
+function hamiad_login_failure_message(string $body): string
+{
+    if ($body === '' || strlen($body) > 524288) {
+        return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
+    }
+    $dom = new DOMDocument();
+    $prior = libxml_use_internal_errors(true);
+    try {
+        $loaded = $dom->loadHTML('<?xml encoding="UTF-8"?>' . $body);
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($prior);
+    }
+    if (!$loaded) {
+        return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
+    }
+    $xpath = new DOMXPath($dom);
+    $nodes = $xpath->query('//*[@id="loginerrormessage"]');
+    $message = $nodes instanceof DOMNodeList && $nodes->length > 0
+        ? trim((string) ($nodes->item(0)?->textContent ?? ''))
+        : '';
+    if (str_contains($message, 'عبارت') && str_contains($message, 'امنیتی')) {
+        return 'کد کپچا توسط همیاد رد شد. تصویر تازه بگیر و حروف و اعداد را دقیق وارد کن.';
+    }
+    if (str_contains($message, 'نام کاربری')
+        || str_contains($message, 'رمز') || str_contains($message, 'کلمه عبور')) {
+        return 'همیاد نام کاربری یا رمز عبور سیپاد را نپذیرفت؛ مشخصات ذخیره‌شده را از سایت بررسی کن.';
+    }
+    return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
+}
+
 function hamiad_login(string $username, string $password, string $captcha): array
 {
     $challenge = $_SESSION['hamiad_challenge'] ?? null;
@@ -154,8 +189,11 @@ function hamiad_login(string $username, string $password, string $captcha): arra
             'login_captcha' => $captcha,
         ],
     ]);
+    if (!empty($response['ok']) && (int)($response['status'] ?? 0) === 200) {
+        throw new RuntimeException(hamiad_login_failure_message((string)($response['body'] ?? '')));
+    }
     if (empty($response['ok']) || !in_array((int) ($response['status'] ?? 0), [302, 303], true)) {
-        throw new RuntimeException('ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.');
+        throw new RuntimeException('همیاد پاسخ غیرمنتظره‌ای به ورود داد؛ کپچای تازه بگیر.');
     }
     $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
     if (!hamiad_verify_home($cookies)) {
