@@ -196,8 +196,12 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         throw new RuntimeException('همیاد پاسخ غیرمنتظره‌ای به ورود داد؛ کپچای تازه بگیر.');
     }
     $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
+    $location = hamiad_response_header_value((array)($response['headers'] ?? []), 'location');
+    if (!hamiad_complete_login_handoff($location, $cookies)) {
+        throw new RuntimeException('تأیید کوکی ورود همیاد تکمیل نشد؛ با تصویر تازه دوباره تلاش کن.');
+    }
     if (!hamiad_verify_home($cookies)) {
-        throw new RuntimeException('نشست همیاد هنوز تأیید نشده است.');
+        throw new RuntimeException('پس از تأیید کوکی، نشست همیاد هنوز معتبر نیست.');
     }
     dent_write_json_file(hamiad_session_path(), [
         'schemaVersion' => 1,
