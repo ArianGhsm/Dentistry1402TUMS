@@ -254,8 +254,8 @@ body.quiz-page :is(.exam26-primary, .exam26-alt, .exam26-course):focus-visible {
  * ------------------------------------------------------------------------- */
 body.quiz-page .exam-focus-bar {
     display: grid !important;
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: "id tools" "tape tape";
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "id timer map exit" "tape tape tape save";
     align-items: center;
     gap: 8px 12px;
     padding: 10px 16px 12px !important;
@@ -284,7 +284,10 @@ body.quiz-page .exam26-tape__strip--bar {
     gap: 2px !important;
 }
 body.quiz-page .exam26-tape__strip--bar i.is-current { box-shadow: inset 0 0 0 2px #ffffff; }
-body.quiz-page .exam-focus-bar__tools { grid-area: tools; display: flex !important; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+body.quiz-page .exam-focus-bar__tools { display: contents !important; }
+body.quiz-page .exam-focus-bar__timer { grid-area: timer; justify-self: end; }
+body.quiz-page .exam-focus-bar__button[data-action="open-question-map"] { grid-area: map; }
+body.quiz-page .exam-focus-bar__button--exit { grid-area: exit; }
 body.quiz-page .exam-focus-bar__timer {
     background: none !important;
     border: 0 !important;
@@ -294,7 +297,20 @@ body.quiz-page .exam-focus-bar__timer {
     font-size: 0.86rem;
     font-variant-numeric: tabular-nums;
 }
-body.quiz-page .exam-focus-bar__save { display: none !important; }
+/* save status stays visible (offline / waiting to sync must be honest) */
+body.quiz-page .exam-focus-bar__save {
+    grid-area: save;
+    display: inline-flex !important;
+    align-items: center;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border: 0 !important;
+    color: #b8dcd5 !important;
+    font-size: 0.76rem !important;
+    white-space: nowrap;
+}
+body.quiz-page .exam-focus-bar__save.is-warning { color: var(--shell-mark) !important; font-weight: 700; }
 body.quiz-page .exam-focus-bar__button {
     min-height: 36px !important;
     padding: 0 12px !important;
@@ -458,7 +474,7 @@ body.quiz-page :is(.exam-focus-bar__button, .exam-focus-bar__timer, .exam-focus-
 body.quiz-page .exam-session-card,
 body.quiz-page .exam-question-card__title-wrap { text-align: start !important; justify-content: flex-start !important; }
 body.quiz-page .exam-question-card__head { flex-direction: row !important; align-items: baseline !important; }
-body.quiz-page .exam-focus-bar__tools > * {
+body.quiz-page .exam-focus-bar__tools > :is(.exam-focus-bar__timer, .exam-focus-bar__button) {
     flex: none !important;
     width: auto !important;
     inline-size: auto !important;
