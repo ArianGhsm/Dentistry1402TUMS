@@ -343,6 +343,18 @@ html[data-theme="dark"] body > .shell-side-nav { box-shadow: inset 1px 0 0 #262f
         background: rgba(255, 255, 255, 0.06);
         color: #fff;
     }
+    /* back button + account sit together at the start edge: keep the
+       title clear of both instead of centring it under them */
+    body:not(.chat-page) .site-header--minimal:has(.shell-back-btn) .logo-area {
+        padding-inline-start: 6.4rem;
+        padding-inline-end: 3.3rem;
+    }
+    body:not(.chat-page) .site-header--minimal:has(.shell-back-btn) .site-info h1 { font-size: 0.92rem; }
+    body:not(.chat-page) .site-header--minimal .site-info h1 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     body:not(.chat-page) .site-header .shell-back-btn span {
         position: absolute;
         width: 1px;
@@ -353,3 +365,27 @@ html[data-theme="dark"] body > .shell-side-nav { box-shadow: inset 1px 0 0 #262f
     }
 }
 @media (prefers-reduced-motion: reduce) { .site-header .shell-back-btn { transition: none; } }
+
+/* ---------------------------------------------------------------------------
+ * Login / sign-up card (account-card--auth): part of the buy funnel, so it
+ * follows the flat language — a hairline panel on desktop, open on mobile.
+ * Selectors carry body.account-page so they outrank account.css.
+ * ------------------------------------------------------------------------- */
+html:root body.account-page.account-page .account-card.account-card--auth.account-card--auth {
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+}
+html:root body.account-page.account-page .account-card--auth .auth-brand.auth-brand img {
+    box-shadow: none;
+    border-radius: 12px;
+    background: #ffffff;
+}
+html body.account-page .account-card--auth .otp-slot { border-radius: 8px; box-shadow: none; }
+html body.account-page .account-card--auth .otp-slot.is-active { box-shadow: 0 0 0 2px var(--focus-ring-soft); }
+@media (max-width: 640px) {
+    html:root body.account-page.account-page .account-card.account-card--auth.account-card--auth {
+        border-color: transparent;
+        background: transparent;
+    }
+}
