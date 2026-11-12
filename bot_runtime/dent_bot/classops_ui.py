@@ -890,6 +890,9 @@ def handle_classops_ui_callback(
                 keyboard([button("🏠 خانه", action="home")]),
             ))
             return True
+        if data == "hamiad:login":
+            app._start_hamiad_login(chat_id)
+            return True
         try:
             parts = data.split(":")
             if len(parts) == 3 and parts[1] == "course" and parts[2].isdigit():

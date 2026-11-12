@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/hamiad_dashboard.php';
+require_once __DIR__ . '/hamiad_bot_login.php';
 
 function dent_bot_hamiad_owner_only(array $user): void
 {
@@ -34,4 +35,28 @@ function dent_bot_hamiad_assignment(array $user, array $payload): array
         dent_error('مشخصات تکلیف معتبر نیست.', 422);
     }
     return ['success' => true, 'assignment' => hamiad_assignment_detail_or_snapshot((int)$course, (int)$id)];
+}
+
+function dent_bot_hamiad_login_start(array $user, string $platform): array
+{
+    dent_bot_hamiad_owner_only($user);
+    try {
+        return hamiad_bot_login_start($platform);
+    } catch (RuntimeException $error) {
+        dent_error($error->getMessage(), 422);
+    }
+}
+
+function dent_bot_hamiad_login_complete(array $user, string $platform, array $payload): array
+{
+    dent_bot_hamiad_owner_only($user);
+    try {
+        return hamiad_bot_login_complete(
+            $platform,
+            trim((string)($payload['challengeRef'] ?? '')),
+            trim((string)($payload['captchaCode'] ?? ''))
+        );
+    } catch (RuntimeException $error) {
+        dent_error($error->getMessage(), 422);
+    }
 }

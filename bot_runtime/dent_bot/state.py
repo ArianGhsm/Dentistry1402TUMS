@@ -496,6 +496,13 @@ class BotState:
                 expires_at TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS hamiad_captcha_challenge (
+                singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+                challenge_ref TEXT NOT NULL,
+                message_id INTEGER NOT NULL,
+                expires_at TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS integration_captcha_challenges (
                 user_id INTEGER PRIMARY KEY,
                 challenge_ref TEXT NOT NULL,
@@ -3956,6 +3963,47 @@ class BotState:
     def clear_navid_challenge(self) -> None:
         with self._lock:
             self.connection.execute("DELETE FROM navid_captcha_challenge WHERE singleton=1")
+            self.connection.commit()
+
+    def set_hamiad_challenge(self, challenge_ref: str, message_id: int, expires_at: str) -> None:
+        if not challenge_ref or message_id <= 0 or not expires_at:
+            raise ValueError("Invalid Hamiad challenge binding")
+        with self._lock:
+            self.connection.execute(
+                "INSERT INTO hamiad_captcha_challenge(singleton,challenge_ref,message_id,expires_at) "
+                "VALUES(1,?,?,?) ON CONFLICT(singleton) DO UPDATE SET "
+                "challenge_ref=excluded.challenge_ref,message_id=excluded.message_id,"
+                "expires_at=excluded.expires_at,created_at=CURRENT_TIMESTAMP",
+                (challenge_ref, message_id, expires_at),
+            )
+            self.connection.commit()
+
+    def hamiad_challenge(self) -> dict | None:
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT challenge_ref,message_id,expires_at FROM hamiad_captcha_challenge WHERE singleton=1"
+            ).fetchone()
+        return {"challenge_ref": str(row[0]), "message_id": int(row[1]),
+                "expires_at": str(row[2])} if row else None
+
+    def take_hamiad_challenge(self, *, message_id: int) -> dict | None:
+        with self._lock:
+            row = self.connection.execute(
+                "SELECT challenge_ref,message_id,expires_at FROM hamiad_captcha_challenge "
+                "WHERE singleton=1 AND message_id=?", (message_id,)
+            ).fetchone()
+            if row:
+                self.connection.execute(
+                    "DELETE FROM hamiad_captcha_challenge WHERE singleton=1 AND message_id=?",
+                    (message_id,)
+                )
+                self.connection.commit()
+        return {"challenge_ref": str(row[0]), "message_id": int(row[1]),
+                "expires_at": str(row[2])} if row else None
+
+    def clear_hamiad_challenge(self) -> None:
+        with self._lock:
+            self.connection.execute("DELETE FROM hamiad_captcha_challenge WHERE singleton=1")
             self.connection.commit()
 
     def set_integration_challenge(
