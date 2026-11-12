@@ -192,7 +192,7 @@
         var assessmentAllowed = canUseAssessmentMode() && !reviewOnly;
         var learningStats = learningTotals();
         var assessmentStats = report ? null : assessmentDraftTotals();
-        var assessmentInProgress = !!(assessmentAllowed && !report && assessmentStats && assessmentStats.answered > 0);
+        var assessmentInProgress = !!(assessmentAllowed && exam.viewerState.canPersist && !report && assessmentStats && assessmentStats.answered > 0);
         var primaryMode = assessmentInProgress && learningStats.answered === 0 ? "assessment" : "learning";
         var total = exam.questions.length;
         var tapeMode = primaryMode;
@@ -252,17 +252,37 @@
         return '<button class="exam26-alt" type="button" data-action="start-mode" data-mode="' + escapeHtml(mode) + '"><strong>' + escapeHtml(label) + "</strong><small>" + escapeHtml(hint) + "</small></button>";
     }
 
+    var TAPE_MAX_CELLS = 60;
+
     function renderTapeCells(mode, currentIndex) {
-        return exam.questions.map(function (question, index) {
-            var answered = mode === "assessment"
-                ? state.assessment.answers[index] !== null && state.assessment.answers[index] !== undefined
-                : (question.isEssay ? !!state.learning.revealed[index] : state.learning.answers[index] !== null && state.learning.answers[index] !== undefined);
+        /* One cell per question; past TAPE_MAX_CELLS questions are grouped so
+           every cell keeps a visible width (a 225-question bank becomes 60
+           cells). A group reads as done once all its questions are answered. */
+        var total = exam.questions.length;
+        var cellCount = Math.min(total, TAPE_MAX_CELLS);
+        var cells = [];
+        for (var cell = 0; cell < cellCount; cell++) {
+            var from = Math.floor((cell * total) / cellCount);
+            var to = Math.floor(((cell + 1) * total) / cellCount);
+            var allDone = true;
+            var flagged = false;
+            var current = false;
+            for (var index = from; index < to; index++) {
+                var question = exam.questions[index];
+                var answered = mode === "assessment"
+                    ? state.assessment.answers[index] !== null && state.assessment.answers[index] !== undefined
+                    : (question.isEssay ? !!state.learning.revealed[index] : state.learning.answers[index] !== null && state.learning.answers[index] !== undefined);
+                if (!answered) allDone = false;
+                if (state.flags.has(index)) flagged = true;
+                if (index === currentIndex) current = true;
+            }
             var classes = [];
-            if (answered) classes.push("is-done");
-            if (state.flags.has(index)) classes.push("is-flag");
-            if (index === currentIndex) classes.push("is-current");
-            return '<i class="' + classes.join(" ") + '"></i>';
-        }).join("");
+            if (allDone) classes.push("is-done");
+            if (flagged) classes.push("is-flag");
+            if (current) classes.push("is-current");
+            cells.push('<i class="' + classes.join(" ") + '"></i>');
+        }
+        return cells.join("");
     }
 
     function renderIndicatorTape(mode, done, total) {
@@ -270,7 +290,7 @@
         return [
             '<section class="exam26-tape" aria-label="پیشرفت: ' + escapeHtml(formatValue(done) + " از " + formatValue(total)) + '">',
             '  <div class="exam26-tape__head"><span>' + (done > 0 ? "پیشرفت تو در این مجموعه" : "هنوز سؤالی جواب نداده‌ای") + '</span><strong>' + escapeHtml(formatValue(done) + " از " + formatValue(total)) + "</strong></div>",
-            '  <div class="exam26-tape__strip" style="--cells:' + total + '" aria-hidden="true">' + cells + "</div>",
+            '  <div class="exam26-tape__strip" style="--cells:' + Math.min(total, TAPE_MAX_CELLS) + '" aria-hidden="true">' + cells + "</div>",
             "</section>"
         ].join("");
     }
@@ -506,7 +526,7 @@
             "  </div>",
             '  <div class="exam-focus-bar__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + escapeHtml(String(progress)) + '" aria-label="' + escapeHtml(formatValue(progress) + " درصد پیشرفت") + '">',
             '    <span class="exam-focus-bar__progress-copy">' + escapeHtml(formatValue(totals.answered) + " پاسخ") + "</span>",
-            '    <span class="exam-focus-bar__progress-track exam26-tape__strip exam26-tape__strip--bar" style="--cells:' + exam.questions.length + '" aria-hidden="true">' + renderTapeCells(isAssessment ? "assessment" : "learning", currentIndex) + "</span>",
+            '    <span class="exam-focus-bar__progress-track exam26-tape__strip exam26-tape__strip--bar" style="--cells:' + Math.min(exam.questions.length, TAPE_MAX_CELLS) + '" aria-hidden="true">' + renderTapeCells(isAssessment ? "assessment" : "learning", currentIndex) + "</span>",
             "  </div>",
             '  <div class="exam-focus-bar__tools">',
             '    <span class="exam-focus-bar__timer" data-exam-timer aria-live="off">' + escapeHtml(timerLabel()) + "</span>",
