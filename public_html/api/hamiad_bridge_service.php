@@ -156,6 +156,77 @@ function hamiad_login_failure_message(string $body): string
     return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
 }
 
+/**
+ * Private, intentionally minimal phases. Never include credentials, CAPTCHA,
+ * raw URLs, query values, cookies, HTML or user identifiers.
+ */
+function hamiad_record_login_diagnostic(string $phase, array $trace): void
+{
+    try {
+        $allowed = ['post_login_form', 'post_nonredirect', 'handoff_failed',
+                    'home_verify_failed', 'connected'];
+        if (!in_array($phase, $allowed, true)) return;
+        $paths = ['login', 'dashboard', 'root', 'other', 'unaccepted', 'none'];
+        $hops = [];
+        foreach (array_slice((array)($trace['hops'] ?? []), 0, 9) as $hop) {
+            if (!is_array($hop)) continue;
+            $hops[] = [
+                'step'=>in_array($hop['step'] ?? '', ['follow', 'unsafe_location', 'redirect_limit'], true)
+                    ? $hop['step'] : 'other',
+                'path'=>in_array($hop['path'] ?? '', $paths, true) ? $hop['path'] : 'other',
+                'testsession'=>(bool)($hop['testsession'] ?? false),
+                'httpStatus'=>(int)($hop['httpStatus'] ?? 0),
+                'transportOk'=>(bool)($hop['transportOk'] ?? false),
+                'nextPath'=>in_array($hop['nextPath'] ?? '', $paths, true)
+                    ? $hop['nextPath'] : 'other',
+                'cookieSet'=>(bool)($hop['cookieSet'] ?? false),
+                'sessionCookiePresent'=>(bool)($hop['sessionCookiePresent'] ?? false),
+                'loginForm'=>(bool)($hop['loginForm'] ?? false),
+                'logoutMarker'=>(bool)($hop['logoutMarker'] ?? false),
+            ];
+        }
+        $record = [
+            'at'=>dent_iso_now(),
+            'phase'=>$phase,
+            'postStatus'=>(int)($trace['postStatus'] ?? 0),
+            'postPath'=>in_array($trace['postPath'] ?? '', $paths, true)
+                ? $trace['postPath'] : 'other',
+            'postSessionCookie'=>(bool)($trace['postSessionCookie'] ?? false),
+            'hops'=>$hops,
+        ];
+        $path = dent_storage_path('hamiad/last-login-diagnostic.json');
+        $oldUmask = umask(0077);
+        try {
+            dent_write_json_file($path, $record);
+            @chmod($path, 0600);
+        } finally {
+            umask($oldUmask);
+        }
+    } catch (Throwable $ignored) {
+        // Diagnostic failure must never affect provider authentication.
+    }
+}
+
+function hamiad_handoff_failure_message(array $hops): string
+{
+    $last = $hops ? end($hops) : [];
+    if (!is_array($last)) $last = [];
+    if (($last['loginForm'] ?? false) === true) {
+        return 'همیاد پس از ثبت ورود دوباره فرم ورود را نشان داد؛ نشست یا کوکی پذیرفته نشد.';
+    }
+    if (($last['step'] ?? '') === 'unsafe_location'
+        || ($last['nextPath'] ?? '') === 'unaccepted') {
+        return 'همیاد پس از ورود به مسیری غیرمنتظره منتقل شد. نشست تأیید نشد.';
+    }
+    if (($last['step'] ?? '') === 'redirect_limit') {
+        return 'انتقال‌های پیاپی سامانه امنیتی همیاد تمام نشد. نشست تأیید نشد.';
+    }
+    if (($last['transportOk'] ?? true) === false) {
+        return 'ارتباط با همیاد هنگام تأیید نشست قطع شد.';
+    }
+    return 'تأیید نشست همیاد در مرحله انتقال کامل نشد؛ جزئیات غیرحساس روی سرور ثبت شد.';
+}
+
 function hamiad_login(string $username, string $password, string $captcha): array
 {
     $challenge = $_SESSION['hamiad_challenge'] ?? null;
@@ -189,18 +260,30 @@ function hamiad_login(string $username, string $password, string $captcha): arra
             'login_captcha' => $captcha,
         ],
     ]);
+    $location = hamiad_response_header_value((array)($response['headers'] ?? []), 'location');
+    $postTrace = [
+        'postStatus'=>(int)($response['status'] ?? 0),
+        'postPath'=>hamiad_handoff_path_category(
+            hamiad_login_handoff_url($location, HAMIAD_LOGIN)
+        ),
+        'postSessionCookie'=>hamiad_handoff_has_session_cookie((array)($response['cookies'] ?? [])),
+        'hops'=>[],
+    ];
     if (!empty($response['ok']) && (int)($response['status'] ?? 0) === 200) {
+        hamiad_record_login_diagnostic('post_login_form', $postTrace);
         throw new RuntimeException(hamiad_login_failure_message((string)($response['body'] ?? '')));
     }
     if (empty($response['ok']) || !in_array((int) ($response['status'] ?? 0), [302, 303], true)) {
+        hamiad_record_login_diagnostic('post_nonredirect', $postTrace);
         throw new RuntimeException('همیاد پاسخ غیرمنتظره‌ای به ورود داد؛ کپچای تازه بگیر.');
     }
     $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
-    $location = hamiad_response_header_value((array)($response['headers'] ?? []), 'location');
-    if (!hamiad_complete_login_handoff($location, $cookies)) {
-        throw new RuntimeException('تأیید کوکی ورود همیاد تکمیل نشد؛ با تصویر تازه دوباره تلاش کن.');
+    if (!hamiad_complete_login_handoff($location, $cookies, null, $postTrace['hops'])) {
+        hamiad_record_login_diagnostic('handoff_failed', $postTrace);
+        throw new RuntimeException(hamiad_handoff_failure_message($postTrace['hops']));
     }
     if (!hamiad_verify_home($cookies)) {
+        hamiad_record_login_diagnostic('home_verify_failed', $postTrace);
         throw new RuntimeException('پس از تأیید کوکی، نشست همیاد هنوز معتبر نیست.');
     }
     dent_write_json_file(hamiad_session_path(), [
@@ -210,6 +293,7 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         'usernameMasked' => substr($username, 0, 2) . str_repeat("*", max(2, strlen($username) - 4)) . substr($username, -2),
         'cookies' => hamiad_seal($cookies),
     ]);
+    hamiad_record_login_diagnostic('connected', $postTrace);
     $_SESSION['hamiad_login_attempts'] = [];
     return ['message' => 'ورود به همیاد با موفقیت تأیید شد.'];
 }

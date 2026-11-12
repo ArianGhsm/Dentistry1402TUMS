@@ -327,6 +327,27 @@ function hamiad_login_handoff_url(string $location, string $current): ?string
         ? $url : null;
 }
 
+function hamiad_handoff_path_category(?string $url): string
+{
+    $path = parse_url((string)$url, PHP_URL_PATH);
+    return match ($path) {
+        '/login/index.php' => 'login',
+        '/my', '/my/', '/my/index.php' => 'dashboard',
+        '/' => 'root',
+        default => 'other',
+    };
+}
+
+function hamiad_handoff_has_session_cookie(array $cookies): bool
+{
+    foreach ($cookies as $cookie) {
+        if (strtolower((string)($cookie['name'] ?? '')) === 'moodlesession') {
+            return (string)($cookie['value'] ?? '') !== '';
+        }
+    }
+    return false;
+}
+
 /**
  * Moodle's valid login redirects to /login/index.php?testsession=... to
  * verify/establish the session before the dashboard is accessible. Follow
@@ -336,34 +357,54 @@ function hamiad_login_handoff_url(string $location, string $current): ?string
 function hamiad_complete_login_handoff(
     string $location,
     array &$cookies,
-    ?callable $request = null
+    ?callable $request = null,
+    ?array &$trace = null
 ): bool {
     $request ??= 'hamiad_http_request';
     $url = hamiad_login_handoff_url($location, 'https://lms.tums.ac.ir/login/index.php');
-    if ($url === null) return false;
+    if ($url === null) {
+        if ($trace !== null) $trace[] = ['step'=>'unsafe_location'];
+        return false;
+    }
     for ($hop = 0; $hop < 8; $hop++) {
         $result = $request('GET', $url, [
             'cookies' => $cookies,
             'timeoutSec' => 22,
             'referer' => 'https://lms.tums.ac.ir/login/index.php',
         ]);
-        $cookies = hamiad_merge_cookies($cookies, (array)($result['cookies'] ?? []));
-        if (empty($result['ok'])) return false;
+        $updatedCookies = (array)($result['cookies'] ?? []);
+        $cookies = hamiad_merge_cookies($cookies, $updatedCookies);
         $status = (int)($result['status'] ?? 0);
+        $body = (string)($result['body'] ?? '');
+        $locationHeader = hamiad_response_header_value(
+            (array)($result['headers'] ?? []), 'location'
+        );
+        $next = hamiad_login_handoff_url($locationHeader, $url);
+        if ($trace !== null) {
+            $trace[] = [
+                'step'=>'follow',
+                'path'=>hamiad_handoff_path_category($url),
+                'testsession'=>str_contains((string)parse_url($url, PHP_URL_QUERY), 'testsession='),
+                'httpStatus'=>$status,
+                'transportOk'=>(bool)($result['ok'] ?? false),
+                'nextPath'=> $status === 200 ? 'none'
+                    : ($next === null ? 'unaccepted' : hamiad_handoff_path_category($next)),
+                'cookieSet'=>count($updatedCookies) > 0,
+                'sessionCookiePresent'=>hamiad_handoff_has_session_cookie($cookies),
+                'loginForm'=>str_contains($body, 'login_captcha_id0') || str_contains($body, 'id="login"'),
+                'logoutMarker'=>str_contains($body, 'login/logout.php'),
+            ];
+        }
+        if (empty($result['ok'])) return false;
         if ($status === 200) {
-            $body = (string)($result['body'] ?? '');
             return !str_contains($body, 'login_captcha_id0')
                 && !str_contains($body, 'id="login"')
                 && $body !== '';
         }
-        if (!in_array($status, [302, 303, 307], true)) return false;
-        $next = hamiad_login_handoff_url(
-            hamiad_response_header_value((array)($result['headers'] ?? []), 'location'),
-            $url
-        );
-        if ($next === null) return false;
+        if (!in_array($status, [302, 303, 307], true) || $next === null) return false;
         $url = $next;
     }
+    if ($trace !== null) $trace[] = ['step'=>'redirect_limit'];
     return false;
 }
 
