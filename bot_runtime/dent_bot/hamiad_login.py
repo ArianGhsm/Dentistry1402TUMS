@@ -20,6 +20,32 @@ def hamiad_captcha_caption(expires_at: str) -> str:
     )
 
 
+
+def enlarge_hamiad_captcha(image: bytes) -> bytes:
+    """Make Moodle's ۱۳۰×۴۰ CAPTCHA readable in Telegram's photo viewer.
+
+    Pillow is optional: return the original bytes if a platform runtime lacks it.
+    Never alter the CAPTCHA value, session or transport reference.
+    """
+    try:
+        from io import BytesIO
+        from PIL import Image
+
+        with Image.open(BytesIO(image)) as source:
+            source.load()
+            if source.format != "PNG" or source.width > 500 or source.height > 200:
+                return image
+            result = source.convert("RGB").resize(
+                (source.width * 5, source.height * 5),
+                resample=Image.Resampling.NEAREST,
+            )
+            output = BytesIO()
+            result.save(output, format="PNG")
+            return output.getvalue()
+    except (ImportError, OSError, ValueError):
+        return image
+
+
 def send_hamiad_login_challenge(*, api, state, site_api, owner_id: int) -> dict:
     result = site_api.hamiad_login_start(owner_id)
     status = str(result.get("status") or "")
@@ -28,7 +54,7 @@ def send_hamiad_login_challenge(*, api, state, site_api, owner_id: int) -> dict:
         return result
     if status != "challenge":
         raise BotApiError("تصویر ورود همیاد در دسترس نیست.")
-    image = decode_captcha_data_uri(result.get("captchaDataUri"))
+    image = enlarge_hamiad_captcha(decode_captcha_data_uri(result.get("captchaDataUri")))
     challenge_ref = str(result.get("challengeRef") or "")
     expires_at = str(result.get("expiresAt") or "")
     if len(challenge_ref) != 32 or not expires_at:

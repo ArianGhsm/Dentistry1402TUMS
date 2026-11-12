@@ -60,6 +60,11 @@ try {
         check_hamiad(str_contains($error->getMessage(),'اعتبار کپچا'), 'Expired rejected');
     }
     check_hamiad(!file_exists($path), 'Expired challenge consumed');
+    $badCaptchaHtml = '<html><div id="loginerrormessage">عبارت‌امنیتی نامعتبر است.</div></html>';
+    check_hamiad(str_contains(hamiad_login_failure_message($badCaptchaHtml), 'کپچا'), 'Provider invalid captcha explained');
+    $badPasswordHtml = '<html><div id="loginerrormessage">نام کاربری یا کلمه عبور اشتباه است.</div></html>';
+    check_hamiad(str_contains(hamiad_login_failure_message($badPasswordHtml), 'رمز عبور'), 'Provider password error explained');
+    check_hamiad(!str_contains(hamiad_login_failure_message('<html><div id="loginerrormessage">REMOTE SECRET 123</div></html>'), 'REMOTE SECRET'), 'Unknown provider content never leaked');
     $balePath=hamiad_bot_login_path('bale');
     check_hamiad($path !== $balePath, 'Separate Telegram/Bale challenges');
     $site=file_get_contents(dirname(__DIR__) . '/public_html/api/bot_hamiad.php');
