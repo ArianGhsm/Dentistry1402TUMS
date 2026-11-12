@@ -610,3 +610,10 @@ html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar {
         line-height: 1.4 !important;
     }
 }
+/* the account trigger now sits at the far (left, in RTL) edge: open its
+   panel toward the page, and never wider than the viewport */
+html body:not(.chat-page) .site-header--minimal .shell-account-panel {
+    inset-inline-start: auto !important;
+    inset-inline-end: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+}
