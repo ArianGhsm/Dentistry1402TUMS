@@ -47,7 +47,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'اختلال پایدار عملکرد قلبی ـ عروقی که با کاهش ناگهانی فشار خون آغاز می شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . فصل سه تشخیص اصلی drug-related را vasodepressor syncope، overdose و allergy می داند. د و الف تشخیص های دیگرند. ب اختلال غددی است.',
                     ],
                     [
@@ -59,7 +59,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تشنج رویدادی با فعالیت نورونی غیرطبیعی است، اما کانولسیون اصطلاحی قدیمی برای تظاهرات حرکتی، به ویژه تونیک ـ کلونیک ژنرالیزه است',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope به ویژه در نوجوانان و بالغین جوان، بیشتر در مردان، شایع است. ج و ب الگوی سن و جنس را حذف می کنند. الف برعکس فصل است.',
                     ],
                     [
@@ -71,7 +71,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هر کاهش سطح هوشیاری که با هیپوکسی در مطب دندانپزشکی رخ دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . overdose می تواند هر سنی را درگیر کند، اما کودکان کم وزن و سالمندان در معرض خطر بیشتری هستند. ب و ج گروه های پرخطر را محدود می کنند. د خطر سن را بی اهمیت می داند.',
                     ],
                     [
@@ -83,7 +83,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تشنج تونیک ـ کلونیک ژنرالیزه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . anaphylaxis می تواند هر سنی را درگیر کند، اما مرگ های گزارش شده بیشتر در افراد بالاتر از ۱۹ سال بوده است. الف و د محدوده را غلط می کنند. ج سابقه تماس را با سن جابه جا می کند.',
                     ],
                     [
@@ -95,7 +95,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'علامت اختصاصی هیپوگلیسمی است و ارتباطی با کانون مغزی ندارد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . allergy در متن بیشتر در زنان گزارش شده است، درحالی که overdose تفاوت جنسی مشخصی ندارد. د، الف و ب با تمایز فصل همخوان نیستند.',
                     ],
                     [
@@ -107,7 +107,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'شروع از یک کانون و امکان گسترش به کل مغز با اختلال هوشیاری',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope در حالت upright یا هنگام قرارگیری نامناسب بیمار بیشتر رخ می دهد و در وضعیت supine پاها بالا احتمال کمتری دارد. ج و ب به overdose/allergy نزدیک ترند. الف وضعیت را بی اثر می داند.',
                     ],
                     [
@@ -119,7 +119,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'منشا آن به یک لوب مغزی محدود می ماند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . بهبود سریع پس از supine با پاهای بالا به syncope کمک تشخیصی می کند. ب و ج معمولاً با این مانور سریع رفع نمی شوند. د opposite response است.',
                     ],
                     [
@@ -131,7 +131,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'حملات مکرر تونیک ـ کلونیک بدون بازگشت به سطح پایه هوشیاری',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . تماس قبلی برای allergy لازم است، اما overdose به دوز و سطح خونی مربوط است. الف و د شرط تماس قبلی را نادرست تعمیم می دهند. ج syncope را allergic می کند.',
                     ],
                     [
@@ -143,7 +143,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'مرحله خواب عمیق پس از تشنج تونیک ـ کلونیک',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . overdose dose-related است، در حالی که allergy وابسته به دوز درمانی نیست. د، الف و ب رابطه دوز را معکوس یا حذف می کنند.',
                     ],
                     [
@@ -155,7 +155,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش احتمال وضعیت صرعی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . psychogenic/syncope شایع ترین واکنش دارویی نما در محیط دندانپزشکی است. ج و ب کمتر رخ می دهند. الف به specific overdose محدود است.',
                     ],
                     [
@@ -167,7 +167,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آسم کنترل شده بدون تماس دارویی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . true ADRها بیشتر pharmacologic/overdose هستند و immunologic/allergy سهم کمتری دارند. ب و ج درصدها را وارونه می کنند. د syncope را true ADR می گیرد.',
                     ],
                     [
@@ -179,7 +179,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بیماری های متابولیک نوزادی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose معمولاً ۲ تا ۳۰ دقیقه طول می کشد و با کاهش سطح خونی فروکش می کند. الف بیشتر epinephrine overdose است. د allergy است. ج syncope است.',
                     ],
                     [
@@ -191,7 +191,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش مصرف آب پیش از درمان',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . epinephrine overdose معمولاً onset و duration کوتاه تری در حد ثانیه ها تا چند دقیقه دارد. د LA overdose طولانی تر است. الف allergy است. ب duration را به روزها می برد.',
                     ],
                     [
@@ -203,7 +203,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             '«چه چیزی آغاز تشنج شما را خبر می دهد؟»',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . allergy ممکن است ساعت ها تا روزها دوام داشته باشد. ج، ب و الف مدت زمان کوتاه تر syncope/epinephrine یا LA را نشان می دهند.',
                     ],
                     [
@@ -215,7 +215,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'چون مدت تشنج ارتباطی با تصمیم درباره EMS ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . pallor، پوست سرد و مرطوب و diaphoresis با syncope سازگار است. ب flushing/urticaria allergy است. ج erythema با epinephrine مطرح می شود. د CNS stimulation است.',
                     ],
                     [
@@ -227,7 +227,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'مصرف الکل پیش از مراجعه برای کاهش اضطراب',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . flushing، urticaria، pruritus و edema با allergy سازگار است. الف syncope است. د LA overdose است. ج epinephrine overdose است.',
                     ],
                     [
@@ -239,7 +239,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'در صورت اضطراب، باید بدون اکسیژن همراه تجویز شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با anxiety، agitation و CNS stimulation شروع می شود. د، الف و ب به syncope، allergy یا epinephrine نزدیک ترند.',
                     ],
                     [
@@ -251,7 +251,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'درمان در صورت آشکار بودن مصرف اخیر الکل انجام نشود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . fear، anxiety، tremor، headache و palpitations در epinephrine overdose دیده می شود. ج، ب و الف تابلوی دیگری دارند.',
                     ],
                     [
@@ -263,7 +263,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ASA 1',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . loss of consciousness می تواند در syncope، LA overdose شدید و anaphylaxis شدید رخ دهد. ب و ج دامنه را محدود می کنند. د epinephrine overdose را شایع ترین علت LOC می گیرد که متن نمی گوید.',
                     ],
                     [
@@ -275,7 +275,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نشاندن بیمار و ادامه درمان دندانپزشکی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . tonic-clonic seizure بیشتر با LA overdose شدید سازگار است. الف syncope معمولاً حرکات خفیف تر دارد. د epinephrine tremor می دهد. ج allergy seizure را به hypoxia شدید محدود می کند.',
                     ],
                     [
@@ -287,7 +287,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تنگی نفس با ویزینگ بدون تغییر سطح هوشیاری',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . حرکات convulsive کوتاه و خفیف همراه با fainting با syncope می تواند دیده شود. د LA overdose شدیدتر و tonic-clonic است. الف allergy است. ب epinephrine overdose است.',
                     ],
                     [
@@ -299,7 +299,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ورود ملایم کاتتر نرم از ناحیه بین گونه و سطح باکال دندان ها',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . wheezing به bronchospasm و allergy/asthma اشاره دارد. ج، ب و الف با airway lower آلرژیک سازگار نیستند.',
                     ],
                     [
@@ -311,7 +311,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نگه داشتن سر در وضعیت فلکسیون ثابت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . stridor نشانه انسداد upper airway مانند laryngeal edema یا foreign body است. ب wheeze lower airway است. ج shock CVS است. د syncope است.',
                     ],
                     [
@@ -323,7 +323,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تلاش برای باز نگه داشتن دهان با ابزار فلزی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . در بیمار بیهوش با انسداد راه هوایی، اصلاح head tilt-chin lift و suction ابتدا انجام می شود؛ اگر رفع نشد، lower obstruction یا edema/foreign body مطرح می شود. الف و د تشخیص را زود قطعی می کنند. ج airway maneuvers را حذف می کند.',
                     ],
                     [
@@ -335,7 +335,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هوشیاری کامل بلافاصله پس از پایان حرکات کلونیک',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . syncope معمولاً presyncope با tachycardia خفیف دارد و سپس HR و BP افت می کنند. د epinephrine overdose است. الف allergy shock است. ب LA toxicity severe است.',
                     ],
                     [
@@ -347,7 +347,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'در همراهی یک بزرگسال مسیول و با توجه به ارزیابی EMS یا شرایط کامل بهبود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose با BP بسیار بالا، pulse پر و bounding و احتمال dysrhythmia همراه است. ج syncope است. ب allergy shock است. الف opioid overdose است.',
                     ],
                     [
@@ -359,7 +359,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادامه درمان دندانپزشکی تا قطع خودبه خودی تشنج',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . allergy severe معمولاً tachycardia با pulse ضعیف و thready و افت فشار می دهد. ب epinephrine overdose است. ج syncope است. د LA onset early است.',
                     ],
                     [
@@ -371,7 +371,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آنتی هیستامین های خوراکی مانند دیفن هیدرامین',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose در شروع می تواند BP/HR را افزایش دهد و سپس با CNS/CVS depression افت ایجاد کند. الف، د و ج تابلوی مراحل را ناقص یا معکوس می کنند.',
                     ],
                     [
@@ -383,7 +383,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'اثر ضدتشنجی آن با افزایش سریع فشار خون ایجاد می شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . طولانی ترین presyncopal period برای vasodepressor syncope است. د LA overdose به signs CNS وابسته تر است. الف epinephrine سریع تر است. ب allergy با پوست و تنفس آشکار می شود.',
                     ],
                     [
@@ -395,7 +395,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'برای کنار گذاشتن هیپوگلیسمی به عنوان علت احتمالی و تامین گلوکز مصرف شده در حالت ایکتال',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . احساس faint/lightheaded، pallor و perspiration پس از تزریق با syncope سازگار است. ج، ب و الف علایم اختصاصی تری برای overdose یا allergy دارند.',
                     ],
                     [
@@ -407,7 +407,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'دوره پست ایکتال طولانی با گیجی شدید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . شروع سریع در حین تزریق همراه با seizure به LA overdose ناشی از intravascular injection نزدیک است. ب و ج تابلوی تنفسی/پوستی دارند. د epinephrine overdose seizure tonic-clonic معمول نمی دهد.',
                     ],
                     [
@@ -419,7 +419,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'خارش و ادم لب پس از تماس با آلرژن',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . palpitations، throbbing headache، tremor و افزایش شدید BP با epinephrine overdose سازگار است. الف، د و ج علایم اصلی را پوشش نمی دهند.',
                     ],
                     [
@@ -431,7 +431,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بثورات پوستی و برونکواسپاسم پس از دارو',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . erythema، urticaria، pruritus و bronchospasm با allergy سازگار است. د syncope است. الف LA overdose است. ب epinephrine overdose است.',
                     ],
                     [
@@ -443,7 +443,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'برهم خوردن تعادل مهار و تحریک نورونی و افزایش تحریک پذیری غشا با انتشار فعالیت به مسیرهای عصبی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . کمترین شیوع ولی خطر بالا در بین سه گروه برای allergy/anaphylaxis مطرح است. ج و ب شایع ترند. الف طبقه اصلی نیست.',
                     ],
                     [
@@ -455,7 +455,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'با ایجاد ادم لارنکس و استریدور',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . vasodepressor syncope از نظر overall incidence شایع ترین drug-related emergency در dental office است. ب و ج true ADRهای دیگرند. د دیابت است.',
                     ],
                     [
@@ -467,7 +467,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کاهش تولید دی اکسیدکربن در مغز',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . اگر skin changes و respiratory symptoms غالب باشند، allergy محتمل تر از syncope یا LA overdose است. الف و د نشانه های پوستی/تنفسی را توضیح نمی دهند. ج epinephrine overdose بیشتر cardiovascular است.',
                     ],
                     [
@@ -479,7 +479,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'حرکات تکراری منظم همراه با تنفس استرتوروس از آغاز فاز',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . در syncope بازگرداندن perfusion مغزی با position معمولاً recovery سریع می دهد. د و الف با position بدون اقدام دیگر رفع نمی شوند. ب با head/leg positioning بدتر توصیف نشده است.',
                     ],
                     [
@@ -491,7 +491,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'انقباضات فلکسوری خشن متناوب با ریلکسیشن و احتمال کف آلود شدن دهان',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . وجود seizures پس از LA، به ویژه tonic-clonic، diagnosis را به LA overdose سوق می دهد. ج و ب seizure را محور نمی دانند. الف epinephrine بیشتر tremor دارد.',
                     ],
                     [
@@ -503,7 +503,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تورم صورت و زبان همراه با تنگی نفس',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . significant hypotension با weak/thready pulse در allergy/anaphylaxis و LA depression شدید مطرح است، اما همراهی با rash/bronchospasm به allergy کمک می کند. ب epinephrine opposite است. ج syncope با position سریع بهتر می شود. د جواب کامل نیست.',
                     ],
                     [
@@ -515,7 +515,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'توقف کوتاه فعالیت با بازگشت فوری و بدون گیجی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . respiratory signs در allergy برجسته ترند، به ویژه bronchospasm و laryngeal edema. الف و د بیشتر cardiovascular/CNS هستند. ج syncope respiratory primary ندارد.',
                     ],
                     [
@@ -527,7 +527,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'همه بیماران بین حملات دچار اختلال هوشیاری پایدارند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با CNS stimulation سپس depression توضیح داده می شود. د allergy mediator release است. الف epinephrine sympathetic excess است. ب syncope cerebral hypoperfusion است.',
                     ],
                     [
@@ -539,7 +539,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تک دارویی در صورت امکان ترجیح دارد و قطع ناگهانی دارو می تواند وضعیت صرعی را برانگیزد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose در dental office بیشتر از endogenous catecholamine release ناشی از ترس یا از دوز/غلظت نامناسب و retraction cord ناشی می شود. ج و ب علت های اصلی را حذف می کنند. الف آن را ایمنی می داند.',
                     ],
                     [
@@ -551,7 +551,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'وجود دندان های سالم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . اگر نشانه های allergy وجود نداشته باشد و بیمار بیهوش است، ابتدا airway، breathing، circulation اصلاح و suction انجام می شود. ب و ج داروی آلرژی را زودهنگام می دهند. د airway را کنار می گذارد.',
                     ],
                     [
@@ -563,7 +563,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بهبود سریع پس از خواباندن بیمار',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . dose زیاد یا جذب/تزریق داخل عروقی سریع LA باعث سطح خونی بالا و toxicity می شود. الف allergy است. د syncope است. ج epinephrine overdose است.',
                     ],
                     [
@@ -575,7 +575,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'اگر حمله با انقباض کلونیک همراه باشد، نیازی به پایش پست ایکتال نیستفصل 22: Drug-Related Emergencies: General Considerations',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . افتراق drug-related emergencies با onset، dose، prior exposure، skin change، nervousness، seizures، respiratory findings و vital signs انجام می شود. د، الف و ب یک نشانه را معیار غالب می گیرند و کافی نیستند.',
                     ],
                     [
@@ -587,7 +587,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بی حس کننده های موضعی، آنتی بیوتیک ها، مسکن ها و داروهای تضعیف کننده CNS',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . فصل سه تشخیص اصلی drug-related را vasodepressor syncope، overdose و allergy می داند. د و الف تشخیص های دیگرند. ب اختلال غددی است.',
                     ],
                     [
@@ -599,7 +599,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هر اثر درمانی مطلوب دارو پس از رسیدن به سطح خونی موثر',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope به ویژه در نوجوانان و بالغین جوان، بیشتر در مردان، شایع است. ج و ب الگوی سن و جنس را حذف می کنند. الف برعکس فصل است.',
                     ],
                     [
@@ -611,7 +611,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'داروهای خوراکی قادر به ایجاد واکنش تهدیدکننده حیات نیستند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . overdose می تواند هر سنی را درگیر کند، اما کودکان کم وزن و سالمندان در معرض خطر بیشتری هستند. ب و ج گروه های پرخطر را محدود می کنند. د خطر سن را بی اهمیت می داند.',
                     ],
                     [
@@ -623,7 +623,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش دوز برای دستیابی سریع تر به اثر درمانی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . anaphylaxis می تواند هر سنی را درگیر کند، اما مرگ های گزارش شده بیشتر در افراد بالاتر از ۱۹ سال بوده است. الف و د محدوده را غلط می کنند. ج سابقه تماس را با سن جابه جا می کند.',
                     ],
                     [
@@ -635,7 +635,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نام، علت مصرف، دوز، برنامه مصرف، میزان پایبندی، عوارض و احتمال تداخل با داروهای دندانپزشکی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . allergy در متن بیشتر در زنان گزارش شده است، درحالی که overdose تفاوت جنسی مشخصی ندارد. د، الف و ب با تمایز فصل همخوان نیستند.',
                     ],
                     [
@@ -647,7 +647,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'استفاده از واژه «دارو» پاسخ دقیق تری از همه بیماران ایجاد می کند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope در حالت upright یا هنگام قرارگیری نامناسب بیمار بیشتر رخ می دهد و در وضعیت supine پاها بالا احتمال کمتری دارد. ج و ب به overdose/allergy نزدیک ترند. الف وضعیت را بی اثر می داند.',
                     ],
                     [
@@ -659,7 +659,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'با واکنش های تهدیدکننده حیات ارتباطی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . بهبود سریع پس از supine با پاهای بالا به syncope کمک تشخیصی می کند. ب و ج معمولاً با این مانور سریع رفع نمی شوند. د opposite response است.',
                     ],
                     [
@@ -671,7 +671,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'مسیر پارنترال برای کاهش همه آلرژی ها ترجیح دارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . تماس قبلی برای allergy لازم است، اما overdose به دوز و سطح خونی مربوط است. الف و د شرط تماس قبلی را نادرست تعمیم می دهند. ج syncope را allergic می کند.',
                     ],
                     [
@@ -683,7 +683,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'دوز IV تیتره می تواند سدیشن کافی تری ایجاد کند، در حالی که همان دوز خوراکی ممکن است ناکافی باشد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . overdose dose-related است، در حالی که allergy وابسته به دوز درمانی نیست. د، الف و ب رابطه دوز را معکوس یا حذف می کنند.',
                     ],
                     [
@@ -695,7 +695,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'استرس، بی دردی و آرام بخشی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . psychogenic/syncope شایع ترین واکنش دارویی نما در محیط دندانپزشکی است. ج و ب کمتر رخ می دهند. الف به specific overdose محدود است.',
                     ],
                     [
@@ -707,7 +707,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'حدود 15 درصد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . true ADRها بیشتر pharmacologic/overdose هستند و immunologic/allergy سهم کمتری دارند. ب و ج درصدها را وارونه می کنند. د syncope را true ADR می گیرد.',
                     ],
                     [
@@ -719,7 +719,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پاسخ غیرقابل پیش بینی که با مکانسیم شناخته شده دارو توضیح داده نمی شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose معمولاً ۲ تا ۳۰ دقیقه طول می کشد و با کاهش سطح خونی فروکش می کند. الف بیشتر epinephrine overdose است. د allergy است. ج syncope است.',
                     ],
                     [
@@ -731,7 +731,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'غلظت الکل خون و تغییرات بالینی از تغییر خلق تا کما',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . epinephrine overdose معمولاً onset و duration کوتاه تری در حد ثانیه ها تا چند دقیقه دارد. د LA overdose طولانی تر است. الف allergy است. ب duration را به روزها می برد.',
                     ],
                     [
@@ -743,7 +743,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'به دوز بسیار بالا و سطح خونی توکسیک نیاز دارد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . allergy ممکن است ساعت ها تا روزها دوام داشته باشد. ج، ب و الف مدت زمان کوتاه تر syncope/epinephrine یا LA را نشان می دهند.',
                     ],
                     [
@@ -755,7 +755,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'overdose در داروهای دندانپزشکی رخ نمی دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . pallor، پوست سرد و مرطوب و diaphoresis با syncope سازگار است. ب flushing/urticaria allergy است. ج erythema با epinephrine مطرح می شود. د CNS stimulation است.',
                     ],
                     [
@@ -767,7 +767,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ ناشی از ایستادن پس از درمان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . flushing، urticaria، pruritus و edema با allergy سازگار است. الف syncope است. د LA overdose است. ج epinephrine overdose است.',
                     ],
                     [
@@ -779,7 +779,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تحریک یا آگیتاسیون پس از داروی تضعیف کننده CNS مانند بنزودیازپین یا هیستامین بلوکر',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با anxiety، agitation و CNS stimulation شروع می شود. د، الف و ب به syncope، allergy یا epinephrine نزدیک ترند.',
                     ],
                     [
@@ -791,7 +791,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'قطع درمان و ترخیص فوری بدون پایش',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . fear، anxiety، tremor، headache و palpitations در epinephrine overdose دیده می شود. ج، ب و الف تابلوی دیگری دارند.',
                     ],
                     [
@@ -803,7 +803,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ایدیوسینکرازی ژنتیکی نسبت به همه محلول ها',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . loss of consciousness می تواند در syncope، LA overdose شدید و anaphylaxis شدید رخ دهد. ب و ج دامنه را محدود می کنند. د epinephrine overdose را شایع ترین علت LOC می گیرد که متن نمی گوید.',
                     ],
                     [
@@ -815,7 +815,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادم حنجره و آنافیلاکسی ژنرالیزه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . tonic-clonic seizure بیشتر با LA overdose شدید سازگار است. الف syncope معمولاً حرکات خفیف تر دارد. د epinephrine tremor می دهد. ج allergy seizure را به hypoxia شدید محدود می کند.',
                     ],
                     [
@@ -827,7 +827,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'در صورت استفاده درست، از ایمن ترین و موثرترین داروها برای پیشگیری و کنترل درد هستند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . حرکات convulsive کوتاه و خفیف همراه با fainting با syncope می تواند دیده شود. د LA overdose شدیدتر و tonic-clonic است. الف allergy است. ب epinephrine overdose است.',
                     ],
                     [
@@ -839,7 +839,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تتراکایین',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . wheezing به bronchospasm و allergy/asthma اشاره دارد. ج، ب و الف با airway lower آلرژیک سازگار نیستند.',
                     ],
                     [
@@ -851,7 +851,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش جذب سیستمیک برای اثر طولانی تر در خون',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . stridor نشانه انسداد upper airway مانند laryngeal edema یا foreign body است. ب wheeze lower airway است. ج shock CVS است. د syncope است.',
                     ],
                     [
@@ -863,7 +863,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'با هر تزریق آمیدی رخ می دهد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . در بیمار بیهوش با انسداد راه هوایی، اصلاح head tilt-chin lift و suction ابتدا انجام می شود؛ اگر رفع نشد، lower obstruction یا edema/foreign body مطرح می شود. الف و د تشخیص را زود قطعی می کنند. ج airway maneuvers را حذف می کند.',
                     ],
                     [
@@ -875,7 +875,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژی به ترکیبات همراه یا LA و overdose در صورت مصرف زیاد روی سطح وسیع مخاط',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . syncope معمولاً presyncope با tachycardia خفیف دارد و سپس HR و BP افت می کنند. د epinephrine overdose است. الف allergy shock است. ب LA toxicity severe است.',
                     ],
                     [
@@ -887,7 +887,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بنزودیازپین ها',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose با BP بسیار بالا، pulse پر و bounding و احتمال dysrhythmia همراه است. ج syncope است. ب allergy shock است. الف opioid overdose است.',
                     ],
                     [
@@ -899,7 +899,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نبود واکنش آلرژیک بالینی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . allergy severe معمولاً tachycardia با pulse ضعیف و thready و افت فشار می دهد. ب epinephrine overdose است. ج syncope است. د LA onset early است.',
                     ],
                     [
@@ -911,7 +911,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'در همه بیماران جایگزین آنتی بیوتیک می شوند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose در شروع می تواند BP/HR را افزایش دهد و سپس با CNS/CVS depression افت ایجاد کند. الف، د و ج تابلوی مراحل را ناقص یا معکوس می کنند.',
                     ],
                     [
@@ -923,7 +923,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ناراحتی گوارشی، تهوع و یبوست',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . طولانی ترین presyncopal period برای vasodepressor syncope است. د LA overdose به signs CNS وابسته تر است. الف epinephrine سریع تر است. ب allergy با پوست و تنفس آشکار می شود.',
                     ],
                     [
@@ -935,7 +935,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تونیسیته عضلانی و کلونوس صورت',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . احساس faint/lightheaded، pallor و perspiration پس از تزریق با syncope سازگار است. ج، ب و الف علایم اختصاصی تری برای overdose یا allergy دارند.',
                     ],
                     [
@@ -947,7 +947,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'دپرسیون تنفسی در دوزهای بالا دیده نمی شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . شروع سریع در حین تزریق همراه با seizure به LA overdose ناشی از intravascular injection نزدیک است. ب و ج تابلوی تنفسی/پوستی دارند. د epinephrine overdose seizure tonic-clonic معمول نمی دهد.',
                     ],
                     [
@@ -959,7 +959,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بنزوکایین',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . palpitations، throbbing headache، tremor و افزایش شدید BP با epinephrine overdose سازگار است. الف، د و ج علایم اصلی را پوشش نمی دهند.',
                     ],
                     [
@@ -971,7 +971,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'برای سدیشن خفیف تا متوسط نسبتاً ایمن و موثرند و نسبت به باربیتورات ها عوارض و overdose کمتری دارند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . erythema، urticaria، pruritus و bronchospasm با allergy سازگار است. د syncope است. الف LA overdose است. ب epinephrine overdose است.',
                     ],
                     [
@@ -983,7 +983,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادم موضعی مخاط ناشی از تماس مستقیم',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . کمترین شیوع ولی خطر بالا در بین سه گروه برای allergy/anaphylaxis مطرح است. ج و ب شایع ترند. الف طبقه اصلی نیست.',
                     ],
                     [
@@ -995,7 +995,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'فنی تویین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . vasodepressor syncope از نظر overall incidence شایع ترین drug-related emergency در dental office است. ب و ج true ADRهای دیگرند. د دیابت است.',
                     ],
                     [
@@ -1007,7 +1007,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'با اکسیژن کمتر از 20 درصد، بدون خطر هیپوکسی باقی می ماند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . اگر skin changes و respiratory symptoms غالب باشند، allergy محتمل تر از syncope یا LA overdose است. الف و د نشانه های پوستی/تنفسی را توضیح نمی دهند. ج epinephrine overdose بیشتر cardiovascular است.',
                     ],
                     [
@@ -1019,7 +1019,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کاهش درصد N2O با افزایش جریان اکسیژن همراه با P→C→A→B',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . در syncope بازگرداندن perfusion مغزی با position معمولاً recovery سریع می دهد. د و الف با position بدون اقدام دیگر رفع نمی شوند. ب با head/leg positioning بدتر توصیف نشده است.',
                     ],
                     [
@@ -1031,7 +1031,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آموکسی سیلین',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . وجود seizures پس از LA، به ویژه tonic-clonic، diagnosis را به LA overdose سوق می دهد. ج و ب seizure را محور نمی دانند. الف epinephrine بیشتر tremor دارد.',
                     ],
                     [
@@ -1043,7 +1043,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'اکسی کودون',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . significant hypotension با weak/thready pulse در allergy/anaphylaxis و LA depression شدید مطرح است، اما همراهی با rash/bronchospasm به allergy کمک می کند. ب epinephrine opposite است. ج syncope با position سریع بهتر می شود. د جواب کامل نیست.',
                     ],
                     [
@@ -1055,7 +1055,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'فلوربی پروفن',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . respiratory signs در allergy برجسته ترند، به ویژه bronchospasm و laryngeal edema. الف و د بیشتر cardiovascular/CNS هستند. ج syncope respiratory primary ندارد.',
                     ],
                     [
@@ -1067,7 +1067,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'LAST با دپرسیون CNS و گاهی تشنج',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با CNS stimulation سپس depression توضیح داده می شود. د allergy mediator release است. الف epinephrine sympathetic excess است. ب syncope cerebral hypoperfusion است.',
                     ],
                     [
@@ -1079,7 +1079,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نسبت به آمیدها آلرژی کمتری دارند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose در dental office بیشتر از endogenous catecholamine release ناشی از ترس یا از دوز/غلظت نامناسب و retraction cord ناشی می شود. ج و ب علت های اصلی را حذف می کنند. الف آن را ایمنی می داند.',
                     ],
                     [
@@ -1091,7 +1091,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'به پزشک اجازه می دهد تاریخچه گفت وگویی را حذف کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . اگر نشانه های allergy وجود نداشته باشد و بیمار بیهوش است، ابتدا airway، breathing، circulation اصلاح و suction انجام می شود. ب و ج داروی آلرژی را زودهنگام می دهند. د airway را کنار می گذارد.',
                     ],
                     [
@@ -1103,7 +1103,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'برای پیشگیری از ADR باید مصرف همه داروها در دندانپزشکی حذف شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . dose زیاد یا جذب/تزریق داخل عروقی سریع LA باعث سطح خونی بالا و toxicity می شود. الف allergy است. د syncope است. ج epinephrine overdose است.',
                     ],
                     [
@@ -1115,7 +1115,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پرسش درباره مواجهه و واکنش قبلی، انتخاب مسیر مناسب، تکنیک صحیح و آشنایی با فارماکولوژی داروفصل 23: Drug Overdose Reactions',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . افتراق drug-related emergencies با onset، dose، prior exposure، skin change، nervousness، seizures، respiratory findings و vital signs انجام می شود. د، الف و ب یک نشانه را معیار غالب می گیرند و کافی نیستند.',
                     ],
                     [
@@ -1127,7 +1127,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'التهاب موضعی پوست به دنبال تماس طولانی با لاتکس',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . فصل سه تشخیص اصلی drug-related را vasodepressor syncope، overdose و allergy می داند. د و الف تشخیص های دیگرند. ب اختلال غددی است.',
                     ],
                     [
@@ -1139,7 +1139,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ضدانعقادها، انسولین، داروهای تیرویید و دیورتیک ها',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope به ویژه در نوجوانان و بالغین جوان، بیشتر در مردان، شایع است. ج و ب الگوی سن و جنس را حذف می کنند. الف برعکس فصل است.',
                     ],
                     [
@@ -1151,7 +1151,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادم لب و خارش منتشر به عنوان تظاهر غالب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . overdose می تواند هر سنی را درگیر کند، اما کودکان کم وزن و سالمندان در معرض خطر بیشتری هستند. ب و ج گروه های پرخطر را محدود می کنند. د خطر سن را بی اهمیت می داند.',
                     ],
                     [
@@ -1163,7 +1163,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تجویز مقدار زیاد LA و تزریق داخل عروقی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . anaphylaxis می تواند هر سنی را درگیر کند، اما مرگ های گزارش شده بیشتر در افراد بالاتر از ۱۹ سال بوده است. الف و د محدوده را غلط می کنند. ج سابقه تماس را با سن جابه جا می کند.',
                     ],
                     [
@@ -1175,7 +1175,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'حدود 50 درصد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . allergy در متن بیشتر در زنان گزارش شده است، درحالی که overdose تفاوت جنسی مشخصی ندارد. د، الف و ب با تمایز فصل همخوان نیستند.',
                     ],
                     [
@@ -1187,7 +1187,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نوجوانان بدون بیماری زمینه ای',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope در حالت upright یا هنگام قرارگیری نامناسب بیمار بیشتر رخ می دهد و در وضعیت supine پاها بالا احتمال کمتری دارد. ج و ب به overdose/allergy نزدیک ترند. الف وضعیت را بی اثر می داند.',
                     ],
                     [
@@ -1199,7 +1199,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تعداد کارتریج برای همه بزرگسالان معیار مطمین تری از میلی گرم است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . بهبود سریع پس از supine با پاهای بالا به syncope کمک تشخیصی می کند. ب و ج معمولاً با این مانور سریع رفع نمی شوند. د opposite response است.',
                     ],
                     [
@@ -1211,7 +1211,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'مقدار کمی لیدوکایین یا بوپیواکایین در تزریق ناخواسته شریانی می تواند تشنج ایجاد کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . تماس قبلی برای allergy لازم است، اما overdose به دوز و سطح خونی مربوط است. الف و د شرط تماس قبلی را نادرست تعمیم می دهند. ج syncope را allergic می کند.',
                     ],
                     [
@@ -1223,7 +1223,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کاهش جذب از مخاط دهان',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . overdose dose-related است، در حالی که allergy وابسته به دوز درمانی نیست. د، الف و ب رابطه دوز را معکوس یا حذف می کنند.',
                     ],
                     [
@@ -1235,7 +1235,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'با حذف اثر LA روی CNS',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . psychogenic/syncope شایع ترین واکنش دارویی نما در محیط دندانپزشکی است. ج و ب کمتر رخ می دهند. الف به specific overdose محدود است.',
                     ],
                     [
@@ -1247,7 +1247,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'لیدوکایین و آرتیکایین آمیدی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . true ADRها بیشتر pharmacologic/overdose هستند و immunologic/allergy سهم کمتری دارند. ب و ج درصدها را وارونه می کنند. د syncope را true ADR می گیرد.',
                     ],
                     [
@@ -1259,7 +1259,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'چربی دوستی و اتصال پروتیینی بیشتر',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose معمولاً ۲ تا ۳۰ دقیقه طول می کشد و با کاهش سطح خونی فروکش می کند. الف بیشتر epinephrine overdose است. د allergy است. ج syncope است.',
                     ],
                     [
@@ -1271,7 +1271,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'محل تزریق عامل غالب تعیین کننده peak level است',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . epinephrine overdose معمولاً onset و duration کوتاه تری در حد ثانیه ها تا چند دقیقه دارد. د LA overdose طولانی تر است. الف allergy است. ب duration را به روزها می برد.',
                     ],
                     [
@@ -1283,7 +1283,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             '72 میلی گرم',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . allergy ممکن است ساعت ها تا روزها دوام داشته باشد. ج، ب و الف مدت زمان کوتاه تر syncope/epinephrine یا LA را نشان می دهند.',
                     ],
                     [
@@ -1295,7 +1295,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             '36 میلی گرم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . pallor، پوست سرد و مرطوب و diaphoresis با syncope سازگار است. ب flushing/urticaria allergy است. ج erythema با epinephrine مطرح می شود. د CNS stimulation است.',
                     ],
                     [
@@ -1307,7 +1307,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کاهش جذب سیستمیک، افزایش عمق و مدت بی حسی و کاهش سمیت سیستمیک LA',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . flushing، urticaria، pruritus و edema با allergy سازگار است. الف syncope است. د LA overdose است. ج epinephrine overdose است.',
                     ],
                     [
@@ -1319,7 +1319,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'حذف کامل تاپیکال به علت خطر بیشتر از سود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با anxiety، agitation و CNS stimulation شروع می شود. د، الف و ب به syncope، allergy یا epinephrine نزدیک ترند.',
                     ],
                     [
@@ -1331,7 +1331,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سوزن 30 گیج برای همه بلوک ها به علت آسپیراسیون مطمین تر',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . fear، anxiety، tremor، headache و palpitations در epinephrine overdose دیده می شود. ج، ب و الف تابلوی دیگری دارند.',
                     ],
                     [
@@ -1343,7 +1343,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بلوک عصب باکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . loss of consciousness می تواند در syncope، LA overdose شدید و anaphylaxis شدید رخ دهد. ب و ج دامنه را محدود می کنند. د epinephrine overdose را شایع ترین علت LOC می گیرد که متن نمی گوید.',
                     ],
                     [
@@ -1355,7 +1355,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'امکان جریان برگشتی به سمت کاروتید داخلی و گردش مغزی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . tonic-clonic seizure بیشتر با LA overdose شدید سازگار است. الف syncope معمولاً حرکات خفیف تر دارد. د epinephrine tremor می دهد. ج allergy seizure را به hypoxia شدید محدود می کند.',
                     ],
                     [
@@ -1367,7 +1367,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افت فشار وضعیتی پس از برخاستن از صندلی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . حرکات convulsive کوتاه و خفیف همراه با fainting با syncope می تواند دیده شود. د LA overdose شدیدتر و tonic-clonic است. الف allergy است. ب epinephrine overdose است.',
                     ],
                     [
@@ -1379,7 +1379,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'انجام CPR بدون ارزیابی نبض',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . wheezing به bronchospasm و allergy/asthma اشاره دارد. ج، ب و الف با airway lower آلرژیک سازگار نیستند.',
                     ],
                     [
@@ -1391,7 +1391,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آنتی بیوتیک پروفیلاکسی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . stridor نشانه انسداد upper airway مانند laryngeal edema یا foreign body است. ب wheeze lower airway است. ج shock CVS است. د syncope است.',
                     ],
                     [
@@ -1403,7 +1403,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بروز علایم حین تزریق یا چند ثانیه پس از آن همراه با تشنج یا بی هوشی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . در بیمار بیهوش با انسداد راه هوایی، اصلاح head tilt-chin lift و suction ابتدا انجام می شود؛ اگر رفع نشد، lower obstruction یا edema/foreign body مطرح می شود. الف و د تشخیص را زود قطعی می کنند. ج airway maneuvers را حذف می کند.',
                     ],
                     [
@@ -1415,7 +1415,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'اکسیژن جایگزین پایش علایم حیاتی می شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . syncope معمولاً presyncope با tachycardia خفیف دارد و سپس HR و BP افت می کنند. د epinephrine overdose است. الف allergy shock است. ب LA toxicity severe است.',
                     ],
                     [
@@ -1427,7 +1427,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'به جای حفظ راه هوایی و اکسیژن استفاده می شود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose با BP بسیار بالا، pulse پر و bounding و احتمال dysrhythmia همراه است. ج syncope است. ب allergy shock است. الف opioid overdose است.',
                     ],
                     [
@@ -1439,7 +1439,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هوشیاری کامل و امکان ترخیص بی درنگ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . allergy severe معمولاً tachycardia با pulse ضعیف و thready و افت فشار می دهد. ب epinephrine overdose است. ج syncope است. د LA onset early است.',
                     ],
                     [
@@ -1451,7 +1451,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'برای کنترل خونریزی سودمند است، اما برای طولانی کردن بی حسی با لیدوکایین مزیت منطقی نسبت به رقت های کمتر ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose در شروع می تواند BP/HR را افزایش دهد و سپس با CNS/CVS depression افت ایجاد کند. الف، د و ج تابلوی مراحل را ناقص یا معکوس می کنند.',
                     ],
                     [
@@ -1463,7 +1463,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'از نظر قلبی ایمن تر از مواد هموستاتیک غیروازواکتیو است',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . طولانی ترین presyncopal period برای vasodepressor syncope است. د LA overdose به signs CNS وابسته تر است. الف epinephrine سریع تر است. ب allergy با پوست و تنفس آشکار می شود.',
                     ],
                     [
@@ -1475,7 +1475,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افت فشار، برادی کاردی و بازیابی سریع با خواباندن',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . احساس faint/lightheaded، pallor و perspiration پس از تزریق با syncope سازگار است. ج، ب و الف علایم اختصاصی تری برای overdose یا allergy دارند.',
                     ],
                     [
@@ -1487,7 +1487,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افت فشار شدید با تاکی کاردی ضعیف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . شروع سریع در حین تزریق همراه با seizure به LA overdose ناشی از intravascular injection نزدیک است. ب و ج تابلوی تنفسی/پوستی دارند. د epinephrine overdose seizure tonic-clonic معمول نمی دهد.',
                     ],
                     [
@@ -1499,7 +1499,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'قطع درمان، وضعیت راحت، ارزیابی C-A-B، اطمینان دهی، پایش علایم حیاتی و اکسیژن در صورت نیاز',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . palpitations، throbbing headache، tremor و افزایش شدید BP با epinephrine overdose سازگار است. الف، د و ج علایم اصلی را پوشش نمی دهند.',
                     ],
                     [
@@ -1511,7 +1511,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'به علت اثر بی حس کننده روی عضلات اسکلتی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . erythema، urticaria، pruritus و bronchospasm با allergy سازگار است. د syncope است. الف LA overdose است. ب epinephrine overdose است.',
                     ],
                     [
@@ -1523,7 +1523,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'خارش، ادم و رینیت پس از آنتی ژن',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . کمترین شیوع ولی خطر بالا در بین سه گروه برای allergy/anaphylaxis مطرح است. ج و ب شایع ترند. الف طبقه اصلی نیست.',
                     ],
                     [
@@ -1535,7 +1535,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هر سدیشن خوراکی بدون تجهیزات راه هوایی قابل انجام است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . vasodepressor syncope از نظر overall incidence شایع ترین drug-related emergency در dental office است. ب و ج true ADRهای دیگرند. د دیابت است.',
                     ],
                     [
@@ -1547,7 +1547,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'فلومازنیل',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . اگر skin changes و respiratory symptoms غالب باشند، allergy محتمل تر از syncope یا LA overdose است. الف و د نشانه های پوستی/تنفسی را توضیح نمی دهند. ج epinephrine overdose بیشتر cardiovascular است.',
                     ],
                     [
@@ -1559,7 +1559,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نیتروگلیسیرین',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . در syncope بازگرداندن perfusion مغزی با position معمولاً recovery سریع می دهد. د و الف با position بدون اقدام دیگر رفع نمی شوند. ب با head/leg positioning بدتر توصیف نشده است.',
                     ],
                     [
@@ -1571,7 +1571,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هر دو عمدتاً با برونکواسپاسم آلرژیک ظاهر می شوند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . وجود seizures پس از LA، به ویژه tonic-clonic، diagnosis را به LA overdose سوق می دهد. ج و ب seizure را محور نمی دانند. الف epinephrine بیشتر tremor دارد.',
                     ],
                     [
@@ -1583,7 +1583,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'یک تنفس هر 20 ثانیه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . significant hypotension با weak/thready pulse در allergy/anaphylaxis و LA depression شدید مطرح است، اما همراهی با rash/bronchospasm به allergy کمک می کند. ب epinephrine opposite است. ج syncope با position سریع بهتر می شود. د جواب کامل نیست.',
                     ],
                     [
@@ -1595,7 +1595,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'یک تنفس هر 3 تا 5 ثانیه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . respiratory signs در allergy برجسته ترند، به ویژه bronchospasm و laryngeal edema. الف و د بیشتر cardiovascular/CNS هستند. ج syncope respiratory primary ندارد.',
                     ],
                     [
@@ -1607,7 +1607,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'LAها در این زمینه اثری روی CNS ندارند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با CNS stimulation سپس depression توضیح داده می شود. د allergy mediator release است. الف epinephrine sympathetic excess است. ب syncope cerebral hypoperfusion است.',
                     ],
                     [
@@ -1619,7 +1619,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'LAها در کودکان نیازی به محاسبه وزنی ندارند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose در dental office بیشتر از endogenous catecholamine release ناشی از ترس یا از دوز/غلظت نامناسب و retraction cord ناشی می شود. ج و ب علت های اصلی را حذف می کنند. الف آن را ایمنی می داند.',
                     ],
                     [
@@ -1631,7 +1631,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'مصرف NSAID، درمان کوتاه و اضطراب خفیف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . اگر نشانه های allergy وجود نداشته باشد و بیمار بیهوش است، ابتدا airway، breathing، circulation اصلاح و suction انجام می شود. ب و ج داروی آلرژی را زودهنگام می دهند. د airway را کنار می گذارد.',
                     ],
                     [
@@ -1643,7 +1643,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'استتوسکوپ پیش تراشه ای، پالس اکسیمتری و کاپنوگرافی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . dose زیاد یا جذب/تزریق داخل عروقی سریع LA باعث سطح خونی بالا و toxicity می شود. الف allergy است. د syncope است. ج epinephrine overdose است.',
                     ],
                     [
@@ -1655,7 +1655,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پس از شروع درمان، خطر واکنش دارویی کاهش می یابدفصل 24: Allergy',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . افتراق drug-related emergencies با onset، dose، prior exposure، skin change، nervousness، seizures، respiratory findings و vital signs انجام می شود. د، الف و ب یک نشانه را معیار غالب می گیرند و کافی نیستند.',
                     ],
                     [
@@ -1667,7 +1667,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ روان زاد ناشی از تزریق',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . فصل سه تشخیص اصلی drug-related را vasodepressor syncope، overdose و allergy می داند. د و الف تشخیص های دیگرند. ب اختلال غددی است.',
                     ],
                     [
@@ -1679,7 +1679,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژن معمولاً داروی با وزن مولکولی پایین است و آنتی ژن معمولاً غذاست',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope به ویژه در نوجوانان و بالغین جوان، بیشتر در مردان، شایع است. ج و ب الگوی سن و جنس را حذف می کنند. الف برعکس فصل است.',
                     ],
                     [
@@ -1691,7 +1691,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'فوری و IgE-mediated با اتصال کمپلکس IgE به mast cell',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . overdose می تواند هر سنی را درگیر کند، اما کودکان کم وزن و سالمندان در معرض خطر بیشتری هستند. ب و ج گروه های پرخطر را محدود می کنند. د خطر سن را بی اهمیت می داند.',
                     ],
                     [
@@ -1703,7 +1703,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'خواب آلودگی خفیف بعد از بنزودیازپین',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . anaphylaxis می تواند هر سنی را درگیر کند، اما مرگ های گزارش شده بیشتر در افراد بالاتر از ۱۹ سال بوده است. الف و د محدوده را غلط می کنند. ج سابقه تماس را با سن جابه جا می کند.',
                     ],
                     [
@@ -1715,7 +1715,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'bronchospasm فوری',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . allergy در متن بیشتر در زنان گزارش شده است، درحالی که overdose تفاوت جنسی مشخصی ندارد. د، الف و ب با تمایز فصل همخوان نیستند.',
                     ],
                     [
@@ -1727,7 +1727,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پوست و غدد بزاقی به عنوان درگیری اصلی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope در حالت upright یا هنگام قرارگیری نامناسب بیمار بیشتر رخ می دهد و در وضعیت supine پاها بالا احتمال کمتری دارد. ج و ب به overdose/allergy نزدیک ترند. الف وضعیت را بی اثر می داند.',
                     ],
                     [
@@ -1739,7 +1739,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'شبیه آنافیلاکسی است اما ایمونولوژیک نیست و می تواند در مواجهه نخست رخ دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . بهبود سریع پس از supine با پاهای بالا به syncope کمک تشخیصی می کند. ب و ج معمولاً با این مانور سریع رفع نمی شوند. د opposite response است.',
                     ],
                     [
@@ -1751,7 +1751,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تحمل بیشتر به آنتی بیوتیک ها',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . تماس قبلی برای allergy لازم است، اما overdose به دوز و سطح خونی مربوط است. الف و د شرط تماس قبلی را نادرست تعمیم می دهند. ج syncope را allergic می کند.',
                     ],
                     [
@@ -1763,7 +1763,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ضداسیدها',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . overdose dose-related است، در حالی که allergy وابسته به دوز درمانی نیست. د، الف و ب رابطه دوز را معکوس یا حذف می کنند.',
                     ],
                     [
@@ -1775,7 +1775,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'به علت نبود آلرژی، انتخاب بی خطر برای همه بیماران آسمی است',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . psychogenic/syncope شایع ترین واکنش دارویی نما در محیط دندانپزشکی است. ج و ب کمتر رخ می دهند. الف به specific overdose محدود است.',
                     ],
                     [
@@ -1787,7 +1787,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'واقعی و قابل بازتولید بودن آن بسیار نادر است و باید با تاریخچه و تست معتبر بررسی شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . true ADRها بیشتر pharmacologic/overdose هستند و immunologic/allergy سهم کمتری دارند. ب و ج درصدها را وارونه می کنند. د syncope را true ADR می گیرد.',
                     ],
                     [
@@ -1799,7 +1799,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'خود ماده بی حس کننده',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose معمولاً ۲ تا ۳۰ دقیقه طول می کشد و با کاهش سطح خونی فروکش می کند. الف بیشتر epinephrine overdose است. د allergy است. ج syncope است.',
                     ],
                     [
@@ -1811,7 +1811,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'همه کارتریج های تک دوز بدون استثنا',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . epinephrine overdose معمولاً onset و duration کوتاه تری در حد ثانیه ها تا چند دقیقه دارد. د LA overdose طولانی تر است. الف allergy است. ب duration را به روزها می برد.',
                     ],
                     [
@@ -1823,7 +1823,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تشنج تونیک ـ کلونیک ناشی از LAST',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . allergy ممکن است ساعت ها تا روزها دوام داشته باشد. ج، ب و الف مدت زمان کوتاه تر syncope/epinephrine یا LA را نشان می دهند.',
                     ],
                     [
@@ -1835,7 +1835,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'شراب، آبجو، میوه خشک، سالاد رستورانی و برخی غذاهای آماده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . pallor، پوست سرد و مرطوب و diaphoresis با syncope سازگار است. ب flushing/urticaria allergy است. ج erythema با epinephrine مطرح می شود. د CNS stimulation است.',
                     ],
                     [
@@ -1847,7 +1847,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'واکنش قلبی ـ عروقی ناشی از دوز کم',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . flushing، urticaria، pruritus و edema با allergy سازگار است. الف syncope است. د LA overdose است. ج epinephrine overdose است.',
                     ],
                     [
@@ -1859,7 +1859,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'واکنش های آکریلی به مخاط دهان محدود نمی شوند و در دست پرسنل هم دیده نمی شوند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با anxiety، agitation و CNS stimulation شروع می شود. د، الف و ب به syncope، allergy یا epinephrine نزدیک ترند.',
                     ],
                     [
@@ -1871,7 +1871,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             '«کدام طعم داروی بی حسی را ترجیح می دهید؟»',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . fear، anxiety، tremor، headache و palpitations در epinephrine overdose دیده می شود. ج، ب و الف تابلوی دیگری دارند.',
                     ],
                     [
@@ -1883,7 +1883,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'واکنش احتمالاً آلرژیک شدید نبوده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . loss of consciousness می تواند در syncope، LA overdose شدید و anaphylaxis شدید رخ دهد. ب و ج دامنه را محدود می کنند. د epinephrine overdose را شایع ترین علت LOC می گیرد که متن نمی گوید.',
                     ],
                     [
@@ -1895,7 +1895,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'داروهای ضدصرع و دکستروز',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . tonic-clonic seizure بیشتر با LA overdose شدید سازگار است. الف syncope معمولاً حرکات خفیف تر دارد. د epinephrine tremor می دهد. ج allergy seizure را به hypoxia شدید محدود می کند.',
                     ],
                     [
@@ -1907,7 +1907,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'جایگزین اکسیژن در آنافیلاکسی اند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . حرکات convulsive کوتاه و خفیف همراه با fainting با syncope می تواند دیده شود. د LA overdose شدیدتر و tonic-clonic است. الف allergy است. ب epinephrine overdose است.',
                     ],
                     [
@@ -1919,7 +1919,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پرسش از بیمار درباره نام Novocain بدون ارزیابی دیگر',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . wheezing به bronchospasm و allergy/asthma اشاره دارد. ج، ب و الف با airway lower آلرژیک سازگار نیستند.',
                     ],
                     [
@@ -1931,7 +1931,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'برای جدا کردن واکنش به خود LA از واکنش به methylparaben یا bisulfite',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . stridor نشانه انسداد upper airway مانند laryngeal edema یا foreign body است. ب wheeze lower airway است. ج shock CVS است. د syncope است.',
                     ],
                     [
@@ -1943,7 +1943,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'چون واکنش های LA همگی روان زاد هستند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . در بیمار بیهوش با انسداد راه هوایی، اصلاح head tilt-chin lift و suction ابتدا انجام می شود؛ اگر رفع نشد، lower obstruction یا edema/foreign body مطرح می شود. الف و د تشخیص را زود قطعی می کنند. ج airway maneuvers را حذف می کند.',
                     ],
                     [
@@ -1955,7 +1955,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'صرف نظر از تاریخچه و انجام درمان کامل',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . syncope معمولاً presyncope با tachycardia خفیف دارد و سپس HR و BP افت می کنند. د epinephrine overdose است. الف allergy shock است. ب LA toxicity severe است.',
                     ],
                     [
@@ -1967,7 +1967,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'درمان روتین همه بیماران حساس به درد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose با BP بسیار بالا، pulse پر و bounding و احتمال dysrhythmia همراه است. ج syncope است. ب allergy shock است. الف opioid overdose است.',
                     ],
                     [
@@ -1979,7 +1979,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سوزش یا stinging',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . allergy severe معمولاً tachycardia با pulse ضعیف و thready و افت فشار می دهد. ب epinephrine overdose است. ج syncope است. د LA onset early است.',
                     ],
                     [
@@ -1991,7 +1991,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'استفاده از محلول حاوی پارابن برای کاهش آلرژی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose در شروع می تواند BP/HR را افزایش دهد و سپس با CNS/CVS depression افت ایجاد کند. الف، د و ج تابلوی مراحل را ناقص یا معکوس می کنند.',
                     ],
                     [
@@ -2003,7 +2003,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'استفاده از topical benzocaine با مقدار زیاد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . طولانی ترین presyncopal period برای vasodepressor syncope است. د LA overdose به signs CNS وابسته تر است. الف epinephrine سریع تر است. ب allergy با پوست و تنفس آشکار می شود.',
                     ],
                     [
@@ -2015,7 +2015,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تاخیر کمتر معمولاً نشانگر واکنش پوستی خفیف است',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . احساس faint/lightheaded، pallor و perspiration پس از تزریق با syncope سازگار است. ج، ب و الف علایم اختصاصی تری برای overdose یا allergy دارند.',
                     ],
                     [
@@ -2027,7 +2027,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'واکنش های پوستی مانند urticaria، erythema و angioedema',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . شروع سریع در حین تزریق همراه با seizure به LA overdose ناشی از intravascular injection نزدیک است. ب و ج تابلوی تنفسی/پوستی دارند. د epinephrine overdose seizure tonic-clonic معمول نمی دهد.',
                     ],
                     [
@@ -2039,7 +2039,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تهوع کوتاه بدون تنگی نفس',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . palpitations، throbbing headache، tremor و افزایش شدید BP با epinephrine overdose سازگار است. الف، د و ج علایم اصلی را پوشش نمی دهند.',
                     ],
                     [
@@ -2051,7 +2051,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'خواب آلودگی و آتاکسی پس از بنزودیازپین',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . erythema، urticaria، pruritus و bronchospasm با allergy سازگار است. د syncope است. الف LA overdose است. ب epinephrine overdose است.',
                     ],
                     [
@@ -2063,7 +2063,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هر دو یک تظاهر مشابه در برونش ها دارند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . کمترین شیوع ولی خطر بالا در بین سه گروه برای allergy/anaphylaxis مطرح است. ج و ب شایع ترند. الف طبقه اصلی نیست.',
                     ],
                     [
@@ -2075,7 +2075,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پوست، تحریک غدد برون ریز، اسپاسم عضله صاف گوارشی، تنفس، قلبی ـ عروقی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . vasodepressor syncope از نظر overall incidence شایع ترین drug-related emergency در dental office است. ب و ج true ADRهای دیگرند. د دیابت است.',
                     ],
                     [
@@ -2087,7 +2087,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'هیپوگلیسمی ناشی از انسولین',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . اگر skin changes و respiratory symptoms غالب باشند، allergy محتمل تر از syncope یا LA overdose است. الف و د نشانه های پوستی/تنفسی را توضیح نمی دهند. ج epinephrine overdose بیشتر cardiovascular است.',
                     ],
                     [
@@ -2099,7 +2099,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادامه اثر اپی نفرین پس از تزریق',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . در syncope بازگرداندن perfusion مغزی با position معمولاً recovery سریع می دهد. د و الف با position بدون اقدام دیگر رفع نمی شوند. ب با head/leg positioning بدتر توصیف نشده است.',
                     ],
                     [
@@ -2111,7 +2111,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'دوز بالای دارو، تزریق سریع و سطح خونی توکسیک',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . وجود seizures پس از LA، به ویژه tonic-clonic، diagnosis را به LA overdose سوق می دهد. ج و ب seizure را محور نمی دانند. الف epinephrine بیشتر tremor دارد.',
                     ],
                     [
@@ -2123,7 +2123,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'داروی کم وزن مولکولی با پروتیین حامل ترکیب می شود و کمپلکسی آنتی ژنیک می سازد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . significant hypotension با weak/thready pulse در allergy/anaphylaxis و LA depression شدید مطرح است، اما همراهی با rash/bronchospasm به allergy کمک می کند. ب epinephrine opposite است. ج syncope با position سریع بهتر می شود. د جواب کامل نیست.',
                     ],
                     [
@@ -2135,7 +2135,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادامه درمان و نادیده گرفتن علایم',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . respiratory signs در allergy برجسته ترند، به ویژه bronchospasm و laryngeal edema. الف و د بیشتر cardiovascular/CNS هستند. ج syncope respiratory primary ندارد.',
                     ],
                     [
@@ -2147,7 +2147,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'در هر بثوراتی که 48 ساعت بعد ظاهر شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با CNS stimulation سپس depression توضیح داده می شود. د allergy mediator release است. الف epinephrine sympathetic excess است. ب syncope cerebral hypoperfusion است.',
                     ],
                     [
@@ -2159,7 +2159,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             '0.03 mg از رقت 1:100,000 داخل مخاط دهان',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose در dental office بیشتر از endogenous catecholamine release ناشی از ترس یا از دوز/غلظت نامناسب و retraction cord ناشی می شود. ج و ب علت های اصلی را حذف می کنند. الف آن را ایمنی می داند.',
                     ],
                     [
@@ -2171,7 +2171,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلبوترول با metered-dose inhaler',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . اگر نشانه های allergy وجود نداشته باشد و بیمار بیهوش است، ابتدا airway، breathing، circulation اصلاح و suction انجام می شود. ب و ج داروی آلرژی را زودهنگام می دهند. د airway را کنار می گذارد.',
                     ],
                     [
@@ -2183,7 +2183,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تاکی کاردی و فشار خون بالا بدون تغییر تنفس',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . dose زیاد یا جذب/تزریق داخل عروقی سریع LA باعث سطح خونی بالا و toxicity می شود. الف allergy است. د syncope است. ج epinephrine overdose است.',
                     ],
                     [
@@ -2195,7 +2195,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کورتیکواسترویید خوراکی و انتظار برای پاسخفصل 25: Drug-Related Emergencies: Differential Diagnosis',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . افتراق drug-related emergencies با onset، dose، prior exposure، skin change، nervousness، seizures، respiratory findings و vital signs انجام می شود. د، الف و ب یک نشانه را معیار غالب می گیرند و کافی نیستند.',
                     ],
                     [
@@ -2207,7 +2207,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آموزش نسخه نویسی آنتی بیوتیک در عفونت های دندانی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . فصل سه تشخیص اصلی drug-related را vasodepressor syncope، overdose و allergy می داند. د و الف تشخیص های دیگرند. ب اختلال غددی است.',
                     ],
                     [
@@ -2219,7 +2219,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سابقه پاسخ قبلی به دارو و مستندسازی آلرژی می تواند از مواجهه مجدد خطرناک جلوگیری کند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope به ویژه در نوجوانان و بالغین جوان، بیشتر در مردان، شایع است. ج و ب الگوی سن و جنس را حذف می کنند. الف برعکس فصل است.',
                     ],
                     [
@@ -2231,7 +2231,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'LAST ناشی از دوز بالا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . overdose می تواند هر سنی را درگیر کند، اما کودکان کم وزن و سالمندان در معرض خطر بیشتری هستند. ب و ج گروه های پرخطر را محدود می کنند. د خطر سن را بی اهمیت می داند.',
                     ],
                     [
@@ -2243,7 +2243,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سالمندان نسبت به دوز معمول CNS depressants مقاوم ترند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . anaphylaxis می تواند هر سنی را درگیر کند، اما مرگ های گزارش شده بیشتر در افراد بالاتر از ۱۹ سال بوده است. الف و د محدوده را غلط می کنند. ج سابقه تماس را با سن جابه جا می کند.',
                     ],
                     [
@@ -2255,7 +2255,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژی عمدتاً در کودکان رخ می دهد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . allergy در متن بیشتر در زنان گزارش شده است، درحالی که overdose تفاوت جنسی مشخصی ندارد. د، الف و ب با تمایز فصل همخوان نیستند.',
                     ],
                     [
@@ -2267,7 +2267,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'syncope در مردان، به ویژه زیر 35 سال، شایع تر است؛ آلرژی در زنان بیشتر دیده می شود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . syncope در حالت upright یا هنگام قرارگیری نامناسب بیمار بیشتر رخ می دهد و در وضعیت supine پاها بالا احتمال کمتری دارد. ج و ب به overdose/allergy نزدیک ترند. الف وضعیت را بی اثر می داند.',
                     ],
                     [
@@ -2279,7 +2279,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بیمار قلبی با درد قفسه سینه پس از فعالیت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . بهبود سریع پس از supine با پاهای بالا به syncope کمک تشخیصی می کند. ب و ج معمولاً با این مانور سریع رفع نمی شوند. د opposite response است.',
                     ],
                     [
@@ -2291,7 +2291,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'overdose LA در وضعیت خوابیده رخ نمی دهد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . تماس قبلی برای allergy لازم است، اما overdose به دوز و سطح خونی مربوط است. الف و د شرط تماس قبلی را نادرست تعمیم می دهند. ج syncope را allergic می کند.',
                     ],
                     [
@@ -2303,7 +2303,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آنافیلاکسی ژنرالیزه شدید',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . overdose dose-related است، در حالی که allergy وابسته به دوز درمانی نیست. د، الف و ب رابطه دوز را معکوس یا حذف می کنند.',
                     ],
                     [
@@ -2315,7 +2315,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'LAST شدید، آنافیلاکسی سیستمیک و سنکوپ',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . psychogenic/syncope شایع ترین واکنش دارویی نما در محیط دندانپزشکی است. ج و ب کمتر رخ می دهند. الف به specific overdose محدود است.',
                     ],
                     [
@@ -2327,7 +2327,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'پیش از تزریق دارو به علت دیدن سوزن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . true ADRها بیشتر pharmacologic/overdose هستند و immunologic/allergy سهم کمتری دارند. ب و ج درصدها را وارونه می کنند. د syncope را true ADR می گیرد.',
                     ],
                     [
@@ -2339,7 +2339,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ ساده بدون هیپوکسی طولانی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose معمولاً ۲ تا ۳۰ دقیقه طول می کشد و با کاهش سطح خونی فروکش می کند. الف بیشتر epinephrine overdose است. د allergy است. ج syncope است.',
                     ],
                     [
@@ -2351,7 +2351,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تونیک ـ کلونیک ژنرالیزه با دوره پست ایکتال طولانی در همه موارد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . epinephrine overdose معمولاً onset و duration کوتاه تری در حد ثانیه ها تا چند دقیقه دارد. د LA overdose طولانی تر است. الف allergy است. ب duration را به روزها می برد.',
                     ],
                     [
@@ -2363,7 +2363,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'overdose اپی نفرین',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . allergy ممکن است ساعت ها تا روزها دوام داشته باشد. ج، ب و الف مدت زمان کوتاه تر syncope/epinephrine یا LA را نشان می دهند.',
                     ],
                     [
@@ -2375,7 +2375,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'overdose LA بدون درگیری تنفسی آلرژیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . pallor، پوست سرد و مرطوب و diaphoresis با syncope سازگار است. ب flushing/urticaria allergy است. ج erythema با epinephrine مطرح می شود. د CNS stimulation است.',
                     ],
                     [
@@ -2387,7 +2387,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ پیش تزریق',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . flushing، urticaria، pruritus و edema با allergy سازگار است. الف syncope است. د LA overdose است. ج epinephrine overdose است.',
                     ],
                     [
@@ -2399,7 +2399,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش فشار خون ناشی از اپی نفرین',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با anxiety، agitation و CNS stimulation شروع می شود. د، الف و ب به syncope، allergy یا epinephrine نزدیک ترند.',
                     ],
                     [
@@ -2411,7 +2411,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'انسداد راه هوایی پایین تر، ناشی از ادم یا جسم خارجی، و نیاز به اقدام سریع برای ایجاد راه هوایی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . fear، anxiety، tremor، headache و palpitations در epinephrine overdose دیده می شود. ج، ب و الف تابلوی دیگری دارند.',
                     ],
                     [
@@ -2423,7 +2423,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'تغییر تشخیصی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . loss of consciousness می تواند در syncope، LA overdose شدید و anaphylaxis شدید رخ دهد. ب و ج دامنه را محدود می کنند. د epinephrine overdose را شایع ترین علت LOC می گیرد که متن نمی گوید.',
                     ],
                     [
@@ -2435,7 +2435,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'بدون تغییر نسبت به baseline',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . tonic-clonic seizure بیشتر با LA overdose شدید سازگار است. الف syncope معمولاً حرکات خفیف تر دارد. د epinephrine tremor می دهد. ج allergy seizure را به hypoxia شدید محدود می کند.',
                     ],
                     [
@@ -2447,7 +2447,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژی سیستمیک',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . حرکات convulsive کوتاه و خفیف همراه با fainting با syncope می تواند دیده شود. د LA overdose شدیدتر و tonic-clonic است. الف allergy است. ب epinephrine overdose است.',
                     ],
                     [
@@ -2459,7 +2459,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'نزدیک baseline می ماند و سپس به طور معنی دار کاهش می یابد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . wheezing به bronchospasm و allergy/asthma اشاره دارد. ج، ب و الف با airway lower آلرژیک سازگار نیستند.',
                     ],
                     [
@@ -2471,7 +2471,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش سطح خونی LA در CNS',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . stridor نشانه انسداد upper airway مانند laryngeal edema یا foreign body است. ب wheeze lower airway است. ج shock CVS است. د syncope است.',
                     ],
                     [
@@ -2483,7 +2483,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'از ابتدا سقوط شدید آنافیلاکتیک دارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . در بیمار بیهوش با انسداد راه هوایی، اصلاح head tilt-chin lift و suction ابتدا انجام می شود؛ اگر رفع نشد، lower obstruction یا edema/foreign body مطرح می شود. الف و د تشخیص را زود قطعی می کنند. ج airway maneuvers را حذف می کند.',
                     ],
                     [
@@ -2495,7 +2495,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ وازودپرسور',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . syncope معمولاً presyncope با tachycardia خفیف دارد و سپس HR و BP افت می کنند. د epinephrine overdose است. الف allergy shock است. ب LA toxicity severe است.',
                     ],
                     [
@@ -2507,7 +2507,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'احساس غش و سبکی سر، رنگ پریدگی و تعریق پیش از افت هوشیاری',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose با BP بسیار بالا، pulse پر و bounding و احتمال dysrhythmia همراه است. ج syncope است. ب allergy shock است. الف opioid overdose است.',
                     ],
                     [
@@ -2519,7 +2519,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سردرد شدید و pulse bounding با duration ثانیه ای',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . allergy severe معمولاً tachycardia با pulse ضعیف و thready و افت فشار می دهد. ب epinephrine overdose است. ج syncope است. د LA onset early است.',
                     ],
                     [
@@ -2531,7 +2531,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'قطع داروهای ضدصرع',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . LA overdose در شروع می تواند BP/HR را افزایش دهد و سپس با CNS/CVS depression افت ایجاد کند. الف، د و ج تابلوی مراحل را ناقص یا معکوس می کنند.',
                     ],
                     [
@@ -2543,7 +2543,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کاتکولامین درون زاد ناشی از ترس',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . طولانی ترین presyncopal period برای vasodepressor syncope است. د LA overdose به signs CNS وابسته تر است. الف epinephrine سریع تر است. ب allergy با پوست و تنفس آشکار می شود.',
                     ],
                     [
@@ -2555,7 +2555,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'افزایش شدید nervousness، tremor خفیف، سردرد ضربان دار و افزایش HR/BP',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . احساس faint/lightheaded، pallor و perspiration پس از تزریق با syncope سازگار است. ج، ب و الف علایم اختصاصی تری برای overdose یا allergy دارند.',
                     ],
                     [
@@ -2567,7 +2567,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'epinephrine reaction کوتاه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . شروع سریع در حین تزریق همراه با seizure به LA overdose ناشی از intravascular injection نزدیک است. ب و ج تابلوی تنفسی/پوستی دارند. د epinephrine overdose seizure tonic-clonic معمول نمی دهد.',
                     ],
                     [
@@ -2579,7 +2579,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ روان زاد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . palpitations، throbbing headache، tremor و افزایش شدید BP با epinephrine overdose سازگار است. الف، د و ج علایم اصلی را پوشش نمی دهند.',
                     ],
                     [
@@ -2591,7 +2591,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . erythema، urticaria، pruritus و bronchospasm با allergy سازگار است. د syncope است. الف LA overdose است. ب epinephrine overdose است.',
                     ],
                     [
@@ -2603,7 +2603,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژی سیستمیک',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . کمترین شیوع ولی خطر بالا در بین سه گروه برای allergy/anaphylaxis مطرح است. ج و ب شایع ترند. الف طبقه اصلی نیست.',
                     ],
                     [
@@ -2615,7 +2615,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آنافیلاکسی ناشی از لاتکس',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . vasodepressor syncope از نظر overall incidence شایع ترین drug-related emergency در dental office است. ب و ج true ADRهای دیگرند. د دیابت است.',
                     ],
                     [
@@ -2627,7 +2627,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'contact dermatitis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . اگر skin changes و respiratory symptoms غالب باشند، allergy محتمل تر از syncope یا LA overdose است. الف و د نشانه های پوستی/تنفسی را توضیح نمی دهند. ج epinephrine overdose بیشتر cardiovascular است.',
                     ],
                     [
@@ -2639,7 +2639,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'چند روز تا زمانی که mediatorها حذف شوند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . در syncope بازگرداندن perfusion مغزی با position معمولاً recovery سریع می دهد. د و الف با position بدون اقدام دیگر رفع نمی شوند. ب با head/leg positioning بدتر توصیف نشده است.',
                     ],
                     [
@@ -2651,7 +2651,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'کوتاه است، زیرا اپی نفرین سریع به شکل های غیرفعال تبدیل می شود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . وجود seizures پس از LA، به ویژه tonic-clonic، diagnosis را به LA overdose سوق می دهد. ج و ب seizure را محور نمی دانند. الف epinephrine بیشتر tremor دارد.',
                     ],
                     [
@@ -2663,7 +2663,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'چون syncope به بازگشت وریدی وابسته نیست',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . significant hypotension با weak/thready pulse در allergy/anaphylaxis و LA depression شدید مطرح است، اما همراهی با rash/bronchospasm به allergy کمک می کند. ب epinephrine opposite است. ج syncope با position سریع بهتر می شود. د جواب کامل نیست.',
                     ],
                     [
@@ -2675,7 +2675,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'erythema بدون هیچ علامت دیگر در epinephrine reaction',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . respiratory signs در allergy برجسته ترند، به ویژه bronchospasm و laryngeal edema. الف و د بیشتر cardiovascular/CNS هستند. ج syncope respiratory primary ندارد.',
                     ],
                     [
@@ -2687,7 +2687,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آلرژی پوستی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . LA overdose با CNS stimulation سپس depression توضیح داده می شود. د allergy mediator release است. الف epinephrine sympathetic excess است. ب syncope cerebral hypoperfusion است.',
                     ],
                     [
@@ -2699,7 +2699,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'LAST و epinephrine overdose',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
+                        'explanation' => '**پاسخ درست:** گزینه د
 . epinephrine overdose در dental office بیشتر از endogenous catecholamine release ناشی از ترس یا از دوز/غلظت نامناسب و retraction cord ناشی می شود. ج و ب علت های اصلی را حذف می کنند. الف آن را ایمنی می داند.',
                     ],
                     [
@@ -2711,7 +2711,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'ادم لارنکس',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . اگر نشانه های allergy وجود نداشته باشد و بیمار بیهوش است، ابتدا airway، breathing، circulation اصلاح و suction انجام می شود. ب و ج داروی آلرژی را زودهنگام می دهند. د airway را کنار می گذارد.',
                     ],
                     [
@@ -2723,7 +2723,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'سنکوپ ساده',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . dose زیاد یا جذب/تزریق داخل عروقی سریع LA باعث سطح خونی بالا و toxicity می شود. الف allergy است. د syncope است. ج epinephrine overdose است.',
                     ],
                     [
@@ -2735,7 +2735,7 @@ function dent_exams_term6_reference_course_data_malamed_medical_emergencies_21_2
                             'آنافیلاکسی بدون علایم پوستی====================',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . افتراق drug-related emergencies با onset، dose، prior exposure، skin change، nervousness، seizures، respiratory findings و vital signs انجام می شود. د، الف و ب یک نشانه را معیار غالب می گیرند و کافی نیستند.',
                     ],
                 ],

@@ -47,8 +47,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'غدد major پس از غدد minor شروع می‌شوند و عملکرد آن‌ها در نوزاد کامل‌تر از غدد minor است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: منبع شروع رشد major glands را حدود روز ۳۵ جنینی و پیدایش acini را حدود ماه هفتم یا هشتم جنینی ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: منبع شروع رشد major glands را حدود روز ۳۵ جنینی و پیدایش acini را حدود ماه هفتم یا هشتم جنینی ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: روز ۳۵ مربوط به major glands است، نه minor؛ همچنین متن عملکردی بودن minor glands را در نوزاد می‌گوید، نه تکامل کامل acini در هفته هشتم. گزینه ج: minor glands حدود روز ۴۰ و major glands زودتر آغاز می‌شوند؛ یکسان‌سازی زمان شروع و تأخیر کانالیزاسیون تا تولد با متن سازگار نیست. گزینه د: major glands کمی زودتر از minor glands شروع می‌شوند؛ متن کامل‌تر بودن عملکرد major glands در نوزاد را بیان نکرده است.',
                     ],
                     [
@@ -60,8 +60,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بروز در مردان اندکی بیشتر است، اوج زیر ۲۰ سالگی است و stone متعدد معمولاً در parotid رخ می‌دهد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید salivary gland stones در مردان دو برابر شایع‌ترند، peak بین ۳۰ تا ۵۰ سالگی است و multiple stone در حدود ۲۵٪ بیماران رخ می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید salivary gland stones در مردان دو برابر شایع‌ترند، peak بین ۳۰ تا ۵۰ سالگی است و multiple stone در حدود ۲۵٪ بیماران رخ می‌دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: غلبه زنان و اوج دهه ششم در متن برای sialolithiasis ذکر نشده و stone متعدد به کودکان محدود نشده است. گزینه ج: برابری جنسی و اوج کودکی با داده‌های فصل ناسازگار است؛ موارد کودکان حدود ۳٪ گزارش شده‌اند. گزینه د: اوج زیر ۲۰ سالگی و اختصاص stone متعدد به parotid در متن وجود ندارد.',
                     ],
                     [
@@ -73,8 +73,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'قرارگیری minor salivary glands در مخاط labial و buccal همراه با ductهای کوتاه و متعدد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن توضیح می‌دهد parotid می‌تواند به اطراف posterior border mandibule و فضای pterygomandibular امتداد یابد و چون شاخه‌های facial nerve در parotid هستند، تزریق داخل غده می‌تواند فلج گذرا بدهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن توضیح می‌دهد parotid می‌تواند به اطراف posterior border mandibule و فضای pterygomandibular امتداد یابد و چون شاخه‌های facial nerve در parotid هستند، تزریق داخل غده می‌تواند فلج گذرا بدهد.
 دلیل رد گزینه‌های غلط: گزینه ب: این رابطه مربوط به submandibular duct و lingual nerve است و فلج facial پس از mandibular block را توضیح نمی‌دهد. گزینه ج: Rivinus ducts مربوط به sublingual gland هستند و با رخداد facial paralysis پس از تزریق ارتباطی در متن ندارند. گزینه د: minor glands در این مکانیسم نقشی ندارند و متن آن‌ها را عامل فلج گذرای عصب facial معرفی نمی‌کند.',
                     ],
                     [
@@ -86,8 +86,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'جایگزینی لنفوسیتی بافت غدد major و minor همراه با xerostomia و keratoconjunctivitis sicca.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن mucocele را ناشی از آسیب ductهای minor، خروج بزاق به بافت نرم و تشکیل pseudocyst بدون epithelial lining واقعی می‌داند؛ lower lip شایع‌ترین محل است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن mucocele را ناشی از آسیب ductهای minor، خروج بزاق به بافت نرم و تشکیل pseudocyst بدون epithelial lining واقعی می‌داند؛ lower lip شایع‌ترین محل است.
 دلیل رد گزینه‌های غلط: گزینه ب: این توصیف بیشتر به obstruction در duct major مربوط می‌شود و cyst حقیقی با پوشش اپی‌تلیالی برای mucocele ذکر نشده است. گزینه ج: این گزینه ویژگی pleomorphic adenoma است، نه ضایعه پر و خالی‌شونده لب پایین. گزینه د: این توصیف مربوط به Sjögren syndrome است و با یک mucocele موضعی لب پایین تطابق ندارد.',
                     ],
                     [
@@ -99,8 +99,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Autoimmune replacement در بافت glandular.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در متن تصریح شده است که تشدید علائم در mealtime می‌تواند نشان‌دهنده یک obstructive phenomenon باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در متن تصریح شده است که تشدید علائم در mealtime می‌تواند نشان‌دهنده یک obstructive phenomenon باشد.
 دلیل رد گزینه‌های غلط: گزینه ب: اختلالات developmental با شرح حال تشدید هنگام غذا خوردن در متن مرتبط نشده‌اند. گزینه ج: تومورها ممکن است توده بدهند، اما mealtime exacerbation شاخص obstruction است، نه تومور. گزینه د: Sjögren با خشکی دهان و چشم و کاهش عملکرد غدد مطرح می‌شود؛ تشدید هنگام غذا خوردن نشانه اصلی آن در متن نیست.',
                     ],
                     [
@@ -112,8 +112,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Primary Sjögren syndrome با حمله حاد چرکی و اریتم واضح اطراف parotid.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن acute suppurative sialadenitis/parotitis را در بیماران مسن، debilitated، malnourished یا dehydrated توصیف می‌کند و S. aureus را شایع‌ترین ارگانیسم می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن acute suppurative sialadenitis/parotitis را در بیماران مسن، debilitated، malnourished یا dehydrated توصیف می‌کند و S. aureus را شایع‌ترین ارگانیسم می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: mumps یک بیماری ویروسی nonsuppurative است و متن برای آن antibiotic therapy را درمان اصلی نمی‌داند. گزینه ج: Necrotizing sialometaplasia معمولاً minor glands کام را درگیر می‌کند و تابلوی چرک از Stensen duct ندارد. گزینه د: Sjögren با xerostomia و dry eyes و جایگزینی لنفوسیتی مطرح است، نه عفونت چرکی حاد با اریتم و purulence.',
                     ],
                     [
@@ -125,8 +125,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Oil-based media به علت جذب سریع سیستمیک از gland، خطر necrosis بافت نرم را کمتر از water-soluble media دارند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن بیان می‌کند water-soluble media بیشتر ترجیح داده می‌شوند، miscibleتر با بزاق‌اند، آسان‌تر تزریق و دفع می‌شوند و عوارض oil-based media مانند obstruction، foreign-body reaction و necrosis را ندارند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن بیان می‌کند water-soluble media بیشتر ترجیح داده می‌شوند، miscibleتر با بزاق‌اند، آسان‌تر تزریق و دفع می‌شوند و عوارض oil-based media مانند obstruction، foreign-body reaction و necrosis را ندارند.
 دلیل رد گزینه‌های غلط: گزینه ب: متن oil-based media را viscousتر، نیازمند فشار بیشتر و دردناک‌تر معرفی می‌کند. گزینه ج: باقی‌ماندن طولانی مشکل oil-based media است، نه ویژگی اصلی water-soluble media. گزینه د: متن می‌گوید oil-based media اگر باقی بمانند یا extravasate شوند می‌توانند foreign-body reaction، necrosis و damage بیشتری ایجاد کنند.',
                     ],
                     [
@@ -138,8 +138,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Antibiotic therapy با پوشش S. aureus و hydration داخل‌وریدی.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: این توصیف با pleomorphic adenoma سازگار است؛ متن درمان آن را complete surgical excision با margin of normal uninvolved tissue می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: این توصیف با pleomorphic adenoma سازگار است؛ متن درمان آن را complete surgical excision با margin of normal uninvolved tissue می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: Marsupialization درمان معمول ranula است، نه pleomorphic adenoma. گزینه ج: ترمیم خودبه‌خودی طی ۶ تا ۱۰ هفته مربوط به necrotizing sialometaplasia است. گزینه د: آنتی‌بیوتیک و hydration برای bacterial salivary gland infection مطرح است، نه تومور benign mixed.',
                     ],
                     [
@@ -151,8 +151,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Minor glands بیشترین سهم resting saliva را دارند و sublingual دومین منبع اصلی است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Table 21.3 فصل سهم submandibular را ۷۰٪، parotid را ۲۵٪، sublingual را ۳ تا ۴٪ و minor glands را trace ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Table 21.3 فصل سهم submandibular را ۷۰٪، parotid را ۲۵٪، sublingual را ۳ تا ۴٪ و minor glands را trace ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: در این گزینه جای سهم parotid و submandibular و نیز sublingual/minor جابه‌جا شده است. گزینه ج: متن sublingual را منبع ۳ تا ۴٪ می‌داند، نه بیشترین تولیدکننده. گزینه د: minor glands در جدول سهم trace دارند و بیشترین تولیدکننده نیستند.',
                     ],
                     [
@@ -164,8 +164,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Warthin tumor در tail of parotid با ارتباط شناخته‌شده با smoking.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید plunging ranula زمانی رخ می‌دهد که ضایعه از mylohyoid عبور کرده و به submandibular space/neck برسد و می‌تواند airway را به خطر اندازد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید plunging ranula زمانی رخ می‌دهد که ضایعه از mylohyoid عبور کرده و به submandibular space/neck برسد و می‌تواند airway را به خطر اندازد.
 دلیل رد گزینه‌های غلط: گزینه ب: simple ranula در فضای sublingual و بالای mylohyoid محدود می‌ماند؛ در سؤال عبور به زیر mylohyoid ذکر شده است. گزینه ج: mucocele معمولاً lower lip یا buccal mucosa را درگیر می‌کند، نه گسترش از floor of mouth به neck. گزینه د: Warthin tumor در tail of parotid رخ می‌دهد و ویژگی رانولای فرو رونده را ندارد.',
                     ],
                     [
@@ -177,8 +177,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Digital subtraction phase.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Acinar phase چند دقیقه پس از opacification کامل ducts آغاز می‌شود و با پر شدن parenchyma و outline شدن gland/lobules همراه است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Acinar phase چند دقیقه پس از opacification کامل ducts آغاز می‌شود و با پر شدن parenchyma و outline شدن gland/lobules همراه است.
 دلیل رد گزینه‌های غلط: گزینه ب: Ductal phase تقریباً بلافاصله پس از تزریق رخ می‌دهد و عمدتاً major ducts را نشان می‌دهد. گزینه ج: Evacuation phase عملکرد پاکسازی و باقی‌ماندن contrast پس از تزریق را ارزیابی می‌کند. گزینه د: Digital subtraction یک تکنیک تصویربرداری برای بهبود تصاویر است، نه یکی از سه phase اصلی sialogram.',
                     ],
                     [
@@ -190,8 +190,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Intermediate-grade در متن به عنوان ضایعه‌ای خودمحدودشونده با ترمیم ۶ تا ۱۰ هفته‌ای توصیف شده است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: منبع mucoepidermoid carcinoma را بر اساس نسبت سه نوع سلول grade می‌کند؛ low-grade با wide excision و ۵-year survival حدود ۹۵٪ و high-grade با درمان تهاجمی‌تر و survival کمتر از ۴۰٪ همراه است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: منبع mucoepidermoid carcinoma را بر اساس نسبت سه نوع سلول grade می‌کند؛ low-grade با wide excision و ۵-year survival حدود ۹۵٪ و high-grade با درمان تهاجمی‌تر و survival کمتر از ۴۰٪ همراه است.
 دلیل رد گزینه‌های غلط: گزینه ب: marsupialization درمان ranula است و برای mucoepidermoid carcinoma مطرح نشده است. گزینه ج: high-grade با predominance of epidermoid cells، pleomorphism و فقدان mucous cells/cystic areas تهاجمی‌تر است. گزینه د: ترمیم ۶ تا ۱۰ هفته‌ای مربوط به necrotizing sialometaplasia است، نه mucoepidermoid carcinoma.',
                     ],
                     [
@@ -203,8 +203,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Periapical radiographs معمولاً برای مشاهده calculi minor glands مناسب دانسته نمی‌شوند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید mandibular occlusal film برای anterior floor مفید است اما false-negative بالایی برای radiolucent stones/mucous plugs دارد و ممکن است posterior stone را از دست بدهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید mandibular occlusal film برای anterior floor مفید است اما false-negative بالایی برای radiolucent stones/mucous plugs دارد و ممکن است posterior stone را از دست بدهد.
 دلیل رد گزینه‌های غلط: گزینه ب: فصل ۸۰ تا ۸۵٪ سنگ‌ها را radiopaque می‌داند؛ بنابراین طبیعی بودن فیلم obstruction را رد نمی‌کند. گزینه ج: mandibular occlusal film برای sublingual/submandibular calculi در anterior floor مفید است؛ برای parotid hilum ابزار اصلی معرفی نشده است. گزینه د: متن می‌گوید periapical radiographs بسته به placement می‌توانند calculi در هر غده یا duct، حتی minor glands، را نشان دهند.',
                     ],
                     [
@@ -216,8 +216,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'به عنوان bacterial sialadenitis با incision and drainage فوری درمان شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن necrotizing sialometaplasia را reactive nonneoplastic، اغلب در minor glands کام، شبیه carcinoma و خودمحدودشونده با ترمیم ۶ تا ۱۰ هفته‌ای معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن necrotizing sialometaplasia را reactive nonneoplastic، اغلب در minor glands کام، شبیه carcinoma و خودمحدودشونده با ترمیم ۶ تا ۱۰ هفته‌ای معرفی می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: منبع هشدار می‌دهد misdiagnosis می‌تواند به resection وسیع غیرضروری برای بیماری خوش‌خیم و self-limiting منجر شود. گزینه ج: mucoepidermoid carcinoma یک malignant salivary tumor است؛ در این سؤال biopsy reactive inflammatory process را نشان داده است. گزینه د: بیماری چرکی غده بزاقی با purulence و درمان antibiotic/ drainage با این الگوی palatal ulcer مطابقت ندارد.',
                     ],
                     [
@@ -229,8 +229,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Salivary scintigraphy، چون resolution بالایی برای ندول‌های کوچک دارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن ultrasonography را high-resolution، noninvasive، کم‌هزینه و مفید برای هدایت biopsy/FNA، به‌ویژه در ندول‌های کوچک یا دشوار، توصیف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن ultrasonography را high-resolution، noninvasive، کم‌هزینه و مفید برای هدایت biopsy/FNA، به‌ویژه در ندول‌های کوچک یا دشوار، توصیف می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: occlusal radiograph برای anterior floor calculi مفید است و vascularization را نشان نمی‌دهد. گزینه ج: sialography به operator expertise نیاز دارد و عمدتاً ductal morphology/obstruction را نشان می‌دهد. گزینه د: scintigraphy در متن resolution ضعیف دارد و برای ندول کوچک گزینه دقیق معرفی نشده است.',
                     ],
                     [
@@ -242,8 +242,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Chronic bacterial sialadenitis.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Secondary Sjögren syndrome در متن شامل primary disease همراه با connective tissue disorder، شایع‌ترین آن rheumatoid arthritis، تعریف شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Secondary Sjögren syndrome در متن شامل primary disease همراه با connective tissue disorder، شایع‌ترین آن rheumatoid arthritis، تعریف شده است.
 دلیل رد گزینه‌های غلط: گزینه ب: Primary Sjögren یا sicca syndrome با xerostomia و keratoconjunctivitis sicca تعریف می‌شود، بدون تأکید بر disorder همراه. گزینه ج: Necrotizing sialometaplasia یک ضایعه موضعی reactive در minor glands کام است، نه بیماری multisystem با dry eyes/dry mouth. گزینه د: Chronic bacterial sialadenitis با عفونت و اختلال جریان بزاق مرتبط است، نه triad خودایمنی و خشکی چشم/دهان.',
                     ],
                     [
@@ -255,8 +255,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Myoepithelial cell → Wharton duct → acinus → Stensen duct.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل واحد پایه را شامل acinus و سپس collecting ducts به ترتیب intercalated، striated و excretory duct می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل واحد پایه را شامل acinus و سپس collecting ducts به ترتیب intercalated، striated و excretory duct می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: این گزینه ترتیب جریان را وارونه کرده است. گزینه ج: Rivinus و Bartholin مربوط به ductهای sublingual هستند، نه توالی پایه salivary gland units. گزینه د: myoepithelial cell جزئی از acinus است و Wharton/Stensen نام ductهای major خاص هستند، نه توالی سلولی-مجرایی پایه.',
                     ],
                     [
@@ -268,8 +268,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Ball-in-hand appearance در sialogram به علت displacement ductal anatomy توسط tumor.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در شکل و متن مربوط به Stensen duct laceration، نادیده گرفتن آسیب duct به ایجاد sialocele، یعنی localized collection of saliva، منجر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در شکل و متن مربوط به Stensen duct laceration، نادیده گرفتن آسیب duct به ایجاد sialocele، یعنی localized collection of saliva، منجر شده است.
 دلیل رد گزینه‌های غلط: گزینه ب: این یافته مربوط به Sjögren syndrome و خشکی چشم است، نه آسیب مجرای parotid در گونه. گزینه ج: pseudocyst لب پایین ویژگی mucocele minor glands است و با Stensen duct laceration تفاوت دارد. گزینه د: ball-in-hand appearance نشانه displacement ductها توسط mass/tumor در sialography است، نه عارضه مستقیم laceration.',
                     ],
                     [
@@ -281,8 +281,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تعیین benign/malignant بودن با needle passes و cytology فوری.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید sialoendoscopy می‌تواند stones نزدیک hilum را با endoscope و baskets بردارد و از gland removal که برای سنگ‌های posterior معمولاً لازم می‌شد جلوگیری کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید sialoendoscopy می‌تواند stones نزدیک hilum را با endoscope و baskets بردارد و از gland removal که برای سنگ‌های posterior معمولاً لازم می‌شد جلوگیری کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این گزینه مربوط به labial salivary gland biopsy برای Sjögren است. گزینه ج: این کار sialochemistry است، نه توانایی اصلی sialoendoscopy. گزینه د: این توصیف FNA biopsy است، نه endoscopic stone retrieval.',
                     ],
                     [
@@ -294,8 +294,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای جلوگیری از salivary flow، در هفته‌های اول پس از درمان از محرک‌های بزاقی پرهیز شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Box 21.1 برای anterior Wharton duct stone، milk کردن، dilation با lacrimal probes و توجه به عدم displacement posterior را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Box 21.1 برای anterior Wharton duct stone، milk کردن، dilation با lacrimal probes و توجه به عدم displacement posterior را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: در sialodochoplasty، duct مستقیماً ترمیم نمی‌شود چون scarring و stricture می‌تواند obstruction را عود دهد. گزینه ج: superficial parotidectomy مربوط به موارد نادر parotid stones در hilum/within gland است، نه stone کوچک قدامی Wharton. گزینه د: متن پس از procedure به حفظ جریان بزاق با citrus fruits، flavored candies یا glycerin swabs توصیه می‌کند.',
                     ],
                     [
@@ -307,8 +307,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'وجود basaloid cells به صورت cribriform یا Swiss-cheese pattern.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن بیان می‌کند تشخیص Sjögren با focus score greater than one در labial minor salivary gland biopsy پشتیبانی می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن بیان می‌کند تشخیص Sjögren با focus score greater than one در labial minor salivary gland biopsy پشتیبانی می‌شود.
 دلیل رد گزینه‌های غلط: گزینه ب: این توصیف با obstructive stone/sialography مرتبط است، نه معیار biopsy Sjögren. گزینه ج: این histology مربوط به Warthin tumor است. گزینه د: این pattern مربوط به adenoid cystic carcinoma است، نه Sjögren.',
                     ],
                     [
@@ -320,8 +320,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Basaloid cells در cribriform pattern؛ درمان wide excision و گاهی radiation therapy.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: این شرح با Warthin tumor سازگار است؛ متن آن را تقریباً منحصر به parotid tail، در دهه ششم، با male predominance و smoking association توصیف می‌کند و histology و درمان گزینه الف را می‌آورد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: این شرح با Warthin tumor سازگار است؛ متن آن را تقریباً منحصر به parotid tail، در دهه ششم، با male predominance و smoking association توصیف می‌کند و histology و درمان گزینه الف را می‌آورد.
 دلیل رد گزینه‌های غلط: گزینه ب: این ویژگی pleomorphic adenoma است، نه Warthin tumor. گزینه ج: این ویژگی mucoepidermoid carcinoma است. گزینه د: این ویژگی adenoid cystic carcinoma است.',
                     ],
                     [
@@ -333,8 +333,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Hypoglossal nerve → submandibular ganglion → Wharton duct → parotid acini.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن مسیر parasympathetic parotid را از tympanic branch of CN IX، lesser petrosal، otic ganglion و سپس auriculotemporal nerve ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن مسیر parasympathetic parotid را از tympanic branch of CN IX، lesser petrosal، otic ganglion و سپس auriculotemporal nerve ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این مسیر برای submandibular و sublingual glands از طریق facial/chorda tympani است، نه parotid. گزینه ج: superior cervical ganglion مسیر sympathetic supply است و جایگزین مسیر parasympathetic parotid نیست. گزینه د: hypoglossal nerve در متن به عنوان مسیر ترشحی parotid مطرح نشده است.',
                     ],
                     [
@@ -346,8 +346,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Sialodochoplasty و حذف punctum به علت کاهش طول Stensen duct.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن mumps/viral parotitis را acute nonsuppurative communicable disease می‌داند که در کودکان ۶ تا ۸ سال شایع است و با مراقبت حمایتی درمان می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن mumps/viral parotitis را acute nonsuppurative communicable disease می‌داند که در کودکان ۶ تا ۸ سال شایع است و با مراقبت حمایتی درمان می‌شود.
 دلیل رد گزینه‌های غلط: گزینه ب: این درمان برای bacterial salivary gland infection مطرح است، نه mumps ویروسی nonsuppurative. گزینه ج: این رویکرد برای pleomorphic adenoma است، نه viral parotitis. گزینه د: sialodochoplasty برای ductal stone management در Wharton duct ذکر شده و برای mumps کاربرد ندارد.',
                     ],
                     [
@@ -359,8 +359,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Labial minor glands.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن parotid را عمدتاً دارای serous acini می‌داند که ترشح نازک و watery با viscosity پایین حدود 1.5 Pa·s تولید می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن parotid را عمدتاً دارای serous acini می‌داند که ترشح نازک و watery با viscosity پایین حدود 1.5 Pa·s تولید می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: sublingual عمدتاً mucous cells دارد و viscosity آن بالاترین مقدار، حدود 13.4 Pa·s، است. گزینه ج: submandibular mixed gland است و viscosity متوسط حدود 3.4 Pa·s دارد. گزینه د: minor glands عمدتاً mucous/mixed هستند و در متن به عنوان منبع ترشح با کمترین viscosity معرفی نشده‌اند.',
                     ],
                     [
@@ -372,8 +372,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ترمیم خودبه‌خودی ۶ تا ۱۰ هفته‌ای بدون نیاز به surgical management.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: این توصیف با adenoid cystic carcinoma مطابق است؛ متن cribriform pattern، perineural invasion/migration و prognosis poor را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: این توصیف با adenoid cystic carcinoma مطابق است؛ متن cribriform pattern، perineural invasion/migration و prognosis poor را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این ویژگی‌ها مربوط به polymorphous low-grade adenocarcinoma است. گزینه ج: این مورد مربوط به mucoepidermoid carcinoma و grading آن است. گزینه د: این مربوط به necrotizing sialometaplasia است، نه malignant tumor.',
                     ],
                     [
@@ -385,8 +385,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'وارد کردن endoscope دارای پورت‌های irrigation و instrumentation از orifice پس از dilation.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن FNA biopsy را با syringe و needle 20-gauge یا کوچک‌تر، ایجاد vacuum، چند pass در lesion، release فشار، خروج needle و تهیه slide توصیف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن FNA biopsy را با syringe و needle 20-gauge یا کوچک‌تر، ایجاد vacuum، چند pass در lesion، release فشار، خروج needle و تهیه slide توصیف می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این تکنیک labial salivary gland biopsy برای Sjögren است. گزینه ج: این مراحل sialography هستند. گزینه د: این توصیف sialoendoscopy است.',
                     ],
                     [
@@ -398,8 +398,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'به علت خطر radiotherapy، تصویر برداری برای posterior stones توصیه نشده است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید posterior stones ممکن است با occlusal film دیده نشوند و panoramic، CT یا CBCT لازم شود؛ رویکرد extraoral/سialoadenectomy یا lithotripsy/endoscopic روش‌ها بسته به شرایط مطرح‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید posterior stones ممکن است با occlusal film دیده نشوند و panoramic، CT یا CBCT لازم شود؛ رویکرد extraoral/سialoadenectomy یا lithotripsy/endoscopic روش‌ها بسته به شرایط مطرح‌اند.
 دلیل رد گزینه‌های غلط: گزینه ب: occlusal film احتمالاً stone posterior را نشان نمی‌دهد و dilation orifice بیشتر برای stone قدامی کوچک مناسب است. گزینه ج: posterior stones تا ۵۰٪ موارد ممکن است رخ دهند؛ FNA برای تشخیص تومورهاست، نه سنگ posterior. گزینه د: radiotherapy در درمان تومورها مطرح است؛ تصویربرداری برای localization stone در متن توصیه شده است.',
                     ],
                     [
@@ -411,8 +411,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Pleomorphic adenoma.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید اندازه‌گیری Na و K اصل مهم sialochemistry است و elevated sodium همراه decreased potassium می‌تواند inflammatory sialadenitis را نشان دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید اندازه‌گیری Na و K اصل مهم sialochemistry است و elevated sodium همراه decreased potassium می‌تواند inflammatory sialadenitis را نشان دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: Warthin tumor با histology papillary epithelial و lymphoid component شناخته می‌شود، نه الگوی Na/K در متن. گزینه ج: plunging ranula ضایعه mucous retention/extravasation sublingual است و با sialochemistry تشخیص داده نمی‌شود. گزینه د: pleomorphic adenoma تومور benign mixed است و معیار Na/K برای آن در متن نیامده است.',
                     ],
                     [
@@ -424,8 +424,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Blue-gray vesicle، rupture/refilling و recurrence 15% تا 30٪.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن sequelae ترومای غدد major را infection، facial paralysis، cutaneous salivary gland fistula، sialocele و duct obstruction با atrophy/decreased function ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن sequelae ترومای غدد major را infection، facial paralysis، cutaneous salivary gland fistula، sialocele و duct obstruction با atrophy/decreased function ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این مجموعه مربوط به Sjögren syndrome است. گزینه ج: این ویژگی‌ها مربوط به adenoid cystic carcinoma یا PLGA هستند، نه عوارض مستقیم trauma. گزینه د: این مجموعه مربوط به mucocele است.',
                     ],
                     [
@@ -437,8 +437,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بررسی stenosis و diameter distal duct در obstruction مزمن.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: سه contraindication متن شامل acute salivary gland infection، iodine sensitivity شدید و انجام قبل از thyroid gland study است؛ گزینه الف یکی از آن‌ها و دلیل آن است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: سه contraindication متن شامل acute salivary gland infection، iodine sensitivity شدید و انجام قبل از thyroid gland study است؛ گزینه الف یکی از آن‌ها و دلیل آن است.
 دلیل رد گزینه‌های غلط: گزینه ب: stone بدون عفونت حاد می‌تواند از موارد استفاده sialography باشد و contraindication عمومی نیست. گزینه ج: تعیین size/number/position/mobility stone از اطلاعات مفید sialogram است. گزینه د: بررسی stenosis و distal duct diameter از کاربردهای sialography است، نه منع آن.',
                     ],
                     [
@@ -450,8 +450,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Warthin tumor.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن monomorphic adenoma را uncommon solitary lesion از یک cell type می‌داند که upper lip minor glands را به صورت canalicular adenoma درگیر می‌کند و معمولاً asymptomatic و freely movable است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن monomorphic adenoma را uncommon solitary lesion از یک cell type می‌داند که upper lip minor glands را به صورت canalicular adenoma درگیر می‌کند و معمولاً asymptomatic و freely movable است.
 دلیل رد گزینه‌های غلط: گزینه ب: pleomorphic adenoma دو cell type دارد و pleomorphic/mixed است، نه monomorphic. گزینه ج: mucoepidermoid carcinoma malignant است و سه cell type دارد. گزینه د: Warthin tumor عمدتاً tail of parotid را درگیر می‌کند و lymphoid component با germinal centers دارد.',
                     ],
                     [
@@ -463,8 +463,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Retention کمتر از ۵ دقیقه در evacuation phase: عملکرد غیرطبیعی clearance.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن sausage link را برای sialodochitis ناشی از dilation duct همراه با irregular narrowing از reparative fibrosis ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن sausage link را برای sialodochitis ناشی از dilation duct همراه با irregular narrowing از reparative fibrosis ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: pruning of the tree مربوط به acinar destruction در sialadenitis است، نه displacement توسط mass. گزینه ج: ball-in-hand appearance ناشی از draping/stretching ducts اطراف mass lesion است، نه acinar atrophy. گزینه د: باقی‌ماندن contrast بیش از ۵ دقیقه abnormal است؛ کمتر از این زمان به عنوان abnormal ذکر نشده است.',
                     ],
                     [
@@ -476,8 +476,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Normal، چون هر مقدار wetting پس از ۵ دقیقه کافی است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن severe را کمتر از ۴ mm wetting پس از ۵ دقیقه تعریف می‌کند و بیماران Sjögren با keratoconjunctivitis sicca معمولاً در این دسته هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن severe را کمتر از ۴ mm wetting پس از ۵ دقیقه تعریف می‌کند و بیماران Sjögren با keratoconjunctivitis sicca معمولاً در این دسته هستند.
 دلیل رد گزینه‌های غلط: گزینه ب: moderate طبق متن ۸ تا ۴ mm است؛ ۳ mm کمتر از آن و severe است. گزینه ج: mild طبق متن ۱۴ تا ۹ mm است، نه ۳ mm. گزینه د: normal طبق متن ۱۵ mm یا بیشتر پس از ۵ دقیقه است.',
                     ],
                     [
@@ -489,8 +489,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Ductهای minor palatine به طور معمول به otic ganglion متصل‌اند و به Stensen duct تخلیه می‌شوند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن main acinar ducts در sublingual gland را Bartholin ducts می‌نامد که اغلب به ۸ تا ۲۰ ducts of Rivinus می‌پیوندند و مستقیم روی plica sublingualis یا غیرمستقیم از طریق Wharton duct باز می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن main acinar ducts در sublingual gland را Bartholin ducts می‌نامد که اغلب به ۸ تا ۲۰ ducts of Rivinus می‌پیوندند و مستقیم روی plica sublingualis یا غیرمستقیم از طریق Wharton duct باز می‌شوند.
 دلیل رد گزینه‌های غلط: گزینه ب: Stensen duct مربوط به parotid است و در buccal mucosa کنار مولرهای maxillary باز می‌شود. گزینه ج: Wharton duct duct اصلی submandibular gland است و در anterior floor of mouth باز می‌شود؛ tail of parotid و buccinator مربوط به Stensen duct است. گزینه د: این ارتباط برای minor palatine glands در متن ذکر نشده و مسیر otic ganglion مربوط به innervation پاروتید است.',
                     ],
                     [
@@ -502,8 +502,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'انتظار برای ترمیم خودبه‌خودی در ۶ تا ۱۰ هفته بدون مداخله.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن parotid sialoliths در distal third of Stensen duct را قابل برداشت پس از dilation duct orifice می‌داند و اگر کمی proximal باشد surgical exposure را مطرح می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن parotid sialoliths در distal third of Stensen duct را قابل برداشت پس از dilation duct orifice می‌داند و اگر کمی proximal باشد surgical exposure را مطرح می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: برداشت sublingual gland برای stones نادر sublingual/minor یا ranula persistent مطرح است، نه distal Stensen stone. گزینه ج: این توصیف مربوط به submandibular duct/Wharton duct است. گزینه د: ترمیم خودبه‌خودی ۶ تا ۱۰ هفته‌ای مربوط به necrotizing sialometaplasia است، نه parotid stone.',
                     ],
                     [
@@ -515,8 +515,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Retromolar mucosa.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید minor glands در بیشتر مخاط دهان وجود دارند، با استثناهایی مانند anterior third of hard palate، attached gingiva و dorsal surface of anterior third of tongue.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید minor glands در بیشتر مخاط دهان وجود دارند، با استثناهایی مانند anterior third of hard palate، attached gingiva و dorsal surface of anterior third of tongue.
 دلیل رد گزینه‌های غلط: گزینه ب: labial glands از محل‌های شناخته‌شده minor salivary glands هستند. گزینه ج: buccal glands از محل‌های شناخته‌شده minor glands هستند. گزینه د: retromolar glands یا Carmalt glands از گروه‌های minor salivary glands ذکر شده‌اند.',
                     ],
                     [
@@ -528,8 +528,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Necrotizing sialometaplasia.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن PLGA را دومین malignancy شایع، با محل شایع junction hard/soft palate، رشد آهسته، گاهی ulceration، histology polymorphous و single-file pattern معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن PLGA را دومین malignancy شایع، با محل شایع junction hard/soft palate، رشد آهسته، گاهی ulceration، histology polymorphous و single-file pattern معرفی می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: adenoid cystic carcinoma الگوی cribriform basaloid و chronic dull pain دارد و محل آن ۵۰٪ parotid و ۵۰٪ palate است. گزینه ج: mucoepidermoid carcinoma سه نوع سلول mucous/epidermoid/intermediate و اغلب bluish tinge یا ulceration دارد، اما single-file polymorphous pattern متعلق به PLGA است. گزینه د: necrotizing sialometaplasia reactive self-limiting ulcer است و neoplasm low-grade adenocarcinoma نیست.',
                     ],
                     [
@@ -541,8 +541,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Otic ganglion روی سطح mylohyoid در تماس مستقیم با duct sublingual است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید Wharton duct پس از تغییر موقعیت نسبت به lingual nerve، در موقعیت medial و نزدیک medial surface of internal oblique ridge در ناحیه third molar آسیب‌پذیر است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید Wharton duct پس از تغییر موقعیت نسبت به lingual nerve، در موقعیت medial و نزدیک medial surface of internal oblique ridge در ناحیه third molar آسیب‌پذیر است.
 دلیل رد گزینه‌های غلط: گزینه ب: Stensen duct مربوط به parotid و مسیر masseter/buccinator است، نه posterior floor of mouth. گزینه ج: Rivinus ducts کوتاه و کوچک‌اند و در sublingual gland/plica sublingualis باز می‌شوند؛ متن چنین مسیری برای آن‌ها ندارد. گزینه د: otic ganglion مسیر parasympathetic parotid است و روی mylohyoid در تماس مستقیم با sublingual duct مطرح نشده است.',
                     ],
                     [
@@ -554,8 +554,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'پرهیز از مداخله و انتظار برای ترمیم ۵ تا ۱۲ روزه.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن برای recurrent یا persistent ranulas، excision of ranula به همراه sublingual gland via intraoral approach را ترجیح می‌دهد و حتی برخی مطالعات آن را برای درمان اولیه مطرح کرده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن برای recurrent یا persistent ranulas، excision of ranula به همراه sublingual gland via intraoral approach را ترجیح می‌دهد و حتی برخی مطالعات آن را برای درمان اولیه مطرح کرده‌اند.
 دلیل رد گزینه‌های غلط: گزینه ب: superficial parotidectomy برای parotid stone یا غده غیرعملکردی parotid مطرح است، نه ranula. گزینه ج: FNA برای تشخیص mass/tumor به کار می‌رود، نه درمان ranula عودکننده. گزینه د: ترمیم ۵ تا ۱۲ روزه مربوط به viral parotitis/mumps است، نه ranula.',
                     ],
                 ],
@@ -586,8 +586,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'مهم‌ترین کاربرد آن تشخیص فوری benign versus malignant در FNA slide است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن sialoscintigraphy را برای ارزیابی parenchyma/function و mass lesions معرفی می‌کند، resolution ضعیف را محدودیت می‌داند و ارزش ویژه آن را در Sjögren ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن sialoscintigraphy را برای ارزیابی parenchyma/function و mass lesions معرفی می‌کند، resolution ضعیف را محدودیت می‌داند و ارزش ویژه آن را در Sjögren ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: برداشتن stone و visualization ductal با endoscope مربوط به sialoendoscopy است؛ scintigraphy resolution بالایی ندارد. گزینه ج: scintigraphy radiation exposure دارد و شیمی بزاق را نمی‌سنجد. گزینه د: تشخیص cytologic benign/malignant مربوط به FNA biopsy است.',
                     ],
                     [
@@ -599,8 +599,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'سهم آن از تولید روزانه بزاق trace است و کاهش flow پس از ۲۰ سالگی به‌طور اختصاصی این غده را درگیر می‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن علت شیوع ۸۵٪ submandibular stones را به ترکیب بزاق، calcium بالاتر، pH قلیایی، طول Wharton duct، دو خم، orifice کوچک و جریان against gravity نسبت می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن علت شیوع ۸۵٪ submandibular stones را به ترکیب بزاق، calcium بالاتر، pH قلیایی، طول Wharton duct، دو خم، orifice کوچک و جریان against gravity نسبت می‌دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: این توصیف با parotid/Stensen و secretions کم‌ویسکوزتر سازگار است، نه submandibular calculus risk. گزینه ج: submandibular mixed gland است و متن nidus را از mucous plugs، debris، foreign bodies و microliths می‌داند، نه lymphoid follicles. گزینه د: submandibular حدود ۷۰٪ تولید saliva را دارد، نه trace؛ کاهش تولید بعد از ۲۰ سالگی کلی‌تر بیان شده است.',
                     ],
                     [
@@ -612,8 +612,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برداشتن superficial lobe parotid به عنوان اقدام تشخیصی اولیه.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید گاهی lacrimal probe برای obturate punctum of gland duct به کار می‌رود تا mucous plug، sludge یا calculus کوچک پاک و patency/flow برقرار شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید گاهی lacrimal probe برای obturate punctum of gland duct به کار می‌رود تا mucous plug، sludge یا calculus کوچک پاک و patency/flow برقرار شود.
 دلیل رد گزینه‌های غلط: گزینه ب: radiotherapy در این ارزیابی ساده مطرح نیست و برای برخی malignancies ممکن است مطرح شود. گزینه ج: Schirmer test lacrimal flow را در چشم می‌سنجد، نه salivary duct flow. گزینه د: parotidectomy اقدام تشخیصی اولیه برای obstruction کوچک نیست و morbidity دارد.',
                     ],
                     [
@@ -625,8 +625,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Perineural migration به foramen rotundum.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن عوارض mumps را meningitis، pancreatitis، nephritis، orchitis، testicular atrophy و sterility در حدود ۲۰٪ young males affected ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن عوارض mumps را meningitis، pancreatitis، nephritis، orchitis، testicular atrophy و sterility در حدود ۲۰٪ young males affected ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این خطر مربوط به longstanding pleomorphic adenoma است. گزینه ج: sialocele و fistula از sequelae trauma/duct laceration هستند. گزینه د: perineural migration به foramen rotundum در adenoid cystic carcinoma مطرح است.',
                     ],
                     [
@@ -638,8 +638,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'به دلیل dental artifacts ارزش تشخیصی آن برای salivary stones کنار گذاشته می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن CBCT را برای diagnosis of sialolithiasis در major glands با sensitivity/specificity بالا نسبت به ultrasonography و به علت availability، low cost و lower radiation doses نسبت به medical CT ارزشمند می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن CBCT را برای diagnosis of sialolithiasis در major glands با sensitivity/specificity بالا نسبت به ultrasonography و به علت availability، low cost و lower radiation doses نسبت به medical CT ارزشمند می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: contrast injection و درد ductal distension مربوط به sialography است، نه CBCT. گزینه ج: tumor extent/nodal staging در high-grade malignancies بیشتر برای FDG-PET ذکر شده است. گزینه د: متن dental artifacts و patient movement را محدودیت کیفیت تصویر می‌داند، اما ارزش تشخیصی CBCT را نفی نمی‌کند.',
                     ],
                     [
@@ -651,8 +651,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'در کودکان stone اغلب در minor palatal glands دانسته می‌شود و با ulceration خودمحدود همراه می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن sialolithiasis در کودکان را rare و حدود ۳٪ cases می‌داند، با شیوع بیشتر در boys و left submandibular gland.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن sialolithiasis در کودکان را rare و حدود ۳٪ cases می‌داند، با شیوع بیشتر در boys و left submandibular gland.
 دلیل رد گزینه‌های غلط: گزینه ب: کودکان شایع‌ترین گروه نیستند؛ parotid tail مربوط به Warthin tumor است. گزینه ج: ۲۵٪ مربوط به multiple stone formation در کل بیماران است، نه درصد کودکان. گزینه د: minor palatal glands و ulceration خودمحدود با necrotizing sialometaplasia مرتبط است، نه pediatric sialolithiasis.',
                     ],
                     [
@@ -664,8 +664,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'محاسبه مستقیم scintigraphy score بر اساس uptake Tc-99m.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن MRI را در delineating soft tissue details، مخصوصاً tumors/mass lesions، superior to CT می‌داند و نبود radiation و نیاز نداشتن به contrast را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن MRI را در delineating soft tissue details، مخصوصاً tumors/mass lesions، superior to CT می‌داند و نبود radiation و نیاز نداشتن به contrast را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: نمایش stones و بحث dose/هزینه کمتر بیشتر در CT/CBCT آمده است، نه مزیت اصلی MRI نسبت به CT. گزینه ج: تزریق داخل duct و clearing plugs مربوط به sialography یا endoscopic flushing است. گزینه د: scoring با Tc-99m مربوط به salivary scintigraphy است، نه MRI.',
                     ],
                     [
@@ -677,8 +677,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ترمیم خودبه‌خودی بدون عود، چون lower lip mucoceles طبق متن surgical treatment نمی‌خواهند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن درمان persistent/recurrent mucocele را excision ضایعه و associated minor salivary glands برای پیشگیری از recurrence می‌داند و recurrence ۱۵٪ تا ۳۰٪ را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن درمان persistent/recurrent mucocele را excision ضایعه و associated minor salivary glands برای پیشگیری از recurrence می‌داند و recurrence ۱۵٪ تا ۳۰٪ را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: باقی گذاشتن glands آسیب‌دیده در همان محل می‌تواند زمینه عود باشد، نه محافظت از عود. گزینه ج: Warthin tumor به parotid tail و epithelial rests در lymph nodes مربوط است و پیامد mucocele نیست. گزینه د: برخی mucoceles ممکن است spontaneous regress کنند، اما lesions persistent/recurrent درمان جراحی ترجیحی دارند.',
                     ],
                     [
@@ -690,8 +690,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تعیین concentrationهای Na و K در major gland saliva.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید در tumor evaluation، color Doppler ultrasonography اطلاعاتی درباره vascularization می‌دهد که می‌تواند در افتراق benign و malignant کمک کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید در tumor evaluation، color Doppler ultrasonography اطلاعاتی درباره vascularization می‌دهد که می‌تواند در افتراق benign و malignant کمک کند.
 دلیل رد گزینه‌های غلط: گزینه ب: focus score از biopsy لب پایین محاسبه می‌شود. گزینه ج: ductal/acinar/evacuation phases مربوط به sialography هستند. گزینه د: Na و K مربوط به sialochemistry است.',
                     ],
                     [
@@ -703,8 +703,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Monomorphic encapsulated ductal epithelial cells در یک توده freely movable.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن برای افتراق necrotizing sialometaplasia از carcinoma، absence of cellular pleomorphism، حفظ lobular morphology، squamous islands nondysplastic و residual ductal lumina را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن برای افتراق necrotizing sialometaplasia از carcinoma، absence of cellular pleomorphism، حفظ lobular morphology، squamous islands nondysplastic و residual ductal lumina را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این الگو مربوط به adenoid cystic carcinoma است. گزینه ج: این ویژگی‌های mucoepidermoid carcinoma هستند. گزینه د: این توصیف monomorphic adenoma است، نه necrotizing sialometaplasia.',
                     ],
                     [
@@ -716,8 +716,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کاهش uptake Tc-99m در chronically inflamed gland.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن sialography را گاهی therapeutic maneuver می‌داند، زیرا ductal system dilate می‌شود و plugs یا debris/sludge کوچک ممکن است cleared شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن sialography را گاهی therapeutic maneuver می‌داند، زیرا ductal system dilate می‌شود و plugs یا debris/sludge کوچک ممکن است cleared شوند.
 دلیل رد گزینه‌های غلط: گزینه ب: تغییر نوع سلول‌های acinar توسط sialography در متن وجود ندارد. گزینه ج: کوچک‌کردن punctum بر خلاف هدف تخلیه و patency است و در متن به عنوان اثر therapeutic sialography نیامده است. گزینه د: uptake Tc-99m مربوط به scintigraphy است، نه مکانیزم درمانی sialography.',
                     ],
                     [
@@ -729,8 +729,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Parotid نادرترین محل salivary tumors است و sublingual شایع‌ترین محل major gland tumors است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید salivary gland tumors در major glands حدود ۸۰٪ تا ۸۵٪ رخ می‌دهند و ۷۵٪ تا ۸۰٪ major gland tumors benign هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید salivary gland tumors در major glands حدود ۸۰٪ تا ۸۵٪ رخ می‌دهند و ۷۵٪ تا ۸۰٪ major gland tumors benign هستند.
 دلیل رد گزینه‌های غلط: گزینه ب: minor glands حدود ۱۵٪ تا ۲۰٪ مواردند و benign بودن آن‌ها حدود ۵۰٪ تا ۵۵٪ است. گزینه ج: برابری تعداد و benign بودن ۵٪ در متن وجود ندارد. گزینه د: parotid overwhelmingly شایع‌ترین محل است و sublingual gland rare ذکر شده است.',
                     ],
                     [
@@ -742,8 +742,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تولید mucous secretion به عنوان عملکرد اصلی و کافی برای محافظت از floor of mouth.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل عملکردهای saliva را lubrication برای speech/mastication، enzymes for digestion و antibacterial compounds ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل عملکردهای saliva را lubrication برای speech/mastication، enzymes for digestion و antibacterial compounds ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: bile acids، thyroid hormone و immune tolerance در این فصل به عنوان عملکرد بزاق ذکر نشده‌اند. گزینه ج: coagulation factors و blood pressure/lacrimal flow عملکرد saliva در متن نیستند. گزینه د: saliva محدود به mucous secretion نیست؛ غدد serous و mixed هم وجود دارند و عملکردها گسترده‌ترند.',
                     ],
                     [
@@ -755,8 +755,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Pilocarpine و artificial tears به عنوان درمان قطعی فاز حاد چرکی.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن درمان bacterial infections را supportive care شامل IV hydration، antibiotics، analgesics می‌داند؛ empiric antibiotics باید S. aureus را هدف بگیرند و culture/sensitivity از purulent material توصیه شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن درمان bacterial infections را supportive care شامل IV hydration، antibiotics، analgesics می‌داند؛ empiric antibiotics باید S. aureus را هدف بگیرند و culture/sensitivity از purulent material توصیه شده است.
 دلیل رد گزینه‌های غلط: گزینه ب: این رویکرد برای mumps ویروسی است، نه acute bacterial suppurative infection. گزینه ج: wide excision درمان تومورهایی مانند pleomorphic adenoma یا malignancies است، نه عفونت حاد به طور معمول. گزینه د: pilocarpine/artificial tears برای Sjögren symptoms است، نه درمان عفونت چرکی حاد.',
                     ],
                     [
@@ -768,8 +768,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ایجاد papillary epithelial pattern با lymphoid germinal centers در parotid tail.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن punctum Wharton duct را بخش constricted duct می‌داند که retrograde flow مایعات دهانی باکتری‌دار را محدود می‌کند؛ این موضوع به علت colonization اطراف orifices توسط S. aureus و Streptococcus مهم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن punctum Wharton duct را بخش constricted duct می‌داند که retrograde flow مایعات دهانی باکتری‌دار را محدود می‌کند؛ این موضوع به علت colonization اطراف orifices توسط S. aureus و Streptococcus مهم است.
 دلیل رد گزینه‌های غلط: گزینه ب: فشار تزریق contrast مربوط به sialography و به‌ویژه oil-based media است، نه عملکرد طبیعی punctum. گزینه ج: parasympathetic fibers submandibular/sublingual از facial/chorda tympani و submandibular ganglion می‌آیند؛ punctum این نقش را ندارد. گزینه د: این histology مربوط به Warthin tumor است.',
                     ],
                     [
@@ -781,8 +781,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'sublingual gland شایع‌ترین منبع salivary tumors است و بیشترشان Warthin tumor هستند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید اکثریت overwhelming salivary tumors در parotid رخ می‌دهد و majority of those benign هستند، most commonly pleomorphic adenoma.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید اکثریت overwhelming salivary tumors در parotid رخ می‌دهد و majority of those benign هستند، most commonly pleomorphic adenoma.
 دلیل رد گزینه‌های غلط: گزینه ب: فصل خلاف این را می‌گوید و adenoid cystic را سومین intraoral malignancy می‌داند، نه شایع‌ترین parotid tumor. گزینه ج: minor gland tumors حدود ۵۰٪ تا ۵۵٪ benign هستند؛ major gland tumors بیشتر benign هستند. گزینه د: sublingual tumors در جدول rare آمده‌اند و Warthin تقریباً parotid tail را درگیر می‌کند.',
                     ],
                     [
@@ -794,8 +794,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'این یافته معیار تشخیص Warthin tumor است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید در evacuation phase، retention هر contrast medium در gland یا ductal system بیش از ۵ دقیقه abnormal است و باید تا radiograph نهایی کاملاً خارج شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید در evacuation phase، retention هر contrast medium در gland یا ductal system بیش از ۵ دقیقه abnormal است و باید تا radiograph نهایی کاملاً خارج شود.
 دلیل رد گزینه‌های غلط: گزینه ب: زمان ۱۵ دقیقه برای wetting طبیعی در Schirmer test هم نیست؛ در sialography معیار متن ۵ دقیقه است. گزینه ج: متن درباره abnormal retention به طور کلی صحبت می‌کند؛ oil-based media ممکن است بیشتر باقی بماند ولی این حالت طبیعی شمرده نشده است. گزینه د: Warthin tumor با histology و محل parotid tail شناخته می‌شود، نه evacuation phase retention.',
                     ],
                     [
@@ -807,8 +807,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Wide excision با radiation therapy به علت prognosis poor.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید stone formation در sublingual و minor glands rare است و درمان simple excision of sublingual gland و associated stone است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید stone formation در sublingual و minor glands rare است و درمان simple excision of sublingual gland و associated stone است.
 دلیل رد گزینه‌های غلط: گزینه ب: sialodochoplasty مربوط به submandibular/Wharton duct stones است، نه درمان استاندارد sublingual stone در متن. گزینه ج: این درمان برای mumps viral parotitis است. گزینه د: radiation therapy در برخی malignancies مانند high-grade یا adenoid cystic مطرح است، نه stone نادر sublingual.',
                     ],
                     [
@@ -820,8 +820,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'FDG.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید اگر ductal disruption وجود داشته باشد، extravasation oil-based media به soft tissue اطراف غده نسبت به water-soluble material آسیب بیشتری ایجاد می‌کند و حتی foreign-body reaction/necrosis ممکن است رخ دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید اگر ductal disruption وجود داشته باشد، extravasation oil-based media به soft tissue اطراف غده نسبت به water-soluble material آسیب بیشتری ایجاد می‌کند و حتی foreign-body reaction/necrosis ممکن است رخ دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: water-soluble media نسبت به oil-based در متن ترجیح داده شده و آسیب extravasation آن کمتر معرفی شده است. گزینه ج: Tc-99m در scintigraphy IV استفاده می‌شود و contrast medium داخل duct در sialography نیست. گزینه د: FDG در PET به کار می‌رود، نه sialography ductal contrast.',
                     ],
                     [
@@ -833,8 +833,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'رادیاسیون موضعی به عنوان درمان استاندارد خشکی دهان و چشم.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن درمان Sjögren را symptomatic care با artificial tears برای dry eyes و salivary substitutes برای dry mouth و گاهی pilocarpine/Biotene برای تحریک بافت functional باقی‌مانده ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن درمان Sjögren را symptomatic care با artificial tears برای dry eyes و salivary substitutes برای dry mouth و گاهی pilocarpine/Biotene برای تحریک بافت functional باقی‌مانده ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این درمان برای acute bacterial salivary gland infection است. گزینه ج: sialodochoplasty مربوط به obstruction/stone ductal است و هدف آن افزایش خروج بزاق است، نه درمان Sjögren. گزینه د: radiation therapy درمان علامتی Sjögren در متن نیست.',
                     ],
                     [
@@ -846,8 +846,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Basaloid cells of adenoid cystic carcinoma.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن serous cells را cuboidal با eosinophilic secretory granules معرفی می‌کند که thin watery secretion تولید می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن serous cells را cuboidal با eosinophilic secretory granules معرفی می‌کند که thin watery secretion تولید می‌کنند.
 دلیل رد گزینه‌های غلط: گزینه ب: mucous cells clear low columnar هستند و ترشح thick/high viscosity تولید می‌کنند. گزینه ج: intermediate clear cells یکی از cell types در mucoepidermoid carcinoma است، نه acinar serous cell طبیعی. گزینه د: basaloid cells با cribriform pattern در adenoid cystic carcinoma مطرح‌اند، نه بافت acinar طبیعی.',
                     ],
                     [
@@ -859,8 +859,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Mass خودایمنی ناشی از lymphocytic replacement of lacrimal glands.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن mucocele را تجمع ترشحات در tissue و تشکیل pseudocyst بدون true epithelial lining حاوی thick viscous saliva می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن mucocele را تجمع ترشحات در tissue و تشکیل pseudocyst بدون true epithelial lining حاوی thick viscous saliva می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: mucocele true cyst نیست و بیشتر minor duct trauma، به‌ویژه lower lip، مطرح است. گزینه ج: این توصیف pleomorphic adenoma است. گزینه د: این مربوط به Sjögren syndrome است.',
                     ],
                     [
@@ -872,8 +872,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حدود ۳۰۰۰ تا ۴۰۰۰ mL در روز.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن تولید روزانه بزاق توسط salivary glands را حدود 1000 تا 1500 mL در روز و بیشترین flow را هنگام meal times ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن تولید روزانه بزاق توسط salivary glands را حدود 1000 تا 1500 mL در روز و بیشترین flow را هنگام meal times ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این محدوده در فصل برای تولید کل روزانه بزاق ذکر نشده است. گزینه ج: این مقدار بسیار کمتر از محدوده ذکرشده در متن است. گزینه د: این مقدار بیشتر از محدوده ذکرشده در متن است.',
                     ],
                     [
@@ -885,8 +885,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Minor palatal ulcers مشکوک به necrotizing sialometaplasia.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن extracorporeal shock wave lithotripsy را treatment of choice برای all parotid calculi و submandibular perihilar/intraparenchymal stones کمتر از ۷ mm، در صورت وجود technology/expertise، معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن extracorporeal shock wave lithotripsy را treatment of choice برای all parotid calculi و submandibular perihilar/intraparenchymal stones کمتر از ۷ mm، در صورت وجود technology/expertise، معرفی می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: mucocele با excision ضایعه و associated glands درمان می‌شود، نه lithotripsy. گزینه ج: Warthin tumor با simple surgical excision درمان می‌شود. گزینه د: necrotizing sialometaplasia self-limiting است و lithotripsy ندارد.',
                     ],
                     [
@@ -898,8 +898,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Cell types شامل mucous، epidermoid و intermediate برای grading carcinoma.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن sialography را route map برای intervention می‌داند و اطلاعاتی مانند size، number، position، mobility stones، distal duct diameter و stenosis را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن sialography را route map برای intervention می‌داند و اطلاعاتی مانند size، number، position، mobility stones، distal duct diameter و stenosis را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این داده‌ها برای اپیدمیولوژی/توصیف تومورهاست، نه route map sialography. گزینه ج: این داده‌ها برای ارزیابی dry eyes در Sjögren هستند. گزینه د: این اطلاعات histopathologic برای mucoepidermoid carcinoma هستند.',
                     ],
                     [
@@ -911,8 +911,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Hemophilia A، warfarin therapy، thrombocytopenia و von Willebrand disease.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن differential diagnosis floor of mouth swelling را ranula، lymphoepithelial cyst، epidermoid/dermoid cyst، salivary gland tumors و mesenchymal tumors مثل lipoma/neurofibroma/hemangioma می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن differential diagnosis floor of mouth swelling را ranula، lymphoepithelial cyst، epidermoid/dermoid cyst، salivary gland tumors و mesenchymal tumors مثل lipoma/neurofibroma/hemangioma می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: این‌ها تشخیص‌های اورژانس پزشکی فصل‌های دیگرند و در differential floor of mouth swelling این فصل نیامده‌اند. گزینه ج: این‌ها بیماری‌های سیستمیک‌اند و جزو differential موضعی ranula در متن ذکر نشده‌اند. گزینه د: این‌ها اختلالات خونریزی/انعقادی هستند و differential swelling کف دهان در این فصل نیستند.',
                     ],
                     [
@@ -924,8 +924,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Uptake در tumors خوش‌خیم دیده می‌شود و در التهاب کاربرد ندارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید scintigraphy ممکن است increased uptake در acutely inflamed gland و decreased uptake در chronically inflamed gland نشان دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید scintigraphy ممکن است increased uptake در acutely inflamed gland و decreased uptake در chronically inflamed gland نشان دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: این گزینه جهت uptake را برعکس بیان می‌کند. گزینه ج: cribriform pattern histology adenoid cystic carcinoma است، نه uptake scintigraphy. گزینه د: متن کاربرد scintigraphy در inflammation و mass lesions و Sjögren را ذکر می‌کند.',
                     ],
                     [
@@ -937,8 +937,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Papillary epithelial pattern همراه با lymphoid germinal centers.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن high-grade mucoepidermoid carcinoma را با predominance of epidermoid cells، cellular pleomorphism، lack of mucous cells/cystic areas و رفتار تهاجمی‌تر توصیف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن high-grade mucoepidermoid carcinoma را با predominance of epidermoid cells، cellular pleomorphism، lack of mucous cells/cystic areas و رفتار تهاجمی‌تر توصیف می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این الگو بیشتر با grade پایین‌تر و رفتار کمتر تهاجمی نسبت به high-grade تطابق دارد. گزینه ج: این ویژگی pleomorphic adenoma است. گزینه د: این ویژگی Warthin tumor است.',
                     ],
                     [
@@ -950,8 +950,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Tragus، middle of upper lip و lateral canthus.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن submandibular triangle را با anterior belly و posterior belly of digastric و inferior border of mandible تعریف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن submandibular triangle را با anterior belly و posterior belly of digastric و inferior border of mandible تعریف می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این ساختارها در مسیر parotid/Stensen duct اهمیت دارند، نه مرزهای submandibular triangle. گزینه ج: این‌ها با floor of mouth و sublingual/Wharton relationships مرتبط‌اند، نه تعریف مثلث submandibular. گزینه د: tragus-to-upper-lip و lateral canthus-to-mental foramen خطوط ارزیابی Stensen duct/facial nerve در trauma هستند.',
                     ],
                     [
@@ -963,8 +963,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'به علت self-limiting بودن، طی ۶ تا ۱۰ هفته بدون درمان ترمیم می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن برای parotid pleomorphic adenoma removal of involved lobe همراه tumor را ذکر می‌کند و خطر کم ۵٪ malignant transformation در longstanding lesions را به carcinoma ex pleomorphic adenoma می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن برای parotid pleomorphic adenoma removal of involved lobe همراه tumor را ذکر می‌کند و خطر کم ۵٪ malignant transformation در longstanding lesions را به carcinoma ex pleomorphic adenoma می‌داند.
 دلیل رد گزینه‌های غلط: گزینه ب: aspiration درمان definitive pleomorphic adenoma نیست و خطر transformation در متن آمده است. گزینه ج: آنتی‌بیوتیک برای bacterial infection است، نه tumor. گزینه د: self-limiting ۶ تا ۱۰ هفته مربوط به necrotizing sialometaplasia است.',
                     ],
                     [
@@ -976,8 +976,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بازشدن مستقیم در labial mucosa پس از عبور از orbicularis oris و اتصال به chalazion clamp.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن Stensen duct parotid را حدود ۶ cm و ۱ تا ۳ mm می‌داند؛ مسیر آن superficial to masseter است، در edge قدامی masseter به medial می‌چرخد، buccinator را سوراخ می‌کند و در buccal mucosa کنار maxillary first/second molar باز می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن Stensen duct parotid را حدود ۶ cm و ۱ تا ۳ mm می‌داند؛ مسیر آن superficial to masseter است، در edge قدامی masseter به medial می‌چرخد، buccinator را سوراخ می‌کند و در buccal mucosa کنار maxillary first/second molar باز می‌شود.
 دلیل رد گزینه‌های غلط: گزینه ب: این توصیف Wharton duct submandibular است. گزینه ج: این توصیف ducts of Rivinus در sublingual gland است. گزینه د: این ساختار در متن به عنوان duct اصلی parotid مطرح نشده و chalazion clamp ابزار biopsy/excision است.',
                     ],
                     [
@@ -989,8 +989,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'باید sialoendoscopy با lithotripsy انجام شود تا nerve آزاد گردد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید facial nerve lacerations anterior to line from lateral canthus to mental foramen معمولاً قابل repair نیستند/نیاز ندارند چون fibers کوچک‌اند و spontaneous function با recruitment adjacent fibers رخ می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید facial nerve lacerations anterior to line from lateral canthus to mental foramen معمولاً قابل repair نیستند/نیاز ندارند چون fibers کوچک‌اند و spontaneous function با recruitment adjacent fibers رخ می‌دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: direct neural anastomosis ممکن است برای برخی facial nerve lacerations لازم شود، اما متن شاخه‌های anterior به آن خط را از repair معمول مستثنا می‌کند. گزینه ج: در duct repair، stent برای epithelialization نگه داشته می‌شود؛ قطع flow یا بستن duct درمان nerve injury نیست. گزینه د: sialoendoscopy/lithotripsy برای ductal stones است، نه nerve laceration.',
                     ],
                     [
@@ -1002,8 +1002,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Extracorporeal shock wave lithotripsy و basket retrieval.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن کاربردهای sialochemistry را endocrine functional assessment، drug concentration monitoring، antibody–antigen measurements و dynamic diagnostic testing، و نیز علاقه به salivary proteomics، ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن کاربردهای sialochemistry را endocrine functional assessment، drug concentration monitoring، antibody–antigen measurements و dynamic diagnostic testing، و نیز علاقه به salivary proteomics، ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این‌ها مربوط به مدیریت airway/emergency هستند و در sialochemistry این فصل نیامده‌اند. گزینه ج: این‌ها تکنیک‌های repair عصب در trauma هستند. گزینه د: این‌ها روش‌های درمانی obstructive stone در sialoendoscopy/lithotripsy هستند، نه شیمی بزاق.',
                     ],
                     [
@@ -1015,8 +1015,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Paresthesia در ناحیه nerve درگیر به علت neurotropism.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید palpation of involved gland ممکن است no flow یا thick purulent discharge از ductal orifice ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید palpation of involved gland ممکن است no flow یا thick purulent discharge از ductal orifice ایجاد کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این توصیف برای mucocele است. گزینه ج: این یافته برای Sjögren/keratoconjunctivitis sicca است. گزینه د: این ویژگی در PLGA یا adenoid cystic carcinoma به علت neurotropism/perineural invasion مطرح است.',
                     ],
                     [
@@ -1028,8 +1028,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'درمان definitive tumors با تخلیه محتویات syringe.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن FNA biopsy را با accuracy بالا برای differentiating benign versus malignant lesions توصیف می‌کند و امکان tissue diagnosis دقیق را با تجربه و ارتباط خوب تیم ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن FNA biopsy را با accuracy بالا برای differentiating benign versus malignant lesions توصیف می‌کند و امکان tissue diagnosis دقیق را با تجربه و ارتباط خوب تیم ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این کاربرد درمانی مربوط به sialography یا endoscopic flushing است. گزینه ج: daily saliva production از جدول فیزیولوژی است و با FNA سنجیده نمی‌شود. گزینه د: FNA یک روش تشخیصی است و درمان definitive tumors نیست.',
                     ],
                     [
@@ -1041,8 +1041,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Posterior stones در کودکان شایع‌ترین نوع salivary gland disease هستند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید مفهوم removal غده به چالش کشیده شده، چون restoration عملکرد پس از stone removal در ۷۸٪ cases دیده شده و ۵۰٪ glands removed از نظر histopathology normal بوده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید مفهوم removal غده به چالش کشیده شده، چون restoration عملکرد پس از stone removal در ۷۸٪ cases دیده شده و ۵۰٪ glands removed از نظر histopathology normal بوده‌اند.
 دلیل رد گزینه‌های غلط: گزینه ب: متن می‌گوید occlusal film معمولاً posterior stone را نشان نمی‌دهد و CT/CBCT/panoramic ممکن است لازم شود. گزینه ج: متن برعکس می‌گوید برخی intracorporeal methods به علت risks در in vitro studies وارد کاربرد head and neck نشده‌اند. گزینه د: sialolithiasis در کودکان rare و حدود ۳٪ cases است.',
                     ],
                     [
@@ -1054,8 +1054,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'وارد کردن mini-endoscope با diameter 1.1 mm برای basket retrieval.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن procedure biopsy لب پایین را با regional local anesthesia، chalazion clamp، برداشت ۵ تا ۱۰ minor salivary glands و closure با resorbable suture توصیف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن procedure biopsy لب پایین را با regional local anesthesia، chalazion clamp، برداشت ۵ تا ۱۰ minor salivary glands و closure با resorbable suture توصیف می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این sialography است. گزینه ج: این درمان parotid pleomorphic adenoma است. گزینه د: این sialoendoscopy برای ductal disease/stone است.',
                     ],
                     [
@@ -1067,8 +1067,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Epithelial rests در lymph nodes و germinal centers.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید parotid lesions در adenoid cystic carcinoma گاهی به علت neurotropism و facial nerve involvement باعث facial paralysis می‌شوند و perineural invasion/migration نیز رخ می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید parotid lesions در adenoid cystic carcinoma گاهی به علت neurotropism و facial nerve involvement باعث facial paralysis می‌شوند و perineural invasion/migration نیز رخ می‌دهد.
 دلیل رد گزینه‌های غلط: گزینه ب: این مربوط به sialolithiasis/obstructive symptoms است. گزینه ج: این مربوط به mucocele است. گزینه د: این مربوط به Warthin tumor است.',
                     ],
                     [
@@ -1080,8 +1080,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Tc-99m injection، scintigraphy score و poor image resolution.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن advances sialoendoscopy را mini-endoscope 1.1 mm با ports، balloon catheters، baskets/mini-forceps/grasper و laser/lithotripsy device برای fragmentation stone ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن advances sialoendoscopy را mini-endoscope 1.1 mm با ports، balloon catheters، baskets/mini-forceps/grasper و laser/lithotripsy device برای fragmentation stone ذکر می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: این‌ها ابزار و مفاهیم labial salivary gland biopsy/Sjögren هستند. گزینه ج: این‌ها مربوط به sialography هستند. گزینه د: این‌ها مربوط به salivary scintigraphy هستند.',
                     ],
                     [
@@ -1093,8 +1093,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Warthin tumor: recurrent floor of mouth swelling؛ monomorphic adenoma: viral parotitis با incubation 2 تا 3 هفته.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن Warthin tumor را تقریباً منحصر به parotid tail، مرتبط با smoking و با male-to-female ratio 7:1 می‌داند؛ monomorphic adenoma را از یک cell type و در upper lip canalicular یا parotid basal cell معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن Warthin tumor را تقریباً منحصر به parotid tail، مرتبط با smoking و با male-to-female ratio 7:1 می‌داند؛ monomorphic adenoma را از یک cell type و در upper lip canalicular یا parotid basal cell معرفی می‌کند.
 دلیل رد گزینه‌های غلط: گزینه ب: دو cell type ductal/myoepithelial برای pleomorphic adenoma است و سه cell type برای mucoepidermoid carcinoma. گزینه ج: cribriform/prognosis poor ویژگی adenoid cystic carcinoma است و neurotropic recurrence 14٪ برای PLGA آمده است. گزینه د: floor of mouth swelling به ranula و viral parotitis به mumps مربوط است، نه این benign tumors.',
                     ],
                 ],
@@ -1125,8 +1125,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط در ضایعات استخوانی ارزش دارند و در مخاط دهان کاربرد ندارند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل تأکید می‌کند adjuncts برای کمک به clinician هستند و باید در کنار conventional head and neck examination به کار روند، نه به‌جای آن.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل تأکید می‌کند adjuncts برای کمک به clinician هستند و باید در کنار conventional head and neck examination به کار روند، نه به‌جای آن.
 رد گزینه‌ها: الف) جایگزینی معاینه مرسوم با adjunct در متن پذیرفته نشده است. ج) بسیاری از نتایج مشکوک هنوز نیازمند biopsy هستند. د) ابزارهای مورد بحث عمدتاً برای مخاط و OPC/OPML مطرح شده‌اند، نه فقط استخوان.',
                     ],
                     [
@@ -1138,8 +1138,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'استفاده از topical anesthesia به‌تنهایی و پرهیز از هرگونه تزریق',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در soft tissue biopsy، block techniques ترجیح دارند تا ماده بی‌حسی وارد specimen نشود؛ infiltration محیطی با وازوکانستریکتور می‌تواند مفید باشد، اما باید حداقل حدود ۱ cm از حاشیه ضایعه دور باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در soft tissue biopsy، block techniques ترجیح دارند تا ماده بی‌حسی وارد specimen نشود؛ infiltration محیطی با وازوکانستریکتور می‌تواند مفید باشد، اما باید حداقل حدود ۱ cm از حاشیه ضایعه دور باشد.
 رد گزینه‌ها: الف و ج) تزریق داخل یا مرکز ضایعه می‌تواند architecture سلولی را تغییر دهد. د) topical anesthesia به‌تنهایی برای biopsy معمولاً کافی و مطابق توصیه فصل نیست.',
                     ],
                     [
@@ -1151,8 +1151,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'درد واضح در ضایعه‌ای با زمینه التهاب حاد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: growth rate سریع بدون علت واضح از ویژگی‌های نگران‌کننده و از اندیکاسیون‌های biopsy است و بیشتر با رفتار تهاجمی/بدخیمی سازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: growth rate سریع بدون علت واضح از ویژگی‌های نگران‌کننده و از اندیکاسیون‌های biopsy است و بیشتر با رفتار تهاجمی/بدخیمی سازگار است.
 رد گزینه‌ها: الف) وجود چندساله بدون تغییر بیشتر به benign یا congenital بودن کمک می‌کند، هرچند قطعی نیست. ب) vesicle که ulcer شده باشد بیشتر به vesiculobullous یا viral disease اشاره دارد. د) درد با التهاب شایع‌تر است و cancers اغلب تا وقتی ثانویه عفونی نشوند painless هستند.',
                     ],
                     [
@@ -1164,8 +1164,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'شست‌وشوی مداوم با سرم پرفشار و سپس جمع‌آوری نمونه از داخل ساکشن',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن می‌گوید suction، به‌ویژه high-volume، باید تا حد امکان کم شود؛ gauze blotting ترجیح دارد و اگر suction لازم شد می‌توان گاز را روی tip گذاشت تا مانند filter عمل کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن می‌گوید suction، به‌ویژه high-volume، باید تا حد امکان کم شود؛ gauze blotting ترجیح دارد و اگر suction لازم شد می‌توان گاز را روی tip گذاشت تا مانند filter عمل کند.
 رد گزینه‌ها: الف و ج) افزایش suction می‌تواند bleeding و خطر aspirate شدن sample به داخل suction را بیشتر کند. د) جمع‌آوری نمونه از داخل suction روش صحیح نگهداری specimen نیست.',
                     ],
                     [
@@ -1177,8 +1177,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ارزیابی احتمال نیاز به radiopaque marker در رادیوگرافی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: پرسش درباره fever، malaise یا lesions دیگر بدن برای یافتن ارتباط با systemic viral، autoimmune یا سایر systemic diseases مطرح می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: پرسش درباره fever، malaise یا lesions دیگر بدن برای یافتن ارتباط با systemic viral، autoimmune یا سایر systemic diseases مطرح می‌شود.
 رد گزینه‌ها: الف) عمق جراحی از clinical/radiographic evaluation و نوع biopsy تعیین می‌شود. ج) نوع نخ بخیه به محل و عمق زخم مربوط است. د) radiopaque marker موضوع ارزیابی رادیوگرافیک خاص است، نه هدف این پرسش شرح حال.',
                     ],
                     [
@@ -1190,8 +1190,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'محدودکردن برش به ناحیه اریتماتوز و رهاکردن مرزهای سفید',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: excisional biopsy معمولاً lesion را با ۲ تا ۳ mm بافت طبیعی برمی‌دارد؛ برای lesion مشکوک به malignancy، pigmented، vascular یا diffuse ممکن است ۲ تا ۳ mm اضافه لازم شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: excisional biopsy معمولاً lesion را با ۲ تا ۳ mm بافت طبیعی برمی‌دارد؛ برای lesion مشکوک به malignancy، pigmented، vascular یا diffuse ممکن است ۲ تا ۳ mm اضافه لازم شود.
 رد گزینه‌ها: الف) حذف حاشیه طبیعی با اصول فصل سازگار نیست. ج) نمونه سطحی پهن ممکن است diagnostic base را از دست بدهد. د) محدودکردن برداشت به بخش قرمز در lesion مختلط، حاشیه مناسب را تضمین نمی‌کند.',
                     ],
                     [
@@ -1203,8 +1203,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'چون auscultation فقط پس از palpation قابل انجام است.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: inspection باید قبل از palpation انجام شود چون دستکاری برخی ضایعات شکننده می‌تواند hemorrhage، rupture یا از بین رفتن surface tissue ایجاد کند و ارزیابی بعدی را مخدوش سازد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: inspection باید قبل از palpation انجام شود چون دستکاری برخی ضایعات شکننده می‌تواند hemorrhage، rupture یا از بین رفتن surface tissue ایجاد کند و ارزیابی بعدی را مخدوش سازد.
 رد گزینه‌ها: الف) percussion عمدتاً برای dentition است، نه مرحله اول تمام ضایعات. ب) palpation بی‌ارزش نیست و برای consistency، fixation و pulsation لازم است. د) auscultation فقط در مواردی مانند suspected vascular lesions اهمیت دارد.',
                     ],
                     [
@@ -1216,8 +1216,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برداشتن بافت اضافی از لبه‌ها تا زخم بدون کشش شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای primary closure بدون tension، mucosa با spreading action قیچی از submucosa آزاد می‌شود؛ در لب، گونه، floor of mouth و soft palate معمولاً undermining حداقل به اندازه عرض defect لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای primary closure بدون tension، mucosa با spreading action قیچی از submucosa آزاد می‌شود؛ در لب، گونه، floor of mouth و soft palate معمولاً undermining حداقل به اندازه عرض defect لازم است.
 رد گزینه‌ها: ب) secondary intention بیشتر برای attached mucosa مانند gingiva و hard palate مطرح است. ج) gut برای tongue نیز توصیه نمی‌شود و فقط بستن اپی‌تلیوم در زخم عمیق کافی نیست. د) برداشتن بافت اضافی راه اصلی کاهش tension در متن نیست.',
                     ],
                     [
@@ -1229,8 +1229,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'exostosisهای موضعی ناشی از استخوان قشری',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: وجود multiple lesions، به‌خصوص ulcerations متعدد، بیشتر با vesiculobullous، bacterial و viral diseases همخوان است؛ multiple یا bilateral neoplasms در دهان غیرمعمول‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: وجود multiple lesions، به‌خصوص ulcerations متعدد، بیشتر با vesiculobullous، bacterial و viral diseases همخوان است؛ multiple یا bilateral neoplasms در دهان غیرمعمول‌اند.
 رد گزینه‌ها: ب، ج و د) این گزینه‌ها معمولاً الگوی ضایعات منفرد یا موضعی‌تری دارند و رقیب نزدیک الگوی چند ulcer همزمان نیستند.',
                     ],
                     [
@@ -1242,8 +1242,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'قرار دادن نمونه در ظرف خشک و افزودن formalin پس از ارسال به آزمایشگاه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: specimen باید فوری در ظرف درب‌دار شیشه‌ای یا پلاستیکی حاوی ۱۰% formalin قرار گیرد؛ حجم formalin باید حداقل حدود ۲۰ برابر specimen باشد و نمونه کاملاً غوطه‌ور بماند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: specimen باید فوری در ظرف درب‌دار شیشه‌ای یا پلاستیکی حاوی ۱۰% formalin قرار گیرد؛ حجم formalin باید حداقل حدود ۲۰ برابر specimen باشد و نمونه کاملاً غوطه‌ور بماند.
 رد گزینه‌ها: الف) پیچیدن در گاز خطر دور انداخته شدن و آسیب نمونه را دارد. ب) گذاشتن روی drape باعث desiccation می‌شود. د) ظرف خشک باعث آسیب به معماری بافتی می‌شود.',
                     ],
                     [
@@ -1255,8 +1255,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'keratinized traumatic plaque',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: swelling آبی تیره که با فشار blanch می‌شود در فصل به‌عنوان نمای suggestive از vascular lesion ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: swelling آبی تیره که با فشار blanch می‌شود در فصل به‌عنوان نمای suggestive از vascular lesion ذکر شده است.
 رد گزینه‌ها: ب) mucus-retention cyst معمولاً آبی روشن‌تر و nonblanching توصیف می‌شود. ج) traumatic tattoo یک pigmented mucosal lesion است، نه swelling blanching. د) plaque سفید کراتینیزه با swelling آبی تیره تفاوت دارد.',
                     ],
                     [
@@ -1268,8 +1268,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'جایگزینی کامل شرح حال و تشخیص افتراقی در فرم آزمایشگاه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: suture tagging همراه با drawing به pathologist کمک می‌کند orientation نمونه‌ها و محل برداشت هر بخش را بداند، به‌ویژه وقتی چند specimen از یک lesion گرفته می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: suture tagging همراه با drawing به pathologist کمک می‌کند orientation نمونه‌ها و محل برداشت هر بخش را بداند، به‌ویژه وقتی چند specimen از یک lesion گرفته می‌شود.
 رد گزینه‌ها: الف) هدف tagging کنترل درد نیست. ج) جلوگیری از خشک‌شدن با formalin immersion انجام می‌شود. د) tagging جایگزین clinical history و differential diagnosis نمی‌شود.',
                     ],
                     [
@@ -1281,8 +1281,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تنها برای تعیین حاشیه جراحی در ضایعات قبلاً بدخیم‌شده طراحی شده‌اند.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل cytology را diagnostic قطعی نمی‌داند؛ نتایج positive یا atypical باید با scalpel biopsy بررسی شوند و در ضایعات persistent با نتیجه negative نیز biopsy ممکن است لازم شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل cytology را diagnostic قطعی نمی‌داند؛ نتایج positive یا atypical باید با scalpel biopsy بررسی شوند و در ضایعات persistent با نتیجه negative نیز biopsy ممکن است لازم شود.
 رد گزینه‌ها: الف و ب) هر دو برخلاف تأکید فصل بر نیاز به scalpel biopsy/پیگیری‌اند. د) این ابزارها case assessment برای ضایعات مخاطی‌اند، نه ابزار اصلی تعیین surgical margins.',
                     ],
                     [
@@ -1294,8 +1294,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'اگر cortical erosion وجود دارد، elevation باید از نزدیک‌ترین حاشیه ضایعه شروع شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: flapهای intraosseous biopsy باید full thickness باشند و روی sound bone قرار گیرند، به‌گونه‌ای که ۴ تا ۵ mm فراتر از bony defect امتداد داشته باشند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: flapهای intraosseous biopsy باید full thickness باشند و روی sound bone قرار گیرند، به‌گونه‌ای که ۴ تا ۵ mm فراتر از bony defect امتداد داشته باشند.
 رد گزینه‌ها: الف) قرار دادن flap روی defect با اصل sound bone سازگار نیست. ج) flap فقط mucosal برای این کار مناسب نیست. د) در erosion، elevation باید از ناحیه‌ای دور از حاشیه lesion و روی sound bone شروع شود.',
                     ],
                     [
@@ -1307,8 +1307,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'سطح ulcerated مخاطی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: cyst معمولاً به‌صورت radiolucency با sharp/well-defined borders دیده می‌شود؛ در مقابل، حاشیه ragged و نامنظم بیشتر نگران‌کننده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: cyst معمولاً به‌صورت radiolucency با sharp/well-defined borders دیده می‌شود؛ در مقابل، حاشیه ragged و نامنظم بیشتر نگران‌کننده است.
 رد گزینه‌ها: ب) malignancy intraosseous با ragged irregular border و lack of cortication مطرح می‌شود. ج) lymphadenitis یافته soft tissue/lymph node است. د) ulcer surface مخاطی نمای رادیوگرافیک استخوانی نیست.',
                     ],
                     [
@@ -1320,8 +1320,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'arteriovenous malformation با خطر خونریزی نبض‌دار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: aspirate زرد کاهی یا straw-colored fluid در متن به نفع cyst دانسته شده و معمولاً زمینه enucleation را فراهم می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: aspirate زرد کاهی یا straw-colored fluid در متن به نفع cyst دانسته شده و معمولاً زمینه enucleation را فراهم می‌کند.
 رد گزینه‌ها: ب) air without fluid بیشتر traumatic bone cavity را مطرح می‌کند. ج) ناتوانی در aspirate کردن fluid یا air بیشتر solid tumor را مطرح می‌کند. د) خون، به‌ویژه pulsatile، concern برای vascular lesion است.',
                     ],
                     [
@@ -1333,8 +1333,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'جایگزینی follow-up در ضایعات مشکوک',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: clinical differential diagnoses برداشت clinician را به pathologist منتقل می‌کند و به او کمک می‌کند entities با presentations مشابه را rule out کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: clinical differential diagnoses برداشت clinician را به pathologist منتقل می‌کند و به او کمک می‌کند entities با presentations مشابه را rule out کند.
 رد گزینه‌ها: الف) differential diagnosis جایگزین microscopic examination نیست. ج) نوع suture از محل و عمق زخم تعیین می‌شود. د) follow-up در ضایعات مشکوک همچنان ضروری است.',
                     ],
                     [
@@ -1346,8 +1346,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بدون irrigation تا امکان دیدن بافت نرم باقی‌مانده بیشتر شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در enucleation cyst، curette به‌صورت progressive lesion را از bone جدا می‌کند و باید به سطح استخوانی cavity در تماس بماند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در enucleation cyst، curette به‌صورت progressive lesion را از bone جدا می‌کند و باید به سطح استخوانی cavity در تماس بماند.
 رد گزینه‌ها: الف) فشار به مرکز و rupture محتویات هدف نیست. ج) cortical window با burr/rongeur ایجاد می‌شود، نه نقش اصلی curette. د) irrigation و بررسی cavity برای residual tissue توصیه شده است.',
                     ],
                     [
@@ -1359,8 +1359,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ضایعه کم‌خطر در بیمار low-risk که stable و بی‌علامت مانده است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: leukoplakia در high-risk area، به‌خصوص با redness یا pebbling، به علت خطر dysplasia/malignancy نیازمند توجه جدی و معمولاً incisional biopsy از نواحی suspicious است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: leukoplakia در high-risk area، به‌خصوص با redness یا pebbling، به علت خطر dysplasia/malignancy نیازمند توجه جدی و معمولاً incisional biopsy از نواحی suspicious است.
 رد گزینه‌ها: الف) اگر علت موضعی اصلاح شده و ضایعه بهتر شده باشد biopsy فوری الزام ندارد. ج) ضایعه تروماتیک در حال بهبود با سناریوی پرخطر فرق دارد. د) observation فقط در شرایط selected و با shared risk و follow-up پذیرفتنی است.',
                     ],
                     [
@@ -1372,8 +1372,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ارسال specimen بدون ذکر hard یا soft بودن بافت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای intraosseous lesions، diagnostic radiograph همراه با clinical description و presumptive diagnoses به pathologist کمک می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای intraosseous lesions، diagnostic radiograph همراه با clinical description و presumptive diagnoses به pathologist کمک می‌کند.
 رد گزینه‌ها: الف و د) اطلاعات ناقص می‌تواند تشخیص را دشوار یا نادرست کند. ج) فرم خالی برای پرهیز از سوگیری توصیه نشده و برعکس، اطلاعات کامل ضروری است.',
                     ],
                     [
@@ -1385,8 +1385,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط نتیجه auscultation از node',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل پنج ویژگی lymph node را برای ثبت توصیه می‌کند: location، size، pain/tenderness، fixation/mobility و texture.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل پنج ویژگی lymph node را برای ثبت توصیه می‌کند: location، size، pain/tenderness، fixation/mobility و texture.
 رد گزینه‌ها: الف) درد تنها یکی از ویژگی‌هاست. ج) رنگ مخاط روی node معیار اصلی ثبت نیست. د) auscultation برای node exam معمول روتین نیست.',
                     ],
                     [
@@ -1398,8 +1398,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'چون فقط برای بافت استخوانی قابل استفاده است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: laser و electrosurgery برای biopsy incision معمولاً undesirable هستند چون thermal effects می‌تواند بافت مجاور و histologic architecture را تخریب کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: laser و electrosurgery برای biopsy incision معمولاً undesirable هستند چون thermal effects می‌تواند بافت مجاور و histologic architecture را تخریب کند.
 رد گزینه‌ها: الف) مشکل اصلی closure نیست. ج) این ابزارها می‌توانند hemostasis بدهند، اما آسیب بافتی مسئله است. د) کاربردشان منحصر به استخوان نیست.',
                     ],
                     [
@@ -1411,8 +1411,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'در پرونده فقط باید تعداد nodes ثبت شود و pain اهمیتی ندارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: دردناک بودن lymph nodes معمولاً inflammatory یا infectious cause را مطرح می‌کند، اما فصل تصریح می‌کند می‌تواند manifestation malignancy نیز باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: دردناک بودن lymph nodes معمولاً inflammatory یا infectious cause را مطرح می‌کند، اما فصل تصریح می‌کند می‌تواند manifestation malignancy نیز باشد.
 رد گزینه‌ها: ب) درد اختصاصی metastasis نیست. ج) lymph node exam قبل از biopsy ضروری است. د) pain/tenderness یکی از ویژگی‌های لازم برای ثبت است.',
                     ],
                     [
@@ -1424,8 +1424,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای اینکه specimen در زمان decalcification سریع‌تر آماده شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: margin tagging در suspected dysplasia/malignancy به pathologist امکان می‌دهد دقیقاً بگوید کدام margin یا area نیازمند excision وسیع‌تر یا عمیق‌تر است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: margin tagging در suspected dysplasia/malignancy به pathologist امکان می‌دهد دقیقاً بگوید کدام margin یا area نیازمند excision وسیع‌تر یا عمیق‌تر است.
 رد گزینه‌ها: الف) شناورماندن با غوطه‌وری در formalin حاصل می‌شود. ج) برچسب patient/dentist روی بطری همچنان لازم است. د) tagging ارتباطی با سرعت decalcification ندارد.',
                     ],
                     [
@@ -1437,8 +1437,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'رنگ نگرفته شدن ضایعه، نیاز به پیگیری را از بین می‌برد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: toluidine blue یک dye با affinity برای high cellular activity است؛ inflammatory lesions و healing ulcers نیز metabolic rate بالا دارند و false-positive شایع است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: toluidine blue یک dye با affinity برای high cellular activity است؛ inflammatory lesions و healing ulcers نیز metabolic rate بالا دارند و false-positive شایع است.
 رد گزینه‌ها: الف) به‌عنوان stand-alone screening adjunct تأیید FDA ندارد. ج) موضوع آن mucosal lesions است. د) منفی شدن رنگ‌آمیزی پیگیری clinical lesion پایدار را حذف نمی‌کند.',
                     ],
                     [
@@ -1450,8 +1450,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'چون زخم‌های زبان باید همیشه secondary intention ترمیم شوند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: زخم‌های dorsum/lateral tongue به علت حرکات عضلانی نیازمند deeply placed sutures در فواصل نزدیک هستند تا closure حفظ شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: زخم‌های dorsum/lateral tongue به علت حرکات عضلانی نیازمند deeply placed sutures در فواصل نزدیک هستند تا closure حفظ شود.
 رد گزینه‌ها: الف) زبان عضله فعال دارد. ج) suturing ربطی به formalin specimen ندارد. د) زخم‌های زبان معمولاً نیازمند closure مناسب‌اند، نه همیشه secondary intention.',
                     ],
                     [
@@ -1463,8 +1463,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط برای ضایعات سفید مخاطی به کار می‌روند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن می‌گوید screening labs در اکثر موارد به‌دلیل diagnostic yield پایین نسبت به هزینه unnecessary هستند، اما پس از definitive diagnosis می‌توانند اطلاعات useful برای management بدهند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن می‌گوید screening labs در اکثر موارد به‌دلیل diagnostic yield پایین نسبت به هزینه unnecessary هستند، اما پس از definitive diagnosis می‌توانند اطلاعات useful برای management بدهند.
 رد گزینه‌ها: الف) ضرورت routine قبل از biopsy در متن رد شده است. ج) جایگزین radiographs نیستند. د) محدود به white mucosal lesions نیستند.',
                     ],
                     [
@@ -1476,8 +1476,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'دوختن به periosteum بدون protection برای ۲۴ ساعت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: wounds on attached mucosal surfaces مانند gingiva و hard palate معمولاً closed نمی‌شوند و با secondary intention heal می‌کنند؛ dressing یا splint می‌تواند کمک کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: wounds on attached mucosal surfaces مانند gingiva و hard palate معمولاً closed نمی‌شوند و با secondary intention heal می‌کنند؛ dressing یا splint می‌تواند کمک کند.
 رد گزینه‌ها: الف) undermining وسیع برای attached mucosa معمولاً راه اصلی نیست. ج) gut به علت knot security و degradation مشکل دارد. د) protection می‌تواند با dressing/splint انجام شود و محدود به ۲۴ ساعت نیست.',
                     ],
                     [
@@ -1489,8 +1489,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'همه این ابزارها با دقت ثابت، high-risk و low-risk lesions را جدا می‌کنند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در autofluorescence، normal/healthy tissue pale green دیده می‌شود و suspect tissue به‌علت loss of fluorescence تیره دیده می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در autofluorescence، normal/healthy tissue pale green دیده می‌شود و suspect tissue به‌علت loss of fluorescence تیره دیده می‌شود.
 رد گزینه‌ها: ب) در blue-white adjuncts، dysplastic cells با nuclear/cytoplasmic ratio بالا به‌صورت aceto-white دیده می‌شوند، نه normal cells. ج) Identafi light-based است و green-amber light نیز دارد. د) شواهد efficacy و discrimination high/low risk ثابت نیست.',
                     ],
                     [
@@ -1502,8 +1502,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'استفاده از electrosurgery برای ایجاد cortical window وسیع‌تر',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: aspiration blood می‌تواند vascular lesion مانند hemangioma یا AVM را مطرح کند و surgical invasion می‌تواند hemorrhage life-threatening ایجاد کند؛ general dentist نباید ادامه دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: aspiration blood می‌تواند vascular lesion مانند hemangioma یا AVM را مطرح کند و surgical invasion می‌تواند hemorrhage life-threatening ایجاد کند؛ general dentist نباید ادامه دهد.
 رد گزینه‌ها: الف و ج) ادامه بازکردن/enucleation خطرناک است. د) electrosurgery برای window در این شرایط توصیه نمی‌شود و خطر را حل نمی‌کند.',
                     ],
                     [
@@ -1515,8 +1515,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ulcer تروماتیک که پس از حذف عامل در ۷ روز کوچک شده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: وقتی malignancy مشکوک است، referral پیش از biopsy اغلب خدمت بهتری است اگر timely باشد؛ specialist lesion دست‌نخورده را ارزیابی و درمان قطعی را طراحی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: وقتی malignancy مشکوک است، referral پیش از biopsy اغلب خدمت بهتری است اگر timely باشد؛ specialist lesion دست‌نخورده را ارزیابی و درمان قطعی را طراحی می‌کند.
 رد گزینه‌ها: الف و ج) ضایعات کوچک و کم‌ریسک ممکن است در توان general dentist باشند. د) ulcer تروماتیک در حال بهبود معمولاً وضعیت referral فوری malignancy نیست.',
                     ],
                     [
@@ -1528,8 +1528,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'decalcification سریع‌تر انجام می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: specimen باید کاملاً در preservative غوطه‌ور بماند؛ چسبیدن به دیواره بالاتر از سطح formalin می‌تواند preservation را مختل کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: specimen باید کاملاً در preservative غوطه‌ور بماند؛ چسبیدن به دیواره بالاتر از سطح formalin می‌تواند preservation را مختل کند.
 رد گزینه‌ها: الف) مشکل اصلی رقیق‌شدن formalin نیست. ج) orientation با tagging/drawing انجام می‌شود. د) این وضعیت decalcification را تسریع نمی‌کند.',
                     ],
                     [
@@ -1541,8 +1541,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'pebbling در leukoplakia اهمیت ندارد مگر درد وجود داشته باشد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید erythroplakia و mixed red-white lesions نسبت به white lesions از نظر dysplastic changes نگران‌کننده‌ترند و erythroplakia می‌تواند به‌طور بسیار بالا dysplasia یا malignancy نشان دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید erythroplakia و mixed red-white lesions نسبت به white lesions از نظر dysplastic changes نگران‌کننده‌ترند و erythroplakia می‌تواند به‌طور بسیار بالا dysplasia یا malignancy نشان دهد.
 رد گزینه‌ها: ب) ضایعات قرمز را نمی‌توان صرفاً trauma دانست. ج) leukoplakia در این بخش clinical term است، نه pathology term. د) redness/pebbling در leukoplakia especially troubling است حتی بدون درد.',
                     ],
                     [
@@ -1554,8 +1554,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط aspiration تکراری و عدم ارسال tissue',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: solid soft tissue lesion کوچک که readily از bone جدا می‌شود می‌تواند curetted/enucleated و به‌عنوان specimen ارسال شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: solid soft tissue lesion کوچک که readily از bone جدا می‌شود می‌تواند curetted/enucleated و به‌عنوان specimen ارسال شود.
 رد گزینه‌ها: ب) بستن بدون نمونه تشخیص نمی‌دهد. ج) solid بودن به‌تنهایی contraindication biopsy نیست. د) aspiration تکراری جایگزین tissue diagnosis نیست.',
                     ],
                     [
@@ -1567,8 +1567,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بیمار فقط در صورت درد باید بازبینی شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: pathology report مثبت برای dysplasia یا malignancy پس از incisional biopsy معمولاً appropriate surgical excision و/یا referral به specialist را لازم می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: pathology report مثبت برای dysplasia یا malignancy پس از incisional biopsy معمولاً appropriate surgical excision و/یا referral به specialist را لازم می‌کند.
 رد گزینه‌ها: الف) گزارش منفی نباید blindly پذیرفته شود. ج) structured observation در doubt یا negative report مهم است. د) follow-up فقط وابسته به درد نیست.',
                     ],
                     [
@@ -1580,8 +1580,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'نشان می‌دهد lesion حتماً traumatic bone cavity است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: resistance و محل‌های adherence در enucleation باید در submission form ثبت شوند، چون برای pathologist و تصمیم درمانی می‌تواند مهم باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: resistance و محل‌های adherence در enucleation باید در submission form ثبت شوند، چون برای pathologist و تصمیم درمانی می‌تواند مهم باشد.
 رد گزینه‌ها: الف) به formalin ارتباط مستقیم ندارد. ج) هدف صرفاً مالی نیست. د) traumatic bone cavity با air aspirate مطرح می‌شود، نه مقاومت در curettage.',
                     ],
                     [
@@ -1593,8 +1593,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'مرز irregular همیشه به معنی cyst ساده است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: radiographs پس از history و clinical exam، به‌ویژه در ضایعات نزدیک bone، می‌توانند osseous reaction، erosion یا intraosseous origin را نشان دهند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: radiographs پس از history و clinical exam، به‌ویژه در ضایعات نزدیک bone، می‌توانند osseous reaction، erosion یا intraosseous origin را نشان دهند.
 رد گزینه‌ها: ب) برای soft tissue نزدیک bone نیز کاربرد دارند. ج) radiographs همچنان در diagnosis و follow-up مفیدند. د) irregular ragged borders بیشتر aggressive/malignant را مطرح می‌کنند، نه cyst ساده.',
                     ],
                     [
@@ -1606,8 +1606,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'چون گزارش این نمونه‌ها هرگز بیش از یک هفته طول نمی‌کشد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن توصیه می‌کند odontogenic tissues در صورت امکان به oral-maxillofacial pathologist ارسال شوند چون subtleties odontogenic cysts/tumors ممکن است برای general pathologist کمتر آشنا باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن توصیه می‌کند odontogenic tissues در صورت امکان به oral-maxillofacial pathologist ارسال شوند چون subtleties odontogenic cysts/tumors ممکن است برای general pathologist کمتر آشنا باشد.
 رد گزینه‌ها: الف) متن صلاحیت کلی pathologist عمومی را نفی نمی‌کند. ج) formalin متفاوتی معرفی نشده است. د) گزارش بافت‌های استخوانی گاهی به دلیل decalcification طولانی‌تر می‌شود.',
                     ],
                     [
@@ -1619,8 +1619,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ثبت اطلاعات اولیه در پرونده',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: hygienists ممکن است observant باشند، اما ultimate responsibility برای detection of pathologic conditions و oral cancer screening با dentist است و قابل delegation کامل نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: hygienists ممکن است observant باشند، اما ultimate responsibility برای detection of pathologic conditions و oral cancer screening با dentist است و قابل delegation کامل نیست.
 رد گزینه‌ها: الف، ج و د) این‌ها می‌توانند به‌صورت کمکی انجام شوند، اما مسئولیت نهایی را منتقل نمی‌کنند.',
                     ],
                     [
@@ -1632,8 +1632,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'واردکردن سوزن aspiration به‌جای هرگونه دسترسی جراحی تا پایان درمان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر cortical erosion قبلاً defect ایجاد کرده باشد، defect pathologic می‌تواند با rongeur یا round surgical burr بزرگ شود تا osseous window فراهم شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر cortical erosion قبلاً defect ایجاد کرده باشد، defect pathologic می‌تواند با rongeur یا round surgical burr بزرگ شود تا osseous window فراهم شود.
 رد گزینه‌ها: ب) فقط incision مخاطی برای دسترسی کافی نیست. ج) neurovascular structures باید پرهیز شوند. د) aspiration مهم است، اما جایگزین همه دسترسی‌ها و specimen diagnosis نمی‌شود.',
                     ],
                 ],
@@ -1664,8 +1664,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'macule بدون تغییر رنگ اطراف',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: bleeding on gentle manipulation یکی از characteristics raising suspicion of malignancy در Box 22.3 است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: bleeding on gentle manipulation یکی از characteristics raising suspicion of malignancy در Box 22.3 است.
 رد گزینه‌ها: الف) blanching swelling بیشتر vascular lesion را مطرح می‌کند. ج) بهبود پس از حذف trauma کمتر نگران‌کننده است. د) macule صرفاً یک اصطلاح توصیفی است و به‌تنهایی ویژگی Box 22.3 نیست.',
                     ],
                     [
@@ -1677,8 +1677,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'روی specimen پس از قرارگیری در formalin فقط برای labeling',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: retraction sutures باید deep و دور از planned biopsy site قرار گیرند تا بدون pulling through و آسیب بافت، stabilization بدهند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: retraction sutures باید deep و دور از planned biopsy site قرار گیرند تا بدون pulling through و آسیب بافت، stabilization بدهند.
 رد گزینه‌ها: الف) سطحی یا روی خط برش می‌تواند tissue damage ایجاد کند. ج) برای تخلیه lumen ضایعه نیست. د) suture روی specimen می‌تواند tagging باشد، اما سؤال درباره traction suture حین stabilization است.',
                     ],
                     [
@@ -1690,8 +1690,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'hyperplasia: افزایش اندازه سلول‌ها بدون افزایش تعداد آن‌ها',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: vesicle در Box 22.1 به‌عنوان small blister یا elevation کوچک حاوی serous fluid تعریف شده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: vesicle در Box 22.1 به‌عنوان small blister یا elevation کوچک حاوی serous fluid تعریف شده است.
 رد گزینه‌ها: الف) nodule توده جامد بزرگ و قابل لمس است، نه macule. ج) ulcer ضایعه crater-like از necrosis اپی‌تلیوم است، نه plaque. د) hyperplasia افزایش تعداد سلول‌های طبیعی است؛ hypertrophy افزایش اندازه سلول‌هاست.',
                     ],
                     [
@@ -1703,8 +1703,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ضمیمه‌کردن radiograph برای intraosseous lesion',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل تأکید می‌کند insufficient information، incomplete data و omitted historical notes موجب wasted time و inaccurate diagnoses می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل تأکید می‌کند insufficient information، incomplete data و omitted historical notes موجب wasted time و inaccurate diagnoses می‌شوند.
 رد گزینه‌ها: الف، ب و د) این موارد اتفاقاً اطلاعات مفید برای pathologist فراهم می‌کنند.',
                     ],
                     [
@@ -1716,8 +1716,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط اگر درد شدید داشته باشد نیازمند بررسی است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: visible or palpable submucosal swelling beneath clinically normal mucosa از indications for biopsy ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: visible or palpable submucosal swelling beneath clinically normal mucosa از indications for biopsy ذکر شده است.
 رد گزینه‌ها: الف) normal بودن surface mucosa نیاز به بررسی را حذف نمی‌کند. ج) adjunct جایگزین biopsy نیست. د) اندیکاسیون به درد شدید محدود نشده است.',
                     ],
                     [
@@ -1729,8 +1729,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بسته نشود و flap روی defect نگه داشته نشود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: پس از removal، cavity باید irrigated، suctioned و از نظر residual fragments of soft tissue بررسی شود؛ بقایا باید curetted شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: پس از removal، cavity باید irrigated، suctioned و از نظر residual fragments of soft tissue بررسی شود؛ بقایا باید curetted شوند.
 رد گزینه‌ها: الف) بستن بدون بررسی توصیه نشده است. ج) radiopaque dye در شرایط خاص تشخیصی مطرح است. د) flap پس از final irrigation reposition و sutured می‌شود.',
                     ],
                     [
@@ -1742,8 +1742,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کد آن همان biopsy scalpel قطعی است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Oral CDx BrushTest با special sampling brush یک full transepithelial specimen می‌گیرد و برای laboratory assessment ارسال می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Oral CDx BrushTest با special sampling brush یک full transepithelial specimen می‌گیرد و برای laboratory assessment ارسال می‌کند.
 رد گزینه‌ها: ب) neck mass بیشتر زمینه fine-needle aspiration است. ج) negative result در lesion persistent ممکن است هنوز نیازمند biopsy باشد. د) BrushTest cytology adjunct است، نه scalpel biopsy قطعی.',
                     ],
                     [
@@ -1755,8 +1755,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'splint جایگزین specimen submission می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: protective splints/dressings برای attached mucosa می‌توانند comfort و healing را تقویت کنند و splints معمولاً ۷ تا ۱۰ روز می‌مانند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: protective splints/dressings برای attached mucosa می‌توانند comfort و healing را تقویت کنند و splints معمولاً ۷ تا ۱۰ روز می‌مانند.
 رد گزینه‌ها: ب) استفاده محدود به floor of mouth malignant نیست. ج) در صورت نیاز splint با circumdental wires یا heavy suture می‌تواند نگه داشته شود. د) هیچ splintی جایگزین ارسال specimen نیست.',
                     ],
                     [
@@ -1768,8 +1768,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'چون node examination جایگزین histology است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: lymph node examination باید پیش از biopsy انجام شود چون biopsy می‌تواند reactive lymphadenitis ایجاد کند و افتراق آن از infection/inflammation یا metastasis را دشوار کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: lymph node examination باید پیش از biopsy انجام شود چون biopsy می‌تواند reactive lymphadenitis ایجاد کند و افتراق آن از infection/inflammation یا metastasis را دشوار کند.
 رد گزینه‌ها: ب) ممنوعیت قانونی پس از biopsy مطرح نیست. ج) nodes فقط هنگام خونریزی قابل لمس نیستند. د) node examination جایگزین histology نیست.',
                     ],
                     [
@@ -1781,8 +1781,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط در صورت وجود خونریزی حین نمونه‌برداری گزارش را پیگیری کرد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید negative/benign report نباید at face value پذیرفته شود؛ باید با clinical behavior سنجیده شود و در صورت تردید second biopsy یا second pathology opinion مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید negative/benign report نباید at face value پذیرفته شود؛ باید با clinical behavior سنجیده شود و در صورت تردید second biopsy یا second pathology opinion مطرح است.
 رد گزینه‌ها: الف) follow-up نباید حذف شود. ج) درمان صرفاً بر اساس paperwork نیست. د) پیگیری به خونریزی حین نمونه‌برداری وابسته نیست.',
                     ],
                     [
@@ -1794,8 +1794,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'نشانه اختصاصی mucocele است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: sensory nerve changes مانند numbness یا tingling با malignant یا inflammatory processes می‌توانند دیده شوند، مگر علت مشخص دیگری قابل شناسایی باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: sensory nerve changes مانند numbness یا tingling با malignant یا inflammatory processes می‌توانند دیده شوند، مگر علت مشخص دیگری قابل شناسایی باشد.
 رد گزینه‌ها: الف) اهمیت آن به درد محدود نیست. ج) همیشه ناشی از anesthesia قبلی نیست. د) نشانه اختصاصی mucocele نیست.',
                     ],
                     [
@@ -1807,8 +1807,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'amalgam carrier برای specimen transfer',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Box 22.4 scalpel handle with No. 15 blade را از وسایل soft tissue biopsy ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Box 22.4 scalpel handle with No. 15 blade را از وسایل soft tissue biopsy ذکر می‌کند.
 رد گزینه‌ها: ب، ج و د) این وسایل در فهرست پایه biopsy ذکر نشده‌اند و از جنس ابزارهای نزدیک موردنیاز specimen biopsy نیستند.',
                     ],
                     [
@@ -1820,8 +1820,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'fixed به استخوان همراه bruit',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: consistency به‌صورت soft/compressible در مثال‌هایی مانند lipoma یا abscess ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: consistency به‌صورت soft/compressible در مثال‌هایی مانند lipoma یا abscess ذکر شده است.
 رد گزینه‌ها: ب) hard بیشتر torus/exostosis را نشان می‌دهد. ج) firm/indurated با fibroma/neoplasm مثال زده شده است. د) bruit/fixation موضوع vascular یا invasive behavior است، نه consistency abscess/lipoma.',
                     ],
                     [
@@ -1833,8 +1833,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط بزرگ‌ترین قطعه در formalin و بقیه دور ریخته شوند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای multiple specimens، tagging و drawing لازم است و هر specimen باید در container جداگانه ارسال شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای multiple specimens، tagging و drawing لازم است و هر specimen باید در container جداگانه ارسال شود.
 رد گزینه‌ها: الف) همه نمونه‌ها نباید در یک ظرف قرار گیرند. ج) گاز مرطوب و شرح شفاهی کافی نیست. د) دورریختن بقیه نمونه‌ها خلاف هدف sampling از نواحی متفاوت است.',
                     ],
                     [
@@ -1846,8 +1846,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای تعیین architecture غدد بزاقی با sialography طراحی شده است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: SaliMark OSCC سطوح DUSP1، SAT و OAZ1 را بررسی می‌کند؛ حتی با low-risk result، lesion پایدار ممکن است برای diagnosis نیازمند biopsy باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: SaliMark OSCC سطوح DUSP1، SAT و OAZ1 را بررسی می‌کند؛ حتی با low-risk result، lesion پایدار ممکن است برای diagnosis نیازمند biopsy باشد.
 رد گزینه‌ها: الف) HPV PCR مربوط به OraRisk است. ج) SaliMark جایگزین کامل biopsy نیست. د) سialography برای gland duct architecture است.',
                     ],
                     [
@@ -1859,8 +1859,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط پس از منفی شدن گزارش pathology',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: اگر lesion solid tumor باشد، bone window برداشته‌شده باید همراه primary specimen ارسال شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: اگر lesion solid tumor باشد، bone window برداشته‌شده باید همراه primary specimen ارسال شود.
 رد گزینه‌ها: الف) bone نیز می‌تواند پس از formalin و در صورت نیاز decalcification بررسی شود. ج) straw-colored fluid بیشتر cyst را مطرح می‌کند. د) ارسال window وابسته به دریافت گزارش منفی نیست.',
                     ],
                     [
@@ -1872,8 +1872,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ulcer سطحی در smoker همیشه vesiculobullous disease است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل ذکر می‌کند surface ulcerations در chronic smoker باید dentist را نسبت به possibility of oral or pharyngeal cancer هوشیار کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل ذکر می‌کند surface ulcerations در chronic smoker باید dentist را نسبت به possibility of oral or pharyngeal cancer هوشیار کند.
 رد گزینه‌ها: ب و ج) smoking در ارزیابی ضایعات مخاطی مهم است. د) ulcer در smoker را نمی‌توان همیشه vesiculobullous disease دانست.',
                     ],
                     [
@@ -1885,8 +1885,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ناحیه دور از ضایعه که هیچ تغییر بالینی ندارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در incisional biopsy، نمونه باید interface lesion با normal-appearing tissue را شامل شود و depth کافی داشته باشد؛ مرکز necrotic کم‌ارزش است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در incisional biopsy، نمونه باید interface lesion با normal-appearing tissue را شامل شود و depth کافی داشته باشد؛ مرکز necrotic کم‌ارزش است.
 رد گزینه‌ها: الف) central necrotic areas diagnostic value کمی دارند. ج) slough سطحی پایه lesion را نشان نمی‌دهد. د) بافت کاملاً دور از lesion اطلاعات pathology lesion را نمی‌دهد.',
                     ],
                     [
@@ -1898,8 +1898,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ایجاد vasoconstriction برای hemostasis حین biopsy',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در ViziLite TBlue و Microlux DL، 60-second prerinse با 1% acetic acid برای حذف surface glycoprotein layer و بهبود visualization استفاده می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در ViziLite TBlue و Microlux DL، 60-second prerinse با 1% acetic acid برای حذف surface glycoprotein layer و بهبود visualization استفاده می‌شود.
 رد گزینه‌ها: ب) fixation با formalin انجام می‌شود. ج) این ابزارها diagnosis قطعی نمی‌دهند. د) کاربرد rinse برای hemostasis حین biopsy نیست.',
                     ],
                     [
@@ -1911,8 +1911,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'استفاده از suction برای نزدیک‌کردن لبه‌ها',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در زخم عمیق که tissue layers مختلف دارد، deep closure برای هر لایه با resorbable suture انجام می‌شود و سپس mucosa/skin جداگانه بسته می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در زخم عمیق که tissue layers مختلف دارد، deep closure برای هر لایه با resorbable suture انجام می‌شود و سپس mucosa/skin جداگانه بسته می‌شود.
 رد گزینه‌ها: الف) یک بخیه سطحی برای تمام لایه‌ها کافی نیست. ج) همه زخم‌های عمیق برای secondary intention رها نمی‌شوند. د) suction ابزار نزدیک‌کردن لبه‌ها نیست.',
                     ],
                     [
@@ -1924,8 +1924,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'mucosa با رنگ طبیعی روی torus',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: erythematous یا mixed red-white lesion در متن از نظر dysplastic changes حتی ominous‌تر از white lesion توصیف شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: erythematous یا mixed red-white lesion در متن از نظر dysplastic changes حتی ominous‌تر از white lesion توصیف شده است.
 رد گزینه‌ها: ب) bluish nonblanching بیشتر mucus-retaining cyst را مطرح می‌کند. ج) traumatic tattoo در رده pigment قرار می‌گیرد و به‌تنهایی از red-white dysplasia concern مهم‌تر نیست. د) torus مخاط طبیعی دارد و hard bony lesion است.',
                     ],
                     [
@@ -1937,8 +1937,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'palpation جایگزین aspiration احتیاطی می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در intraosseous lesions، firm و smooth contour نسبت به سمت مقابل نشان می‌دهد cortical plate احتمالاً expand یا erode نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در intraosseous lesions، firm و smooth contour نسبت به سمت مقابل نشان می‌دهد cortical plate احتمالاً expand یا erode نشده است.
 رد گزینه‌ها: ب) spongy feel بیشتر erosion/thinning cortical plate و lesion تهاجمی‌تر را مطرح می‌کند. ج) palpation برای jaw قبل از hard tissue biopsy مهم است. د) palpation جایگزین aspiration نیست.',
                     ],
                     [
@@ -1950,8 +1950,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای تعیین ضخامت cortical window استفاده می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل بیان می‌کند ارزش prognostic تشخیص current/persistent HPV در oral rinses برای پیش‌بینی OPC نامشخص است و positive screening ممکن است anxiety قابل‌توجه ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل بیان می‌کند ارزش prognostic تشخیص current/persistent HPV در oral rinses برای پیش‌بینی OPC نامشخص است و positive screening ممکن است anxiety قابل‌توجه ایجاد کند.
 رد گزینه‌ها: ب) positive HPV مساوی OPC قطعی نیست. ج) تست درمان chronic HPV infection نیست. د) ارتباطی با cortical window ندارد.',
                     ],
                     [
@@ -1963,8 +1963,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'در این حالت دیگر follow-up لازم نیست.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: اگر decalcification برای osseous tissues لازم باشد، pathology report ممکن است ۲ هفته یا بیشتر زمان ببرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: اگر decalcification برای osseous tissues لازم باشد، pathology report ممکن است ۲ هفته یا بیشتر زمان ببرد.
 رد گزینه‌ها: الف) گزارش همیشه همان روز آماده نمی‌شود. ج) decalcification مربوط به hard/osseous tissue است. د) تأخیر گزارش، follow-up را حذف نمی‌کند.',
                     ],
                     [
@@ -1976,8 +1976,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط infraclavicular nodes در تمام بیماران',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: examination methodical شامل occipital، preauricular/postauricular، mandibular/submandibular/submental، deep anterior و deep posterior cervical، superficial cervical و supraclavicular nodes است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: examination methodical شامل occipital، preauricular/postauricular، mandibular/submandibular/submental، deep anterior و deep posterior cervical، superficial cervical و supraclavicular nodes است.
 رد گزینه‌ها: الف) محدود به submandibular/submental نیست. ج) buccal nodes ممکن است routinely palpable نباشند. د) infraclavicular در فهرست اصلی methodical متن به‌عنوان تمرکز cervicofacial routine نیامده است.',
                     ],
                     [
@@ -1989,8 +1989,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'pulsatile vascular lesion',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: aspiration of air without fluid در متن suggestive of traumatic bone cavity دانسته شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: aspiration of air without fluid در متن suggestive of traumatic bone cavity دانسته شده است.
 رد گزینه‌ها: ب) cyst معمولاً straw-colored fluid می‌دهد. ج) pus به inflammatory/infectious process اشاره دارد. د) blood، به‌خصوص pulsatile، vascular lesion را مطرح می‌کند.',
                     ],
                     [
@@ -2002,8 +2002,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حذف نتیجه از پرونده برای کاهش اضطراب بیمار',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: lesion مشکوک یا بی‌علت که پس از correction of local trauma یا local therapy طی ۷ تا ۱۴ روز بهبود نیابد، معمولاً نیازمند biopsy یا referral است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: lesion مشکوک یا بی‌علت که پس از correction of local trauma یا local therapy طی ۷ تا ۱۴ روز بهبود نیابد، معمولاً نیازمند biopsy یا referral است.
 رد گزینه‌ها: الف) observation نامحدود بدون برنامه خلاف متن است. ج) درمان موضعی بدون بازبینی کافی نیست. د) مستندسازی در record اهمیت دارد.',
                     ],
                     [
@@ -2015,8 +2015,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'نیاز به orienting suture حذف می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: ورود ماده بی‌حسی به specimen می‌تواند cellular architecture را distort کند و diagnosis را دشوار یا ناممکن سازد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: ورود ماده بی‌حسی به specimen می‌تواند cellular architecture را distort کند و diagnosis را دشوار یا ناممکن سازد.
 رد گزینه‌ها: ب) local anesthetic جایگزین formalin fixation نیست. ج) distortion دقت depth assessment را بهتر نمی‌کند. د) نیاز به orienting suture در موارد مشکوک باقی است.',
                     ],
                     [
@@ -2028,8 +2028,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'صدای audible murmur با stethoscope',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: fluctuant به wave-like motion هنگام bidigital palpation ضایعه با nonrigid walls و fluid content گفته می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: fluctuant به wave-like motion هنگام bidigital palpation ضایعه با nonrigid walls و fluid content گفته می‌شود.
 رد گزینه‌ها: ب) hard مربوط به torus/exostosis است. ج) fixation ویژگی mobility/attachment است. د) audible murmur همان bruit است، نه fluctuation.',
                     ],
                     [
@@ -2041,8 +2041,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'lymph node shotty در کودک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید blood aspirate علاوه بر vascular lesions می‌تواند به‌صورت passive از aneurysmal bone cyst یا central giant cell lesion دیده شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید blood aspirate علاوه بر vascular lesions می‌تواند به‌صورت passive از aneurysmal bone cyst یا central giant cell lesion دیده شود.
 رد گزینه‌ها: ب و ج) این‌ها ضایعات سطحی mucosal هستند و با blood aspirate داخل استخوانی هم‌جنس نیستند. د) shotty lymph nodes یافته lymph node است، نه aspirate از lesion.',
                     ],
                     [
@@ -2054,8 +2054,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'اطمینان دادن قطعی که lesion هرگز بدخیم نیست',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: observation of innocent-appearing lesion یک calculated risk است؛ بیمار باید از risks، rationales و alternatives آگاه شود و shared responsibility در record مستند گردد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: observation of innocent-appearing lesion یک calculated risk است؛ بیمار باید از risks، rationales و alternatives آگاه شود و shared responsibility در record مستند گردد.
 رد گزینه‌ها: الف) عدم ثبت تصمیم خلاف توصیه فصل است. ج) follow-up حذف نمی‌شود. د) پیش از بررسی نمی‌توان benign بودن را قطعی تضمین کرد.',
                     ],
                     [
@@ -2067,8 +2067,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط در جهت بلندترین قطر ضایعه بدون توجه به smile lines',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: incisions تا حد امکان باید موازی با normal course of nerves، blood vessels و lines of muscular tension/facial creases باشند تا secondary injury و مسائل esthetic کم شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: incisions تا حد امکان باید موازی با normal course of nerves، blood vessels و lines of muscular tension/facial creases باشند تا secondary injury و مسائل esthetic کم شود.
 رد گزینه‌ها: الف) عمود کردن بر nerves/vessels خطر آسیب را افزایش می‌دهد. ج) anatomy در biopsy مهم است. د) طولانی‌ترین قطر lesion تنها معیار جهت incision نیست.',
                     ],
                     [
@@ -2080,8 +2080,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'movable بودن node در بزرگسال به‌تنهایی بدخیمی قطعی را نشان می‌دهد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در adults، normal lymph nodes معمولاً palpable نیستند مگر به‌دلیل inflammation یا neoplasia enlarged شده باشند؛ در کودکان تا ۱۲ سال nodes تا ۱ cm ممکن است طبیعی باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در adults، normal lymph nodes معمولاً palpable نیستند مگر به‌دلیل inflammation یا neoplasia enlarged شده باشند؛ در کودکان تا ۱۲ سال nodes تا ۱ cm ممکن است طبیعی باشد.
 رد گزینه‌ها: ب و ج) این اندازه‌ها/محل‌ها به‌عنوان طبیعی routine بزرگسال ذکر نشده‌اند. د) movable بودن به‌تنهایی بدخیمی قطعی را نشان نمی‌دهد.',
                     ],
                     [
@@ -2093,8 +2093,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'specimen بدون formalin هم پایدار می‌ماند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: specimen crushed، frozen، desiccated، burned یا compromised ممکن است microscopically diagnostic نباشد و repeat biopsy لازم شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: specimen crushed، frozen، desiccated، burned یا compromised ممکن است microscopically diagnostic نباشد و repeat biopsy لازم شود.
 رد گزینه‌ها: ب) آسیب specimen ارزیابی margin را بهتر نمی‌کند. ج) زمان گزارش را الزاماً کوتاه نمی‌کند. د) specimen بدون preservative پایدار نیست.',
                     ],
                     [
@@ -2106,8 +2106,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'هر periapical granuloma با ظاهر routine',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: lesion بزرگ، perforating into soft tissue یا مشکوک به malignancy بر اساس history/radiographic characteristics باید incisional biopsy شود تا diagnosis قطعی پیش از درمان بیشتر به دست آید.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: lesion بزرگ، perforating into soft tissue یا مشکوک به malignancy بر اساس history/radiographic characteristics باید incisional biopsy شود تا diagnosis قطعی پیش از درمان بیشتر به دست آید.
 رد گزینه‌ها: الف و د) ضایعات routine کوچک با ظاهر classic ممکن است enucleation/excisional biopsy شوند. ج) straw-colored fluid به cyst اشاره دارد و به‌تنهایی incisional biopsy را الزام نمی‌کند.',
                     ],
                     [
@@ -2119,8 +2119,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط نوع نخ بخیه مصرف‌شده',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: submission form باید demographics، historyهای مرتبط، clinical description و presumptive differential diagnoses را دربرگیرد؛ برای soft tissue lesions مشکوک، color photograph می‌تواند مفید باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: submission form باید demographics، historyهای مرتبط، clinical description و presumptive differential diagnoses را دربرگیرد؛ برای soft tissue lesions مشکوک، color photograph می‌تواند مفید باشد.
 رد گزینه‌ها: الف و ج و د) این اطلاعات بسیار ناقص‌اند و برای diagnosis کافی نیستند.',
                     ],
                     [
@@ -2132,8 +2132,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'اطمینان قطعی به benign بودن هر lesion پیش از بررسی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل توصیه می‌کند dentist با حساسیت و بدون ایجاد اضطراب غیرضروری اهمیت رسیدگی فوری را توضیح دهد و یادآوری کند بیشتر discovered head and neck lesions benign هستند و اقدامات precautionary است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل توصیه می‌کند dentist با حساسیت و بدون ایجاد اضطراب غیرضروری اهمیت رسیدگی فوری را توضیح دهد و یادآوری کند بیشتر discovered head and neck lesions benign هستند و اقدامات precautionary است.
 رد گزینه‌ها: الف) واژه‌های تهدیدکننده می‌تواند anxiety و trauma ایجاد کند. ج) پنهان‌کردن lesion خلاف informed care است. د) benign بودن پیش از workup تضمین نمی‌شود.',
                     ],
                     [
@@ -2145,8 +2145,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'چون stabilization فقط برای hard palate لازم است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: lips، cheek، soft palate و tongue mobile surfaces هستند؛ stabilization با fingers، retractors، clips یا sutures دقت incision را بیشتر می‌کند و فشار دستیار می‌تواند bleeding را کم کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: lips، cheek، soft palate و tongue mobile surfaces هستند؛ stabilization با fingers، retractors، clips یا sutures دقت incision را بیشتر می‌کند و فشار دستیار می‌تواند bleeding را کم کند.
 رد گزینه‌ها: ب) stabilization جایگزین anesthesia نیست. ج) formalin همچنان لازم است. د) stabilization فقط برای hard palate نیست و بیشتر در mobile tissues مطرح است.',
                     ],
                     [
@@ -2158,8 +2158,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تغییر اندازه در lesion significance تشخیصی ندارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: duration ارزشمند است اما باید در کنار growth rate و سایر عناصر history تفسیر شود، چون lesion ممکن است مدت‌ها پیش از آگاهی بیمار وجود داشته باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: duration ارزشمند است اما باید در کنار growth rate و سایر عناصر history تفسیر شود، چون lesion ممکن است مدت‌ها پیش از آگاهی بیمار وجود داشته باشد.
 رد گزینه‌ها: الف) duration فقط در ضایعه دردناک ارزش ندارد. ج) rapidly developing lesion نگران‌کننده‌تر است. د) change in size اطلاعات مهمی برای diagnosis است.',
                     ],
                     [
@@ -2171,8 +2171,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'قطع follow-up مگر بیمار خودش مراجعه کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پس از incisional biopsy، remaining lesion تا دریافت pathologic diagnosis undisturbed می‌ماند و سپس definitive treatment یا referral برنامه‌ریزی می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پس از incisional biopsy، remaining lesion تا دریافت pathologic diagnosis undisturbed می‌ماند و سپس definitive treatment یا referral برنامه‌ریزی می‌شود.
 رد گزینه‌ها: ب) incisional biopsy درمان کامل نیست. ج) curettage کور پیش از diagnosis در ضایعات نیازمند incisional biopsy مناسب نیست. د) follow-up باید فعالانه انجام شود.',
                     ],
                 ],
@@ -2203,10 +2203,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'شروع بازسازی پیش از مشخص شدن ماهیت بافتی ضایعه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در منبع تأکید شده است که هدف درمانی، حذف کامل ضایعه و جلوگیری از باقی‌ماندن سلول‌های قابل تکثیر است؛ اما پیش از هر برداشت وسیع، تشخیص هیستولوژیک لازم است تا تخریب بافت طبیعی به حداقل برسد.
-دلیل رد گزینه ب: حفظ ساختارهای مجاور مهم است، ولی نباید به قیمت باقی ماندن ضایعه و عود باشد.
-دلیل رد گزینه ج: منبع روش واحد برای همه ضایعات را رد می‌کند و انتخاب روش را وابسته به ماهیت ضایعه می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در منبع تأکید شده است که هدف درمانی، حذف کامل ضایعه و جلوگیری از باقی‌ماندن سلول‌های قابل تکثیر است؛ اما پیش از هر برداشت وسیع، تشخیص هیستولوژیک لازم است تا تخریب بافت طبیعی به حداقل برسد.
+دلیل رد گزینه ب: حفظ ساختارهای مجاور مهم است، ولی نباید به قیمت باقی ماندن ضایعه و عود باشد.
+دلیل رد گزینه ج: منبع روش واحد برای همه ضایعات را رد می‌کند و انتخاب روش را وابسته به ماهیت ضایعه می‌داند.
 دلیل رد گزینه د: بازسازی باید از قبل برنامه‌ریزی شود، اما نه به جای تشخیص بافتی و انتخاب صحیح وسعت برداشت.',
                     ],
                     [
@@ -2218,10 +2218,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حذف احتمالی بقایای اپی‌تلیالی یا daughter cysts از دیواره استخوانی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در odontogenic keratocyst، lining نازک، رفتار مهاجم و وجود daughter یا satellite cysts می‌تواند باعث باقی‌ماندن سلول‌ها شود؛ curettage برای حذف ۱ تا ۲ میلی‌متر از استخوان اطراف به کار می‌رود.
-دلیل رد گزینه الف: حفظ حاشیه تحتانی مندیبل موضوع marginal resection و بازسازی است.
-دلیل رد گزینه ب: curettage نسبت به enucleation ساده مخرب‌تر است و هدف آن صرفاً ترمیم مخاطی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در odontogenic keratocyst، lining نازک، رفتار مهاجم و وجود daughter یا satellite cysts می‌تواند باعث باقی‌ماندن سلول‌ها شود؛ curettage برای حذف ۱ تا ۲ میلی‌متر از استخوان اطراف به کار می‌رود.
+دلیل رد گزینه الف: حفظ حاشیه تحتانی مندیبل موضوع marginal resection و بازسازی است.
+دلیل رد گزینه ب: curettage نسبت به enucleation ساده مخرب‌تر است و هدف آن صرفاً ترمیم مخاطی نیست.
 دلیل رد گزینه ج: این توصیف مربوط به marsupialization یا decompression است نه curettage پس از enucleation.',
                     ],
                     [
@@ -2233,10 +2233,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'باز گذاشتن ضایعه برای follow-up چون افتراق کیست از granuloma ممکن نیست',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: منبع می‌گوید چون افتراق cyst از granuloma در رادیولوسنسی پری‌اپیکال ممکن نیست، هنگام extraction دندان غیرقابل ترمیم، برداشتن ضایعه توصیه می‌شود و ضایعات کوچک را می‌توان از socket با curette برداشت.
-دلیل رد گزینه الف: حاشیه ۱ سانتی‌متری مربوط به resection برخی تومورهای مهاجم فک است، نه ضایعه پری‌اپیکال معمول.
-دلیل رد گزینه ج: marsupialization برای شرایط خاص مانند اندازه زیاد، خطر آسیب یا دشواری دسترسی است، نه روش استاندارد همه موارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: منبع می‌گوید چون افتراق cyst از granuloma در رادیولوسنسی پری‌اپیکال ممکن نیست، هنگام extraction دندان غیرقابل ترمیم، برداشتن ضایعه توصیه می‌شود و ضایعات کوچک را می‌توان از socket با curette برداشت.
+دلیل رد گزینه الف: حاشیه ۱ سانتی‌متری مربوط به resection برخی تومورهای مهاجم فک است، نه ضایعه پری‌اپیکال معمول.
+دلیل رد گزینه ج: marsupialization برای شرایط خاص مانند اندازه زیاد، خطر آسیب یا دشواری دسترسی است، نه روش استاندارد همه موارد.
 دلیل رد گزینه د: اگر دندان غیرقابل ترمیم کشیده می‌شود، منبع برداشت ضایعه را توصیه می‌کند؛ follow-up بیشتر برای دندان قابل ترمیم بعد از endodontic treatment مطرح است.',
                     ],
                     [
@@ -2248,10 +2248,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تبدیل marginal resection به partial resection با اختلال در continuity مندیبل',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: منبع بیان می‌کند اگر ضایعه به حاشیه تحتانی نزدیک باشد یا کل ضخامت فک را درگیر کند، full-thickness portion باید برداشته شود و continuity مندیبل مختل می‌شود؛ این همان partial resection است.
-دلیل رد گزینه الف: تشخیص بافتی لازم است، اما پس از اثبات ضایعه مهاجم، تأخیر و biopsy سطحی درمان کافی محسوب نمی‌شود.
-دلیل رد گزینه ب: ameloblastoma در فهرست ضایعاتی است که معمولاً به marginal یا partial resection نیاز دارند، نه enucleation ساده.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: منبع بیان می‌کند اگر ضایعه به حاشیه تحتانی نزدیک باشد یا کل ضخامت فک را درگیر کند، full-thickness portion باید برداشته شود و continuity مندیبل مختل می‌شود؛ این همان partial resection است.
+دلیل رد گزینه الف: تشخیص بافتی لازم است، اما پس از اثبات ضایعه مهاجم، تأخیر و biopsy سطحی درمان کافی محسوب نمی‌شود.
+دلیل رد گزینه ب: ameloblastoma در فهرست ضایعاتی است که معمولاً به marginal یا partial resection نیاز دارند، نه enucleation ساده.
 دلیل رد گزینه ج: marsupialization درباره کیست‌ها و کمک به رویش دندان نهفته مطرح است، نه درمان اصلی ameloblastoma مهاجم.',
                     ],
                     [
@@ -2263,10 +2263,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تهاجم به بافت نرم اطراف با حذف صفحه کورتیکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: ظاهر معمول cyst در منبع، مرکز رادیولوسنت با حاشیه متراکم reactive bone یا condensing osteitis است.
-دلیل رد گزینه ب: cystها معمولاً تدریجی بزرگ می‌شوند، اغلب بی‌علامت‌اند و نقص حسی معمولاً ندارند.
-دلیل رد گزینه ج: منبع تصریح می‌کند cystها معمولاً باعث resorption ریشه نمی‌شوند و با دیدن resorption باید به neoplasm شک کرد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: ظاهر معمول cyst در منبع، مرکز رادیولوسنت با حاشیه متراکم reactive bone یا condensing osteitis است.
+دلیل رد گزینه ب: cystها معمولاً تدریجی بزرگ می‌شوند، اغلب بی‌علامت‌اند و نقص حسی معمولاً ندارند.
+دلیل رد گزینه ج: منبع تصریح می‌کند cystها معمولاً باعث resorption ریشه نمی‌شوند و با دیدن resorption باید به neoplasm شک کرد.
 دلیل رد گزینه د: تهاجم به بافت نرم و perforation بیشتر با رفتار توموری مهاجم مطرح است.',
                     ],
                     [
@@ -2278,10 +2278,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Composite resection ـ برداشت تومور همراه با استخوان، بافت نرم مجاور و مسیرهای لنفی پیوسته',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در Box 23.1، composite resection به برداشت تومور با استخوان، بافت‌های نرم مجاور و کانال‌های لنفی پیوسته اطلاق شده و بیشتر برای تومورهای بدخیم به کار می‌رود.
-دلیل رد گزینه الف: marginal یا segmental resection در منبع بدون اختلال در continuity استخوان تعریف شده است.
-دلیل رد گزینه ب: partial resection در مندیبل با برداشتن full-thickness و ایجاد نقص continuity همراه است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در Box 23.1، composite resection به برداشت تومور با استخوان، بافت‌های نرم مجاور و کانال‌های لنفی پیوسته اطلاق شده و بیشتر برای تومورهای بدخیم به کار می‌رود.
+دلیل رد گزینه الف: marginal یا segmental resection در منبع بدون اختلال در continuity استخوان تعریف شده است.
+دلیل رد گزینه ب: partial resection در مندیبل با برداشتن full-thickness و ایجاد نقص continuity همراه است.
 دلیل رد گزینه ج: enucleation/curettage با ابزار در تماس مستقیم با ضایعه انجام می‌شود و برای ضایعات خوش‌خیم‌تر مطرح است.',
                     ],
                     [
@@ -2293,10 +2293,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'استفاده از curette تیز برای تراش روتین ۱ تا ۲ میلی‌متر استخوان اطراف عصب',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: منبع می‌گوید در cystهای بزرگ یا نزدیک ساختارهای neurovascular، این ساختارها معمولاً به کنار رانده شده‌اند و باید از آن‌ها اجتناب شود یا تا حد امکان کم و atraumatic دستکاری شوند.
-دلیل رد گزینه الف: پس از enucleation، هدف closure اولیه آب‌بند است؛ باز گذاشتن زخم فقط وقتی مطرح می‌شود که closure از هم باز شود یا کامل ممکن نباشد.
-دلیل رد گزینه ج: کشیدن و جابه‌جایی فعال bundle برخلاف توصیه به اجتناب و دستکاری حداقلی است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: منبع می‌گوید در cystهای بزرگ یا نزدیک ساختارهای neurovascular، این ساختارها معمولاً به کنار رانده شده‌اند و باید از آن‌ها اجتناب شود یا تا حد امکان کم و atraumatic دستکاری شوند.
+دلیل رد گزینه الف: پس از enucleation، هدف closure اولیه آب‌بند است؛ باز گذاشتن زخم فقط وقتی مطرح می‌شود که closure از هم باز شود یا کامل ممکن نباشد.
+دلیل رد گزینه ج: کشیدن و جابه‌جایی فعال bundle برخلاف توصیه به اجتناب و دستکاری حداقلی است.
 دلیل رد گزینه د: تراش ۱ تا ۲ میلی‌متر استخوان مربوط به enucleation with curettage است و نزدیک ساختار حیاتی باید با احتیاط زیاد انجام شود.',
                     ],
                     [
@@ -2308,10 +2308,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'histologic diagnosis و رفتار بیولوژیک ضایعه',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید به علت دامنه وسیع رفتار ضایعات دهانی، prognosis بیش از هر عامل منفرد دیگری به histologic diagnosis و رفتار بیولوژیک ضایعه وابسته است.
-دلیل رد گزینه الف: برنامه بازسازی روی انتخاب تکنیک اثر دارد، ولی تعیین‌کننده اصلی prognosis به‌تنهایی نیست.
-دلیل رد گزینه ب: دسترسی جراحی می‌تواند prognosis را تحت تأثیر قرار دهد، اما مهم‌ترین عامل منفرد نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید به علت دامنه وسیع رفتار ضایعات دهانی، prognosis بیش از هر عامل منفرد دیگری به histologic diagnosis و رفتار بیولوژیک ضایعه وابسته است.
+دلیل رد گزینه الف: برنامه بازسازی روی انتخاب تکنیک اثر دارد، ولی تعیین‌کننده اصلی prognosis به‌تنهایی نیست.
+دلیل رد گزینه ب: دسترسی جراحی می‌تواند prognosis را تحت تأثیر قرار دهد، اما مهم‌ترین عامل منفرد نیست.
 دلیل رد گزینه ج: مدت ضایعه عامل مهمی است، اما منبع آن را مهم‌تر از تشخیص هیستولوژیک معرفی نمی‌کند.',
                     ],
                     [
@@ -2323,10 +2323,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برداشت ضایعه همراه با ۱ سانتی‌متر حاشیه استخوان سالم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: enucleation در منبع به معنی بیرون آوردن کامل cyst بدون rupture ایده‌آل است و وجود لایه fibrous connective tissue بین lining اپی‌تلیالی و دیواره استخوانی، cleavage plane لازم را فراهم می‌کند.
-دلیل رد گزینه ب: برداشت full-thickness فک با disruption continuity مربوط به partial resection است، نه enucleation cyst.
-دلیل رد گزینه ج: این تعریف marsupialization یا decompression است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: enucleation در منبع به معنی بیرون آوردن کامل cyst بدون rupture ایده‌آل است و وجود لایه fibrous connective tissue بین lining اپی‌تلیالی و دیواره استخوانی، cleavage plane لازم را فراهم می‌کند.
+دلیل رد گزینه ب: برداشت full-thickness فک با disruption continuity مربوط به partial resection است، نه enucleation cyst.
+دلیل رد گزینه ج: این تعریف marsupialization یا decompression است.
 دلیل رد گزینه د: حاشیه ۱ سانتی‌متری برای resection برخی تومورهای مهاجم فکی مطرح است.',
                     ],
                     [
@@ -2338,10 +2338,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'درد زودرس و نقص حسی واضح که درمان را به تأخیر می‌اندازد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: منبع بیان می‌کند سینوس‌های maxillary و nasopharynx مجاور اجازه می‌دهند تومورهای maxilla بی‌علامت تا اندازه بزرگ رشد کنند و علائم دیر ظاهر شود؛ بنابراین prognosis بدتر است.
-دلیل رد گزینه الف: برعکس، مجاورت فضاهای آناتومیک می‌تواند تشخیص دیرتر و گسترش بیشتر ایجاد کند.
-دلیل رد گزینه ج: روش درمان به نوع و رفتار ضایعه بستگی دارد و enucleation همیشگی برای maxilla مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: منبع بیان می‌کند سینوس‌های maxillary و nasopharynx مجاور اجازه می‌دهند تومورهای maxilla بی‌علامت تا اندازه بزرگ رشد کنند و علائم دیر ظاهر شود؛ بنابراین prognosis بدتر است.
+دلیل رد گزینه الف: برعکس، مجاورت فضاهای آناتومیک می‌تواند تشخیص دیرتر و گسترش بیشتر ایجاد کند.
+دلیل رد گزینه ج: روش درمان به نوع و رفتار ضایعه بستگی دارد و enucleation همیشگی برای maxilla مطرح نشده است.
 دلیل رد گزینه د: درد زودرس و نقص حسی واضح به عنوان دلیل prognosis بدتر maxilla در متن نیامده است.',
                     ],
                     [
@@ -2353,10 +2353,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کاهش خطر fracture، حفظ ساختارهای حیاتی، و امکان bone fill پیش از enucleation بعدی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: marsupialization در cystهای بزرگ می‌تواند با کاهش فشار، shrinkage و bone fill ایجاد کند و خطر شکستگی یا آسیب به ساختارهای حیاتی را کاهش دهد؛ سپس enucleation می‌تواند به تعویق افتد.
-دلیل رد گزینه الف: برداشت ۱ تا ۲ میلی‌متر استخوان اطراف cavity تعریف enucleation with curettage است.
-دلیل رد گزینه ب: عیب marsupialization این است که کل بافت پاتولوژیک در همان ابتدا بررسی نمی‌شود و بیمار باید cavity را تمیز و irrigation کند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: marsupialization در cystهای بزرگ می‌تواند با کاهش فشار، shrinkage و bone fill ایجاد کند و خطر شکستگی یا آسیب به ساختارهای حیاتی را کاهش دهد؛ سپس enucleation می‌تواند به تعویق افتد.
+دلیل رد گزینه الف: برداشت ۱ تا ۲ میلی‌متر استخوان اطراف cavity تعریف enucleation with curettage است.
+دلیل رد گزینه ب: عیب marsupialization این است که کل بافت پاتولوژیک در همان ابتدا بررسی نمی‌شود و بیمار باید cavity را تمیز و irrigation کند.
 دلیل رد گزینه ج: منبع پیگیری و مراقبت طولانی‌تر را مطرح می‌کند و ترمیم در چند روز برای cavity بزرگ واقع‌بینانه نیست.',
                     ],
                     [
@@ -2368,10 +2368,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'محدود کردن عمل به enucleation داخل استخوان برای حفظ مخاط',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع می‌گوید اگر ضایعه به soft tissue اطراف وارد شده باشد، برداشت کامل دشوارتر است و soft tissue ناحیه perforation باید local excision شود.
-دلیل رد گزینه ب: marsupialization درباره cyst و کاهش فشار داخل آن است، نه کنترل تومور مهاجم با perforation.
-دلیل رد گزینه ج: تأخیر بازسازی ممکن است لازم شود، اما اصل درمان در این حالت شامل sacrifice بافت نرم درگیر است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع می‌گوید اگر ضایعه به soft tissue اطراف وارد شده باشد، برداشت کامل دشوارتر است و soft tissue ناحیه perforation باید local excision شود.
+دلیل رد گزینه ب: marsupialization درباره cyst و کاهش فشار داخل آن است، نه کنترل تومور مهاجم با perforation.
+دلیل رد گزینه ج: تأخیر بازسازی ممکن است لازم شود، اما اصل درمان در این حالت شامل sacrifice بافت نرم درگیر است.
 دلیل رد گزینه د: enucleation داخل استخوانی برای ضایعه‌ای که soft tissue را درگیر کرده کافی نیست.',
                     ],
                     [
@@ -2383,10 +2383,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کاهش تدریجی اندازه cavity طی ماه‌های بعد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل هشدار می‌دهد که ulceration یا thickening در wall cyst می‌تواند نشانه تغییرات dysplastic یا neoplastic باشد و باید biopsy یا enucleation کامل انجام شود.
-دلیل رد گزینه الف: aspiration برای تأیید cystic بودن کمک می‌کند و نبود mass جامد عامل هشدار اصلی نیست.
-دلیل رد گزینه ب: اتصال lining cyst به oral mucosa در اطراف window بخشی از تکنیک موفق marsupialization است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل هشدار می‌دهد که ulceration یا thickening در wall cyst می‌تواند نشانه تغییرات dysplastic یا neoplastic باشد و باید biopsy یا enucleation کامل انجام شود.
+دلیل رد گزینه الف: aspiration برای تأیید cystic بودن کمک می‌کند و نبود mass جامد عامل هشدار اصلی نیست.
+دلیل رد گزینه ب: اتصال lining cyst به oral mucosa در اطراف window بخشی از تکنیک موفق marsupialization است.
 دلیل رد گزینه د: کاهش اندازه cavity هدف مورد انتظار marsupialization است.',
                     ],
                     [
@@ -2398,10 +2398,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کمک به حذف foci کوچک سلول‌های بدخیم در نواحی مجاور قبل یا بعد از surgery',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: منبع می‌گوید وقتی spread به regional lymph nodes مشکوک است، radiation ممکن است قبل یا بعد از surgery برای حذف کانون‌های کوچک malignant cells در نواحی مجاور به کار رود.
-دلیل رد گزینه الف: clinical staging پیش از طرح درمان انجام می‌شود و radiotherapy جای آن را نمی‌گیرد.
-دلیل رد گزینه ب: انتخاب درمان به radiosensitivity و عوامل متعدد وابسته است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: منبع می‌گوید وقتی spread به regional lymph nodes مشکوک است، radiation ممکن است قبل یا بعد از surgery برای حذف کانون‌های کوچک malignant cells در نواحی مجاور به کار رود.
+دلیل رد گزینه الف: clinical staging پیش از طرح درمان انجام می‌شود و radiotherapy جای آن را نمی‌گیرد.
+دلیل رد گزینه ب: انتخاب درمان به radiosensitivity و عوامل متعدد وابسته است.
 دلیل رد گزینه ج: radiotherapy برای بازسازی استخوانی سریع‌تر مطرح نشده و حتی بافت‌های طبیعی نیز از radiation آسیب می‌بینند.',
                     ],
                     [
@@ -2413,10 +2413,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'curette فقط برای smoothing حاشیه استخوانی پس از closure استفاده شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع تصریح می‌کند concave surface curette باید همواره رو به bony cavity باشد و edge سطح convex عمل stripping را انجام دهد.
-دلیل رد گزینه ب: نزدیک neurovascular structures باید از دستکاری مستقیم پرهیز شود.
-دلیل رد گزینه ج: این جهت‌گیری وارونه توصیه منبع است و خطر tear شدن lining را بالا می‌برد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع تصریح می‌کند concave surface curette باید همواره رو به bony cavity باشد و edge سطح convex عمل stripping را انجام دهد.
+دلیل رد گزینه ب: نزدیک neurovascular structures باید از دستکاری مستقیم پرهیز شود.
+دلیل رد گزینه ج: این جهت‌گیری وارونه توصیه منبع است و خطر tear شدن lining را بالا می‌برد.
 دلیل رد گزینه د: curette ابزار اصلی جدا کردن cystic wall است؛ smoothing حاشیه استخوان با file پس از برداشتن cyst انجام می‌شود.',
                     ],
                     [
@@ -2428,10 +2428,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'انتخاب بهترین درمان و مقایسه معنادار نتایج گزارش‌شده',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: clinical staging در فصل برای ارزیابی وسعت بیماری قبل از درمان انجام می‌شود و دو هدف آن انتخاب بهترین درمان و امکان مقایسه معنادار نتایج منابع مختلف است.
-دلیل رد گزینه الف: افتراق cyst از granuloma پری‌اپیکال در بحث ضایعات پری‌اپیکال آمده و staging malignancy نیست.
-دلیل رد گزینه ب: انتخاب anesthesia هدف اصلی staging بدخیمی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: clinical staging در فصل برای ارزیابی وسعت بیماری قبل از درمان انجام می‌شود و دو هدف آن انتخاب بهترین درمان و امکان مقایسه معنادار نتایج منابع مختلف است.
+دلیل رد گزینه الف: افتراق cyst از granuloma پری‌اپیکال در بحث ضایعات پری‌اپیکال آمده و staging malignancy نیست.
+دلیل رد گزینه ب: انتخاب anesthesia هدف اصلی staging بدخیمی نیست.
 دلیل رد گزینه ج: مقدار strip gauze مربوط به packing cavity پس از breakdown یا marsupialization است.',
                     ],
                     [
@@ -2443,10 +2443,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بستن مجدد تحت فشار بدون توجه به اندازه cavity',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در صورت breakdown closure، منبع توصیه می‌کند cavity با sterile saline شست‌وشو شود و strip gauze آغشته به antibiotic ointment به آرامی داخل آن قرار گیرد.
-دلیل رد گزینه الف: حاشیه ۱ سانتی‌متری برای resection تومورهای مهاجم است نه breakdown زخم cystectomy.
-دلیل رد گزینه ب: منبع packing و تعویض دوره‌ای را برای healing by secondary intention توصیه می‌کند، نه رها کردن بدون تمیزسازی.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در صورت breakdown closure، منبع توصیه می‌کند cavity با sterile saline شست‌وشو شود و strip gauze آغشته به antibiotic ointment به آرامی داخل آن قرار گیرد.
+دلیل رد گزینه الف: حاشیه ۱ سانتی‌متری برای resection تومورهای مهاجم است نه breakdown زخم cystectomy.
+دلیل رد گزینه ب: منبع packing و تعویض دوره‌ای را برای healing by secondary intention توصیه می‌کند، نه رها کردن بدون تمیزسازی.
 دلیل رد گزینه د: بستن تحت فشار در متن توصیه نشده و ممکن است آب‌بندی مناسب ایجاد نکند.',
                     ],
                     [
@@ -2458,10 +2458,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تزریق داخل شریانی ماده radioactive برای تمرکز روی تومور',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: fractionation یعنی به جای یک dose حداکثر، دوزهای کوچک‌تر طی چند هفته داده می‌شود تا بافت سالم فرصت بازیابی بین دوزها داشته باشد؛ سلول‌های تومور کمتر بازیابی می‌شوند.
-دلیل رد گزینه الف: منبع multiple ports را برای کاهش مواجهه بافت طبیعی شرح می‌دهد، نه یک port برای افزایش اثر روی بافت سالم.
-دلیل رد گزینه ج: ۳ تا ۵ دارو مربوط به multiple-agent chemotherapy است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: fractionation یعنی به جای یک dose حداکثر، دوزهای کوچک‌تر طی چند هفته داده می‌شود تا بافت سالم فرصت بازیابی بین دوزها داشته باشد؛ سلول‌های تومور کمتر بازیابی می‌شوند.
+دلیل رد گزینه الف: منبع multiple ports را برای کاهش مواجهه بافت طبیعی شرح می‌دهد، نه یک port برای افزایش اثر روی بافت سالم.
+دلیل رد گزینه ج: ۳ تا ۵ دارو مربوط به multiple-agent chemotherapy است.
 دلیل رد گزینه د: تزریق داخل شریان مربوط به chemotherapy در متن است، نه fractionated radiotherapy.',
                     ],
                     [
@@ -2473,10 +2473,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حاشیه نامشخص بدون reactive bone',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: اکثر cystها unilocular هستند، اما منبع می‌گوید multilocular forms اغلب در بعضی keratocysts و cystic ameloblastomas دیده می‌شود.
-دلیل رد گزینه الف: cyst به صورت radiolucent center توصیف شده، نه radiopacity مرکزی یکنواخت.
-دلیل رد گزینه ج: root resorption معمول cystها نیست و با دیدن آن باید به neoplasm شک کرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: اکثر cystها unilocular هستند، اما منبع می‌گوید multilocular forms اغلب در بعضی keratocysts و cystic ameloblastomas دیده می‌شود.
+دلیل رد گزینه الف: cyst به صورت radiolucent center توصیف شده، نه radiopacity مرکزی یکنواخت.
+دلیل رد گزینه ج: root resorption معمول cystها نیست و با دیدن آن باید به neoplasm شک کرد.
 دلیل رد گزینه د: حاشیه dense reactive bone از ظاهر مشخص cyst است؛ حاشیه نامشخص یافته تیپیک ذکر نشده است.',
                     ],
                     [
@@ -2488,10 +2488,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حفاظت اختصاصی از hematopoietic system در برابر anemia و neutropenia',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: منبع می‌گوید برای کاهش toxicity یک agent در مقدار زیاد، چند دارو غالباً همزمان داده می‌شوند؛ هرکدام ممکن است در نقطه متفاوتی از چرخه زندگی سلول تومور عمل کند.
-دلیل رد گزینه الف: در متن، اگر ضایعه بدون mutilation کامل excise شود surgery روش ترجیحی است؛ chemotherapy جایگزین همه surgeryها نیست.
-دلیل رد گزینه ب: frozen-section برای ارزیابی margin در surgery است و به multiple-agent therapy مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: منبع می‌گوید برای کاهش toxicity یک agent در مقدار زیاد، چند دارو غالباً همزمان داده می‌شوند؛ هرکدام ممکن است در نقطه متفاوتی از چرخه زندگی سلول تومور عمل کند.
+دلیل رد گزینه الف: در متن، اگر ضایعه بدون mutilation کامل excise شود surgery روش ترجیحی است؛ chemotherapy جایگزین همه surgeryها نیست.
+دلیل رد گزینه ب: frozen-section برای ارزیابی margin در surgery است و به multiple-agent therapy مربوط نیست.
 دلیل رد گزینه د: برعکس، سیستم hematopoietic به علت turnover سریع از عوارض chemotherapy آسیب می‌بیند.',
                     ],
                     [
@@ -2503,10 +2503,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'marsupialization برای کمک به ادامه رویش دندان',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: یکی از اندیکاسیون‌های marsupialization، کمک به رویش دندان نهفته‌ای است که برای dental arch لازم است؛ مثال فصل نیز dentigerous cyst با رویش premolars پس از marsupialization را نشان می‌دهد.
-دلیل رد گزینه الف: partial resection برای تومورهای مهاجم یا درگیری full-thickness است نه dentigerous cyst قابل decompression.
-دلیل رد گزینه ب: composite resection برای بدخیمی‌ها با برداشت bone، soft tissue و lymphatic channels مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: یکی از اندیکاسیون‌های marsupialization، کمک به رویش دندان نهفته‌ای است که برای dental arch لازم است؛ مثال فصل نیز dentigerous cyst با رویش premolars پس از marsupialization را نشان می‌دهد.
+دلیل رد گزینه الف: partial resection برای تومورهای مهاجم یا درگیری full-thickness است نه dentigerous cyst قابل decompression.
+دلیل رد گزینه ب: composite resection برای بدخیمی‌ها با برداشت bone، soft tissue و lymphatic channels مطرح است.
 دلیل رد گزینه ج: enucleation فوری ممکن است نیازمند خارج کردن دندان نهفته باشد و در این سناریو هدف حفظ و کمک به رویش دندان است.',
                     ],
                     [
@@ -2518,10 +2518,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'adenomatoid odontogenic tumor',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در متن و جدول، odontogenic myxoma یا fibromyxoma از ضایعاتی است که به علت رفتار یا قوام، معمولاً با marginal یا partial resection درمان می‌شود.
-دلیل رد گزینه ب: odontoma از نمونه‌های واضح گروه enucleation/curettage است.
-دلیل رد گزینه ج: central ossifying/cementifying fibroma در گروه درمان محافظه‌کارانه‌تر با enucleation/curettage ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در متن و جدول، odontogenic myxoma یا fibromyxoma از ضایعاتی است که به علت رفتار یا قوام، معمولاً با marginal یا partial resection درمان می‌شود.
+دلیل رد گزینه ب: odontoma از نمونه‌های واضح گروه enucleation/curettage است.
+دلیل رد گزینه ج: central ossifying/cementifying fibroma در گروه درمان محافظه‌کارانه‌تر با enucleation/curettage ذکر شده است.
 دلیل رد گزینه د: adenomatoid odontogenic tumor در گروه enucleation و/یا curettage آمده است.',
                     ],
                     [
@@ -2533,10 +2533,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط extraoral و بدون ارسال tissue برای pathology',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: تکنیک marsupialization در فصل با incision معمولاً circular یا elliptical برای ایجاد window بزرگ، حدود ۱ سانتی‌متر یا بیشتر، توضیح داده شده است.
-دلیل رد گزینه الف: این توصیف به partial resection نزدیک‌تر است، نه window marsupialization.
-دلیل رد گزینه ج: window کوچک و خطی با هدف decompression پایدار و مراقبت cavity سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: تکنیک marsupialization در فصل با incision معمولاً circular یا elliptical برای ایجاد window بزرگ، حدود ۱ سانتی‌متر یا بیشتر، توضیح داده شده است.
+دلیل رد گزینه الف: این توصیف به partial resection نزدیک‌تر است، نه window marsupialization.
+دلیل رد گزینه ج: window کوچک و خطی با هدف decompression پایدار و مراقبت cavity سازگار نیست.
 دلیل رد گزینه د: بافت window باید برای pathologic examination ارسال شود و route لزوماً extraoral نیست.',
                     ],
                     [
@@ -2548,10 +2548,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ارسال فقط مایع aspirate به جای بافت excised',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید در ضایعات ظاهراً مرتبط با dentition مثل pyogenic granuloma، دندان یا دندان‌های مرتبط باید کاملاً curette و polish شوند تا plaque، calculus یا foreign material مؤثر در ایجاد ضایعه حذف شود.
-دلیل رد گزینه الف: حاشیه ۱ سانتی‌متری مربوط به resection تومورهای فکی مهاجم است.
-دلیل رد گزینه ج: irrigation طولانی cavity مربوط به marsupialization cyst است نه soft tissue lesion سطحی.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید در ضایعات ظاهراً مرتبط با dentition مثل pyogenic granuloma، دندان یا دندان‌های مرتبط باید کاملاً curette و polish شوند تا plaque، calculus یا foreign material مؤثر در ایجاد ضایعه حذف شود.
+دلیل رد گزینه الف: حاشیه ۱ سانتی‌متری مربوط به resection تومورهای فکی مهاجم است.
+دلیل رد گزینه ج: irrigation طولانی cavity مربوط به marsupialization cyst است نه soft tissue lesion سطحی.
 دلیل رد گزینه د: برای این ضایعات removal با تکنیک biopsy و ارسال بافت مطرح است، نه فقط aspirate.',
                     ],
                     [
@@ -2563,10 +2563,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کاهش فوری intracystic pressure با باقی گذاشتن lining',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: مزیت اصلی enucleation در فصل، امکان examination پاتولوژیک کل cyst و درمان همزمان ضایعه با همان excisional biopsy است.
-دلیل رد گزینه الف: enucleation ممکن است در برخی شرایط باعث devitalization teeth یا نیاز به removal دندان نهفته شود.
-دلیل رد گزینه ب: در enucleation پس از برداشت cyst، primary closure آب‌بند هدف تکنیک است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: مزیت اصلی enucleation در فصل، امکان examination پاتولوژیک کل cyst و درمان همزمان ضایعه با همان excisional biopsy است.
+دلیل رد گزینه الف: enucleation ممکن است در برخی شرایط باعث devitalization teeth یا نیاز به removal دندان نهفته شود.
+دلیل رد گزینه ب: در enucleation پس از برداشت cyst، primary closure آب‌بند هدف تکنیک است.
 دلیل رد گزینه د: کاهش فشار با باقی گذاشتن lining ویژگی marsupialization است.',
                     ],
                     [
@@ -2578,10 +2578,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ارزیابی adequacy حاشیه‌های جراحی در حین عمل',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: منبع بیان می‌کند frozen-section examination برای تشخیص adequacy surgical margins دقیق است، ولی برای تشخیص اولیه histopathologic ضایعه دقت کمتری دارد.
-دلیل رد گزینه الف: radiosensitivity عامل درمانی است اما frozen-section برای تعیین آن در متن ذکر نشده است.
-دلیل رد گزینه ب: نیاز به ridge augmentation به نقص اسکلتی و برنامه dental rehabilitation مربوط است، نه frozen-section margin.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: منبع بیان می‌کند frozen-section examination برای تشخیص adequacy surgical margins دقیق است، ولی برای تشخیص اولیه histopathologic ضایعه دقت کمتری دارد.
+دلیل رد گزینه الف: radiosensitivity عامل درمانی است اما frozen-section برای تعیین آن در متن ذکر نشده است.
+دلیل رد گزینه ب: نیاز به ridge augmentation به نقص اسکلتی و برنامه dental rehabilitation مربوط است، نه frozen-section margin.
 دلیل رد گزینه ج: متن صراحتاً می‌گوید برای تشخیص اولیه ضایعه کمتر دقیق است.',
                     ],
                     [
@@ -2593,10 +2593,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'cyst بسیار بزرگ با خطر fracture فک هنگام برداشت کامل',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: منبع اندازه بزرگ cyst و خطر fracture فک را از اندیکاسیون‌های marsupialization می‌داند تا پس از bone fill، enucleation با خطر کمتر انجام شود.
-دلیل رد گزینه الف: cyst کوچک و امن برای structures مجاور، گزینه مناسب enucleation است.
-دلیل رد گزینه ب: root resorption شک به neoplasm را بالا می‌برد و نباید با marsupialization روتین cyst مدیریت شود.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: منبع اندازه بزرگ cyst و خطر fracture فک را از اندیکاسیون‌های marsupialization می‌داند تا پس از bone fill، enucleation با خطر کمتر انجام شود.
+دلیل رد گزینه الف: cyst کوچک و امن برای structures مجاور، گزینه مناسب enucleation است.
+دلیل رد گزینه ب: root resorption شک به neoplasm را بالا می‌برد و نباید با marsupialization روتین cyst مدیریت شود.
 دلیل رد گزینه ج: نیاز به بررسی کامل lining مزیت enucleation است نه marsupialization.',
                     ],
                     [
@@ -2608,10 +2608,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'یکسان است، زیرا محل intraosseous یا extraosseous در فصل اهمیت ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید ضایعه مهاجم محدود به داخل فک و بدون perforation cortical plates، prognosis بهتری از ضایعه واردشده به soft tissues دارد؛ زیرا برداشت کامل آسان‌تر و sacrifice کمتر است.
-دلیل رد گزینه الف: داخل‌استخوانی بودن به‌تنهایی نشانه بدخیمی قطعی نیست.
-دلیل رد گزینه ج: composite resection بیشتر برای malignancy با بافت نرم و lymphatic channels مطرح است، نه شرط هر ضایعه داخل‌استخوانی.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید ضایعه مهاجم محدود به داخل فک و بدون perforation cortical plates، prognosis بهتری از ضایعه واردشده به soft tissues دارد؛ زیرا برداشت کامل آسان‌تر و sacrifice کمتر است.
+دلیل رد گزینه الف: داخل‌استخوانی بودن به‌تنهایی نشانه بدخیمی قطعی نیست.
+دلیل رد گزینه ج: composite resection بیشتر برای malignancy با بافت نرم و lymphatic channels مطرح است، نه شرط هر ضایعه داخل‌استخوانی.
 دلیل رد گزینه د: متن intraosseous versus extraosseous location را یک عامل مهم در planning و prognosis می‌داند.',
                     ],
                     [
@@ -2623,10 +2623,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'suturing محیط wall cyst به oral mucosa در اطراف opening',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در تکنیک marsupialization، اگر lining ضخیم و دسترسی کافی باشد، محیط cystic wall در اطراف window به oral mucosa sutured می‌شود تا ارتباط پایدار برقرار بماند.
-دلیل رد گزینه الف: هدف marsupialization حفظ opening و continuity است؛ بستن کامل opening با آن تناقض دارد.
-دلیل رد گزینه ب: برداشت کامل lining به enucleation مربوط است نه marsupialization اولیه.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در تکنیک marsupialization، اگر lining ضخیم و دسترسی کافی باشد، محیط cystic wall در اطراف window به oral mucosa sutured می‌شود تا ارتباط پایدار برقرار بماند.
+دلیل رد گزینه الف: هدف marsupialization حفظ opening و continuity است؛ بستن کامل opening با آن تناقض دارد.
+دلیل رد گزینه ب: برداشت کامل lining به enucleation مربوط است نه marsupialization اولیه.
 دلیل رد گزینه ج: برداشت ۱ تا ۲ میلی‌متر bone مربوط به curettage پس از enucleation است.',
                     ],
                     [
@@ -2638,10 +2638,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حذف نیاز به space-maintaining device در همان جلسه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع می‌گوید در delayed reconstruction باید قطعات باقی‌مانده مندیبل در رابطه آناتومیک طبیعی حفظ شوند تا از cicatricial و muscular deformation/displacement جلوگیری و reconstruction بعدی ساده شود.
-دلیل رد گزینه ب: این fixation برای حفظ رابطه قطعات و بازسازی آینده است، نه افزایش exposure برای frozen-section.
-دلیل رد گزینه ج: ridge augmentation برای نقص‌های آلوئولار و dental rehabilitation است و fixation قطعات مندیبل جایگزین همه موارد نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع می‌گوید در delayed reconstruction باید قطعات باقی‌مانده مندیبل در رابطه آناتومیک طبیعی حفظ شوند تا از cicatricial و muscular deformation/displacement جلوگیری و reconstruction بعدی ساده شود.
+دلیل رد گزینه ب: این fixation برای حفظ رابطه قطعات و بازسازی آینده است، نه افزایش exposure برای frozen-section.
+دلیل رد گزینه ج: ridge augmentation برای نقص‌های آلوئولار و dental rehabilitation است و fixation قطعات مندیبل جایگزین همه موارد نیست.
 دلیل رد گزینه د: در delayed reconstruction، space-maintaining device ممکن است در زمان resection قرار داده شود؛ fixation جایگزین مفهوم آن نیست.',
                     ],
                     [
@@ -2653,10 +2653,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'در periapical cyst کوچک پس از extraction ارسال نمونه توصیه نشده است',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید lining cyst به ندرت ممکن است تغییرات ameloblastic یا malignant پیدا کند؛ بنابراین تمام cystic tissue excised باید برای pathologic examination فرستاده شود.
-دلیل رد گزینه الف: ارسال نمونه محدود به وجود root resorption نیست.
-دلیل رد گزینه ب: در marsupialization نیز tissue window برای pathologic examination فرستاده می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید lining cyst به ندرت ممکن است تغییرات ameloblastic یا malignant پیدا کند؛ بنابراین تمام cystic tissue excised باید برای pathologic examination فرستاده شود.
+دلیل رد گزینه الف: ارسال نمونه محدود به وجود root resorption نیست.
+دلیل رد گزینه ب: در marsupialization نیز tissue window برای pathologic examination فرستاده می‌شود.
 دلیل رد گزینه د: متن قاعده کلی ارسال cystic tissue excised را مطرح می‌کند و periapical cyst کوچک استثنا نشده است.',
                     ],
                     [
@@ -2668,10 +2668,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'cyst فکی بزرگ که خطر fracture در enucleation دارد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل بیان می‌کند اگر metastasis سیستمیک گسترده وجود داشته باشد یا توموری مانند lymphoma به‌ویژه chemosensitive باشد، chemotherapy با یا بدون surgery و radiation استفاده می‌شود.
-دلیل رد گزینه الف: central ossifying fibroma در گروه enucleation/curettage ضایعات خوش‌خیم آمده است.
-دلیل رد گزینه ب: small accessible epidermoid carcinoma بدون palpable nodes می‌تواند با excision درمان شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل بیان می‌کند اگر metastasis سیستمیک گسترده وجود داشته باشد یا توموری مانند lymphoma به‌ویژه chemosensitive باشد، chemotherapy با یا بدون surgery و radiation استفاده می‌شود.
+دلیل رد گزینه الف: central ossifying fibroma در گروه enucleation/curettage ضایعات خوش‌خیم آمده است.
+دلیل رد گزینه ب: small accessible epidermoid carcinoma بدون palpable nodes می‌تواند با excision درمان شود.
 دلیل رد گزینه د: cyst بزرگ با خطر fracture اندیکاسیون marsupialization است، نه chemotherapy.',
                     ],
                     [
@@ -2683,10 +2683,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ضایعه به‌طور مستقیم malignant تلقی شده و composite resection لازم است',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: طبق متن، در دندان قابل ترمیم ابتدا endodontic treatment و radiographic follow-up انجام می‌شود؛ نبود bone fill یا گسترش ضایعه احتمال cyst را مطرح می‌کند و periapical surgery برای removal لازم است.
-دلیل رد گزینه الف: نبود bone fill یا افزایش اندازه برخلاف انتظار healing است و درمان نکردن توصیه نشده است.
-دلیل رد گزینه ب: marsupialization بدون biopsy درمان روتین این وضعیت نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: طبق متن، در دندان قابل ترمیم ابتدا endodontic treatment و radiographic follow-up انجام می‌شود؛ نبود bone fill یا گسترش ضایعه احتمال cyst را مطرح می‌کند و periapical surgery برای removal لازم است.
+دلیل رد گزینه الف: نبود bone fill یا افزایش اندازه برخلاف انتظار healing است و درمان نکردن توصیه نشده است.
+دلیل رد گزینه ب: marsupialization بدون biopsy درمان روتین این وضعیت نیست.
 دلیل رد گزینه د: متن چنین ضایعه‌ای را مستقیماً malignant نمی‌داند.',
                     ],
                     [
@@ -2698,10 +2698,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'جایگزین کردن clinical staging با نظر general dentist',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع توضیح می‌دهد malignancyها غالباً در institution با tumor boards بررسی می‌شوند که دست‌کم surgeon، chemotherapist و radiotherapist دارند و در head and neck معمولاً dentist، prosthodontist، nutritionist، speech pathologist و sociologist/psychiatrist نیز حضور دارند.
-دلیل رد گزینه ب: tumor board مربوط به malignancyهاست، نه فقط reconstruction ضایعات خوش‌خیم.
-دلیل رد گزینه ج: surgeon یکی از اعضای حداقلی tumor board است و surgery در موارد قابل excision ترجیح دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع توضیح می‌دهد malignancyها غالباً در institution با tumor boards بررسی می‌شوند که دست‌کم surgeon، chemotherapist و radiotherapist دارند و در head and neck معمولاً dentist، prosthodontist، nutritionist، speech pathologist و sociologist/psychiatrist نیز حضور دارند.
+دلیل رد گزینه ب: tumor board مربوط به malignancyهاست، نه فقط reconstruction ضایعات خوش‌خیم.
+دلیل رد گزینه ج: surgeon یکی از اعضای حداقلی tumor board است و surgery در موارد قابل excision ترجیح دارد.
 دلیل رد گزینه د: clinical staging همچنان پیش از طرح درمان لازم است و با نظر یک فرد جایگزین نمی‌شود.',
                     ],
                     [
@@ -2713,10 +2713,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حفره استخوانی هرگز با clot پر نمی‌شود و باید دائماً packing شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: پس از enucleation و closure، cavity با clot پر می‌شود و شواهد رادیوگرافیک bone fill در حدود ۶ تا ۱۲ ماه دیده می‌شود؛ فک‌های expand شده نیز به تدریج remodel می‌شوند.
-دلیل رد گزینه الف: ۳ تا ۴ روز مربوط به مشاهده granulation tissue در cavity باز و packed است، نه bone fill رادیوگرافیک کامل.
-دلیل رد گزینه ج: متن می‌گوید فک‌های expand شده به آهستگی به contour طبیعی‌تر remodel می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: پس از enucleation و closure، cavity با clot پر می‌شود و شواهد رادیوگرافیک bone fill در حدود ۶ تا ۱۲ ماه دیده می‌شود؛ فک‌های expand شده نیز به تدریج remodel می‌شوند.
+دلیل رد گزینه الف: ۳ تا ۴ روز مربوط به مشاهده granulation tissue در cavity باز و packed است، نه bone fill رادیوگرافیک کامل.
+دلیل رد گزینه ج: متن می‌گوید فک‌های expand شده به آهستگی به contour طبیعی‌تر remodel می‌شوند.
 دلیل رد گزینه د: packing زمانی لازم است که closure از هم باز شود یا wound open بماند؛ در closure موفق cavity با clot پر می‌شود.',
                     ],
                     [
@@ -2728,10 +2728,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'قرار دادن graft از wound extraoral که حین ablative surgery آلوده دهانی شده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: سومین گزینه immediate reconstruction در متن می‌گوید وقتی alveolar crest bone تخریب نشده و extension به oral soft tissue وجود ندارد، دندان‌ها خارج می‌شوند، ۶ تا ۸ هفته healing انجام می‌شود، سپس tumor از راه extraoral برداشته و defect graft می‌شود؛ این تنها نوعی است که oral contamination قابل اجتناب است.
-دلیل رد گزینه الف: در روش ترکیبی، watertight oral closure قبل از graft از extraoral incision ذکر شده است.
-دلیل رد گزینه ج: روش intraoral به‌طور ذاتی با contamination دهانی همراه است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: سومین گزینه immediate reconstruction در متن می‌گوید وقتی alveolar crest bone تخریب نشده و extension به oral soft tissue وجود ندارد، دندان‌ها خارج می‌شوند، ۶ تا ۸ هفته healing انجام می‌شود، سپس tumor از راه extraoral برداشته و defect graft می‌شود؛ این تنها نوعی است که oral contamination قابل اجتناب است.
+دلیل رد گزینه الف: در روش ترکیبی، watertight oral closure قبل از graft از extraoral incision ذکر شده است.
+دلیل رد گزینه ج: روش intraoral به‌طور ذاتی با contamination دهانی همراه است.
 دلیل رد گزینه د: متن contamination در transoral placement یا extraoral wound آلوده به دهان را عامل افزایش خطر infection graft می‌داند.',
                     ],
                     [
@@ -2743,10 +2743,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برداشت full-thickness مندیبل با حفظ condyle',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: برای cystهای maxilla، فصل دو گزینه مطرح می‌کند: باز کردن به oral cavity یا باز کردن به maxillary sinus/nasal cavity. در حالت دوم پس از unroofing به فضای مجاور، opening دهانی بسته می‌شود و lining با antrum یا nasal cavity پیوسته می‌گردد.
-دلیل رد گزینه ب: ارتباط cyst با sinus به‌تنهایی نشانه chemotherapy نیست.
-دلیل رد گزینه ج: curettage بدون window با مفهوم marsupialization ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: برای cystهای maxilla، فصل دو گزینه مطرح می‌کند: باز کردن به oral cavity یا باز کردن به maxillary sinus/nasal cavity. در حالت دوم پس از unroofing به فضای مجاور، opening دهانی بسته می‌شود و lining با antrum یا nasal cavity پیوسته می‌گردد.
+دلیل رد گزینه ب: ارتباط cyst با sinus به‌تنهایی نشانه chemotherapy نیست.
+دلیل رد گزینه ج: curettage بدون window با مفهوم marsupialization ناسازگار است.
 دلیل رد گزینه د: برداشت full-thickness مندیبل مربوط به partial mandibular resection است و به maxillary cyst مربوط نیست.',
                     ],
                     [
@@ -2758,10 +2758,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'نیاز بیمار به irrigation چندماهه cavity',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: اگر ضایعه با برداشتن ناحیه درگیر امکان حفظ inferior border و continuity را بدهد، marginal resection ترجیح دارد؛ اگر نزدیک حاشیه تحتانی یا full-thickness باشد، partial resection لازم می‌شود.
-دلیل رد گزینه الف: ایجاد ارتباط cyst با oral cavity تعریف marsupialization است.
-دلیل رد گزینه ج: lining نازک و daughter cysts مربوط به odontogenic keratocyst و enucleation with curettage است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: اگر ضایعه با برداشتن ناحیه درگیر امکان حفظ inferior border و continuity را بدهد، marginal resection ترجیح دارد؛ اگر نزدیک حاشیه تحتانی یا full-thickness باشد، partial resection لازم می‌شود.
+دلیل رد گزینه الف: ایجاد ارتباط cyst با oral cavity تعریف marsupialization است.
+دلیل رد گزینه ج: lining نازک و daughter cysts مربوط به odontogenic keratocyst و enucleation with curettage است.
 دلیل رد گزینه د: irrigation طولانی در marsupialization cyst مطرح است.',
                     ],
                     [
@@ -2773,10 +2773,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ameloblastoma که به inferior border مندیبل نزدیک شده است',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید marsupialization به‌ندرت تنها درمان cyst است؛ اما در dentigerous cyst، پس از رویش دندان ممکن است residual cyst برای برداشتن باقی نماند.
-دلیل رد گزینه الف: malignancy با lymph node involvement در محدوده composite resection/radiation/chemotherapy است، نه marsupialization.
-دلیل رد گزینه ب: OKC به علت recurrence بالا نیازمند management دقیق و معمولاً enucleation with curettage یا resection در موارد خاص است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید marsupialization به‌ندرت تنها درمان cyst است؛ اما در dentigerous cyst، پس از رویش دندان ممکن است residual cyst برای برداشتن باقی نماند.
+دلیل رد گزینه الف: malignancy با lymph node involvement در محدوده composite resection/radiation/chemotherapy است، نه marsupialization.
+دلیل رد گزینه ب: OKC به علت recurrence بالا نیازمند management دقیق و معمولاً enucleation with curettage یا resection در موارد خاص است.
 دلیل رد گزینه د: ameloblastoma نزدیک inferior border معمولاً resection مناسب می‌خواهد، نه marsupialization به عنوان درمان نهایی.',
                     ],
                     [
@@ -2788,10 +2788,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'cementoblastoma',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: primary intraosseous carcinoma در جدول در ستون composite resection و در گروه malignant lesions آمده است.
-دلیل رد گزینه ب: ameloblastic fibroma نیز در گروه enucleation/curettage ذکر شده است.
-دلیل رد گزینه ج: central giant cell granuloma در جدول در ستون محافظه‌کارانه‌تر enucleation/curettage آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: primary intraosseous carcinoma در جدول در ستون composite resection و در گروه malignant lesions آمده است.
+دلیل رد گزینه ب: ameloblastic fibroma نیز در گروه enucleation/curettage ذکر شده است.
+دلیل رد گزینه ج: central giant cell granuloma در جدول در ستون محافظه‌کارانه‌تر enucleation/curettage آمده است.
 دلیل رد گزینه د: cementoblastoma در ستون enucleation/curettage قرار دارد.',
                     ],
                 ],
@@ -2822,10 +2822,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'باقی ماندن tissue پاتولوژیک در محل بدون بررسی کامل histologic',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: عیب عمده marsupialization این است که بافت پاتولوژیک در محل باقی می‌ماند و فقط tissue window بررسی می‌شود؛ بنابراین ضایعه مهاجم‌تر ممکن است در tissue باقیمانده باشد.
-دلیل رد گزینه الف: در بیماران ill health یا debilitated، marsupialization حتی می‌تواند جایگزین ساده‌تر و کم‌استرس‌تری باشد.
-دلیل رد گزینه ب: کاهش intracystic pressure یکی از اهداف و اثرات marsupialization است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: عیب عمده marsupialization این است که بافت پاتولوژیک در محل باقی می‌ماند و فقط tissue window بررسی می‌شود؛ بنابراین ضایعه مهاجم‌تر ممکن است در tissue باقیمانده باشد.
+دلیل رد گزینه الف: در بیماران ill health یا debilitated، marsupialization حتی می‌تواند جایگزین ساده‌تر و کم‌استرس‌تری باشد.
+دلیل رد گزینه ب: کاهش intracystic pressure یکی از اهداف و اثرات marsupialization است.
 دلیل رد گزینه ج: marsupialization به‌ویژه می‌تواند به حفظ و رویش دندان نهفته کمک کند، نه الزاماً برداشت همه teeth.',
                     ],
                     [
@@ -2837,10 +2837,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'انتظار برای spontaneous bone regeneration بدون planning بازسازی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع می‌گوید قبل از dental rehabilitation، اسکلت underlying باید در صورت نیاز بازسازی شود؛ در فقدان alveolus، ridge augmentation با bone graft، synthetic bone graft یا ترکیب آن‌ها می‌تواند زمینه restoration بهینه را فراهم کند.
-دلیل رد گزینه ب: بدون osseous base مناسب، bridge یا denture support مناسبی ندارد.
-دلیل رد گزینه ج: neck dissection مربوط به مدیریت malignancy و lymph nodes است، نه فراهم کردن support پروتز.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع می‌گوید قبل از dental rehabilitation، اسکلت underlying باید در صورت نیاز بازسازی شود؛ در فقدان alveolus، ridge augmentation با bone graft، synthetic bone graft یا ترکیب آن‌ها می‌تواند زمینه restoration بهینه را فراهم کند.
+دلیل رد گزینه ب: بدون osseous base مناسب، bridge یا denture support مناسبی ندارد.
+دلیل رد گزینه ج: neck dissection مربوط به مدیریت malignancy و lymph nodes است، نه فراهم کردن support پروتز.
 دلیل رد گزینه د: منبع بر planning فوری یا آینده بازسازی پیش از surgery تأکید می‌کند نه انتظار بدون برنامه.',
                     ],
                     [
@@ -2852,10 +2852,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط در ضایعات بدخیم اثبات‌شده پس از surgery کاربرد دارد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل هشدار می‌دهد که به کار بردن رویکرد carcinoma برای cyst ساده فاجعه است؛ بنابراین قبل از major ablative surgery باید histologic identification انجام شود تا روش مناسب انتخاب گردد.
-دلیل رد گزینه الف: biopsy جایگزین enucleation درمانی cyst نیست؛ enucleation می‌تواند excisional biopsy و treatment باشد.
-دلیل رد گزینه ب: حاشیه رادیوگرافیک واضح مانع biopsy نیست و tissue excised نیز باید بررسی شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل هشدار می‌دهد که به کار بردن رویکرد carcinoma برای cyst ساده فاجعه است؛ بنابراین قبل از major ablative surgery باید histologic identification انجام شود تا روش مناسب انتخاب گردد.
+دلیل رد گزینه الف: biopsy جایگزین enucleation درمانی cyst نیست؛ enucleation می‌تواند excisional biopsy و treatment باشد.
+دلیل رد گزینه ب: حاشیه رادیوگرافیک واضح مانع biopsy نیست و tissue excised نیز باید بررسی شود.
 دلیل رد گزینه د: هدف biopsy قبل از انتخاب درمان و surgery وسیع است، نه فقط پس از surgery در بدخیمی اثبات‌شده.',
                     ],
                     [
@@ -2867,10 +2867,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'delayed decompression',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید small epidermoid carcinomas در نواحی accessible مثل lower lip و بدون palpable lymph nodes می‌توانند excised شوند؛ شکل فصل نیز full-thickness V-shaped excision را نشان می‌دهد.
-دلیل رد گزینه الف: marsupialization روش cystic lesions است، نه carcinoma لب.
-دلیل رد گزینه ج: enucleation with curettage برای cystهای خاص مانند OKC یا recurrent cyst است، نه سرطان مخاطی لب.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید small epidermoid carcinomas در نواحی accessible مثل lower lip و بدون palpable lymph nodes می‌توانند excised شوند؛ شکل فصل نیز full-thickness V-shaped excision را نشان می‌دهد.
+دلیل رد گزینه الف: marsupialization روش cystic lesions است، نه carcinoma لب.
+دلیل رد گزینه ج: enucleation with curettage برای cystهای خاص مانند OKC یا recurrent cyst است، نه سرطان مخاطی لب.
 دلیل رد گزینه د: decompression/marsupialization برای کاهش فشار cyst است و درمان carcinoma نیست.',
                     ],
                     [
@@ -2882,10 +2882,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'باعث می‌شود histologic examination نیازی نباشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع می‌گوید اگر cystic wall intact بماند، margins بهتر تعریف می‌شوند و cyst با حفظ intracystic pressure آسان‌تر از bony cavity جدا می‌شود؛ removal یکپارچه نیز احتمال عود را کاهش می‌دهد.
-دلیل رد گزینه ب: حفظ wall ربطی به افزایش نیاز به partial resection ندارد.
-دلیل رد گزینه ج: پس از enucleation، primary closure آب‌بند همچنان هدف است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع می‌گوید اگر cystic wall intact بماند، margins بهتر تعریف می‌شوند و cyst با حفظ intracystic pressure آسان‌تر از bony cavity جدا می‌شود؛ removal یکپارچه نیز احتمال عود را کاهش می‌دهد.
+دلیل رد گزینه ب: حفظ wall ربطی به افزایش نیاز به partial resection ندارد.
+دلیل رد گزینه ج: پس از enucleation، primary closure آب‌بند همچنان هدف است.
 دلیل رد گزینه د: حتی با removal کامل، cystic tissue باید برای pathology ارسال شود.',
                     ],
                     [
@@ -2897,10 +2897,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'supraperiosteal excision روی jaw درگیر',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید اگر cortical plate تا حد eggshell نازک شده ولی perforation آشکار وجود ندارد، supraperiosteal excision ناحیه jaw درگیر انجام شود.
-دلیل رد گزینه الف: متن در این وضعیت باقی گذاشتن periosteum بدون توجه را توصیه نمی‌کند.
-دلیل رد گزینه ب: marsupialization در این تصمیم‌گیری تومور/soft tissue invasion مطرح نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید اگر cortical plate تا حد eggshell نازک شده ولی perforation آشکار وجود ندارد، supraperiosteal excision ناحیه jaw درگیر انجام شود.
+دلیل رد گزینه الف: متن در این وضعیت باقی گذاشتن periosteum بدون توجه را توصیه نمی‌کند.
+دلیل رد گزینه ب: marsupialization در این تصمیم‌گیری تومور/soft tissue invasion مطرح نیست.
 دلیل رد گزینه ج: composite resection برای malignancyها و موارد خاص است، نه همه موارد eggshell cortex.',
                     ],
                     [
@@ -2912,10 +2912,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'enucleation، marsupialization، ترکیب staged این دو، و enucleation with curettage',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل چهار روش اصلی درمان cystهای فکی را enucleation، marsupialization، ترکیب staged این دو، و enucleation with curettage معرفی می‌کند.
-دلیل رد گزینه الف: این‌ها ابزارهای reconstruction/fixation هستند و روش اصلی درمان cyst نیستند.
-دلیل رد گزینه ب: این فهرست روش‌های resection و ارزیابی margin در تومورهاست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل چهار روش اصلی درمان cystهای فکی را enucleation، marsupialization، ترکیب staged این دو، و enucleation with curettage معرفی می‌کند.
+دلیل رد گزینه الف: این‌ها ابزارهای reconstruction/fixation هستند و روش اصلی درمان cyst نیستند.
+دلیل رد گزینه ب: این فهرست روش‌های resection و ارزیابی margin در تومورهاست.
 دلیل رد گزینه ج: این‌ها مربوط به بدخیمی‌ها یا تشخیص‌اند، نه چهار روش اصلی درمان cyst.',
                     ],
                     [
@@ -2927,10 +2927,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'به علت differentiation کامل هرگز از radiation آسیب نمی‌بینند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: منبع تصریح می‌کند radiation روی سلول‌های طبیعی host نیز اثر می‌گذارد و باید تا حد امکان محافظت شوند؛ fractionation و multiple ports برای spare کردن بافت‌های طبیعی به کار می‌روند.
-دلیل رد گزینه ب: در multiple ports، tumor کل dose را دریافت می‌کند؛ normal tissues در مسیر هر beam فقط بخشی از dose را می‌گیرند.
-دلیل رد گزینه ج: fractionation برای دادن فرصت recovery به بافت‌های سالم طراحی شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: منبع تصریح می‌کند radiation روی سلول‌های طبیعی host نیز اثر می‌گذارد و باید تا حد امکان محافظت شوند؛ fractionation و multiple ports برای spare کردن بافت‌های طبیعی به کار می‌روند.
+دلیل رد گزینه ب: در multiple ports، tumor کل dose را دریافت می‌کند؛ normal tissues در مسیر هر beam فقط بخشی از dose را می‌گیرند.
+دلیل رد گزینه ج: fractionation برای دادن فرصت recovery به بافت‌های سالم طراحی شده است.
 دلیل رد گزینه د: متن آسیب‌پذیری سلول‌های طبیعی را نفی نمی‌کند.',
                     ],
                     [
@@ -2942,10 +2942,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ایجاد حاشیه ۱ سانتی‌متری بونی در اطراف ضایعه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: اگر suturing ممکن نباشد، cavity با strip gauze آغشته به benzoin یا antibiotic ointment بسته می‌شود و ۱۰ تا ۱۴ روز باقی می‌ماند تا oral mucosa روی window بسته نشود و lining به mucosa جوش بخورد.
-دلیل رد گزینه الف: tissue window همچنان باید برای pathology ارسال شود.
-دلیل رد گزینه ب: packing lining را به‌طور کامل حذف نمی‌کند؛ lining عمدتاً در محل باقی می‌ماند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: اگر suturing ممکن نباشد، cavity با strip gauze آغشته به benzoin یا antibiotic ointment بسته می‌شود و ۱۰ تا ۱۴ روز باقی می‌ماند تا oral mucosa روی window بسته نشود و lining به mucosa جوش بخورد.
+دلیل رد گزینه الف: tissue window همچنان باید برای pathology ارسال شود.
+دلیل رد گزینه ب: packing lining را به‌طور کامل حذف نمی‌کند؛ lining عمدتاً در محل باقی می‌ماند.
 دلیل رد گزینه د: حاشیه ۱ سانتی‌متری مربوط به resection تومورهای مهاجم است.',
                     ],
                     [
@@ -2957,10 +2957,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'marsupialization بدون follow-up پس از بسته شدن opening',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: برای recurrence OKC، فصل می‌گوید اگر area accessible باشد می‌توان enucleation دوباره را انجام داد؛ اگر inaccessible باشد، bony resection با ۱-cm margins باید مدنظر قرار گیرد.
-دلیل رد گزینه الف: نرخ عود بالا دلیل chemotherapy سیستمیک در متن نیست.
-دلیل رد گزینه ج: حداقل درمان OKC، careful enucleation with aggressive curettage است، نه enucleation ساده بدون curettage.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: برای recurrence OKC، فصل می‌گوید اگر area accessible باشد می‌توان enucleation دوباره را انجام داد؛ اگر inaccessible باشد، bony resection با ۱-cm margins باید مدنظر قرار گیرد.
+دلیل رد گزینه الف: نرخ عود بالا دلیل chemotherapy سیستمیک در متن نیست.
+دلیل رد گزینه ج: حداقل درمان OKC، careful enucleation with aggressive curettage است، نه enucleation ساده بدون curettage.
 دلیل رد گزینه د: OKC حتی سال‌ها بعد ممکن است عود کند و follow-up نزدیک لازم است.',
                     ],
                     [
@@ -2972,10 +2972,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'indentation همراه rebound resiliency یا fluctuance در palpation',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: اگر cyst cortical plate را expand و thin کند، فشار محکم ممکن است indentation با rebound resiliency بدهد؛ اگر cortex erode شده باشد، fluctuance ممکن است لمس شود.
-دلیل رد گزینه الف: root resorption معمول cyst نیست و باید به neoplasm شک کرد.
-دلیل رد گزینه ب: cystها معمولاً بی‌علامت‌اند مگر secondarily infected شوند و sensory deficit معمولاً دیده نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: اگر cyst cortical plate را expand و thin کند، فشار محکم ممکن است indentation با rebound resiliency بدهد؛ اگر cortex erode شده باشد، fluctuance ممکن است لمس شود.
+دلیل رد گزینه الف: root resorption معمول cyst نیست و باید به neoplasm شک کرد.
+دلیل رد گزینه ب: cystها معمولاً بی‌علامت‌اند مگر secondarily infected شوند و sensory deficit معمولاً دیده نمی‌شود.
 دلیل رد گزینه ج: overlying mucosa معمولاً رنگ و consistency طبیعی دارد.',
                     ],
                     [
@@ -2987,10 +2987,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بدون حاشیه، با ابزار در تماس مستقیم با ضایعه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در marginal یا partial resection، اصل کلی فصل این است که specimen شامل lesion و ۱ سانتی‌متر bony margins اطراف radiographic boundaries باشد.
-دلیل رد گزینه الف: ۱ تا ۲ میلی‌متر bone removal مربوط به curettage اطراف cystic cavity است.
-دلیل رد گزینه ب: window حداقل ۱ سانتی‌متر متعلق به marsupialization cyst است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در marginal یا partial resection، اصل کلی فصل این است که specimen شامل lesion و ۱ سانتی‌متر bony margins اطراف radiographic boundaries باشد.
+دلیل رد گزینه الف: ۱ تا ۲ میلی‌متر bone removal مربوط به curettage اطراف cystic cavity است.
+دلیل رد گزینه ب: window حداقل ۱ سانتی‌متر متعلق به marsupialization cyst است.
 دلیل رد گزینه د: ابزار در تماس مستقیم با ضایعه تعریف enucleation/curettage برای ضایعات benign است، نه resection با margin.',
                     ],
                     [
@@ -3002,10 +3002,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تنها هنگامی که opening به‌طور کامل با epithelium بسته نشده باشد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: زمان مناسب enucleation بعد از marsupialization وقتی است که bone adjacent vital structures را پوشانده، خطر injury کمتر شده و bone fill برای جلوگیری از fracture کافی باشد.
-دلیل رد گزینه الف: هدف marsupialization کاهش اندازه و bone fill پیش از enucleation ثانویه است.
-دلیل رد گزینه ج: اگر lesion کاملاً obliterate شده و cavity مشکلی ندارد، ضرورت enucleation کاهش می‌یابد؛ difficulty در cleaning یکی از اندیکاسیون‌های enucleation است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: زمان مناسب enucleation بعد از marsupialization وقتی است که bone adjacent vital structures را پوشانده، خطر injury کمتر شده و bone fill برای جلوگیری از fracture کافی باشد.
+دلیل رد گزینه الف: هدف marsupialization کاهش اندازه و bone fill پیش از enucleation ثانویه است.
+دلیل رد گزینه ج: اگر lesion کاملاً obliterate شده و cavity مشکلی ندارد، ضرورت enucleation کاهش می‌یابد؛ difficulty در cleaning یکی از اندیکاسیون‌های enucleation است.
 دلیل رد گزینه د: بسته شدن یا باز بودن opening به‌تنهایی معیار اصلی نیست؛ وضعیت bone و امکان removal امن مهم است.',
                     ],
                     [
@@ -3017,10 +3017,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'odontogenic myxoma ـ marsupialization نهایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: odontoma در جدول تحت گروه enucleation and/or curettage قرار گرفته است.
-دلیل رد گزینه ب: osteosarcoma در گروه بدخیمی‌هاست و با عنوان marginal resection خوش‌خیم مطرح نشده است.
-دلیل رد گزینه ج: ameloblastoma در گروه marginal یا partial resection آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: odontoma در جدول تحت گروه enucleation and/or curettage قرار گرفته است.
+دلیل رد گزینه ب: osteosarcoma در گروه بدخیمی‌هاست و با عنوان marginal resection خوش‌خیم مطرح نشده است.
+دلیل رد گزینه ج: ameloblastoma در گروه marginal یا partial resection آمده است.
 دلیل رد گزینه د: odontogenic myxoma در متن و جدول در گروه marginal یا partial resection است.',
                     ],
                     [
@@ -3032,10 +3032,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'radiotherapy برای کوچک کردن residual cyst توصیه می‌شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید پس از marsupialization، healing اولیه سریع است اما cavity ممکن است از حدی کمتر نشود؛ در این زمان اهداف marsupialization انجام شده و secondary enucleation می‌تواند انجام شود.
-دلیل رد گزینه الف: ادامه indefinite packing بدون ارزیابی در متن توصیه نشده است.
-دلیل رد گزینه ب: باقی‌ماندن cavity به‌تنهایی نشانه نیاز به composite resection نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید پس از marsupialization، healing اولیه سریع است اما cavity ممکن است از حدی کمتر نشود؛ در این زمان اهداف marsupialization انجام شده و secondary enucleation می‌تواند انجام شود.
+دلیل رد گزینه الف: ادامه indefinite packing بدون ارزیابی در متن توصیه نشده است.
+دلیل رد گزینه ب: باقی‌ماندن cavity به‌تنهایی نشانه نیاز به composite resection نیست.
 دلیل رد گزینه د: radiotherapy درمان cyst residual در این زمینه نیست.',
                     ],
                     [
@@ -3047,10 +3047,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ضایعه aggressive در anterior mandible همیشه prognosis بدتری از ضایعه inaccessible دارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن توضیح می‌دهد محل ضایعه می‌تواند excision را دشوار و prognosis را بدتر کند؛ حتی benign nonaggressive lesion در pterygomaxillary fissure مشکل جراحی واضحی ایجاد می‌کند.
-دلیل رد گزینه الف: location یکی از عوامل مهم پیش از surgery است.
-دلیل رد گزینه ج: ضایعه inaccessible لزوماً با enucleation ساده درمان نمی‌شود؛ انتخاب به behavior، دسترسی و دیگر عوامل وابسته است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن توضیح می‌دهد محل ضایعه می‌تواند excision را دشوار و prognosis را بدتر کند؛ حتی benign nonaggressive lesion در pterygomaxillary fissure مشکل جراحی واضحی ایجاد می‌کند.
+دلیل رد گزینه الف: location یکی از عوامل مهم پیش از surgery است.
+دلیل رد گزینه ج: ضایعه inaccessible لزوماً با enucleation ساده درمان نمی‌شود؛ انتخاب به behavior، دسترسی و دیگر عوامل وابسته است.
 دلیل رد گزینه د: منبع مثال می‌زند که ضایعه aggressive در ناحیه accessible و resectable مثل anterior mandible ممکن است prognosis بهتری داشته باشد.',
                     ],
                     [
@@ -3062,10 +3062,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ناتوانی در ارسال هرگونه بافت برای pathology',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: یکی از disadvantages marsupialization، inconvenience بیمار است؛ cavity غذا را trap می‌کند و بیمار باید معمولاً چند بار در روز با syringe آن را irrigate کند.
-دلیل رد گزینه الف: marsupialization غالباً simple procedure است و برای بیماران ناتوان به عنوان روش کم‌استرس‌تر مطرح می‌شود.
-دلیل رد گزینه ب: endodontic treatment ممکن است پس از devitalization در cystectomy مطرح شود، نه الزام همه موارد marsupialization.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: یکی از disadvantages marsupialization، inconvenience بیمار است؛ cavity غذا را trap می‌کند و بیمار باید معمولاً چند بار در روز با syringe آن را irrigate کند.
+دلیل رد گزینه الف: marsupialization غالباً simple procedure است و برای بیماران ناتوان به عنوان روش کم‌استرس‌تر مطرح می‌شود.
+دلیل رد گزینه ب: endodontic treatment ممکن است پس از devitalization در cystectomy مطرح شود، نه الزام همه موارد marsupialization.
 دلیل رد گزینه د: در marsupialization، tissue window برای pathology ارسال می‌شود؛ مشکل، عدم بررسی کل lining است.',
                     ],
                     [
@@ -3077,10 +3077,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'عدم امکان بازگشت زودهنگام function در هیچ بیمار',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل immediate reconstruction را viable می‌داند و مزایایی ذکر می‌کند، اما disadvantage احتمالی آن loss of graft به علت infection است؛ این خطر با transoral placement یا wound extraoral آلوده به دهان بالاتر است.
-دلیل رد گزینه الف: متن minimal compromise to facial esthetics را از مزایا می‌شمارد.
-دلیل رد گزینه ج: مزیت دیگر آن single surgical procedure است، نه نیاز قطعی به دو عمل.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل immediate reconstruction را viable می‌داند و مزایایی ذکر می‌کند، اما disadvantage احتمالی آن loss of graft به علت infection است؛ این خطر با transoral placement یا wound extraoral آلوده به دهان بالاتر است.
+دلیل رد گزینه الف: متن minimal compromise to facial esthetics را از مزایا می‌شمارد.
+دلیل رد گزینه ج: مزیت دیگر آن single surgical procedure است، نه نیاز قطعی به دو عمل.
 دلیل رد گزینه د: یکی از مزایای immediate reconstruction، early return to function است.',
                     ],
                     [
@@ -3092,10 +3092,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای جلوگیری از root resorption به طور روتین تجویز می‌شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در تکنیک enucleation، antibiotics غیرضروری دانسته شده مگر cyst بزرگ یا وضعیت سلامت بیمار نیاز ایجاد کند؛ در marsupialization نیز prophylactic systemic antibiotics معمولاً indicated نیست مگر وضعیت بیمار ایجاب کند.
-دلیل رد گزینه الف: تفاوت مطلق ممنوع/اجباری بین دو روش در فصل وجود ندارد.
-دلیل رد گزینه ب: تجویز routine برای همه موارد در متن نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در تکنیک enucleation، antibiotics غیرضروری دانسته شده مگر cyst بزرگ یا وضعیت سلامت بیمار نیاز ایجاد کند؛ در marsupialization نیز prophylactic systemic antibiotics معمولاً indicated نیست مگر وضعیت بیمار ایجاب کند.
+دلیل رد گزینه الف: تفاوت مطلق ممنوع/اجباری بین دو روش در فصل وجود ندارد.
+دلیل رد گزینه ب: تجویز routine برای همه موارد در متن نیامده است.
 دلیل رد گزینه د: root resorption ویژگی معمول cyst نیست و antibiotic برای جلوگیری از آن مطرح نشده است.',
                     ],
                     [
@@ -3107,10 +3107,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'فقط مقدار bone fill پس از decompression',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: انتخاب درمان malignancy در فصل به عوامل متعددی وابسته است: diagnosis هیستوپاتولوژیک، محل، وجود و درجه metastasis، radio/chemosensitivity، سن و وضعیت عمومی، تجربه درمانگر و خواست بیمار.
-دلیل رد گزینه الف: این عوامل مربوط به marsupialization cyst هستند نه malignancy.
-دلیل رد گزینه ب: periapical radiolucency در بحث cyst/granuloma دندانی است، نه انتخاب modality بدخیمی.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: انتخاب درمان malignancy در فصل به عوامل متعددی وابسته است: diagnosis هیستوپاتولوژیک، محل، وجود و درجه metastasis، radio/chemosensitivity، سن و وضعیت عمومی، تجربه درمانگر و خواست بیمار.
+دلیل رد گزینه الف: این عوامل مربوط به marsupialization cyst هستند نه malignancy.
+دلیل رد گزینه ب: periapical radiolucency در بحث cyst/granuloma دندانی است، نه انتخاب modality بدخیمی.
 دلیل رد گزینه د: bone fill پس از decompression در cyst management مطرح است.',
                     ],
                     [
@@ -3122,10 +3122,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حدود ۶ تا ۱۲ ماه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در wound open که packing هر ۲ تا ۳ روز کم می‌شود، granulation tissue در ۳ تا ۴ روز روی bony walls دیده می‌شود.
-دلیل رد گزینه ب: ۱۰ تا ۱۴ روز مدت باقی‌ماندن packing در marsupialization برای جلوگیری از closure روی window است.
-دلیل رد گزینه ج: ۶ تا ۸ هفته مربوط به healing gingival tissues پس از extraction قبل از نوع خاصی از immediate reconstruction است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در wound open که packing هر ۲ تا ۳ روز کم می‌شود، granulation tissue در ۳ تا ۴ روز روی bony walls دیده می‌شود.
+دلیل رد گزینه ب: ۱۰ تا ۱۴ روز مدت باقی‌ماندن packing در marsupialization برای جلوگیری از closure روی window است.
+دلیل رد گزینه ج: ۶ تا ۸ هفته مربوط به healing gingival tissues پس از extraction قبل از نوع خاصی از immediate reconstruction است.
 دلیل رد گزینه د: ۶ تا ۱۲ ماه زمان شواهد رادیوگرافیک bone fill پس از enucleation است.',
                     ],
                     [
@@ -3137,10 +3137,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بیشتر به صورت topical روی mucosa داده می‌شوند و عوارض systemic ندارند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: منبع می‌گوید اکثر عوامل chemotherapy سیستمیک داده می‌شوند و کاملاً selective نیستند؛ hematopoietic system به علت turnover سریع آسیب می‌بیند و anemia، neutropenia و thrombocytopenia شایع می‌شود.
-دلیل رد گزینه الف: آسیب marrow و cytopenias در بحث chemotherapy آمده است.
-دلیل رد گزینه ب: متن صراحتاً عدم انتخاب‌گری کامل drugs را بیان می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: منبع می‌گوید اکثر عوامل chemotherapy سیستمیک داده می‌شوند و کاملاً selective نیستند؛ hematopoietic system به علت turnover سریع آسیب می‌بیند و anemia، neutropenia و thrombocytopenia شایع می‌شود.
+دلیل رد گزینه الف: آسیب marrow و cytopenias در بحث chemotherapy آمده است.
+دلیل رد گزینه ب: متن صراحتاً عدم انتخاب‌گری کامل drugs را بیان می‌کند.
 دلیل رد گزینه د: مصرف رایج IV و گاهی intra-arterial است، نه topical بدون عارضه systemic.',
                     ],
                     [
@@ -3152,10 +3152,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'cysts/cystlike lesions، benign jaw tumors، malignant tumors، و benign oral soft tissue lesions',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل برای بحث surgical management، ضایعات را به چهار گروه کلی تقسیم می‌کند: cysts and cystlike lesions of jaws، benign tumors of jaws، malignant tumors، و benign lesions of oral soft tissues.
-دلیل رد گزینه الف: این موارد مربوط به trauma هستند نه دسته‌بندی اصلی فصل ۲۳.
-دلیل رد گزینه ب: این‌ها طبقه‌بندی chapter مربوط به مدیریت جراحی ضایعات پاتولوژیک نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل برای بحث surgical management، ضایعات را به چهار گروه کلی تقسیم می‌کند: cysts and cystlike lesions of jaws، benign tumors of jaws، malignant tumors، و benign lesions of oral soft tissues.
+دلیل رد گزینه الف: این موارد مربوط به trauma هستند نه دسته‌بندی اصلی فصل ۲۳.
+دلیل رد گزینه ب: این‌ها طبقه‌بندی chapter مربوط به مدیریت جراحی ضایعات پاتولوژیک نیستند.
 دلیل رد گزینه ج: برخی موضوعات به فصل‌های دیگر مربوط‌اند و در این طبقه‌بندی فصل ۲۳ نیامده‌اند.',
                     ],
                     [
@@ -3167,10 +3167,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'می‌توانند از بافت‌های مختلف ایجاد شوند یا metastasis از محل دور باشند، اما epidermoid carcinoma مخاط دهان شایع‌تر است',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید malignancyهای دهان ممکن است از salivary gland، muscle، blood vessels یا metastasis دوردست باشند، اما شایع‌تر epidermoid carcinoma مخاط دهان است که اغلب با معاینه کامل دهانی توسط dentist کشف می‌شود.
-دلیل رد گزینه الف: متن تأکید دارد epidermoid carcinoma می‌تواند نخستین بار توسط dentist در thorough oral examination کشف شود.
-دلیل رد گزینه ب: منبع منشأهای متنوعی برای malignancy ذکر کرده است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید malignancyهای دهان ممکن است از salivary gland، muscle، blood vessels یا metastasis دوردست باشند، اما شایع‌تر epidermoid carcinoma مخاط دهان است که اغلب با معاینه کامل دهانی توسط dentist کشف می‌شود.
+دلیل رد گزینه الف: متن تأکید دارد epidermoid carcinoma می‌تواند نخستین بار توسط dentist در thorough oral examination کشف شود.
+دلیل رد گزینه ب: منبع منشأهای متنوعی برای malignancy ذکر کرده است.
 دلیل رد گزینه ج: کشف پیش از treatment و staging رخ می‌دهد، نه فقط بعد از composite resection.',
                     ],
                     [
@@ -3182,10 +3182,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای برداشتن ۱ سانتی‌متر soft tissue سالم در همه اطراف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: پس از marsupialization، window دارای epithelial bridge بین cystic cavity و oral cavity است؛ این epithelium باید کاملاً همراه cystic lining برداشته شود، بنابراین incision elliptical دور window تا sound bone انجام می‌شود.
-دلیل رد گزینه ب: در enucleation ثانویه هدف حذف bridge است، نه حفظ آن.
-دلیل رد گزینه ج: lymph node channels در composite resection بدخیمی‌ها مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: پس از marsupialization، window دارای epithelial bridge بین cystic cavity و oral cavity است؛ این epithelium باید کاملاً همراه cystic lining برداشته شود، بنابراین incision elliptical دور window تا sound bone انجام می‌شود.
+دلیل رد گزینه ب: در enucleation ثانویه هدف حذف bridge است، نه حفظ آن.
+دلیل رد گزینه ج: lymph node channels در composite resection بدخیمی‌ها مطرح است.
 دلیل رد گزینه د: برداشت حاشیه soft tissue سالم به صورت ۱ سانتی‌متر در همه موارد اینجا ذکر نشده است.',
                     ],
                     [
@@ -3197,10 +3197,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'استخراج فوری همه دندان‌های مجاور حتی اگر سالم باشند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: منبع می‌گوید در نزدیکی benign lesions به teeth، گاهی apices ریشه‌ها کاملاً uncover می‌شوند و blood supply pulp از بین می‌رود؛ این teeth باید برای endodontic treatment مدنظر باشند تا infection ایجاد نشود.
-دلیل رد گزینه الف: marsupialization برای کمک به رویش teeth نهفته در cyst مطرح است، نه مدیریت pulp devitalization.
-دلیل رد گزینه ب: متن احتمال stripping blood supply و نیاز به endodontic treatment را بیان می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: منبع می‌گوید در نزدیکی benign lesions به teeth، گاهی apices ریشه‌ها کاملاً uncover می‌شوند و blood supply pulp از بین می‌رود؛ این teeth باید برای endodontic treatment مدنظر باشند تا infection ایجاد نشود.
+دلیل رد گزینه الف: marsupialization برای کمک به رویش teeth نهفته در cyst مطرح است، نه مدیریت pulp devitalization.
+دلیل رد گزینه ب: متن احتمال stripping blood supply و نیاز به endodontic treatment را بیان می‌کند.
 دلیل رد گزینه د: استخراج فوری همه دندان‌های سالم مجاور به عنوان قاعده مطرح نشده؛ preservation باید تلاش شود.',
                     ],
                     [
@@ -3212,10 +3212,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'هر دو گروه فقط از metastatic epithelium دوردست منشأ دارند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل cystهای فک را به odontogenic cysts ناشی از odontogenic epithelium و fissural cysts ناشی از oral epithelium گرفتار بین processهای جنینی در حال fusion تقسیم می‌کند.
-دلیل رد گزینه الف: radiation therapy به عنوان منشأ fissural cyst در فصل نیامده است.
-دلیل رد گزینه ب: muscle و salivary gland duct منشأهای ذکرشده برای این دو گروه cyst نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل cystهای فک را به odontogenic cysts ناشی از odontogenic epithelium و fissural cysts ناشی از oral epithelium گرفتار بین processهای جنینی در حال fusion تقسیم می‌کند.
+دلیل رد گزینه الف: radiation therapy به عنوان منشأ fissural cyst در فصل نیامده است.
+دلیل رد گزینه ب: muscle و salivary gland duct منشأهای ذکرشده برای این دو گروه cyst نیستند.
 دلیل رد گزینه د: metastasis دوردست در بحث malignancy مطرح است نه cystهای فکی.',
                     ],
                     [
@@ -3227,10 +3227,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'یک beam از یک زاویه به tumor داده می‌شود تا normal tissue نیز کل dose را دریافت کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: multiple ports یعنی چند beam از زوایای مختلف همگی روی tumor focus می‌شوند؛ tumor کل dose را دریافت می‌کند ولی normal tissues در مسیر هر beam فقط بخشی از dose tumor را می‌گیرند.
-دلیل رد گزینه ب: این توصیف chemotherapy چنددارویی است نه radiotherapy ports.
-دلیل رد گزینه ج: implantation radioactive material یکی از روش‌هاست، اما متن می‌گوید most commonly radiation externally با x-ray generators داده می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: multiple ports یعنی چند beam از زوایای مختلف همگی روی tumor focus می‌شوند؛ tumor کل dose را دریافت می‌کند ولی normal tissues در مسیر هر beam فقط بخشی از dose tumor را می‌گیرند.
+دلیل رد گزینه ب: این توصیف chemotherapy چنددارویی است نه radiotherapy ports.
+دلیل رد گزینه ج: implantation radioactive material یکی از روش‌هاست، اما متن می‌گوید most commonly radiation externally با x-ray generators داده می‌شود.
 دلیل رد گزینه د: این برعکس هدف multiple ports است و با یک port تفاوت دارد.',
                     ],
                     [
@@ -3242,10 +3242,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'بزرگ شدن ناگهانی است و همیشه با نقص حسی ناشی از فشار بر nerve همراه است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: منبع می‌گوید cystها با expansion تدریجی بزرگ می‌شوند، بیشتر در رادیوگرافی routine کشف می‌شوند و معمولاً asymptomatic هستند مگر secondarily infected شوند.
-دلیل رد گزینه الف: root resorption ویژگی معمول cyst نیست.
-دلیل رد گزینه ج: overlying mucosa معمولاً color و consistency طبیعی دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: منبع می‌گوید cystها با expansion تدریجی بزرگ می‌شوند، بیشتر در رادیوگرافی routine کشف می‌شوند و معمولاً asymptomatic هستند مگر secondarily infected شوند.
+دلیل رد گزینه الف: root resorption ویژگی معمول cyst نیست.
+دلیل رد گزینه ج: overlying mucosa معمولاً color و consistency طبیعی دارد.
 دلیل رد گزینه د: sensory deficits معمولاً از encroachment on nerves دیده نمی‌شود و رشد تدریجی است.',
                     ],
                     [
@@ -3257,10 +3257,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'ameloblastoma، odontogenic myxoma، CEOT، squamous odontogenic tumor و ameloblastic odontoma',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل در بخش benign lesions of oral soft tissues همین گروه از ضایعات سطحی را نام می‌برد و آن‌ها را overgrowth عناصر histologic طبیعی mucosa/submucosa می‌داند.
-دلیل رد گزینه ب: این‌ها بدخیمی‌های استخوانی/فکی‌اند و ضایعات سطحی خوش‌خیم mucosa نیستند.
-دلیل رد گزینه ج: این‌ها cystic lesions فکی‌اند نه benign soft tissue lesions سطحی.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل در بخش benign lesions of oral soft tissues همین گروه از ضایعات سطحی را نام می‌برد و آن‌ها را overgrowth عناصر histologic طبیعی mucosa/submucosa می‌داند.
+دلیل رد گزینه ب: این‌ها بدخیمی‌های استخوانی/فکی‌اند و ضایعات سطحی خوش‌خیم mucosa نیستند.
+دلیل رد گزینه ج: این‌ها cystic lesions فکی‌اند نه benign soft tissue lesions سطحی.
 دلیل رد گزینه د: این‌ها تومورهای فکی هستند که بیشتر در گروه marginal/partial resection قرار می‌گیرند.',
                     ],
                     [
@@ -3272,10 +3272,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای تبدیل عمل به composite resection',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در cyst بزرگ، منبع می‌گوید می‌توان mucoperiosteal flap منعکس کرد و از labial plate به cyst رسید تا alveolar crest دست‌نخورده بماند و bone height پس از healing حفظ شود.
-دلیل رد گزینه الف: حفظ alveolar crest به منظور healing و حفظ ارتفاع استخوان است نه جلوگیری از bone fill.
-دلیل رد گزینه ج: ارسال tissue excised برای pathology همچنان ضروری است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در cyst بزرگ، منبع می‌گوید می‌توان mucoperiosteal flap منعکس کرد و از labial plate به cyst رسید تا alveolar crest دست‌نخورده بماند و bone height پس از healing حفظ شود.
+دلیل رد گزینه الف: حفظ alveolar crest به منظور healing و حفظ ارتفاع استخوان است نه جلوگیری از bone fill.
+دلیل رد گزینه ج: ارسال tissue excised برای pathology همچنان ضروری است.
 دلیل رد گزینه د: این تکنیک مربوط به cystectomy است و composite resection نیست.',
                     ],
                     [
@@ -3287,10 +3287,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'radiotherapy بدون توجه به radiosensitivity',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید به طور کلی اگر lesion بتواند کاملاً excise شود بدون اینکه بیمار mutilated شود، این modality ترجیح داده می‌شود.
-دلیل رد گزینه ب: chemotherapy برای مواردی مانند metastasis گسترده یا chemosensitive tumors مطرح است، نه همه موارد.
-دلیل رد گزینه ج: marsupialization روش cyst است و پیش از staging malignancy به عنوان درمان مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید به طور کلی اگر lesion بتواند کاملاً excise شود بدون اینکه بیمار mutilated شود، این modality ترجیح داده می‌شود.
+دلیل رد گزینه ب: chemotherapy برای مواردی مانند metastasis گسترده یا chemosensitive tumors مطرح است، نه همه موارد.
+دلیل رد گزینه ج: marsupialization روش cyst است و پیش از staging malignancy به عنوان درمان مطرح نشده است.
 دلیل رد گزینه د: radiotherapy انتخابی وابسته به عوامل درمانی است و برای همه موارد بدون توجه به radiosensitivity نیست.',
                     ],
                     [
@@ -3302,10 +3302,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'کاهش intracystic pressure و shrinkage پیش از bone fill',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: منبع در disadvantages enucleation می‌گوید ممکن است normal tissue به خطر افتد، fracture فک رخ دهد، teeth devitalize شوند یا teeth impacted قابل حفظ خارج شوند.
-دلیل رد گزینه الف: عدم بررسی کل cyst مشکل marsupialization است؛ enucleation امکان بررسی کل ضایعه را می‌دهد.
-دلیل رد گزینه ج: نیاز طولانی به irrigation disadvantage marsupialization است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: منبع در disadvantages enucleation می‌گوید ممکن است normal tissue به خطر افتد، fracture فک رخ دهد، teeth devitalize شوند یا teeth impacted قابل حفظ خارج شوند.
+دلیل رد گزینه الف: عدم بررسی کل cyst مشکل marsupialization است؛ enucleation امکان بررسی کل ضایعه را می‌دهد.
+دلیل رد گزینه ج: نیاز طولانی به irrigation disadvantage marsupialization است.
 دلیل رد گزینه د: کاهش فشار و shrinkage هدف marsupialization است و disadvantage enucleation نیست.',
                     ],
                     [
@@ -3317,10 +3317,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'برای تمام soft tissue lesions سطحی اجباری است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در technique enucleation/curettage jaw tumors، متن می‌گوید گاهی procedures اضافی مانند sectioning large calcified masses با burrs در odontomas و cementomas لازم می‌شود و اصول فصل impacted teeth به کار می‌رود.
-دلیل رد گزینه الف: این تکنیک مربوط به توده‌های calcified است نه حفظ window در marsupialization.
-دلیل رد گزینه ج: sectioning جایگزین staging malignancy نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در technique enucleation/curettage jaw tumors، متن می‌گوید گاهی procedures اضافی مانند sectioning large calcified masses با burrs در odontomas و cementomas لازم می‌شود و اصول فصل impacted teeth به کار می‌رود.
+دلیل رد گزینه الف: این تکنیک مربوط به توده‌های calcified است نه حفظ window در marsupialization.
+دلیل رد گزینه ج: sectioning جایگزین staging malignancy نیست.
 دلیل رد گزینه د: soft tissue lesions با elliptical/wedge incisions برداشته می‌شوند و sectioning mass calcified موضوع آن‌ها نیست.',
                     ],
                     [
@@ -3332,10 +3332,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'حذف کامل نیاز به closure soft tissue روی defect',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: یکی از مزایای روش ترکیبی این است که پس از marsupialization، lining ضخیم‌تر می‌شود و enucleation ثانویه آسان‌تر انجام می‌گیرد.
-دلیل رد گزینه ب: در enucleation ثانویه epithelial bridge باید حذف شود.
-دلیل رد گزینه ج: در مرحله enucleation، کل lesion برای histologic examination در دسترس قرار می‌گیرد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: یکی از مزایای روش ترکیبی این است که پس از marsupialization، lining ضخیم‌تر می‌شود و enucleation ثانویه آسان‌تر انجام می‌گیرد.
+دلیل رد گزینه ب: در enucleation ثانویه epithelial bridge باید حذف شود.
+دلیل رد گزینه ج: در مرحله enucleation، کل lesion برای histologic examination در دسترس قرار می‌گیرد.
 دلیل رد گزینه د: پس از enucleation، soft tissue closure روی defect در صورت امکان لازم است و گاهی flap advancement انجام می‌شود.',
                     ],
                     [
@@ -3347,10 +3347,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'قرار دادن space-maintaining device هنگام resection و انجام secondary reconstruction چند هفته تا چند ماه بعد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید برخی surgeons در نقص‌های ناشی از benign tumors reconstruction را به تأخیر می‌اندازند، space-maintaining device می‌گذارند و secondary reconstruction را چند هفته تا چند ماه بعد انجام می‌دهند.
-دلیل رد گزینه الف: neck dissection برای lymph nodes در malignancy است و برای جلوگیری از displacement قطعات مندیبل مطرح نیست.
-دلیل رد گزینه ب: گرافت فوری transoral یکی از گزینه‌های immediate است و خطر infection graft دارد.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید برخی surgeons در نقص‌های ناشی از benign tumors reconstruction را به تأخیر می‌اندازند، space-maintaining device می‌گذارند و secondary reconstruction را چند هفته تا چند ماه بعد انجام می‌دهند.
+دلیل رد گزینه الف: neck dissection برای lymph nodes در malignancy است و برای جلوگیری از displacement قطعات مندیبل مطرح نیست.
+دلیل رد گزینه ب: گرافت فوری transoral یکی از گزینه‌های immediate است و خطر infection graft دارد.
 دلیل رد گزینه ج: در delayed reconstruction حفظ رابطه آناتومیک قطعات با fixation یا splints مهم است.',
                     ],
                     [
@@ -3362,10 +3362,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'نزدیکی apex به maxillary sinus یا inferior alveolar canal به علت نازکی یا نبود bone apical',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در apical cystectomy از socket، باید در teeth با apices نزدیک ساختارهایی مانند maxillary sinus یا inferior alveolar neurovascular bundle احتیاط کرد، چون bone apical ممکن است بسیار نازک یا nonexistent باشد.
-دلیل رد گزینه الف: lymph node palpable در malignancy مطرح است.
-دلیل رد گزینه ب: fractionation radiation به pulp vitality در این زمینه مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در apical cystectomy از socket، باید در teeth با apices نزدیک ساختارهایی مانند maxillary sinus یا inferior alveolar neurovascular bundle احتیاط کرد، چون bone apical ممکن است بسیار نازک یا nonexistent باشد.
+دلیل رد گزینه الف: lymph node palpable در malignancy مطرح است.
+دلیل رد گزینه ب: fractionation radiation به pulp vitality در این زمینه مربوط نیست.
 دلیل رد گزینه ج: window بزرگ مربوط به marsupialization است نه خطر اصلی apical cystectomy.',
                     ],
                     [
@@ -3377,10 +3377,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'خارج کردن lining cyst از cleavage plane با rupture کنترل‌شده',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در Box 23.1، resection یعنی removal tumor با incising through uninvolved tissues around the tumor و delivering tumor without direct contact during instrumentation.
-دلیل رد گزینه الف: این اقدام تکمیلی در pyogenic granuloma وابسته به dentition است، نه تعریف resection.
-دلیل رد گزینه ب: این تعریف marsupialization است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در Box 23.1، resection یعنی removal tumor با incising through uninvolved tissues around the tumor و delivering tumor without direct contact during instrumentation.
+دلیل رد گزینه الف: این اقدام تکمیلی در pyogenic granuloma وابسته به dentition است، نه تعریف resection.
+دلیل رد گزینه ب: این تعریف marsupialization است.
 دلیل رد گزینه د: این بیشتر به enucleation cyst اشاره دارد، نه resection.',
                     ],
                     [
@@ -3392,10 +3392,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'lining نازک و readily fragmented همراه با رفتار مهاجم و recurrence بالا',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: منبع درباره OKC می‌گوید lining معمولاً بسیار نازک و به‌راحتی fragmented است، daughter/satellite cysts می‌توانند باقی بمانند و recurrence rates ۲۰ تا ۶۰ درصد گزارش شده است.
-دلیل رد گزینه الف: وجود daughter یا satellite cysts از علل recurrence مطرح شده است.
-دلیل رد گزینه ب: OKC ممکن است سال‌ها بعد عود کند و follow-up نزدیک لازم دارد.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: منبع درباره OKC می‌گوید lining معمولاً بسیار نازک و به‌راحتی fragmented است، daughter/satellite cysts می‌توانند باقی بمانند و recurrence rates ۲۰ تا ۶۰ درصد گزارش شده است.
+دلیل رد گزینه الف: وجود daughter یا satellite cysts از علل recurrence مطرح شده است.
+دلیل رد گزینه ب: OKC ممکن است سال‌ها بعد عود کند و follow-up نزدیک لازم دارد.
 دلیل رد گزینه ج: برعکس، نازکی و fragmentation lining مشکل enucleation است.',
                     ],
                     [
@@ -3407,10 +3407,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'supraperiosteal excision همراه با bone margin ۱ سانتی‌متر',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در benign oral soft tissue lesions، اصول removal مشابه biopsy techniques است و استفاده از elliptical یا wedge-type incisions ذکر شده است.
-دلیل رد گزینه الف: window circular حداقل ۱ سانتی‌متر برای marsupialization cyst است.
-دلیل رد گزینه ب: full-thickness mandibular cut مربوط به partial resection تومورهای فکی است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در benign oral soft tissue lesions، اصول removal مشابه biopsy techniques است و استفاده از elliptical یا wedge-type incisions ذکر شده است.
+دلیل رد گزینه الف: window circular حداقل ۱ سانتی‌متر برای marsupialization cyst است.
+دلیل رد گزینه ب: full-thickness mandibular cut مربوط به partial resection تومورهای فکی است.
 دلیل رد گزینه د: supraperiosteal excision با bone considerations مربوط به تومورهای فکی با cortex نازک یا soft tissue involvement است.',
                     ],
                 ],
@@ -3441,7 +3441,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'تهیه فقط یک رادیوگرافی پری‌اپیکال از ناحیه دندانی آسیب‌دیده',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 وقتی دندان یا قطعه تاج گم شده و در محل حادثه پیدا نشده است، منبع توصیه می‌کند برای رد گیر افتادن قطعه در بافت نرم یا حفره‌های بدن، رادیوگرافی از بافت‌های نرم پری‌اورال، قفسه سینه و شکم انجام شود. الف رد است چون مشاهده داخل دهان محل‌های احتمالی خارج‌دهانی را بررسی نمی‌کند. ج برای پیگیری پالپ کاربرد دارد، نه یافتن جسم گمشده. د ناکافی است، چون قطعه می‌تواند در بافت نرم، airway یا دستگاه گوارش باشد.',
                     ],
                     [
@@ -3453,7 +3453,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'جایگزین کردن نیاز به پماد آنتی‌بیوتیک موضعی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در abrasion آلوده، باقی ماندن ذرات خارجی می‌تواند tattoo دائمی و دشواردرمان ایجاد کند؛ بنابراین شست‌وشو، saline فراوان و گاهی scrub brush پس از بی‌حسی لازم است. الف علت درد abrasion را توضیح می‌دهد، نه هدف پاک‌سازی تهاجمی. ج تشکیل eschar پیامد طبیعی ترمیم است، نه هدف برس زدن. د پماد موضعی پس از پاک‌سازی کاربرد دارد و جایگزین حذف debris نیست.',
                     ],
                     [
@@ -3465,7 +3465,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'افزایش زمان تابش، روش اصلی آشکارسازی خط شکستگی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 برای دیده شدن شکستگی افقی ریشه، پرتو مرکزی باید موازی خط شکستگی باشد؛ در غیر این صورت شکستگی ممکن است دیده نشود یا به شکل نامناسب دیده شود. ب نادرست است چون رادیوگرافی داخل‌دهانی با زاویه مناسب می‌تواند fracture را نشان دهد. ج نادرست است چون یک نمای منفی شکستگی را رد نمی‌کند. د نادرست است چون راه‌حل اصلی تغییر angulation است، نه صرفاً افزایش exposure.',
                     ],
                     [
@@ -3477,7 +3477,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'سطح درم با نخ نایلون ظریف',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 در لاسیراسیون عبوری از vermilion border، بخیه کلیدی نخست در mucocutaneous junction قرار می‌گیرد تا مرز ورمیلیون دقیقاً هم‌راستا شود. الف و ب لایه‌های مهم‌اند، اما قبل از تنظیم مرز ورمیلیون اولویت ندارند. د پس از بستن لایه‌های عمقی‌تر و تنظیم alignment انجام می‌شود.',
                     ],
                     [
@@ -3489,7 +3489,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_21_25(): a
                             'Crown craze',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 Concussion به آسیب ساختارهای حمایت‌کننده دندان با حساسیت به touch یا percussion بدون mobility یا displacement گفته می‌شود. الف یعنی لقی بدون جابه‌جایی. ج یعنی خروج نسبی دندان از socket. د crack محدود به enamel است و با حساسیت پریودنتال تعریف نمی‌شود.',
                     ],
                     [
@@ -3501,7 +3501,7 @@ Concussion به آسیب ساختارهای حمایت‌کننده دندان �
                             'برای تعیین نیاز به pulpotomy در دندان‌های با آپکس باز',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 لاسیراسیون‌های وستیبول ممکن است در نگاه عادی gape نکنند و با retraction لب آشکار شوند. الف مربوط به تشخیص ریشه در رادیوگرافی است. ج مربوط به روند contusion/hematoma است. د به درمان پالپ دندان‌های immature مربوط است، نه معاینه لاسیراسیون.',
                     ],
                     [
@@ -3513,7 +3513,7 @@ Concussion به آسیب ساختارهای حمایت‌کننده دندان �
                             'باید درمان را با دبریدمان وسیع آغاز کرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 Contusion در کف دهان یا وستیبول پس از ضربه می‌تواند از اثر disruptive شکستگی استخوانی باشد و باید جست‌وجوی fracture را تحریک کند. ب نادرست است چون contusion بدون شکست سطح نرم‌تissue تعریف می‌شود. ج عفونت فعال نیست. د دبریدمان وسیع درمان contusion نیست.',
                     ],
                     [
@@ -3525,7 +3525,7 @@ Contusion در کف دهان یا وستیبول پس از ضربه می‌تو�
                             'وجود شکستگی ریشه میانی، پاسخ منفی اولیه به تست پالپ، و اکستروژن دندان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 Pulp capping زمانی مناسب‌تر است که exposure کوچک باشد، بیمار زود مراجعه کند، root fracture و displacement وجود نداشته باشد و ترمیم عمیق قبلی نشان‌دهنده التهاب مزمن نباشد. الف بیشتر به شرایط نامناسب برای capping اشاره دارد. ج سناریوی crown-root fracture با حاشیه غیرقابل دسترسی است. د شکستگی ریشه و اکستروژن، گزینه را از شرایط کلاسیک capping دور می‌کند.',
                     ],
                     [
@@ -3537,7 +3537,7 @@ Pulp capping زمانی مناسب‌تر است که exposure کوچک باشد
                             'تعیین احتمال نیاز به endodontic therapy در آپکس بسته',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 محل حادثه به تعیین آلودگی خارجی و نیاز احتمالی به بررسی tetanus کمک می‌کند، مانند زمین بازی آلوده به خاک. ب، ج و د تصمیمات درمانی دیگرند که مستقیماً از «کجا رخ داد» به دست نمی‌آیند.',
                     ],
                     [
@@ -3549,7 +3549,7 @@ Pulp capping زمانی مناسب‌تر است که exposure کوچک باشد
                             'چون پس از بخیه، هیچ روش کنترل خونریزی قابل انجام نیست',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 خونریزی ادامه‌دار قبل از closure می‌تواند hematoma بسازد و فشار هماتوم زخم بسته‌شده را باز کند. ب درباره abrasion عمیق و skin graft است. ج اغراق‌آمیز است؛ خونریزی همه انواع ترمیم را ناممکن نمی‌کند. د نادرست است چون پس از بخیه نیز اقداماتی ممکن است، اما اصل صحیح کنترل hemostasis پیش از closure است.',
                     ],
                     [
@@ -3561,7 +3561,7 @@ Pulp capping زمانی مناسب‌تر است که exposure کوچک باشد
                             'رادیولوسنسی منتشر داخل پالپ چمبر',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 Extruded teeth در رادیوگرافی ممکن است conical periapical radiolucency نشان دهند. الف بیشتر با intrusion سازگار است. ج در متن به عنوان یافته displacement مطرح نشده است. د توصیف اختصاصی مورد انتظار برای extrusion نیست.',
                     ],
                     [
@@ -3573,7 +3573,7 @@ Extruded teeth در رادیوگرافی ممکن است conical periapical radi
                             'بستن زخم با بخیه قابل جذب',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 abrasion iatrogenic سطحی مخاط دهان معمولاً به علت بازسازی سریع اپی‌تلیوم دهانی به درمانی جز بهداشت معمول نیاز ندارد. الف برای زخم‌های نیازمند دبریدمان مطرح است. ب برای abrasion سطحی معمول نیست. د بستن با بخیه برای abrasion سطحی مخاطی توصیه نشده است.',
                     ],
                     [
@@ -3585,7 +3585,7 @@ abrasion iatrogenic سطحی مخاط دهان معمولاً به علت باز
                             'نیاز به شست‌وشوی زخم با saline',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 لاسیراسیون‌هایی که ممکن است parotid duct یا facial nerve را درگیر کنند، در گروه major lacerations قرار می‌گیرند و بهتر است توسط oral-maxillofacial surgeon درمان شوند. الف یافته غیر اختصاصی است. ج contusion/ecchymosis سطحی به‌تنهایی معیار ارجاع تخصصی نیست. د شست‌وشوی saline جزو درمان استاندارد است، نه علت ارجاع.',
                     ],
                     [
@@ -3597,7 +3597,7 @@ abrasion iatrogenic سطحی مخاط دهان معمولاً به علت باز
                             'pulp capping مستقیم و پیگیری بدون خارج کردن قطعه کرونالی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در crown-root fracture غیرقابل ترمیم، removal مطرح است؛ اما اگر alveolar fracture هم وجود داشته باشد، extraction ممکن است چند هفته به تأخیر افتد تا fracture ترمیم شود و از loss غیرضروری استخوان آلوئول پیشگیری گردد. الف تأخیر لازم در حضور شکستگی آلوئول را نادیده می‌گیرد. ج درمان root fracture میانی/آپیکال است، نه crown-root غیرقابل ترمیم. د برای شرایط pulp exposure کوچک و دندان قابل ترمیم کاربرد دارد.',
                     ],
                     [
@@ -3609,7 +3609,7 @@ abrasion iatrogenic سطحی مخاط دهان معمولاً به علت باز
                             'در contusion همراه ecchymosis، آنتی‌بیوتیک برای تغییر رنگ پوست لازم است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 contusion بدون شکست سطحی معمولاً infection ندارد و آنتی‌بیوتیک سیستمیک لازم نیست؛ اما اگر ناشی از dentoalveolar trauma باشد، ارتباط احتمالی دهان با هماتوم زیرمخاطی می‌تواند آنتی‌بیوتیک را توجیه کند. الف حکم عمومی اشتباه می‌دهد. ج دبریدمان و آنتی‌بیوتیک درمان روتین contusion نیستند. د تغییر رنگ ecchymosis دلیل مصرف آنتی‌بیوتیک نیست.',
                     ],
                     [
@@ -3621,7 +3621,7 @@ contusion بدون شکست سطحی معمولاً infection ندارد و آن
                             'شکستگی محدود به مینا بدون از دست رفتن ساختمان دندان',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 Avulsion یعنی جابه‌جایی کامل دندان از socket. الف تعریف concussion است. ب تعریف subluxation یا mobility است. د تعریف crown craze/infraction است.',
                     ],
                     [
@@ -3633,7 +3633,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'closure، hemostasis، cleansing، debridement',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 چهار مرحله کلی مدیریت جراحی لاسیراسیون پس از بی‌حسی عبارت‌اند از cleansing، debridement، hemostasis و closure. الف، ج و د ترتیب فیزیولوژیک و جراحی متن را به‌هم می‌زنند؛ closure پیش از پاک‌سازی یا کنترل خونریزی مناسب نیست.',
                     ],
                     [
@@ -3645,7 +3645,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'رنگ خونریزی اولیه چگونه بوده است؟',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 زمان وقوع آسیب از مهم‌ترین پرسش‌هاست؛ هرچه avulsed tooth یا tooth displacement زودتر درمان شود، prognosis بهتر است. الف بیشتر داده دموگرافیک یا همراه بیمار است. ج در متن به عنوان سؤال کلیدی تاریخچه نیامده است. د ارزش تشخیصی اصلی ندارد.',
                     ],
                     [
@@ -3657,7 +3657,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'بایت‌وینگ خلفی با افزایش زمان تابش',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 برای foreign body در لب یا گونه، فیلم داخل بافت نرم و labial به آلوئول قرار داده می‌شود و exposure حدود یک‌سوم حالت معمول کاهش می‌یابد. ب و د برای این هدف اختصاصی نیستند. ج فیلم پشت دندان‌ها و exposure کامل برای soft tissue foreign body مناسب نیست.',
                     ],
                     [
@@ -3669,7 +3669,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'ترمیم composite بدون نیاز به immobilization',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 شکستگی‌های middle to apical third ریشه معمولاً prognosis خوبی دارند و با reposition در صورت mobility و immobilization محکم ۲ تا ۳ ماه درمان می‌شوند. الف برای شکستگی نزدیک gingival crevice یا برداشتن قطعه کرونالی مطرح است. ج خلاف امکان حفظ دندان است. د درمان crown fracture است و fracture root را stabilize نمی‌کند.',
                     ],
                     [
@@ -3681,7 +3681,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'چون تست پالپ فقط برای دندان‌های شیری کاربرد دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 تست‌های vitality در آسیب حاد ممکن است false-negative باشند؛ بنابراین باید چند هفته بعد و پیش از endodontic therapy تکرار شوند. ب نادرست است چون pulp degeneration ممکن است رخ دهد. ج پاسخ مثبت اولیه الزاماً درمان ریشه فوری نمی‌خواهد. د تست پالپ فقط محدود به دندان شیری نیست.',
                     ],
                     [
@@ -3693,7 +3693,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'برداشت پیشگیرانه تمام بافت‌های اطراف زخم برای کاهش اسکار',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در maxillofacial region به علت blood supply غنی، debridement باید حداقلی باشد و فقط بافت آشکارا غیرزنده برداشته شود. الف و د برداشت وسیع و غیرضروری را پیشنهاد می‌کنند. ج نیز نادرست است، چون بافت devitalized واضح باید برداشته شود.',
                     ],
                     [
@@ -3705,7 +3705,7 @@ Avulsion یعنی جابه‌جایی کامل دندان از socket. الف ت
                             'استفاده از NSAID به عنوان درمان اصلی زخم',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 abrasion عمقی پوست بعد از cleansing ممکن است نیازمند ارجاع برای skin graft باشد تا از scar بیش از حد پیشگیری شود. الف برای abrasion عمیق پوستی درمان استاندارد نیست. ج برای stabilization dentoalveolar کاربرد دارد. د NSAID درمان اصلی زخم نیست و در متن چنین نیامده است.',
                     ],
                     [
@@ -3717,7 +3717,7 @@ abrasion عمقی پوست بعد از cleansing ممکن است نیازمند 
                             'splint دندان به مدت ۲ تا ۴ ماه انجام می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 Crown craze محدود به enamel معمولاً درمان نمی‌خواهد، ولی follow-up لازم است چون force به دندان می‌تواند pulp و periodontal tissues را تحت تأثیر قرار دهد؛ ترک‌های متعدد ممکن است با unfilled resin seal شوند. ب بی‌دلیل تهاجمی است. ج درمان crown-root/root غیرقابل ترمیم است. د برای root fracture یا displacement کاربرد دارد.',
                     ],
                     [
@@ -3729,7 +3729,7 @@ Crown craze محدود به enamel معمولاً درمان نمی‌خواهد
                             'قراردادن gutta-percha در dentinal tubules',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در dentin exposure قابل توجه، توصیه فعلی dentin-bonding agent یا glass ionomer روی dentin و سپس resin composite است. الف فقط برای enamel یا dentin involvement حداقلی مناسب است. ج pulpotomy برای pulp exposure بزرگ و apex باز مطرح می‌شود. د gutta-percha برای dentinal tubules در این زمینه مطرح نشده است.',
                     ],
                     [
@@ -3741,7 +3741,7 @@ Crown craze محدود به enamel معمولاً درمان نمی‌خواهد
                             'شکستگی crown-root؛ orthodontic extrusion فوراً لازم است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 اگر contusion گسترش یابد، احتمال hemorrhaging artery مطرح است و hematoma ممکن است نیازمند exploration و ligation باشد. ب روند ترمیم سطحی را توضیح می‌دهد نه هماتوم در حال گسترش. ج مربوط به abrasion آلوده است. د مربوط به crown-root fracture است.',
                     ],
                     [
@@ -3753,7 +3753,7 @@ Crown craze محدود به enamel معمولاً درمان نمی‌خواهد
                             'تعیین قطعی مدت immobilization بدون نیاز به معاینه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 مکانیسم آسیب می‌تواند به آسیب‌های پنهان مثل neck injury، علت زمینه‌ای مانند seizure، ملاحظات litigation و احتمال child abuse جهت دهد. الف و ب کاربردهای محدود و غیر اصلی‌اند. د بدون معاینه و رادیوگرافی نمی‌توان مدت immobilization را قطعی تعیین کرد.',
                     ],
                     [
@@ -3765,7 +3765,7 @@ Crown craze محدود به enamel معمولاً درمان نمی‌خواهد
                             'نیاز بیمار به رژیم غذایی پس از بخیه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 بررسی رادیوگرافیک باید اطلاعاتی مانند root fracture، میزان extrusion/intrusion، periapical disease، root development، اندازه pulp chamber/canal، jaw fracture و foreign body/tooth fragments بدهد. الف، ج و د به شرح حال یا مراقبت‌های بالینی مربوط‌اند، نه اهداف رادیوگرافی.',
                     ],
                     [
@@ -3777,7 +3777,7 @@ Crown craze محدود به enamel معمولاً درمان نمی‌خواهد
                             'پارگی لب همراه با قطع لایه عضلانی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 لاسیراسیون کوچک palatal mucosa یا زخم کوچک داخل لب/زبان اغلب با secondary intention خوب ترمیم می‌شود و نیاز به بخیه ندارد. الف و د به دلیل تمام‌ضخامت یا درگیری عضله نیازمند closure لایه‌ای‌اند. ج به دلیل مسیر ساختارهای حیاتی به ارجاع نیاز دارد.',
                     ],
                     [
@@ -3789,7 +3789,7 @@ Crown craze محدود به enamel معمولاً درمان نمی‌خواهد
                             'تکنیک بستن لاسیراسیون‌های عضلانی لب است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 Pulpotomy در exposure بزرگ با apex باز یک اقدام موقت برای حفظ radicular pulp vitality تا بسته شدن apex است و سپس endodontic therapy انجام می‌شود. الف آن را درمان نهایی معرفی می‌کند. ج کاربرد تشخیصی ندارد. د به soft tissue closure مربوط نیست.',
                     ],
                     [
@@ -3801,7 +3801,7 @@ Pulpotomy در exposure بزرگ با apex باز یک اقدام موقت بر�
                             'concussion بدون آسیب پریودنتال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 حرکت دندان‌های مجاور همراه دندان آزمون‌شده نشان می‌دهد segment آلوئولار همراه دندان‌ها حرکت می‌کند و dentoalveolar fracture باید مطرح شود. ب، ج و د با حرکت گروهی دندان‌ها توضیح داده نمی‌شوند.',
                     ],
                     [
@@ -3813,7 +3813,7 @@ Pulpotomy در exposure بزرگ با apex باز یک اقدام موقت بر�
                             'immobilization دندان‌های مجاور',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 پس از پاک‌سازی debris در abrasion، topical antibiotic ointment کافی است و در abrasion عمیق می‌توان loose bandage گذاشت. ب سیستمیک برای abrasion معمولی لازم نیست. ج closure سه‌لایه برای لاسیراسیون تمام‌ضخامت لب است. د برای tooth injuries است، نه abrasion پوستی.',
                     ],
                     [
@@ -3825,7 +3825,7 @@ Pulpotomy در exposure بزرگ با apex باز یک اقدام موقت بر�
                             'Subluxation',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 Intrusion یعنی جابه‌جایی دندان به داخل socket و معمولاً با compression fracture ساکت همراه است. الف خروج نسبی دندان از socket است. ج جهت buccal/labial crown displacement است. د mobility بدون displacement است.',
                     ],
                     [
@@ -3837,7 +3837,7 @@ Intrusion یعنی جابه‌جایی دندان به داخل socket و معم
                             'masseteric artery در سطح خارجی راموس',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 Labial artery افقی زیر labial mucosa حرکت می‌کند و در vertical lip lacerations به‌طور شایع درگیر می‌شود؛ معمولاً می‌توان آن را clamp و tie یا cauterize کرد. ب، ج و د از نظر محل و مسیر با لاسیراسیون عمودی لب سازگار نیستند.',
                     ],
                     [
@@ -3849,7 +3849,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'به دلیل شیری بودن، پیگیری پس از تروما ضرورتی ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دندان‌های شیری آسیب‌دیده عموماً مشابه دائمی‌ها درمان می‌شوند، اما عدم همکاری کودک ممکن است درمان را به extraction سوق دهد و در صورت نیاز space maintenance باید مدنظر باشد. الف، ج و د افراطی یا خلاف متن‌اند.',
                     ],
                     [
@@ -3861,7 +3861,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'تعیین مدت splint برای avulsion',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در crown-root fracture، اگر قطعه کرونالی سر جای خود باشد باید برداشته شود تا عمق شکستگی و امکان restoration ارزیابی شود. ب، ج و د کاربردهای مطرح‌شده برای این اقدام نیستند.',
                     ],
                     [
@@ -3873,7 +3873,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'تبدیل رادیوگرافی به soft tissue radiograph',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 اگر central ray موازی fracture line نباشد، ممکن است نمای double fracture یا اصلاً عدم مشاهده fracture ایجاد شود. ب و د به محتوای دیگری مربوط‌اند. ج خلاف توصیه استفاده از multiple views با angulation متفاوت است.',
                     ],
                     [
@@ -3885,7 +3885,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'hyperemia گذرای پالپ بدون اثر اکلوزالی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 اختلال bite می‌تواند نشان‌دهنده tooth displacement یا dentoalveolar/jaw fracture باشد. ب abrasion سطحی معمولاً bite را تغییر نمی‌دهد. ج stain ترک مینایی مسئله اکلوزالی نیست. د hyperemia پالپ به تنهایی چنین علامتی را توضیح نمی‌دهد.',
                     ],
                     [
@@ -3897,7 +3897,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'علامت نیاز فوری به skin graft',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 تغییر رنگ‌های ecchymosis پس از contusion ناشی از extravasation خون است و حتی گسترش آن زیر clavicle ممکن است بیمار را نگران کند اما در متن innocuous دانسته شده است. الف عفونت نیست. ج فقط در هماتوم در حال گسترش/شریان خونریزی‌دهنده مطرح است. د با abrasion عمقی پوست مرتبط است.',
                     ],
                     [
@@ -3909,7 +3909,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'مخاط و پوست همزمان، بدون بستن عضله',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در لاسیراسیون تمام‌ضخامت لب، پس از بخیه کلیدی مرز مخاط‌پوست، closure از داخل به خارج انجام می‌شود: mucosa، muscle و سپس dermal surface. الف ترتیب و نوع نخ همه لایه‌ها را غلط بیان می‌کند. ج مرز ورمیلیون را نادیده می‌گیرد. د بستن عضله را حذف می‌کند، در حالی‌که muscle sutures نقش اصلی در کنار هم آوردن بافت‌ها دارند.',
                     ],
                 ],
@@ -3940,7 +3940,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'pulp capping مستقیم و بدون reposition',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در lateral displacement قابل توجه، alveolar bone fracture و gingival laceration اغلب همراه‌اند؛ باید tooth و alveolar bone reposition شوند، tooth splint شود و soft tissue sutured گردد. الف برای concussion یا mobility خفیف مناسب‌تر است. ج درمان روتین نیست. د برای crown fracture با exposure کوچک مطرح است و displacement را اصلاح نمی‌کند.',
                     ],
                     [
@@ -3952,7 +3952,7 @@ Labial artery افقی زیر labial mucosa حرکت می‌کند و در verti
                             'Crown craze',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 Intrusion با رانده شدن دندان به socket، compression fracture، صدای metallic در percussion و گاهی absence of PDL space همراه است. ب extrusion خروج کرونالی است. ج mobility بدون displacement است. د crack محدود به enamel است.',
                     ],
                     [
@@ -3964,7 +3964,7 @@ Intrusion با رانده شدن دندان به socket، compression fracture،
                             '۳ تا ۴ هفته',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 جدول stabilization periods مدت replanted tooth mature را ۷ تا ۱۰ روز ذکر می‌کند. ب برای tooth displacement است. ج برای root fracture است. د برای replanted immature tooth است.',
                     ],
                     [
@@ -3976,7 +3976,7 @@ Intrusion با رانده شدن دندان به socket، compression fracture،
                             'فقط تست پالپ بلافاصله پس از تروما برای تصمیم کافی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در mature tooth، اگر apex بیش از ۱ میلی‌متر در هر جهت حرکت کرده باشد، باید degeneration پالپ فرض شود؛ root canal همزمان انجام نمی‌شود و حدود دو هفته بعد برای closed apex مطرح است. ب برای wide open apex امکان revascularization را بیش از حد تعمیم می‌دهد. ج خلاف متن است. د تست فوری به‌تنهایی قابل اتکا نیست.',
                     ],
                     [
@@ -3988,7 +3988,7 @@ Intrusion با رانده شدن دندان به socket، compression fracture،
                             'saline پنج دقیقه، سپس extraction و implant فوری',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 اگر avulsed tooth بیش از ۲۰ دقیقه خارج بوده باشد، پیش از replantation در Hanks balanced salt solution به مدت ۳۰ دقیقه و سپس doxycycline با غلظت 1 mg/20 mL saline به مدت ۵ دقیقه قرار داده می‌شود. الف و ج محیط‌ها و مواد نادرست یا ناکافی‌اند. د extraction/implant فوری در این مرحله توصیه اصلی متن نیست.',
                     ],
                     [
@@ -4000,7 +4000,7 @@ Intrusion با رانده شدن دندان به socket، compression fracture،
                             '۶ تا ۱۲ ماه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 dento-osseous segment در alveolar fracture باید حدود ۴ هفته stabilize شود تا osseous healing رخ دهد. الف برای mobile tooth یا mature replantation است. ب برای extrusion/displacement معمولی کاربرد دارد. د مربوط به مدت calcium hydroxide داخل کانال است.',
                     ],
                     [
@@ -4012,7 +4012,7 @@ dento-osseous segment در alveolar fracture باید حدود ۴ هفته stabi
                             'خارج کردن دندان و تأخیر در درمان تا بهبود آلوئول',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دندان extruded اگر آسیب اخیر باشد معمولاً به‌صورت دستی در socket نشانده می‌شود، سپس ۱ تا ۳ هفته splint می‌شود و endodontic treatment نیز طبق وضعیت بعدی مطرح است. الف برای intrusion برخی دندان‌ها ممکن است مطرح شود. ج توالی orthodontic-assisted eruption برای intrusion است. د درمان روتین extrusion recent نیست.',
                     ],
                     [
@@ -4024,7 +4024,7 @@ dento-osseous segment در alveolar fracture باید حدود ۴ هفته stabi
                             'تکامل ناقص ریشه همراه با replantation سریع',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 extraalveolar period بیش از ۲ ساعت معمولاً با نتایج ضعیف همراه است. الف عامل مطلوب است. ب شرایط مناسب replantation را بیان می‌کند. د در صورت replantation سریع می‌تواند امکان survival پالپ را در ریشه ناقص فراهم کند.',
                     ],
                     [
@@ -4036,7 +4036,7 @@ extraalveolar period بیش از ۲ ساعت معمولاً با نتایج ضع
                             'replantation فوری و splint ۷ تا ۱۰ روزه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 اگر deciduous intruded tooth با follicle دندان جانشین تماس داشته باشد، باید تا حد امکان atraumatic removed شود. الف برای موارد بدون تماس مستقیم می‌تواند مطرح باشد، نه تماس با follicle. ب و د با توصیه فصل برای دندان شیری در تماس با successor سازگار نیستند.',
                     ],
                     [
@@ -4048,7 +4048,7 @@ extraalveolar period بیش از ۲ ساعت معمولاً با نتایج ضع
                             'تعداد نماهای رادیوگرافی، سن پزشک معالج و نوع ماده بی‌حسی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در avulsion، طول زمان خارج بودن از socket، وضعیت tooth و periodontal tissues و نحوه preservation پیش از replantation عوامل اصلی موفقیت درمان‌اند. الف، ج و د عوامل فرعی یا بی‌ربط به پیش‌آگهی اصلی avulsion هستند.',
                     ],
                     [
@@ -4060,7 +4060,7 @@ extraalveolar period بیش از ۲ ساعت معمولاً با نتایج ضع
                             'استفاده از formocresol به‌تنهایی در کل کانال تا بسته شدن apex',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در closed apical foramina، پس از حدود ۲ هفته endodontic treatment آغاز می‌شود و داخل کانال ۱:۱ calcium hydroxide و barium sulfate به مدت ۶ تا ۱۲ ماه قرار می‌گیرد؛ سپس در صورت توقف resorption درمان معمول انجام می‌شود. الف خلاف پرهیز از RCT همزمان با reposition/replantation است. ج درمان سطح تاجی است. د formocresol به‌تنهایی رژیم کانالی توصیه‌شده نیست.',
                     ],
                     [
@@ -4072,7 +4072,7 @@ extraalveolar period بیش از ۲ ساعت معمولاً با نتایج ضع
                             'پس از scraping ریشه برای حذف آلودگی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در تماس تلفنی، بیمار باید دندان را از crown بگیرد و از لمس root پرهیز کند تا viable periodontal tissue آسیب نبیند. ب و ج با آسیب به root/PDL همراه‌اند. د scraping ریشه صریحاً نهی شده است.',
                     ],
                     [
@@ -4084,7 +4084,7 @@ extraalveolar period بیش از ۲ ساعت معمولاً با نتایج ضع
                             'نیاز نداشتن به tooth etching یا composite',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 acid-etch composite system wire را دور از gingiva قرار می‌دهد، پاکسازی را آسان می‌کند، با وسایل رایج قابل اجرا و حذف است و نسبت به روش‌های آلوده‌کننده‌تر مزیت دارد. الف rigid چندماهه مطلوب نیست. ج سردکردن کامل با acrylic مشکلات hygiene و inflammation دارد. د بدون etching/composite این روش انجام نمی‌شود.',
                     ],
                     [
@@ -4096,7 +4096,7 @@ acid-etch composite system wire را دور از gingiva قرار می‌دهد�
                             'درمان فقط با root canal همه دندان‌های مجاور انجام می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 اصل درمان fracture قرار دادن segment در موقعیت مناسب و stabilization تا osseous healing است؛ گاهی با فشار دیجیتال و گاهی به علت splintering با open treatment. ب خروج دندان‌های مجاور اصل درمان نیست. ج observation کافی نیست. د root canal همه دندان‌های مجاور درمان اصلی fracture segment نیست.',
                     ],
                     [
@@ -4108,7 +4108,7 @@ acid-etch composite system wire را دور از gingiva قرار می‌دهد�
                             'خارج کردن دندان و جایگزینی فوری با implant',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در orthodontic-assisted eruption، tooth باید طی ۳ تا ۴ هفته به‌آرامی extruded شود و پس از رسیدن به قوس، ۲ تا ۳ ماه splint گردد؛ evidence اخیر immediate orthodontic force را برای جلوگیری از ankylosis مطرح می‌کند. الف و ج با زمان‌بندی متن ناسازگارند. د درمان معمول intrusion نیست.',
                     ],
                     [
@@ -4120,7 +4120,7 @@ acid-etch composite system wire را دور از gingiva قرار می‌دهد�
                             'زمان extraalveolar در تصمیم replantation اهمیتی ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 replantation در ۳۰ دقیقه نخست می‌تواند نتایج عالی داشته باشد؛ زمان خارج‌حفره‌ای طولانی‌تر بدتر است. الف وارونه است. ج نادرست است چون pulp survival در ریشه ناقص با replantation طی ۲ ساعت ممکن است. د برخلاف یکی از مهم‌ترین عوامل پیش‌آگهی است.',
                     ],
                     [
@@ -4132,7 +4132,7 @@ replantation در ۳۰ دقیقه نخست می‌تواند نتایج عالی
                             'قرار دادن arch bar روی دندان‌های مجاور برای ۷ تا ۱۰ روز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 Apexification شامل removal کل pulp، پرکردن با calcium hydroxide، قرار دادن cotton pledget با یا بدون formocresol، سپس glass ionomer و restoration موقت یا دائم composite است. ب، ج و د به splinting یا soft tissue closure مربوط‌اند و روش apexification نیستند.',
                     ],
                     [
@@ -4144,7 +4144,7 @@ Apexification شامل removal کل pulp، پرکردن با calcium hydroxide،
                             'saline و milk به علت سمیت سلولی نباید استفاده شوند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk بهترین جایگزین در دسترس محسوب می‌شود. الف غلط است چون water hypotonic است و cell lysis ایجاد می‌کند. ب غلط است چون saliva به دلیل osmolality/pH نامناسب و باکتری ایده‌آل نیست. د متن milk و saline را به‌عنوان محیط‌های مطرح‌شده می‌پذیرد، هرچند milk بهتر است.',
                     ],
                     [
@@ -4156,7 +4156,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'observation بدون دستکاری در همه موارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در lateral displacement خفیف با نبود displacement gross دیواره آلوئول، manual reposition و splint برای چند هفته انجام می‌شود. ب برای hopeless avulsion یا غیرقابل حفظ بودن مطرح است. ج برای apexification/پالپ است. د observation در همه موارد با نیاز به reposition سازگار نیست.',
                     ],
                     [
@@ -4168,7 +4168,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'چون هدف درمان ایجاد attachment استخوانی و ankylosis است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 حرکت فیزیولوژیک به attachment فیبروزی مطلوب کمک می‌کند و متن می‌گوید stabilization هرچه rigidتر و طولانی‌تر باشد، root resorption بیشتر می‌شود. ب و ج خلاف متن‌اند. د هدف درمان ایجاد ankylosis نیست.',
                     ],
                     [
@@ -4180,7 +4180,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'فقط اگر بیمار درد خودبه‌خودی شبانه داشته باشد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در dentoalveolar fracture با denuded root apices، درمان اندودنتیک طی ۱ تا ۲ هفته توصیه می‌شود تا از inflammatory root resorption و infection پیشگیری شود. الف با اصل عدم RCT در همان زمان reposition/replantation ناسازگار است. ج خیلی دیر و بدون مبنای متن است. د انتظار برای درد خودبه‌خودی معیار ذکرشده نیست.',
                     ],
                     [
@@ -4192,7 +4192,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'tooth fragment reattachment درمان اصلی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در intrusion با apex mature، pulp degeneration محتمل است و endodontic treatment طبق بخش treatment of pulp باید انجام شود. ب برای wide open apex و با احتیاط مطرح است، نه apex mature. ج pulpotomy موقت برای exposure بزرگ با apex باز است. د مربوط به crown fracture است.',
                     ],
                     [
@@ -4204,7 +4204,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'ترک درمان تا زمان بروز علائم infection',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 اگر tooth قبلاً replant شده و موقعیت مناسب دارد، باید radiograph گرفته و سپس برای ۷ تا ۱۰ روز splint شود. الف scraping و دستکاری ریشه ممنوع است. ج برای tooth carried و شرایط خاص پیش از replantation مطرح است، نه دندان replant شده مناسب. د ترک درمان خطرناک و خلاف follow-up لازم است.',
                     ],
                     [
@@ -4216,7 +4216,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'دندان باید برای جلوگیری از mobility خارج شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 هنگام برداشتن stabilization device، دندان هنوز ممکن است mobile باشد؛ بنابراین باید device با احتیاط برداشته شود و بیمار از mastication در آن ناحیه پرهیز کند. الف خطر آسیب را افزایش می‌دهد. ج مدت ۶ تا ۱۲ ماه مربوط به calcium hydroxide داخل کانال است، نه splint مجدد. د mobility پس از برداشتن splint الزاماً indication extraction نیست.',
                     ],
                     [
@@ -4228,7 +4228,7 @@ Hanks balanced salt solution ایده‌آل‌ترین محیط است و milk 
                             'Hanks برای بی‌حسی پالپ و doxycycline برای اتصال composite به enamel است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 Hanks solution با کمک به بقای periodontal cells روی root، ankylosis را کاهش می‌دهد و debris/bacteria را رقیق می‌کند؛ doxycycline باکتری‌های pulpal lumen را مهار می‌کند و مانع revascularization را کم می‌کند. الف، ج و د نقش‌های نادرست یا بی‌ربط بیان می‌کنند.',
                     ],
                     [
@@ -4240,7 +4240,7 @@ Hanks solution با کمک به بقای periodontal cells روی root، ankylos
                             'booster باید به‌جای splint استفاده شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 اگر بیمار tetanus booster طی ۵ تا ۱۰ سال گذشته را به یاد نداشته باشد، باید به پزشک عمومی ارجاع شود؛ استفاده از penicillin برای ۷ تا ۱۰ روز نیز مناسب دانسته شده است. ب tetanus را بی‌دلیل محدود می‌کند. ج خلاف توصیه antibiotic در avulsion است. د booster جایگزین stabilization نیست.',
                     ],
                     [
@@ -4252,7 +4252,7 @@ Hanks solution با کمک به بقای periodontal cells روی root، ankylos
                             'چون پالپ در apex باز هیچ‌گاه آسیب نمی‌بیند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در apical foramina کاملاً باز، revascularization سیستم کانال محتمل است؛ بنابراین درمان اندودنتیک ممکن است چند هفته با follow-up و pulp vitality tests به تعویق افتد. ب، ج و د گزاره‌های مطلق و نادرست‌اند؛ apexification با calcium hydroxide در صورت نیاز مطرح است.',
                     ],
                     [
@@ -4264,7 +4264,7 @@ Hanks solution با کمک به بقای periodontal cells روی root، ankylos
                             'چون fracture segment نباید با هیچ روشی stabilize شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دندان‌های بلافاصله مجاور fracture اغلب به arch bar سیم‌کشی نمی‌شوند تا بهداشت دهان آسان‌تر باشد و loosening ناشی از نیروهای wire کاهش یابد. ب هدف درمان نیست. ج محدودیت به دندان شیری ندارد. د segment باید stabilize شود.',
                     ],
                     [
@@ -4276,7 +4276,7 @@ Hanks solution با کمک به بقای periodontal cells روی root، ankylos
                             'smoothing لبه‌های مینایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 اگر موقعیت deciduous intruded tooth نسبت به succedaneous tooth نامطمئن باشد، removal به عنوان رویکرد prophylactic برای حفظ سلامت successor توصیه شده است. ب replantation/splint برای این حالت مطرح نیست. ج مربوط به درمان ریشه است. د به crown craze مربوط است.',
                     ],
                     [
@@ -4288,7 +4288,7 @@ Hanks solution با کمک به بقای periodontal cells روی root، ankylos
                             'چون باعث ankylosis مطلوب و سریع می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 milk به علت pH و osmolarity سازگار با سلول‌های زنده، دسترسی آسان و نسبتاً کم‌باکتری بودن، بهترین جایگزین در نبود Hanks solution است. ب توصیف آب است، نه milk. ج milk دندان را sterilize نمی‌کند و جای replantation را نمی‌گیرد. د ankylosis outcome مطلوب نیست.',
                     ],
                     [
@@ -4300,7 +4300,7 @@ milk به علت pH و osmolarity سازگار با سلول‌های زنده،
                             'انتخاب نخ برای بخیه پوستی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 پس از lateral displacement، follow-up برای تعیین وضعیت pulp و periodontal damage لازم است. ب، ج و د به یافته‌ها یا مراحل soft tissue unrelated مربوط‌اند و هدف اصلی پیگیری این آسیب نیستند.',
                     ],
                     [
@@ -4312,7 +4312,7 @@ milk به علت pH و osmolarity سازگار با سلول‌های زنده،
                             'باید هرگونه درمان به مدت ۶ تا ۱۲ ماه به تعویق افتد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در عوامل نامطلوب، بیمار باید از prognosis بدتر آگاه شود و alternative مانند dental implant پس از ترمیم alveolus قابل بررسی است. الف جایگاه implant را نادیده می‌گیرد. ج water محیط نامطلوب است. د تأخیر کلی ۶ تا ۱۲ ماه بدون منطق متن نیست.',
                     ],
                     [
@@ -4324,7 +4324,7 @@ milk به علت pH و osmolarity سازگار با سلول‌های زنده،
                             'چون پالپ در همه موارد بلافاصله سالم تشخیص داده می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 root canal در زمان repositioning یا replantation انجام نمی‌شود چون زمان اضافی موجه نیست و tooth را بیشتر در معرض external damage قرار می‌دهد. ب نادرست است چون endodontic therapy در بسیاری از موارد لازم می‌شود. ج permanent gutta-percha زودهنگام برای کاهش resorption توصیه نشده است. د سلامت پالپ بلافاصله قابل اثبات نیست.',
                     ],
                     [
@@ -4336,7 +4336,7 @@ root canal در زمان repositioning یا replantation انجام نمی‌ش�
                             'از بین رفتن حتمی دندان در هفته اول',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 بهترین نتیجه پس از replantation، دندان عملکردی نسبتاً طبیعی است که در بیشتر موارد به endodontic therapy نیاز خواهد داشت. ب ankylosis outcome نامطلوب و نیازمند پیگیری است. ج acute infection نادر است و outcome مورد انتظار نیست. د بدبینی مطلق و خلاف امکان موفقیت است.',
                     ],
                     [
@@ -4348,7 +4348,7 @@ root canal در زمان repositioning یا replantation انجام نمی‌ش�
                             'برای جلوگیری از هرگونه حرکت فیزیولوژیک ریشه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در دندان replant شده با apical foramen باز، pulp ممکن است survive و revascularize شود؛ برای ارتقای این احتمال، stabilization معمولاً ۳ تا ۴ هفته انجام می‌شود. ب rigid چندماهه مطلوب نیست. ج mature replanted teeth معمولاً ۷ تا ۱۰ روز splint می‌شوند. د حرکت فیزیولوژیک کاملاً حذف نمی‌شود.',
                     ],
                     [
@@ -4360,7 +4360,7 @@ root canal در زمان repositioning یا replantation انجام نمی‌ش�
                             'روی سطح palatal بدون etching و بدون composite گذاشته می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 در این تکنیک، wire با stiffness متوسط و کمی flexibility روی facial surfaces دندان avulsed و یک یا دو دندان در هر طرف adapt و با composite cement می‌شود. ب همان خطری است که روش از آن پرهیز می‌کند. ج مربوط به کانال ریشه نیست. د بدون etching/composite روش کامل نمی‌شود.',
                     ],
                     [
@@ -4372,7 +4372,7 @@ root canal در زمان repositioning یا replantation انجام نمی‌ش�
                             'همراهی با آسیب بافت نرم در متن مطرح نشده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 در alveolar process fractures، segment استخوانی در بیشتر موارد چند دندان و دست‌کم یک دندان را شامل می‌شود و concomitant crown fractures، root fractures و soft tissue injuries ممکن‌اند. الف و ج خلاف توصیف متن‌اند. د نیز نادرست است چون همراهی soft tissue injuries ذکر شده است.',
                     ],
                     [
@@ -4384,7 +4384,7 @@ root canal در زمان repositioning یا replantation انجام نمی‌ش�
                             'پس از یک روز باید gutta-percha نهایی گذاشته شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 barium sulfate امکان ارزیابی رادیوگرافیک calcium hydroxide را می‌دهد؛ اگر calcium hydroxide در کانال absent باشد، باید هر ۳ ماه جایگزین شود. ب برنامه هفتگی نیست. ج خلاف نقش radiopaque باریوم سولفات است. د permanent filling زودهنگام توصیه نشده است.',
                     ],
                     [
@@ -4396,7 +4396,7 @@ barium sulfate امکان ارزیابی رادیوگرافیک calcium hydroxid
                             'Mobility without displacement',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 Intrusion در متن بدترین prognosis را در nonavulsive tooth displacementها دارد. ب، ج و د درجات یا انواعی‌اند که چنین توصیفی برایشان ذکر نشده است.',
                     ],
                     [
@@ -4408,7 +4408,7 @@ Intrusion در متن بدترین prognosis را در nonavulsive tooth displac
                             'جلوگیری از نیاز به vitality testing در apex باز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا مقدار ماده باقی‌مانده در کانال در رادیوگرافی قابل ارزیابی باشد، چون calcium hydroxide به‌تدریج dissipate می‌شود. ب، ج و د نقش‌های بی‌ربط یا نادرست هستند.',
                     ],
                 ],
@@ -4439,8 +4439,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'محدود کردن درمان به suspension wire از mandibular basal segment',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در midfacial fractures، MMF می‌تواند occlusion را برقرار کند، اما اگر قطعات در نواحی دیگر ناپایدار بمانند، direct wiring یا rigid fixation با bone plate برای stabilization لازم می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در midfacial fractures، MMF می‌تواند occlusion را برقرار کند، اما اگر قطعات در نواحی دیگر ناپایدار بمانند، direct wiring یا rigid fixation با bone plate برای stabilization لازم می‌شود.
 رد گزینه‌ها: الف نادرست است، چون رها کردن MMF و اتکا به حرکت آزاد فک باعث stabilization نمی‌شود. ج نادرست است، چون ساخت پروتز جدید درمان شکستگی Le Fort نیست. د نادرست است، چون suspension wire تنها از mandibular basal segment تعریف نشده و معمولاً به استخوان پایدارتر superior متصل می‌شود.',
                     ],
                     [
@@ -4452,8 +4452,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'تعیین نوع دقیق Le Fort fracture و طراحی fixation',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: در primary survey ابتدا cardiopulmonary stability، patent airway، adequate ventilation و vital signs بررسی و ثبت می‌شود و bleeding شدید کنترل می‌گردد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: در primary survey ابتدا cardiopulmonary stability، patent airway، adequate ventilation و vital signs بررسی و ثبت می‌شود و bleeding شدید کنترل می‌گردد.
 رد گزینه‌ها: الف و د مربوط به ارزیابی/درمان اختصاصی بعد از stabilization هستند. ب بخشی از معاینه اختصاصی صورت است و پس از مسائل تهدیدکننده حیات انجام می‌شود.',
                     ],
                     [
@@ -4465,8 +4465,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'تأخیر در هرگونه کنترل خونریزی تا زمان تکمیل درمان شکستگی استخوانی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در deep facial laceration باید duct، facial nerve و major vessels بررسی شوند و در صورت آسیب، reanastomosis یا primary repair و کنترل خونریزی انجام شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در deep facial laceration باید duct، facial nerve و major vessels بررسی شوند و در صورت آسیب، reanastomosis یا primary repair و کنترل خونریزی انجام شود.
 رد گزینه‌ها: الف نادرست است، چون بستن بدون exploration می‌تواند آسیب duct را از دست بدهد. ج نادرست است، چون closure لایه‌ای کامل لازم است. د نادرست است، چون خونریزی همراه باید مدیریت شود.',
                     ],
                     [
@@ -4478,8 +4478,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'Isolated zygomatic arch fracture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Le Fort I با fracture افقی maxilla از طریق maxillary sinus و floor of nose همراه است و maxilla را از pterygoid plates و ساختارهای nasal/zygomatic جدا می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Le Fort I با fracture افقی maxilla از طریق maxillary sinus و floor of nose همراه است و maxilla را از pterygoid plates و ساختارهای nasal/zygomatic جدا می‌کند.
 رد گزینه‌ها: ب جدایی maxilla و nasal complex از orbital/zygomatic structures است. ج craniofacial separation بالاتر است. د به قوس zygoma مربوط است نه جدایی افقی maxilla.',
                     ],
                     [
@@ -4491,8 +4491,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'افزایش محدودیت در بیماران مبتلا به seizure disorder',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: rigid internal fixation باعث حذف یا کاهش MMF، کاهش discomfort/inconvenience، بهبود nutrition و hygiene و ایمنی بیشتر در برخی بیماران می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: rigid internal fixation باعث حذف یا کاهش MMF، کاهش discomfort/inconvenience، بهبود nutrition و hygiene و ایمنی بیشتر در برخی بیماران می‌شود.
 رد گزینه‌ها: الف برعکس متن است. ج نادرست است، چون occlusion باید پیش از fixation برقرار شود. د نادرست است، چون متن ایمنی بیشتر را در بیماران seizure ذکر می‌کند.',
                     ],
                     [
@@ -4504,8 +4504,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'auscultation ناحیه carotid برای شنیدن bruit ناشی از fracture',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای ارزیابی zygomatic complex/arch، index finger در maxillary vestibule کنار molars قرار داده می‌شود و فشار superolateral اعمال می‌گردد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای ارزیابی zygomatic complex/arch، index finger در maxillary vestibule کنار molars قرار داده می‌شود و فشار superolateral اعمال می‌گردد.
 رد گزینه‌ها: الف مانور بررسی maxillary mobility است. ج مربوط به ارزیابی معمول zygoma نیست. د در این بخش برای zygoma fracture ذکر نشده است.',
                     ],
                     [
@@ -4517,8 +4517,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'تأخیر، نیاز به ارزیابی عملکرد ocular را از بین می‌برد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: reduction قوس zygoma باید در چند روز اول انجام شود، زیرا تأخیر طولانی حفظ arch در وضعیت stable supported را دشوار کرده و collapse/drift ایجاد می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: reduction قوس zygoma باید در چند روز اول انجام شود، زیرا تأخیر طولانی حفظ arch در وضعیت stable supported را دشوار کرده و collapse/drift ایجاد می‌کند.
 رد گزینه‌ها: الف و ج برعکس متن هستند. د نادرست است، چون restoring contour و رفع impingement بر coronoid مهم‌اند، نه حذف ارزیابی ocular.',
                     ],
                     [
@@ -4530,8 +4530,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'traumatic telecanthus ــ isolated alveolar fracture',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: periorbital ecchymosis به‌ویژه همراه subconjunctival hemorrhage معمولاً نشانه orbital rim یا zygomatic complex fracture است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: periorbital ecchymosis به‌ویژه همراه subconjunctival hemorrhage معمولاً نشانه orbital rim یا zygomatic complex fracture است.
 رد گزینه‌ها: الف نادرست است، چون Battle sign basilar skull fracture را مطرح می‌کند. ب نادرست است، چون ecchymosis کف دهان معمولاً anterior mandibular fracture را نشان می‌دهد. د نادرست است، چون telecanthus با NOE injury و جابه‌جایی medial canthal ligaments مرتبط است.',
                     ],
                     [
@@ -4543,8 +4543,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'anterior body fractures فقط از مسیر extraoral قابل visualisation هستند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: symphysis و anterior mandible معمولاً از intraoral incision قابل دسترسی‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: symphysis و anterior mandible معمولاً از intraoral incision قابل دسترسی‌اند.
 رد گزینه‌ها: ب نادرست است، چون posterior angle/ramus و condylar fractures اغلب extraoral بهتر دیده می‌شوند. ج lateral eyebrow برای zygoma/midface به کار می‌رود نه ramus. د نادرست است، چون anterior mandible به‌خوبی intraoral قابل دسترسی است.',
                     ],
                     [
@@ -4556,8 +4556,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'حذف fixation و انتظار برای union به دلیل نبود occlusion',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در بیمار edentulous، denture mandibular می‌تواند با circum-mandibular wiring و denture maxillary با wiring یا bone screws تثبیت و سپس به هم بسته شود؛ در بسیاری موارد ORIF نیز انجام می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در بیمار edentulous، denture mandibular می‌تواند با circum-mandibular wiring و denture maxillary با wiring یا bone screws تثبیت و سپس به هم بسته شود؛ در بسیاری موارد ORIF نیز انجام می‌شود.
 رد گزینه‌ها: الف نادرست است، چون denture جدید پس از healing، حداقل ۴ تا ۶ هفته، ساخته می‌شود. ج در ridge بی‌دندان arch bar معمول کاربرد ندارد. د نادرست است، چون fixation همچنان لازم است.',
                     ],
                     [
@@ -4569,8 +4569,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'انتخاب محل suspension wire روی frontal bone',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در unilateral orbital/zygomatic trauma، سمت سالم می‌تواند mirror شود تا reverse image برای بازسازی سمت fractured ساخته شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در unilateral orbital/zygomatic trauma، سمت سالم می‌تواند mirror شود تا reverse image برای بازسازی سمت fractured ساخته شود.
 رد گزینه‌ها: ب نادرست است، چون CT data اساس virtual reconstruction است. ج هدف mirroring نیست. د به suspension wiring مربوط است نه mirroring.',
                     ],
                     [
@@ -4582,8 +4582,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'foreign body aspiration به داخل lower bronchus',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در bilateral یا comminuted mandibular fractures، displacement خلفی mandible و tongue می‌تواند upper airway را obstruct کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در bilateral یا comminuted mandibular fractures، displacement خلفی mandible و tongue می‌تواند upper airway را obstruct کند.
 رد گزینه‌ها: الف بیشتر nasal/septal مشکل است، نه مکانیسم اصلی این وضعیت. ج trismus یا spasm را توضیح می‌دهد نه airway obstruction اصلی متن. د foreign body aspiration مکانیسم دیگری است.',
                     ],
                     [
@@ -4595,8 +4595,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'ایجاد compression مستقیم در fracture line با lag screw',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: suspension wiring قطعات fractured midface را به استخوان پایدارتر superior معلق می‌کند تا حرکت maxilla کنترل شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: suspension wiring قطعات fractured midface را به استخوان پایدارتر superior معلق می‌کند تا حرکت maxilla کنترل شود.
 رد گزینه‌ها: الف هدف zygomatic arch reduction است. ج به طبقه‌بندی fracture مربوط است نه wiring. د عملکرد lag screw است نه suspension wire.',
                     ],
                     [
@@ -4608,8 +4608,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'compound fracture یعنی شکستگی کامل بدون ارتباط با محیط بیرون',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: comminuted fracture یعنی استخوان fractured در چند segment باقی می‌ماند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: comminuted fracture یعنی استخوان fractured در چند segment باقی می‌ماند.
 رد گزینه‌ها: الف تعریف greenstick است. ب تعریف comminuted را به greenstick نسبت داده است. د نادرست است، چون compound fracture با communication با محیط خارجی/دهانی همراه است.',
                     ],
                     [
@@ -4621,8 +4621,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون زمان برداشتن بخیه را به بیش از ۳ هفته افزایش می‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: closure لایه‌ای tissue orientation را درست می‌کند و dead space را حذف می‌کند تا hematoma تشکیل نشود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: closure لایه‌ای tissue orientation را درست می‌کند و dead space را حذف می‌کند تا hematoma تشکیل نشود.
 رد گزینه‌ها: ب نادرست است، چون cleansing دوره‌ای همچنان ذکر شده است. ج نادرست است، چون duct/nerve بهتر است پیش از anesthesia ارزیابی شود. د نادرست است، چون بخیه‌های صورت معمولاً ۵ تا ۷ روزه برداشته می‌شوند.',
                     ],
                     [
@@ -4634,8 +4634,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'تبدیل شکستگی‌های compound به simple fracture',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: تأخیر درمان open/compound wounds خطر infection و malunion را افزایش می‌دهد و پس از چند روز یا هفته ideal anatomic reduction دشوار یا ناممکن می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: تأخیر درمان open/compound wounds خطر infection و malunion را افزایش می‌دهد و پس از چند روز یا هفته ideal anatomic reduction دشوار یا ناممکن می‌شود.
 رد گزینه‌ها: الف و ب برخلاف متن هستند. د نادرست است، چون تأخیر شکستگی compound را به simple تبدیل نمی‌کند.',
                     ],
                     [
@@ -4647,8 +4647,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'submandibular، preauricular و tonsillar',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: isolated zygoma fracture معمولاً با ترکیبی از intraoral، lateral eyebrow یا infraorbital approaches open reduction می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: isolated zygoma fracture معمولاً با ترکیبی از intraoral، lateral eyebrow یا infraorbital approaches open reduction می‌شود.
 رد گزینه‌ها: ب، ج و د مجموعه approachهای ذکرشده برای این injury در متن نیستند.',
                     ],
                     [
@@ -4660,8 +4660,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'پارگی Stensen duct و salivary leak',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: anisocoria در بیمار lethargic نشانه intracranial bleed یا injury مانند subdural/epidural hematoma یا intraparenchymal bleed است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: anisocoria در بیمار lethargic نشانه intracranial bleed یا injury مانند subdural/epidural hematoma یا intraparenchymal bleed است.
 رد گزینه‌ها: الف بیشتر درباره asymmetric/irregular pupil مطرح است. ج و د این یافته مردمکی را توضیح نمی‌دهند.',
                     ],
                     [
@@ -4673,8 +4673,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'فقط برای اتصال suspension wires به maxillary arch wire استفاده می‌شوند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: resorbable systems از polyglycolic acid و polylactic acid ساخته شده‌اند و در pediatric/skull trauma به علت growth و CT reimaging می‌توانند مطلوب باشند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: resorbable systems از polyglycolic acid و polylactic acid ساخته شده‌اند و در pediatric/skull trauma به علت growth و CT reimaging می‌توانند مطلوب باشند.
 رد گزینه‌ها: الف ویژگی titanium plates است نه resorbable. ج نادرست است، چون به علت محدودیت mechanical/design، نیاز به tapping و cost روتین نیستند. د کاربرد آن‌ها suspension wiring نیست.',
                     ],
                     [
@@ -4686,8 +4686,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون reduction استخوان باید همیشه بعد از skin closure انجام شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در tooth-bearing fractures، قرار دادن teeth در preinjury occlusal relationship مهم‌تر از صرفاً interdigitation استخوان است؛ در غیر این صورت postoperative functional occlusion مناسب نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در tooth-bearing fractures، قرار دادن teeth در preinjury occlusal relationship مهم‌تر از صرفاً interdigitation استخوان است؛ در غیر این صورت postoperative functional occlusion مناسب نمی‌شود.
 رد گزینه‌ها: ب نادرست است، چون tooth-bearing bone در occlusion نقش دارد. ج نادرست است، چون occlusal evaluation حیاتی است. د ترتیب درمان را اشتباه بیان می‌کند.',
                     ],
                     [
@@ -4699,8 +4699,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'به علت rigidity زیاد، برای reconstruction دقیق orbital rim بهترین روش است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: wire osteosynthesis در open reduction acceptable است، اما معمولاً باید با MMF تا healing کافی، اغلب ۴ تا ۶ هفته، همراه باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: wire osteosynthesis در open reduction acceptable است، اما معمولاً باید با MMF تا healing کافی، اغلب ۴ تا ۶ هفته، همراه باشد.
 رد گزینه‌ها: الف مزیت rigid fixation است نه wire osteosynthesis. ج نادرست است، چون برای mandibular fracture هم به کار می‌رود. د rigid contour reconstruction در midface بیشتر با plates تقویت شده است.',
                     ],
                     [
@@ -4712,8 +4712,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون lateral skull view برای Le Fort III ممنوع است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: plain radiographs midface دشوار تفسیر می‌شوند؛ CT امکان ارزیابی در چند plane و 3D reconstruction کل skull/midface/mandible را فراهم می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: plain radiographs midface دشوار تفسیر می‌شوند؛ CT امکان ارزیابی در چند plane و 3D reconstruction کل skull/midface/mandible را فراهم می‌کند.
 رد گزینه‌ها: الف نادرست است، Waters view هنوز مثال‌هایی از orbital rim نشان می‌دهد. ج نادرست است، CT فقط mandibular body را نشان نمی‌دهد. د ممنوعیت lateral skull view در متن مطرح نشده است.',
                     ],
                     [
@@ -4725,8 +4725,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'ضخامت ۵ تا ۸ میلی‌متر و screw diameter بیشتر از ۶ میلی‌متر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: miniature و micro plates از titanium alloy با ضخامت حدود ۰٫۶ تا ۱٫۵ میلی‌متر و screws با قطر thread حدود ۰٫۷ تا ۲٫۰ میلی‌متر ذکر شده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: miniature و micro plates از titanium alloy با ضخامت حدود ۰٫۶ تا ۱٫۵ میلی‌متر و screws با قطر thread حدود ۰٫۷ تا ۲٫۰ میلی‌متر ذکر شده‌اند.
 رد گزینه‌ها: ب و د بیش از محدوده متن هستند. ج کمتر از مقادیر ذکرشده است و با متن سازگار نیست.',
                     ],
                     [
@@ -4738,8 +4738,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'nasal septal hematoma',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: blowout fracture orbital floor می‌تواند پس از blunt trauma به چشم رخ دهد و bone fragments و orbital contents به maxillary sinus sag کنند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: blowout fracture orbital floor می‌تواند پس از blunt trauma به چشم رخ دهد و bone fragments و orbital contents به maxillary sinus sag کنند.
 رد گزینه‌ها: الف الگوی افقی maxilla است. ج به mandible ramus مربوط است. د septal hematoma یک nasal finding است.',
                     ],
                     [
@@ -4751,8 +4751,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'circum-mandibular wiring approach',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: coronal flap رویکرد محبوب برای exposure وسیع supraorbital rim و nasal/medial canthal/infraorbital areas است و incision در hairline پنهان می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: coronal flap رویکرد محبوب برای exposure وسیع supraorbital rim و nasal/medial canthal/infraorbital areas است و incision در hairline پنهان می‌شود.
 رد گزینه‌ها: ب، ج و د exposure وسیع NOE complex را طبق متن فراهم نمی‌کنند.',
                     ],
                     [
@@ -4764,8 +4764,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'panoramic، Waters، coronal MRI، ultrasound',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای mandible views شامل panoramic، open-mouth Towne، posteroanterior و lateral oblique است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای mandible views شامل panoramic، open-mouth Towne، posteroanterior و lateral oblique است.
 رد گزینه‌ها: الف نماهای کلاسیک midface هستند. ج و د مجموعه استاندارد ذکرشده برای mandible در فصل نیستند.',
                     ],
                     [
@@ -4777,8 +4777,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'subcutaneous tissue، oral mucosa، skin، muscle',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: lacerations باید از داخل به خارج بسته شوند: oral mucosa، سپس muscle، بعد subcutaneous tissue و در پایان skin.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: lacerations باید از داخل به خارج بسته شوند: oral mucosa، سپس muscle، بعد subcutaneous tissue و در پایان skin.
 رد گزینه‌ها: الف ترتیب معکوس است. ج و د ترتیب لایه‌ها را مطابق متن بیان نمی‌کنند.',
                     ],
                     [
@@ -4790,8 +4790,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'جهت fracture line ارتباطی با displacement ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در favorable fracture، fracture line و angulation عضلات در برابر displacement مقاومت می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در favorable fracture، fracture line و angulation عضلات در برابر displacement مقاومت می‌کنند.
 رد گزینه‌ها: الف تعریف unfavorable fracture است. ج و د با توضیح متن درباره muscle pull و fracture line سازگار نیستند.',
                     ],
                     [
@@ -4803,8 +4803,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'maxillary denture، circum-mandibular wire، Elastics و penrose drain',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: navigation از localizer، surgical probe، facial registration و CT data استفاده می‌کند و مانند GPS به تعیین/تأیید موقعیت کمک می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: navigation از localizer، surgical probe، facial registration و CT data استفاده می‌کند و مانند GPS به تعیین/تأیید موقعیت کمک می‌کند.
 رد گزینه‌ها: ب، ج و د ابزارهای مربوط به معاینه، احیا، splinting یا edentulous management هستند نه intraoperative navigation.',
                     ],
                     [
@@ -4816,8 +4816,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'پیشگیری از telecanthus با نزدیک کردن canthi',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در fractures درمان‌نشده یا grossly displaced، heavy elastic traction قطعات را تدریجاً طی چند ساعت یا چند روز به وضعیت مناسب می‌کشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در fractures درمان‌نشده یا grossly displaced، heavy elastic traction قطعات را تدریجاً طی چند ساعت یا چند روز به وضعیت مناسب می‌کشد.
 رد گزینه‌ها: الف نادرست است، چون occlusion همچنان هدف مهم است. ج و د به کاربرد traction مربوط نیستند.',
                     ],
                     [
@@ -4829,8 +4829,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'استفاده اجباری از wet dressing عمیق داخل wound برای ایجاد dead space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن cleansing دوره‌ای با hydrogen peroxide را ذکر می‌کند و می‌گوید برخی antibiotic ointment را توصیه می‌کنند، اما dry occlusive dressings مثل Steri-Strip نیز می‌تواند مؤثر باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن cleansing دوره‌ای با hydrogen peroxide را ذکر می‌کند و می‌گوید برخی antibiotic ointment را توصیه می‌کنند، اما dry occlusive dressings مثل Steri-Strip نیز می‌تواند مؤثر باشد.
 رد گزینه‌ها: ب نادرست است، چون cleansing توصیه شده است. ج نادرست است، چون زمان معمول برداشتن sutures ۵ تا ۷ روز است. د dead space باید حذف شود نه ایجاد.',
                     ],
                     [
@@ -4842,8 +4842,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'greenstick mandibular fracture',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: Le Fort III همان craniofacial separation است و NOE complex، zygomas و maxilla را از cranial base جدا می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: Le Fort III همان craniofacial separation است و NOE complex، zygomas و maxilla را از cranial base جدا می‌کند.
 رد گزینه‌ها: الف Le Fort I پایین‌تر و افقی است. ب Le Fort II separation maxilla/nasal complex از orbital/zygomatic structures است. د مربوط به mandible است.',
                     ],
                     [
@@ -4855,8 +4855,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'isolated zygomatic arch و coronoid impingement',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: midface fractures که occlusal relationship را درگیر می‌کنند شامل Le Fort I، II و III هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: midface fractures که occlusal relationship را درگیر می‌کنند شامل Le Fort I، II و III هستند.
 رد گزینه‌ها: ب گروهی است که الزاماً occlusion را درگیر نمی‌کند. ج و د isolated injuries را بیان می‌کنند و مطابق تقسیم‌بندی occlusal نیستند.',
                     ],
                     [
@@ -4868,8 +4868,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'فقط chest auscultation برای wheezing و rales',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: mandible با palpation مرزهای inferior/lateral و TMJ، بررسی occlusion، step deformities، gingival lacerations و bimanual manipulation ارزیابی می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: mandible با palpation مرزهای inferior/lateral و TMJ، بررسی occlusion، step deformities، gingival lacerations و bimanual manipulation ارزیابی می‌شود.
 رد گزینه‌ها: ب برای NOE/nasal evaluation است. ج برای neurologic/orbital evaluation است. د برای respiratory assessment کاربرد دارد.',
                     ],
                     [
@@ -4881,8 +4881,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'پیش از شروع هرگونه bone healing برای جلوگیری از malunion',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: titanium plates/screws biocompatible هستند و به removal دوم نیاز ندارند مگر palpable، infected باشند یا با secondary reconstruction تداخل کنند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: titanium plates/screws biocompatible هستند و به removal دوم نیاز ندارند مگر palpable، infected باشند یا با secondary reconstruction تداخل کنند.
 رد گزینه‌ها: الف و ج برداشت routine را مطرح می‌کنند که در متن نیست. د با هدف fixation و healing ناسازگار است.',
                     ],
                     [
@@ -4894,8 +4894,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'وجود malocclusion واضح ولی vital signs طبیعی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: severe neurologic trauma که stabilization را مشکل و anesthesia/surgery را پرخطر می‌کند باید پیش از facial fractures مدیریت شود و می‌تواند باعث تأخیر شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: severe neurologic trauma که stabilization را مشکل و anesthesia/surgery را پرخطر می‌کند باید پیش از facial fractures مدیریت شود و می‌تواند باعث تأخیر شود.
 رد گزینه‌ها: ب در بیمار stable معمولاً تأخیر را توجیه نمی‌کند، چون درمان زودتر بهتر است. ج نادرست است، edema درمان را دشوار می‌کند. د malocclusion واضح نیازمند برنامه‌ریزی درمان است نه تأخیر بی‌دلیل.',
                     ],
                     [
@@ -4907,8 +4907,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'جلوگیری از نیاز به cleansing لacerationهای همراه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: bone plates and screws استفاده از immediate bone grafting برای جایگزینی comminuted یا missing bone segments و افزایش stabilization را تسهیل کرده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: bone plates and screws استفاده از immediate bone grafting برای جایگزینی comminuted یا missing bone segments و افزایش stabilization را تسهیل کرده‌اند.
 رد گزینه‌ها: ب، ج و د کاربردهای نادرست یا برخلاف متن‌اند.',
                     ],
                     [
@@ -4920,8 +4920,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون فقط با panoramic radiograph اندازه‌گیری می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: intercanthal distance در حالت طبیعی باید با alar base width برابر باشد؛ افزایش آن traumatic telecanthus در NOE injury را مطرح می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: intercanthal distance در حالت طبیعی باید با alar base width برابر باشد؛ افزایش آن traumatic telecanthus در NOE injury را مطرح می‌کند.
 رد گزینه‌ها: ب و ج معیارهای متن نیستند. د نادرست است، این اندازه‌گیری بالینی با ruler نیز نشان داده شده است.',
                     ],
                     [
@@ -4933,8 +4933,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'scar اهمیتی ندارد چون fracture stabilization تنها هدف درمان است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: approach باید vital structures مانند nerves، ducts و blood vessels را حفظ کند و scar را به حداقل برساند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: approach باید vital structures مانند nerves، ducts و blood vessels را حفظ کند و scar را به حداقل برساند.
 رد گزینه‌ها: ب و ج تعمیم‌های غیرمنبعی‌اند. د نادرست است، چون scar و حفظ ساختارهای حیاتی اهمیت دارند.',
                     ],
                     [
@@ -4946,8 +4946,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'حذف nutrition concerns تا پس از اتمام fixation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اهداف درمان facial fractures شامل rapid bone healing، بازگشت عملکردهای ocular، masticatory و nasal، restoration speech و esthetic result است، با توجه به nutrition و discomfort.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اهداف درمان facial fractures شامل rapid bone healing، بازگشت عملکردهای ocular، masticatory و nasal، restoration speech و esthetic result است، با توجه به nutrition و discomfort.
 رد گزینه‌ها: ب، ج و د برخلاف اهداف فصل هستند.',
                     ],
                 ],
@@ -4978,8 +4978,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون سیم‌ها باعث union سریع‌تر از plate می‌شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: rigid plating نسبت به wire fixation کنترل rigidity و contours بهتری می‌دهد و برای همین نیاز به suspension wires را تا حد زیادی کم کرده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: rigid plating نسبت به wire fixation کنترل rigidity و contours بهتری می‌دهد و برای همین نیاز به suspension wires را تا حد زیادی کم کرده است.
 رد گزینه‌ها: ب نادرست است، suspension wires برای midface به کار می‌روند. ج نادرست است، reduction همچنان لازم است. د متن چنین برتری‌ای برای سیم‌ها بیان نمی‌کند.',
                     ],
                     [
@@ -4991,8 +4991,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'healed facial scar در خط hairline',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: prosthetic devices، avulsed teeth، قطعات avulsed bone و debris می‌توانند airway occlusion بدهند و باید فوراً حذف شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: prosthetic devices، avulsed teeth، قطعات avulsed bone و debris می‌توانند airway occlusion بدهند و باید فوراً حذف شوند.
 رد گزینه‌ها: ب، ج و د چنین علت فوری airway obstruction در متن نیستند.',
                     ],
                     [
@@ -5004,8 +5004,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'wires باید فقط به titanium implants بدون ارتباط با arch wire متصل شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: suspension wires می‌توانند به piriform rim، infraorbital rims، zygomatic arch یا frontal bone متصل شوند و سپس به arch wire/splint/mandible وصل شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: suspension wires می‌توانند به piriform rim، infraorbital rims، zygomatic arch یا frontal bone متصل شوند و سپس به arch wire/splint/mandible وصل شوند.
 رد گزینه‌ها: ب محل اتصال را نادرست محدود می‌کند. ج ربطی به blowout fracture ندارد. د ارتباط با arch wire یا splint در متن ذکر شده است.',
                     ],
                     [
@@ -5017,8 +5017,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'work-related accidents فقط با mandibular condyle ارتباط دارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: major causes شامل motor vehicle accidents و physical altercations است؛ falls، sports و work-related accidents نیز از علل دیگرند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: major causes شامل motor vehicle accidents و physical altercations است؛ falls، sports و work-related accidents نیز از علل دیگرند.
 رد گزینه‌ها: ب نادرست است، fractureها در افراد بدون restraint فراوان‌ترند. ج با متن ناسازگار است. د محدودیتی به condyle در متن ندارد.',
                     ],
                     [
@@ -5030,8 +5030,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'fixation rigid با bone screw به معنی حذف کامل surgical access است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: حتی با rigid fixation، proper occlusal relationship باید پیش از reduction و fixation قطعات استخوانی برقرار شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: حتی با rigid fixation، proper occlusal relationship باید پیش از reduction و fixation قطعات استخوانی برقرار شود.
 رد گزینه‌ها: ب خلاف اصل متن است. ج نادرست است، plates برای کاهش/حذف MMF به کار می‌روند. د نادرست است، open reduction نیازمند surgical access است.',
                     ],
                     [
@@ -5043,8 +5043,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'برداشتن condyle برای جلوگیری از ankylosis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در condylar fractures با minimal/moderate displacement، MMF کوتاه‌تر استفاده می‌شود: حداکثر ۲ تا ۳ هفته در adults و ۱۰ تا ۱۴ روز در children، سپس rehabilitation فعال.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در condylar fractures با minimal/moderate displacement، MMF کوتاه‌تر استفاده می‌شود: حداکثر ۲ تا ۳ هفته در adults و ۱۰ تا ۱۴ روز در children، سپس rehabilitation فعال.
 رد گزینه‌ها: الف خطر ankylosis یا fibrosis و محدودیت شدید opening را افزایش می‌دهد. ج نادرست است، occlusion در دوره healing باید برقرار شود. د در متن چنین درمانی مطرح نشده است.',
                     ],
                     [
@@ -5056,8 +5056,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'جایگزینی همه قطعات با maxillary denture',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: درمان NOE fracture با هدف بازسازی nasolacrimal و ocular function و reposition nasal bones و medial canthal ligaments برای esthetics است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: درمان NOE fracture با هدف بازسازی nasolacrimal و ocular function و reposition nasal bones و medial canthal ligaments برای esthetics است.
 رد گزینه‌ها: الف فقط occlusion را مطرح می‌کند و هدف NOE نیست. ج مربوط به zygomatic arch/coronoid impingement است. د مربوط به edentulous fracture management است.',
                     ],
                     [
@@ -5069,8 +5069,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'جدا شدن کامل midface از cranial base در سطح zygomaticofrontal suture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Le Fort II به جدایی maxilla و attached nasal complex از orbital و zygomatic structures اشاره دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Le Fort II به جدایی maxilla و attached nasal complex از orbital و zygomatic structures اشاره دارد.
 رد گزینه‌ها: ب Le Fort I است. ج isolated arch fracture است. د توصیف Le Fort III است.',
                     ],
                     [
@@ -5082,8 +5082,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون nerve transection فقط پس از skin closure دیده می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پیش از anesthesia باید integrity و function بررسی شود، زیرا بعد از anesthesia facial motion و salivary flow ممکن است قابل ارزیابی نباشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پیش از anesthesia باید integrity و function بررسی شود، زیرا بعد از anesthesia facial motion و salivary flow ممکن است قابل ارزیابی نباشد.
 رد گزینه‌ها: ب و ج از متن پشتیبانی نمی‌شوند. د نادرست است، transection می‌تواند پیش از closure بررسی شود.',
                     ],
                     [
@@ -5095,8 +5095,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'CT برای trauma صورت فقط با intravenous contrast توصیه شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: CT axial بدون IV contrast می‌تواند وقتی plain films ناکافی‌اند یا cervical precautions اجازه standard films نمی‌دهد کمک کند؛ CBCT نیز 3D analysis با radiation نسبتاً پایین‌تر نسبت به چندین film را فراهم کرده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: CT axial بدون IV contrast می‌تواند وقتی plain films ناکافی‌اند یا cervical precautions اجازه standard films نمی‌دهد کمک کند؛ CBCT نیز 3D analysis با radiation نسبتاً پایین‌تر نسبت به چندین film را فراهم کرده است.
 رد گزینه‌ها: ب و ج با متن ناسازگارند. د IV contrast برای این ارزیابی ذکر نشده است.',
                     ],
                     [
@@ -5108,8 +5108,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'circumzygomatic suspension بدون plate یا screw',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در برخی posterior body و angle fractures، intraoral incision با small trocar و cannula از طریق پوست برای reduction/fixation ترکیب می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در برخی posterior body و angle fractures، intraoral incision با small trocar و cannula از طریق پوست برای reduction/fixation ترکیب می‌شود.
 رد گزینه‌ها: ب، ج و د approachهای این ناحیه طبق متن نیستند.',
                     ],
                     [
@@ -5121,8 +5121,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'occlusal prematurity و contralateral open bite',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: abnormal ocular movements می‌تواند ناشی از مشکل مرکزی CN III/IV/VI یا mechanical restriction عضلات چشم بر اثر orbital complex fractures باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: abnormal ocular movements می‌تواند ناشی از مشکل مرکزی CN III/IV/VI یا mechanical restriction عضلات چشم بر اثر orbital complex fractures باشد.
 رد گزینه‌ها: ب CN VII و CN V را اشتباه جابه‌جا می‌کند و علت ocular movement نیست. ج و د به orbit movement مربوط نیستند.',
                     ],
                     [
@@ -5134,8 +5134,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'فقط عمق muscle بدون بستن پوست',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: landmarkهای قابل تشخیص مانند vermilion border لب یا ala بینی باید ابتدا suture شوند تا reapproximation دقیق‌تر شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: landmarkهای قابل تشخیص مانند vermilion border لب یا ala بینی باید ابتدا suture شوند تا reapproximation دقیق‌تر شود.
 رد گزینه‌ها: ب و ج ترتیب منطقی فصل را نقض می‌کنند. د closure ناکامل و خلاف اصل layer closure است.',
                     ],
                     [
@@ -5147,8 +5147,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'ترتیب سنتی فقط برای laceration بود؛ rigid fixation در fracture planning نقشی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: سنتاً درمان از mandible شروع می‌شد چون stabilisation آن ساده‌تر بود و occlusion و بقیه skeleton بر اساس آن تنظیم می‌شد؛ rigid fixation اجازه می‌دهد درمان از ناحیه‌ای که آسان‌تر stable می‌شود آغاز شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: سنتاً درمان از mandible شروع می‌شد چون stabilisation آن ساده‌تر بود و occlusion و بقیه skeleton بر اساس آن تنظیم می‌شد؛ rigid fixation اجازه می‌دهد درمان از ناحیه‌ای که آسان‌تر stable می‌شود آغاز شود.
 رد گزینه‌ها: ب، ج و د با توضیح فصل درباره sequence و fixation ناسازگارند.',
                     ],
                     [
@@ -5160,8 +5160,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'ساخت arch bar مستقیم روی gingiva بدون توجه به occlusion',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: stereolithographic models از CT data برای duplicate کردن fracture یا مدل perfected ساخته می‌شوند و در fixation، prebending plates و انتخاب orbital implant size کمک می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: stereolithographic models از CT data برای duplicate کردن fracture یا مدل perfected ساخته می‌شوند و در fixation، prebending plates و انتخاب orbital implant size کمک می‌کنند.
 رد گزینه‌ها: ب نادرست است، clinical examination و stabilization حذف نمی‌شوند. ج و د مربوط به primary survey یا MMF هستند نه stereolithography.',
                     ],
                     [
@@ -5173,8 +5173,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'facial scar قدیمی بدون tenderness',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: unilateral occlusal prematurity همراه contralateral open bite باید suspicion برای jaw fracture را بالا ببرد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: unilateral occlusal prematurity همراه contralateral open bite باید suspicion برای jaw fracture را بالا ببرد.
 رد گزینه‌ها: ب به jaw fracture اختصاص ندارد. ج طبیعی بودن معیار NOE است. د scar قدیمی بدون tenderness نشانه fracture acute نیست.',
                     ],
                     [
@@ -5186,8 +5186,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'حذف کامل خطر displacement ناشی از muscular forces',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: direct/suspension wires rigidity محدودی دارند و حفظ contours در concave/convex areas مانند orbital rims و zygoma دشوار است؛ muscular forces هم می‌توانند displacement ایجاد کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: direct/suspension wires rigidity محدودی دارند و حفظ contours در concave/convex areas مانند orbital rims و zygoma دشوار است؛ muscular forces هم می‌توانند displacement ایجاد کنند.
 رد گزینه‌ها: ب نادرست است، اتصال به arch wire یا splint مطرح است. ج برتری wiring بر titanium plates را بیان می‌کند که متن برعکس آن را نشان می‌دهد. د خلاف محدودیت ذکرشده است.',
                     ],
                     [
@@ -5199,8 +5199,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'ساخت stereolithographic model برای virtual planning',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: closed reduction یعنی درمان fracture با MMF بدون direct opening، exposure و manipulation محل fracture.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: closed reduction یعنی درمان fracture با MMF بدون direct opening، exposure و manipulation محل fracture.
 رد گزینه‌ها: ب open reduction است. ج و د مربوط به midface plating یا planning پیشرفته‌اند.',
                     ],
                     [
@@ -5212,8 +5212,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'ارزیابی pupillary reaction در CN III dysfunction',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: lag screws در oblique mandibular fracture با engagement مناسب cortices، compression across fracture site ایجاد می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: lag screws در oblique mandibular fracture با engagement مناسب cortices، compression across fracture site ایجاد می‌کنند.
 رد گزینه‌ها: ب، ج و د به کاربرد lag screw ارتباط ندارند.',
                     ],
                     [
@@ -5225,8 +5225,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'Le Fort I بر اثر impingement coronoid process روی zygomatic arch',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن zygomatic complex fracture را شایع‌ترین midfacial fracture درمان‌شده در operating room می‌داند و آن را ناشی از ضربه به lateral cheek مثل fist یا baseball توصیف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن zygomatic complex fracture را شایع‌ترین midfacial fracture درمان‌شده در operating room می‌داند و آن را ناشی از ضربه به lateral cheek مثل fist یا baseball توصیف می‌کند.
 رد گزینه‌ها: ب، ج و د مکانیسم‌ها و تشخیص‌ها را به‌اشتباه مرتبط کرده‌اند.',
                     ],
                     [
@@ -5238,8 +5238,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'nasal septum، Stensen duct و vermilion border',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر zygoma با reduction دستی پایدار نشود، plating در zygomaticomaxillary buttress، zygomaticofrontal area و inferior orbital rim ممکن است لازم شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر zygoma با reduction دستی پایدار نشود، plating در zygomaticomaxillary buttress، zygomaticofrontal area و inferior orbital rim ممکن است لازم شود.
 رد گزینه‌ها: ب، ج و د نواحی unrelated یا ساختارهای نرم را فهرست می‌کنند.',
                     ],
                     [
@@ -5251,8 +5251,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'symphysis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در شکل توزیع آناتومیک، body با ۲۹٫۱٪ بالاترین درصد را دارد؛ condylar ۲۴٫۵٪، angle ۲۲٪ و symphysis ۱۶٪ هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در شکل توزیع آناتومیک، body با ۲۹٫۱٪ بالاترین درصد را دارد؛ condylar ۲۴٫۵٪، angle ۲۲٪ و symphysis ۱۶٪ هستند.
 رد گزینه‌ها: ب، ج و د درصدهای کمتر از body دارند.',
                     ],
                     [
@@ -5264,8 +5264,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'فقط پس از ساخت denture جدید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: sutures از facial wounds معمولاً در ۵ تا ۷ روز برداشته می‌شوند و زمان به location و tension لازم برای closure بستگی دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: sutures از facial wounds معمولاً در ۵ تا ۷ روز برداشته می‌شوند و زمان به location و tension لازم برای closure بستگی دارد.
 رد گزینه‌ها: ب و ج زمان‌های متن نیستند. د به edentulous fracture مربوط است نه suture removal.',
                     ],
                     [
@@ -5277,8 +5277,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'اندازه‌گیری فقط medial intercanthal distance بدون دستکاری maxilla',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای ارزیابی maxillary mobility، head با pressure روی forehead stabilise می‌شود و maxilla با thumb و forefinger گرفته و با فشار firm mobility آن بررسی می‌گردد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای ارزیابی maxillary mobility، head با pressure روی forehead stabilise می‌شود و maxilla با thumb و forefinger گرفته و با فشار firm mobility آن بررسی می‌گردد.
 رد گزینه‌ها: ب، ج و د مانور مناسب maxilla را بیان نمی‌کنند.',
                     ],
                     [
@@ -5290,8 +5290,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'hydrogen peroxide cleansing به‌عنوان جایگزین CT',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن advanced technologies را virtual reconstruction، stereolithographic modeling و intraoperative navigation می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن advanced technologies را virtual reconstruction، stereolithographic modeling و intraoperative navigation می‌داند.
 رد گزینه‌ها: ب و ج ابزارهای محدودتر/قدیمی‌اند. د wound cleansing است نه فناوری بازسازی پیچیده.',
                     ],
                     [
@@ -5303,8 +5303,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون فقط در edentulous mandible اتفاق می‌افتد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: هر jaw fracture در tooth-bearing segment به دلیل ارتباط با oral/external environment از طریق gingival sulcus، periodontal ligament یا mucosal tear، open/compound محسوب می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: هر jaw fracture در tooth-bearing segment به دلیل ارتباط با oral/external environment از طریق gingival sulcus، periodontal ligament یا mucosal tear، open/compound محسوب می‌شود.
 رد گزینه‌ها: ب و ج طبقه‌بندی دیگری را اشتباه نسبت می‌دهند. د برخلاف tooth-bearing بودن است.',
                     ],
                     [
@@ -5316,8 +5316,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'parotid duct فقط پس از هفته‌ها باید بررسی شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اصول laceration repair برای زخم کوچک و بزرگ یکسان است و cleansing و بررسی vital structures مثل duct، nerve و vessels اهمیت دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اصول laceration repair برای زخم کوچک و بزرگ یکسان است و cleansing و بررسی vital structures مثل duct، nerve و vessels اهمیت دارد.
 رد گزینه‌ها: ب نادرست است، layer closure همچنان لازم است. ج نادرست است، major vessels ممکن است آسیب ببینند. د باید زود بررسی شود، نه پس از هفته‌ها.',
                     ],
                     [
@@ -5329,8 +5329,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'اولویت دادن به soft tissue repair پیش از هرگونه bony repair',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: دو اصل پایه درمان fracture عبارت‌اند از reduction به محل آناتومیک و fixation برای immobilization قطعات.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: دو اصل پایه درمان fracture عبارت‌اند از reduction به محل آناتومیک و fixation برای immobilization قطعات.
 رد گزینه‌ها: ب، ج و د با اصول متن ناسازگارند؛ occlusion و infection control نیز باید رعایت شوند و bony repair پیش از soft tissue repair است.',
                     ],
                     [
@@ -5342,8 +5342,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'mandibular body malunion به علت masseter pull',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: missed parotid duct injury می‌تواند باعث breakdown wound margin و persistent salivary fistula شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: missed parotid duct injury می‌تواند باعث breakdown wound margin و persistent salivary fistula شود.
 رد گزینه‌ها: ب، ج و د پیامدهای شکستگی‌های استخوانی یا condylar management هستند نه duct injury.',
                     ],
                     [
@@ -5355,8 +5355,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'lateral skull view',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در complete upper airway obstruction، cricothyrotomy سریع‌ترین راه دسترسی به trachea ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در complete upper airway obstruction، cricothyrotomy سریع‌ترین راه دسترسی به trachea ذکر شده است.
 رد گزینه‌ها: ب معمولاً برای شرایط کنترل‌شده‌تر است و سریع‌ترین emergency access متن نیست. ج و د imaging هستند نه airway access.',
                     ],
                     [
@@ -5368,8 +5368,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'کاهش امکان immediate bone grafting',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: small bone plates در comminuted unstable midface fractures برای reestablish facial pillars، develop contours و stabilise کردن قطعات متعدد مفیدند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: small bone plates در comminuted unstable midface fractures برای reestablish facial pillars، develop contours و stabilise کردن قطعات متعدد مفیدند.
 رد گزینه‌ها: ب نادرست است، occlusion evaluation همچنان مهم است. ج خلاف هدف infection prevention است. د متن می‌گوید plates immediate bone grafting را تسهیل کرده‌اند.',
                     ],
                     [
@@ -5381,8 +5381,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'orbital floor، coronoid process و Stensen duct',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: buttressهای عمودی اصلی face شامل nasomaxillary، zygomatic و pterygomaxillary هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: buttressهای عمودی اصلی face شامل nasomaxillary، zygomatic و pterygomaxillary هستند.
 رد گزینه‌ها: ب، ج و د یا AP buttressها و ساختارهای دیگر را مخلوط کرده‌اند یا اصلاً buttressهای عمودی متن نیستند.',
                     ],
                     [
@@ -5394,8 +5394,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'occlusion در Le Fort fractures هیچ راهنمایی فراهم نمی‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در Le Fort با intact mandible، MMF occlusion را برقرار می‌کند اما حرکت mandible هنگام opening می‌تواند midfacial bones را dislodge کند؛ بنابراین direct/suspension stabilization لازم می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در Le Fort با intact mandible، MMF occlusion را برقرار می‌کند اما حرکت mandible هنگام opening می‌تواند midfacial bones را dislodge کند؛ بنابراین direct/suspension stabilization لازم می‌شود.
 رد گزینه‌ها: ب و ج برخلاف متن‌اند. د نادرست است، occlusion راهنمای مهمی در این شکستگی‌هاست.',
                     ],
                     [
@@ -5407,8 +5407,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'lacerationها تا بعد از ساخت denture جدید باز گذاشته می‌شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تأکید می‌کند که bony repair باید قبل از soft tissue repair انجام شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تأکید می‌کند که bony repair باید قبل از soft tissue repair انجام شود.
 رد گزینه‌ها: ب، ج و د ترتیب درمان را خلاف متن بیان می‌کنند.',
                     ],
                     [
@@ -5420,8 +5420,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'حذف نیاز به mandibular fixation در همه موارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در complex facial trauma، virtual planning و navigation می‌توانند reposition مجازی، استفاده از stereolithographic model برای reduction/implant sizing/plate bending و verification intraoperative را ممکن کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در complex facial trauma، virtual planning و navigation می‌توانند reposition مجازی، استفاده از stereolithographic model برای reduction/implant sizing/plate bending و verification intraoperative را ممکن کنند.
 رد گزینه‌ها: ب نادرست است، debridement و hemostasis جایگزین نمی‌شوند. ج و د با اهداف درمان و نمونه فصل ناسازگارند.',
                     ],
                     [
@@ -5433,8 +5433,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'بیمار چه نوع toothbrush استفاده می‌کند؟',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: یکی از پنج پرسش کلیدی history این است که آیا loss of consciousness رخ داده است یا نه.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: یکی از پنج پرسش کلیدی history این است که آیا loss of consciousness رخ داده است یا نه.
 رد گزینه‌ها: ب، ج و د در پنج سؤال کلیدی فصل برای facial trauma نیستند.',
                     ],
                     [
@@ -5446,8 +5446,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'تأخیر در بستن تا زمانی که بخیه‌ها خودبه‌خود حذف شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در laceration لب، vermilion border یک landmark واضح است و باید ابتدا reapproximate شود، سپس نواحی کمتر واضح بسته شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در laceration لب، vermilion border یک landmark واضح است و باید ابتدا reapproximate شود، سپس نواحی کمتر واضح بسته شوند.
 رد گزینه‌ها: ب و ج دقت reapproximation و layer closure را نقض می‌کنند. د تأخیر بی‌منطق و خلاف repair است.',
                     ],
                     [
@@ -5459,8 +5459,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'nasal speculum، hydrogen peroxide و Steri-Strip',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: تکنیک‌های MMF شامل arch bars از نوع Erich یا bone anchored، Ivy loops و continuous loop wiring هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: تکنیک‌های MMF شامل arch bars از نوع Erich یا bone anchored، Ivy loops و continuous loop wiring هستند.
 رد گزینه‌ها: ب نماهای imaging midface هستند. ج planning/exposure tools را مخلوط می‌کند. د وسایل wound/nasal care هستند نه MMF.',
                     ],
                     [
@@ -5472,8 +5472,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'چون direct wiring را از titanium plating rigidتر می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در midface fractures، حرکت mandible هنگام opening می‌تواند maxilla را به پایین بکشد؛ suspension wires این حرکت را با اتصال به استخوان‌های superior کنترل می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در midface fractures، حرکت mandible هنگام opening می‌تواند maxilla را به پایین بکشد؛ suspension wires این حرکت را با اتصال به استخوان‌های superior کنترل می‌کنند.
 رد گزینه‌ها: ب، ج و د با مکانیزم suspension wiring در متن سازگار نیستند.',
                     ],
                     [
@@ -5485,8 +5485,8 @@ barium sulfate به مخلوط calcium hydroxide افزوده می‌شود تا
                             'splint در کودکان باید بدون reduction و بدون wiring باقی بماند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: occlusal/lingual acrylic splint در کودکان مفید است، زیرا deciduous teeth، developing permanent teeth و همکاری محدود، arch bars و bone plates را دشوار می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: occlusal/lingual acrylic splint در کودکان مفید است، زیرا deciduous teeth، developing permanent teeth و همکاری محدود، arch bars و bone plates را دشوار می‌کند.
 رد گزینه‌ها: ب نادرست است، این splint در کودکان dentate ذکر شده است. ج نادرست است، clinical و radiographic examinations لازم‌اند. د نادرست است، splint برای reduction/stabilization با wiring استفاده می‌شود.',
                     ],
                 ],
