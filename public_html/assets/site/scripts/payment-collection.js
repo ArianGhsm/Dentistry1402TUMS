@@ -317,9 +317,15 @@
                 /* Ask for login only once the canonical auth endpoint confirms
                    there is no session; a transient 401 stays a retryable error. */
                 var auth = window.Dent1402Auth;
-                var verified = auth && typeof auth.verifySession === "function"
-                    ? await auth.verifySession({ attempts: 2, delayMs: 600 })
-                    : null;
+                var verified = null;
+                state.verifyingSession = true;
+                try {
+                    verified = auth && typeof auth.verifySession === "function"
+                        ? await auth.verifySession({ attempts: 2, delayMs: 600 })
+                        : null;
+                } finally {
+                    state.verifyingSession = false;
+                }
                 if (verified === false) {
                     if (typeof auth.handleUnauthorizedPayload === "function") {
                         auth.handleUnauthorizedPayload(response);
@@ -327,7 +333,7 @@
                     renderLogin();
                     return;
                 }
-                throw new Error("دریافت اطلاعات پرداخت موقتاً ناموفق بود. چند لحظه بعد صفحه را دوباره باز کنید.");
+                throw new Error("ثبت پرداخت موقتاً ناموفق بود. اطلاعاتتان حفظ شده؛ چند لحظه بعد دوباره «پرداخت» را بزنید.");
             }
             if (!response || !response.success || !response.redirectUrl) {
                 throw new Error((response && response.error) || "ایجاد پرداخت انجام نشد.");
@@ -359,6 +365,11 @@
     });
 
     window.Dent1402Auth.onChange(function (detail) {
+        if (state.verifyingSession && !(detail && detail.status === "logging-out")) {
+            /* a submit-time session recheck is in flight: keep the filled form
+               (payer fields, chosen gateway); submitPayment decides what next */
+            return;
+        }
         if (!detail || detail.status === "session-restoring" || detail.status === "logging-out") {
             root.innerHTML = '<div class="buy-empty">در حال بررسی ورود...</div>';
             return;
