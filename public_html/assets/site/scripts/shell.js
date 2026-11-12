@@ -1076,6 +1076,29 @@
         document.body.insertBefore(header, document.body.firstChild);
     }
 
+    function headerSectionLabel(path) {
+        var clean = String(path || "/").toLowerCase();
+        if (isHomePath(clean)) return "";
+        var map = [
+            [/^\/exams\/pay\//, "پرداخت آزمون"],
+            [/^\/exams\//, "آزمون‌ها"],
+            [/^\/buy\/result\//, "رسید پرداخت"],
+            [/^\/buy\/cart\//, "سبد خرید"],
+            [/^\/buy\//, "خرید"],
+            [/^\/payments\//, "پرداخت"],
+            [/^\/account\//, "حساب کاربری"],
+            [/^\/grades\//, "نمرات"],
+            [/^\/forms\//, "فرم‌ها"],
+            [/^\/notifications\//, "اعلان‌ها"],
+            [/^\/hamiad\//, "همیاد"],
+            [/^\/classops\//, "برنامهٔ کلاس"]
+        ];
+        for (var i = 0; i < map.length; i++) {
+            if (map[i][0].test(clean)) return map[i][1];
+        }
+        return "";
+    }
+
     function normalizeSiteHeader() {
         if (shellHeaderDisabled) {
             return;
@@ -1132,6 +1155,22 @@
             siteInfo.querySelectorAll("p").forEach(function (node) {
                 node.remove();
             });
+
+            /* the header names where you are; the site name becomes its subline */
+            var sectionLabel = headerSectionLabel(currentPath());
+            var labelNode = siteInfo.querySelector(".shell-page-label");
+            if (sectionLabel) {
+                if (!labelNode) {
+                    labelNode = document.createElement("strong");
+                    labelNode.className = "shell-page-label";
+                    siteInfo.insertBefore(labelNode, siteInfo.firstChild);
+                }
+                labelNode.textContent = sectionLabel;
+                header.classList.add("has-page-label");
+            } else if (labelNode) {
+                labelNode.remove();
+                header.classList.remove("has-page-label");
+            }
 
             header.querySelectorAll(".site-top-nav, .header-link, [data-auth-link], .badge-unofficial").forEach(function (node) {
                 node.remove();

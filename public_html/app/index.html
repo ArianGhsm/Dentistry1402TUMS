@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20261112-exams-hub3">
-    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261112-clinic1">
+    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261112-terms1">
 </head>
 <body class="app-dashboard-page app-dashboard-page--digipay home-2026">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -67,12 +67,13 @@
             <div class="h26-samples__list" data-h26-samples-list></div>
         </section>
 
-        <section class="h26-shelf" data-h26-shelf hidden aria-labelledby="h26-shelf-title">
+        <section class="h26-terms" data-h26-shelf hidden aria-labelledby="h26-terms-title">
             <header class="h26-head">
-                <div><h3 id="h26-shelf-title">قفسهٔ آزمون‌های مرجع</h3><p data-h26-shelf-note>هر رفرنس با یک بار پرداخت، برای همیشه</p></div>
-                <a href="/exams/">همهٔ آزمون‌ها</a>
+                <div><h3 id="h26-terms-title">درس‌ها، ترم به ترم</h3><p>آزمون‌های هر درس، همان‌طور که در دانشکده خوانده می‌شود</p></div>
+                <a href="/exams/?mode=term">همهٔ ترم‌ها</a>
             </header>
-            <div class="h26-covers" data-h26-covers></div>
+            <div class="h26-terms__tabs" role="tablist" aria-label="ترم" data-h26-term-tabs></div>
+            <div class="h26-terms__list" data-h26-covers></div>
         </section>
 
         <div class="h26-cols">
@@ -297,7 +298,7 @@
     <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/app-home.js?v=20260813-home-access1"></script>
-    <script src="/assets/site/scripts/home-2026.js?v=20261112-clinic1"></script>
+    <script src="/assets/site/scripts/home-2026.js?v=20261112-terms1"></script>
     <script src="/assets/site/scripts/shell.js?v=20261111-side-nav1"></script>
 </body>
 </html>
