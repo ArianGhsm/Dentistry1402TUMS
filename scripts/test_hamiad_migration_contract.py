@@ -19,7 +19,7 @@ assert 'navid_' not in service and 'navid_' not in transport
 assert 'hamiad_seal($cookies)' in service
 assert 'aes-256-gcm' in storage and 'hamiad/.secret.key' in storage
 assert "action === 'courses'" in api and "action === 'course'" in api
-assert '/hamiad/' in home and 'href="/navid/"' not in home
+assert 'href="/navid/"' not in home  # the /hamiad/ shortcut left home with the quick-access row (bot-first, 2026-11-12)
 assert 'http_response_code(410)' in legacy
 assert 'NAVID_RETIRED' in legacy
 assert 'navid.tums.ac.ir' not in home
@@ -34,7 +34,7 @@ assert 'function hamiad_get_html_with_waf_retry' in http
 assert "hamiad_merge_cookies($cookies" in http
 assert 'hamiad_get_html_with_waf_retry($url, $cookies)' in course
 assert "hamiad_get_html_with_waf_retry(" in course
-assert 'data-home-quick="hamiad"' in home
+assert 'data-home-quick="hamiad"' not in home  # quick-access row retired (bot-first, 2026-11-12)
 assert 'hamiad: {' in home_js
 assert 'نوید' not in account_js
 assert 'نوید' not in home_js

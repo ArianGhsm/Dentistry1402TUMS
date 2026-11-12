@@ -247,15 +247,11 @@ def check_home_access_contracts(repo_root: Path) -> list[tuple[Path, int, str, s
     home_text = read_text(home_path)
     home_script_text = read_text(home_script_path)
 
-    quick_nav_match = re.search(r'<nav class="home-quick-actions".*?</nav>', home_text, re.DOTALL)
-    if quick_nav_match is None:
-        issues.append(issue(home_path.relative_to(repo_root), 0, "missing-home-quick-nav", "Homepage quick navigation is required."))
-    else:
-        quick_nav = quick_nav_match.group(0)
-        if 'data-home-quick="forms"' not in quick_nav:
-            issues.append(issue(home_path.relative_to(repo_root), 0, "missing-home-forms-quick-action", "Homepage quick navigation must expose cohort-driven forms."))
-        if 'data-home-quick="exams"' in quick_nav:
-            issues.append(issue(home_path.relative_to(repo_root), 0, "duplicate-home-exams-quick-action", "Exams belongs in the shared bottom navigation, not the homepage quick row."))
+    # Owner decision 2026-11-12: the site is bot-first; the home quick-access
+    # row (forms, Hamiad, grades, chat, account) is retired. Chat stays in the
+    # shared navigation.
+    if 'class="home-quick-actions"' in home_text:
+        issues.append(issue(home_path.relative_to(repo_root), 0, "retired-home-quick-nav", "The homepage quick-access row is retired (bot-first site)."))
 
     for forbidden_marker in ("home-resource-section", "home-class-section", "منابع ورودی‌ها", "مسیرهای ورودی فعال"):
         if forbidden_marker in home_text:
@@ -266,8 +262,6 @@ def check_home_access_contracts(repo_root: Path) -> list[tuple[Path, int, str, s
     if "data-owner-only" not in home_text or "ویژه مالک سایت" not in home_text or "سایت‌های دانشگاه" not in home_text:
         issues.append(issue(home_path.relative_to(repo_root), 0, "missing-home-directory-core-group", "Owner-only tools and university sites must remain available."))
 
-    if not re.search(r"forms:\s*\{\s*enabled:\s*services\.forms\s*&&\s*!!routes\.forms", home_script_text):
-        issues.append(issue(home_script_path.relative_to(repo_root), 0, "non-cohort-home-forms-route", "Homepage forms shortcut must follow the active cohort service flag and route map."))
     if re.search(r"exams:\s*\{\s*enabled:", home_script_text):
         issues.append(issue(home_script_path.relative_to(repo_root), 0, "duplicate-home-exams-target", "Homepage quick-action targets must not recreate the exams bottom-nav entry."))
 
