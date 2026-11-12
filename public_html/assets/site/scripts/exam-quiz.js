@@ -222,7 +222,7 @@
             secondary.push(renderLaunchAlt("learning", learningLabel, reviewOnly ? "پاسخ‌ها قدم‌به‌قدم" : "جواب هر سؤال همان لحظه"));
         } else if (assessmentAllowed) {
             if (report) {
-                secondary.push(renderLaunchAlt("assessment", "کارنامهٔ آزمون", formatPercent(report.percent) + " · " + formatValue(report.correct) + " درست"));
+                secondary.push(renderLaunchAlt("assessment", "کارنامهٔ آزمون", formatPercent(report.percent) + "، " + formatValue(report.correct) + " درست"));
             } else if (!exam.viewerState.canPersist) {
                 secondary.push('<a class="exam26-alt" href="' + escapeHtml(loginHref()) + '"><strong>آزمون با کارنامه</strong><small>برای ثبت کارنامه وارد شو</small></a>');
             } else {
@@ -236,7 +236,7 @@
             '  <header class="exam26-head">',
             course ? '    <a class="exam26-course" href="' + escapeHtml(exam.backHref || "/exams/") + '">' + escapeHtml(course) + (context && context !== course ? '<span> · ' + escapeHtml(context) + "</span>" : "") + "</a>" : "",
             '    <h1 class="exam-stage-title exam26-title">' + escapeHtml(exam.title) + "</h1>",
-            '    <p class="exam26-meta">' + metaParts.map(function (part, index) { return index === 0 ? "<b>" + escapeHtml(part) + "</b>" : escapeHtml(part); }).join(" · ") + "</p>",
+            '    <p class="exam26-meta">' + metaParts.map(function (part, index) { return index === 0 ? "<b>" + escapeHtml(part) + "</b>" : escapeHtml(part); }).join("، ") + "</p>",
             "  </header>",
             renderIndicatorTape(tapeMode, done, total),
             renderCustomPracticeBuilder(),
@@ -252,14 +252,17 @@
         return '<button class="exam26-alt" type="button" data-action="start-mode" data-mode="' + escapeHtml(mode) + '"><strong>' + escapeHtml(label) + "</strong><small>" + escapeHtml(hint) + "</small></button>";
     }
 
-    var TAPE_MAX_CELLS = 60;
+    function tapeMaxCells() {
+        /* a function, not a var: render() runs before later var assignments */
+        return 60;
+    }
 
     function renderTapeCells(mode, currentIndex) {
-        /* One cell per question; past TAPE_MAX_CELLS questions are grouped so
+        /* One cell per question; past tapeMaxCells() questions are grouped so
            every cell keeps a visible width (a 225-question bank becomes 60
            cells). A group reads as done once all its questions are answered. */
         var total = exam.questions.length;
-        var cellCount = Math.min(total, TAPE_MAX_CELLS);
+        var cellCount = Math.min(total, tapeMaxCells());
         var cells = [];
         for (var cell = 0; cell < cellCount; cell++) {
             var from = Math.floor((cell * total) / cellCount);
@@ -290,7 +293,7 @@
         return [
             '<section class="exam26-tape" aria-label="پیشرفت: ' + escapeHtml(formatValue(done) + " از " + formatValue(total)) + '">',
             '  <div class="exam26-tape__head"><span>' + (done > 0 ? "پیشرفت تو در این مجموعه" : "هنوز سؤالی جواب نداده‌ای") + '</span><strong>' + escapeHtml(formatValue(done) + " از " + formatValue(total)) + "</strong></div>",
-            '  <div class="exam26-tape__strip" style="--cells:' + Math.min(total, TAPE_MAX_CELLS) + '" aria-hidden="true">' + cells + "</div>",
+            '  <div class="exam26-tape__strip" style="--cells:' + Math.min(total, tapeMaxCells()) + '" aria-hidden="true">' + cells + "</div>",
             "</section>"
         ].join("");
     }
@@ -526,7 +529,7 @@
             "  </div>",
             '  <div class="exam-focus-bar__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + escapeHtml(String(progress)) + '" aria-label="' + escapeHtml(formatValue(progress) + " درصد پیشرفت") + '">',
             '    <span class="exam-focus-bar__progress-copy">' + escapeHtml(formatValue(totals.answered) + " پاسخ") + "</span>",
-            '    <span class="exam-focus-bar__progress-track exam26-tape__strip exam26-tape__strip--bar" style="--cells:' + Math.min(exam.questions.length, TAPE_MAX_CELLS) + '" aria-hidden="true">' + renderTapeCells(isAssessment ? "assessment" : "learning", currentIndex) + "</span>",
+            '    <span class="exam-focus-bar__progress-track exam26-tape__strip exam26-tape__strip--bar" style="--cells:' + Math.min(exam.questions.length, tapeMaxCells()) + '" aria-hidden="true">' + renderTapeCells(isAssessment ? "assessment" : "learning", currentIndex) + "</span>",
             "  </div>",
             '  <div class="exam-focus-bar__tools">',
             '    <span class="exam-focus-bar__timer" data-exam-timer aria-live="off">' + escapeHtml(timerLabel()) + "</span>",
