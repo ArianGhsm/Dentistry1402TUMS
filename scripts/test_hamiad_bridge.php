@@ -64,4 +64,69 @@ $anonymousHtml = static fn(string $method, string $url, array $options): array =
     'body' => '<form id="login"><input name="login_captcha_id0"></form>',
 ];
 check(!hamiad_verify_home($anonymousCookies, $anonymousHtml), 'Fail closed on anonymous login HTML');
+
+// Regression: Moodle completes successful POST via a testsession redirect
+// before /my/ can be used. Follow only allowlisted Moodle URLs, preserving
+// cookies from each hop and never treating the login page as success.
+$hops = [];
+$loginRedirect = static function(string $method, string $url, array $options) use (&$hops): array {
+    $hops[] = ['url'=>$url, 'cookieHeader'=>hamiad_build_cookie_header($options['cookies'])];
+    if (count($hops) === 1) {
+        return [
+            'ok'=>true, 'status'=>303, 'headers'=>['Location: /my/'],
+            'cookies'=>[['name'=>'MoodleSession', 'value'=>'authenticated']],
+            'body'=>'',
+        ];
+    }
+    return [
+        'ok'=>true, 'status'=>200, 'headers'=>[],
+        'cookies'=>[['name'=>'waf','value'=>'verified']],
+        'body'=>'<a href="/login/logout.php?sesskey=123">خروج</a>',
+    ];
+};
+$loginCookies = [['name'=>'MoodleSession', 'value'=>'initial']];
+check(hamiad_complete_login_handoff(
+    HAMIAD_LOGIN . '?testsession=405', $loginCookies, $loginRedirect
+), 'Completes Moodle testsession handoff');
+check(count($hops) === 2, 'Follows exactly the valid testsession and dashboard');
+check(str_contains($hops[0]['url'], 'testsession=405'), 'Uses provider-specified testsession location');
+check(str_contains($hops[1]['cookieHeader'], 'MoodleSession=authenticated'), 'Carries updated session through redirect');
+check(str_contains(hamiad_build_cookie_header($loginCookies), 'waf=verified'), 'Retains final WAF cookie');
+check(hamiad_login_handoff_url('?testsession=123', HAMIAD_LOGIN) === HAMIAD_LOGIN . '?testsession=123', 'Resolves Moodle relative testsession');
+check(hamiad_login_handoff_url('/my/', HAMIAD_LOGIN) === HAMIAD_HOME, 'Resolves Moodle absolute path');
+foreach ([
+    'http://lms.tums.ac.ir/login/index.php?testsession=405',
+    'https://evil.example/login/index.php?testsession=405',
+    'https://lms.tums.ac.ir:8443/login/index.php?testsession=405',
+    'https://user@lms.tums.ac.ir/login/index.php?testsession=405',
+    '//evil.example/login/index.php?testsession=405',
+    '/mod/assign/view.php?id=32',
+    "https://lms.tums.ac.ir/login/index.php\r\nLocation: https://evil.example",
+] as $untrustedTarget) {
+    check(hamiad_login_handoff_url($untrustedTarget, HAMIAD_LOGIN) === null, 'Reject untrusted handoff destination');
+}
+$externalFollowInvocations = 0;
+$neverExternal = static function(string $method, string $url, array $options) use (&$externalFollowInvocations): array {
+    $externalFollowInvocations++;
+    return ['ok'=>false,'status'=>0,'headers'=>[],'cookies'=>[],'body'=>''];
+};
+$excludedCookies = [];
+check(!hamiad_complete_login_handoff('https://evil.example/my/', $excludedCookies, $neverExternal), 'External redirect rejected');
+check($externalFollowInvocations === 0, 'Never request external redirect');
+$anonymousHandoff = static fn(string $method,string $url,array $options): array => [
+    'ok'=>true,'status'=>200,'headers'=>[],'cookies'=>[],
+    'body'=>'<form id="login"><input name="login_captcha_id0"></form>',
+];
+$anonymousCookies = [];
+check(!hamiad_complete_login_handoff(HAMIAD_LOGIN.'?testsession=0',$anonymousCookies,$anonymousHandoff), 'Reject testsession returned to login page');
+$loopCount = 0;
+$loopingWaf = static function(string $method,string $url,array $options) use (&$loopCount): array {
+    $loopCount++;
+    return ['ok'=>true,'status'=>307,'headers'=>['Location: '.$url],
+        'cookies'=>[],'body'=>''];
+};
+$wafCookies = [];
+check(!hamiad_complete_login_handoff(HAMIAD_LOGIN.'?testsession=4',$wafCookies,$loopingWaf), 'Bound repeated WAF redirects');
+check($loopCount === 8, 'At most eight provider handoff requests');
+
 echo "HAMIAD_BRIDGE_TESTS_OK\n";

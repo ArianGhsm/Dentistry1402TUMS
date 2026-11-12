@@ -292,6 +292,81 @@ function hamiad_response_header_value(array $headers, string $name): string
     return '';
 }
 
+
+/**
+ * Resolve only the Moodle login handoff URLs we expect. Never forward
+ * authentication cookies to an external host, a custom port or userinfo.
+ */
+function hamiad_login_handoff_url(string $location, string $current): ?string
+{
+    $location = trim($location);
+    if ($location === '' || strlen($location) > 1024
+        || preg_match('/[\\x00-\\x1f\\x7f]/', $location)
+        || str_starts_with($location, '//')) {
+        return null;
+    }
+    if (str_starts_with($location, '?')) {
+        $parsed = parse_url($current);
+        if (!is_array($parsed) || !isset($parsed['path'])) return null;
+        $url = 'https://lms.tums.ac.ir' . $parsed['path'] . $location;
+    } elseif (str_starts_with($location, '/')) {
+        $url = 'https://lms.tums.ac.ir' . $location;
+    } else {
+        $url = $location;
+    }
+    $uri = parse_url($url);
+    if (!is_array($uri)
+        || strtolower((string)($uri['scheme'] ?? '')) !== 'https'
+        || strtolower((string)($uri['host'] ?? '')) !== 'lms.tums.ac.ir'
+        || isset($uri['user']) || isset($uri['pass']) || isset($uri['port'])
+        || isset($uri['fragment'])) {
+        return null;
+    }
+    $path = (string)($uri['path'] ?? '/');
+    return in_array($path, ['/', '/my', '/my/', '/my/index.php', '/login/index.php'], true)
+        ? $url : null;
+}
+
+/**
+ * Moodle's valid login redirects to /login/index.php?testsession=... to
+ * verify/establish the session before the dashboard is accessible. Follow
+ * that same-origin handoff and propagate all Set-Cookie changes; do not
+ * consider redirects or a login form proof of authentication.
+ */
+function hamiad_complete_login_handoff(
+    string $location,
+    array &$cookies,
+    ?callable $request = null
+): bool {
+    $request ??= 'hamiad_http_request';
+    $url = hamiad_login_handoff_url($location, 'https://lms.tums.ac.ir/login/index.php');
+    if ($url === null) return false;
+    for ($hop = 0; $hop < 8; $hop++) {
+        $result = $request('GET', $url, [
+            'cookies' => $cookies,
+            'timeoutSec' => 22,
+            'referer' => 'https://lms.tums.ac.ir/login/index.php',
+        ]);
+        $cookies = hamiad_merge_cookies($cookies, (array)($result['cookies'] ?? []));
+        if (empty($result['ok'])) return false;
+        $status = (int)($result['status'] ?? 0);
+        if ($status === 200) {
+            $body = (string)($result['body'] ?? '');
+            return !str_contains($body, 'login_captcha_id0')
+                && !str_contains($body, 'id="login"')
+                && $body !== '';
+        }
+        if (!in_array($status, [302, 303, 307], true)) return false;
+        $next = hamiad_login_handoff_url(
+            hamiad_response_header_value((array)($result['headers'] ?? []), 'location'),
+            $url
+        );
+        if ($next === null) return false;
+        $url = $next;
+    }
+    return false;
+}
+
 /**
  * Handle the provider's same-URL 307 challenge while retaining short-lived
  * WAF cookies. All destinations remain fixed to the approved LMS host.
