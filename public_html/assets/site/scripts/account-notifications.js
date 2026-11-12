@@ -870,6 +870,8 @@
         if (notificationsManagerCard) {
             var canBroadcast = !!manager.canBroadcast;
             notificationsManagerCard.hidden = !canBroadcast;
+            /* bot-first: only the sender (owner) still sees the notifications surface */
+            document.body.classList.toggle("account-can-broadcast", canBroadcast);
             if (notificationsTargetSelect && canBroadcast) {
                 var currentTarget = String(notificationsTargetSelect.value || "");
                 var options = Array.isArray(manager.targets) ? manager.targets : [];

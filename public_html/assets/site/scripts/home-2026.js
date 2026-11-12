@@ -293,34 +293,46 @@
 
     var SAMPLE_PATTERN = /نمونه|سوالات|سؤالات/;
 
-    function sampleRow(course) {
-        var link = document.createElement("a");
-        link.className = "h26-sample";
-        link.href = course.path;
-        var copy = document.createElement("span");
+    function sampleRow(course, isFresh) {
+        /* one row per set: what it is, then a direct way to buy (or start) */
+        var row = document.createElement("div");
+        row.className = "h26-sample";
+        var copy = document.createElement("a");
         copy.className = "h26-sample__copy";
+        copy.href = course.path;
         var title = document.createElement("strong");
         title.textContent = String(course.title || "").replace(/\s*\|\s*/g, "، ");
+        if (isFresh) {
+            var fresh = document.createElement("span");
+            fresh.className = "h26-sample__fresh";
+            fresh.textContent = "تازه";
+            title.appendChild(fresh);
+        }
         var meta = document.createElement("small");
         var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
         var stats = course.stats || {};
         meta.textContent = [
             curriculum.termLabel || "",
-            Number(stats.questionCount) ? faNumber(stats.questionCount) + " سؤال" : (course.badge || "")
+            Number(stats.questionCount) ? faNumber(stats.questionCount) + " سؤال" : (course.badge || ""),
+            course.access && course.access.hasAccess ? "" : priceLabel(course)
         ].filter(Boolean).join("، ");
         copy.appendChild(title);
         copy.appendChild(meta);
-        var status = document.createElement("b");
         var access = course.access || {};
+        var action = document.createElement("a");
         if (access.hasAccess) {
-            status.className = "h26-sample__owned";
-            status.textContent = "فعال";
+            action.className = "h26-sample__go is-owned";
+            action.href = course.path;
+            action.textContent = "شروع";
         } else {
-            status.textContent = priceLabel(course) || access.unlockLabel || "";
+            action.className = "h26-sample__go";
+            action.href = course.paymentPath || course.path;
+            action.textContent = "خرید";
+            action.setAttribute("aria-label", "خرید " + title.textContent);
         }
-        link.appendChild(copy);
-        link.appendChild(status);
-        return link;
+        row.appendChild(copy);
+        row.appendChild(action);
+        return row;
     }
 
     function renderSamples(catalog) {
@@ -338,12 +350,14 @@
             seen[key] = true;
             return true;
         });
-        courses.sort(function (a, b) {
-            return String(b.addedAt || "").localeCompare(String(a.addedAt || ""));
+        /* the catalog API already lists courses newest first */
+        var freshSlugs = {};
+        (catalog && Array.isArray(catalog.homeActiveCourses) ? catalog.homeActiveCourses : []).forEach(function (course) {
+            if (course && course.slug) freshSlugs[course.slug] = true;
         });
         list.textContent = "";
-        courses.slice(0, 6).forEach(function (course) {
-            list.appendChild(sampleRow(course));
+        courses.slice(0, 6).forEach(function (course, index) {
+            list.appendChild(sampleRow(course, !!freshSlugs[course.slug] || index === 0));
         });
         box.hidden = courses.length === 0;
     }

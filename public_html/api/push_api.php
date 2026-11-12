@@ -35,7 +35,7 @@ if ($action === 'publicKey') {
     $user = dent_require_user();
     dent_release_session_lock();
 
-    if (!push_supported()) {
+    if (push_delivery_retired() || !push_supported()) {
         dent_json_response([
             'success' => true,
             'supported' => false,
@@ -59,8 +59,8 @@ if ($action === 'subscribe') {
     $user = dent_require_user();
     dent_release_session_lock();
 
-    if (!push_supported()) {
-        dent_error('اعلان مرورگر روی این سرور فعال نیست.', 503, ['supported' => false]);
+    if (push_delivery_retired() || !push_supported()) {
+        dent_error('اعلان‌ها فقط از ربات تلگرام و بله فرستاده می‌شوند.', 503, ['supported' => false]);
     }
 
     $subscription = push_api_parse_subscription_input();

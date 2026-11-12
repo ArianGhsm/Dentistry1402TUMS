@@ -1969,6 +1969,11 @@
     }
 
     function renderNotificationBanner(state) {
+        /* retired: notifications live in the bots, never as a site popup */
+        if (notificationBanner.root) {
+            notificationBanner.root.hidden = true;
+        }
+        return;
         var banner = ensureNotificationBanner();
         if (!banner) {
             return;
@@ -2205,12 +2210,9 @@
 
         navBadgeState.pending = true;
         Promise.all([
-            window.fetch("/api/notifications_api.php?action=summary", {
-                credentials: "same-origin",
-                headers: {
-                    Accept: "application/json"
-                }
-            }).then(parseJsonResponse),
+            /* Notifications are delivered by the bots only (owner, 2026-11-12):
+               the site no longer polls, badges or pops them up. */
+            Promise.resolve({ success: true, summary: { unreadCount: 0 }, preview: null }),
             window.fetch("/chat/chat_api.php?action=navSummary", {
                 credentials: "same-origin",
                 headers: {

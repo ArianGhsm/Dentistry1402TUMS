@@ -465,3 +465,67 @@ body.home-2026 .h26-unit__end.is-owned {
 @media (max-width: 899.98px) {
     body.home-2026 .h26-terms__list { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---- minimal search: a quiet compact button, not a full-width field ---- */
+body.home-2026 .h26-search {
+    flex: 0 0 auto;
+    align-self: center;
+    min-height: 40px;
+    padding: 0 14px 0 12px;
+    gap: 8px;
+    border: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    color: var(--text-tertiary);
+    font-size: 0.92rem;
+}
+body.home-2026 .h26-search svg { width: 18px; height: 18px; }
+body.home-2026 .h26-search:hover { border-color: var(--border-color-strong); }
+
+/* ---- newest sample sets: info on the start, buy on the end ---- */
+body.home-2026 .h26-sample { padding-inline: 0; }
+body.home-2026 .h26-sample:hover { padding-inline-start: 0; }
+body.home-2026 .h26-sample__copy { flex: 1 1 auto; color: inherit; text-decoration: none; }
+body.home-2026 .h26-sample__copy:hover strong { color: var(--accent-color); }
+body.home-2026 .h26-sample__copy:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
+body.home-2026 .h26-sample__fresh {
+    display: inline-block;
+    margin-inline-start: 8px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--shell-mark);
+    color: var(--brand-navy-950);
+    font: 800 0.72rem/1.7 var(--font-accent);
+    vertical-align: 2px;
+}
+body.home-2026 .h26-sample__go {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: var(--brand-navy-900);
+    color: var(--text-on-accent);
+    font: 800 0.92rem var(--font-accent);
+    text-decoration: none;
+}
+html[data-theme="dark"] body.home-2026 .h26-sample__go { background: var(--brand-brass); }
+body.home-2026 .h26-sample__go.is-owned {
+    background: none;
+    border: 1px solid var(--border-color-strong);
+    color: var(--text-primary);
+}
+body.home-2026 .h26-sample__go:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+@media (max-width: 899.98px) {
+    body.home-2026 .h26-top { flex-direction: row !important; align-items: flex-end !important; flex-wrap: wrap; }
+    body.home-2026 .h26-search { flex: 0 0 auto !important; }
+}
+@media (max-width: 899.98px) {
+    /* the header already carries search on phones: keep the greeting alone */
+    body.home-2026 .h26-search { display: none !important; }
+    body.home-2026 .h26-greeting { font-size: clamp(1.45rem, 6.6vw, 1.9rem) !important; }
+}

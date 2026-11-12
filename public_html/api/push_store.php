@@ -15,6 +15,11 @@ const PUSH_MAX_RECIPIENTS_PER_DISPATCH = 600;
  * cURL. When the host lacks any of these the feature stays dormant and the rest
  * of the notification pipeline keeps working untouched.
  */
+function push_delivery_retired(): bool
+{
+    return true;
+}
+
 function push_supported(): bool
 {
     return extension_loaded('openssl')
@@ -615,6 +620,12 @@ function push_build_notification_payload(array $record): string
  */
 function notifications_dispatch_push_if_needed(string $notificationId): array
 {
+    // Owner decision 2026-11-12: notifications reach students through the
+    // Telegram/Bale bots only. Browser push delivery is retired; subscriptions
+    // and code stay so it can be restored deliberately.
+    if (push_delivery_retired()) {
+        return ['success' => false, 'reason' => 'retired'];
+    }
     $notificationId = trim($notificationId);
     if ($notificationId === '' || !push_supported()) {
         return ['success' => false, 'reason' => 'unsupported'];
