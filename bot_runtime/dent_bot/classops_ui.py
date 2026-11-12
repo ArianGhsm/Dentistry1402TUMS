@@ -23,6 +23,7 @@ from .classops_shell import (
 )
 from .persian_datetime import PERSIAN_WEEKDAYS, format_jalali_datetime, gregorian_to_jalali, to_persian_digits
 from .site_api import SiteApiError
+from .hamiad_login import start_hamiad_login
 from .ui import Screen, button, keyboard, native_rich_text
 
 if TYPE_CHECKING:
@@ -891,7 +892,7 @@ def handle_classops_ui_callback(
             ))
             return True
         if data == "hamiad:login":
-            app._start_hamiad_login(chat_id)
+            start_hamiad_login(app, chat_id)
             return True
         try:
             parts = data.split(":")
