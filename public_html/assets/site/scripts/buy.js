@@ -73,6 +73,11 @@
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
     }
 
+    /* Student-facing receipt amounts: stored in rials, shown in tomans. */
+    function moneyToman(value) {
+        return Math.round(Math.max(0, Number(value) || 0) / 10).toLocaleString("fa-IR") + " تومان";
+    }
+
     function normalizeDigits(value) {
         if (siteApi && typeof siteApi.normalizeDigits === "function") {
             return siteApi.normalizeDigits(value);
@@ -2303,6 +2308,27 @@
         }
 
         apiGet("publicOrderResult", { orderToken: orderToken }).then(function (payload) {
+            if (payload && (payload.loggedOut || payload.httpStatus === 401)) {
+                /* Only orders that really need an account ask for login, and
+                   only after the canonical auth endpoint confirms the session
+                   is gone; a transient/malformed 401 keeps a recoverable error. */
+                var auth = window.Dent1402Auth;
+                var verify = auth && typeof auth.verifySession === "function"
+                    ? auth.verifySession({ attempts: 2, delayMs: 600 })
+                    : Promise.resolve(null);
+                verify.then(function (result) {
+                    if (result === false) {
+                        if (auth && typeof auth.handleUnauthorizedPayload === "function") {
+                            auth.handleUnauthorizedPayload(payload);
+                        }
+                        showBuyLoginRequired();
+                        return;
+                    }
+                    if (titleNode) titleNode.textContent = "نتیجه پرداخت فعلاً در دسترس نیست";
+                    if (messageNode) messageNode.textContent = "دریافت وضعیت پرداخت موقتاً ناموفق بود. چند لحظه بعد صفحه را دوباره باز کنید.";
+                });
+                return;
+            }
             if (!payload || !payload.success || !payload.order) {
                 if (titleNode) titleNode.textContent = "نتیجه پرداخت در دسترس نیست";
                 if (messageNode) messageNode.textContent = (payload && payload.error) || "امکان دریافت وضعیت پرداخت وجود ندارد.";
@@ -2320,6 +2346,9 @@
                 statusNode.textContent = order.statusLabel || "در انتظار";
                 statusNode.className = "buy-status " + statusClass(order.status);
             }
+            if (document.body) {
+                document.body.setAttribute("data-result-status", String(order.status || "pending"));
+            }
             if (titleNode) {
                 titleNode.textContent = order.status === "success"
                     ? "پرداخت شما ثبت و تایید شد"
@@ -2331,17 +2360,17 @@
             if (summaryNode) {
                 var resultSubtotal = Number(order.subtotal || 0) || ((Number(order.unitPrice || 0) || 0) * (Number(order.quantity || 1) || 1));
                 var rows = [
-                    { label: "مبلغ نهایی", value: money(order.amount || 0) }
+                    { label: "مبلغ نهایی", value: moneyToman(order.amount || 0) }
                 ];
                 if (Number(order.unitPrice || 0) > 0 && !resultCartItems.length) {
-                    rows.push({ label: "قیمت واحد", value: money(order.unitPrice || 0) });
+                    rows.push({ label: "قیمت واحد", value: moneyToman(order.unitPrice || 0) });
                 }
                 rows.push(
                     { label: "تعداد", value: Number(order.quantity || 1).toLocaleString("fa-IR") },
-                    { label: "جمع قبل از تخفیف", value: money(resultSubtotal || order.amount || 0) }
+                    { label: "جمع قبل از تخفیف", value: moneyToman(resultSubtotal || order.amount || 0) }
                 );
                 if (Number(order.discountAmount || 0) > 0) {
-                    rows.push({ label: "تخفیف", value: money(order.discountAmount || 0) });
+                    rows.push({ label: "تخفیف", value: moneyToman(order.discountAmount || 0) });
                 }
                 rows.push(
                     { label: "پرداخت‌کننده", value: order.payerName || "—" },
@@ -2365,18 +2394,19 @@
                 }
                 if (order.refId) {
                     rows.push({ label: "کد رهگیری", value: order.refId });
-                } else if (order.authority) {
-                    rows.push({ label: "authority", value: order.authority });
                 }
                 if (order.verifiedAt) {
                     rows.push({ label: "زمان تایید", value: formatDateTime(order.verifiedAt, "—") });
                 }
 
+                var ltrLabels = { "موبایل": true, "کد رهگیری": true };
                 summaryNode.innerHTML = rows.map(function (row) {
+                    /* Phone numbers and tracking codes keep their LTR order. */
+                    var ltr = ltrLabels[row.label] || /^[\x00-\x7F\u2010-\u2015]+$/.test(String(row.value || ""));
                     return [
                         '<div class="buy-result-row">',
                         '  <span>' + text(row.label) + "</span>",
-                        '  <strong>' + text(row.value) + "</strong>",
+                        '  <strong' + (ltr ? ' dir="ltr" class="is-ltr" data-latin-digits="true"' : "") + ">" + text(row.value) + "</strong>",
                         "</div>"
                     ].join("");
                 }).join("");
@@ -2423,6 +2453,6 @@
         return;
     }
     if (page === "result") {
-        startAfterAuth(initResultPage);
+        initResultPage();
     }
 })();
