@@ -102,4 +102,44 @@ check(pcntl_wexitstatus($childStatus) === 0, 'a changed connectedAt is not overw
 check(hamiad_keepalive_persist_cookies(hamiad_session_path(), '2026-11-13T10:00:00+03:30', [$cookie('MoodleSession', 'refreshed')]),
     'an unchanged session is refreshed under the lock');
 
+// Moodle answers an expired session with a 303 to /login: that is expiry, not an error.
+$saveSession('2026-11-13T11:00:00+03:30', [$cookie('MoodleSession', 'stale')]);
+$redirectToLogin = static fn () => ['ok' => true, 'status' => 303, 'cookies' => [], 'body' => '',
+    'headers' => ['Location: https://lms.tums.ac.ir/login/index.php']];
+check(hamiad_keepalive_touch($redirectToLogin)['state'] === 'expired', '303 to /login is expiry');
+
+// Arvan's same-URL 307 is followed with its cookies, then the page is read.
+$calls = 0;
+$arvanThenAlive = static function (string $method, string $url, array $options) use (&$calls, $cookie) {
+    $calls++;
+    if ($calls === 1) {
+        return ['ok' => true, 'status' => 307, 'body' => '', 'cookies' => [$cookie('__arcsjs', 'challenge')],
+            'headers' => ['Location: ' . HAMIAD_HOME]];
+    }
+    $names = array_map(static fn ($c) => $c['name'], (array) ($options['cookies'] ?? []));
+    return ['ok' => true, 'status' => 200, 'headers' => [], 'cookies' => [],
+        'body' => in_array('__arcsjs', $names, true) ? '<a href="/login/logout.php?sesskey=z">خروج</a>' : ''];
+};
+check(hamiad_keepalive_touch($arvanThenAlive)['state'] === 'alive', 'Arvan 307 is followed with its cookies');
+
+// The mobile probe repeats its POST through Arvan's 307.
+$probeCalls = 0;
+$probe307 = static function (string $method, string $url, array $options) use (&$probeCalls, $cookie) {
+    $probeCalls++;
+    if ($probeCalls === 1) {
+        return ['ok' => true, 'status' => 307, 'body' => '', 'cookies' => [$cookie('__arcsjs', 'p')],
+            'headers' => ['Location: ' . $url]];
+    }
+    return ['ok' => true, 'status' => 200, 'headers' => [], 'cookies' => [],
+        'body' => json_encode([['error' => false, 'data' => ['enablemobilewebservice' => 0, 'typeoflogin' => 1]]])];
+};
+$probed = hamiad_mobile_probe($probe307);
+check($probed['answered'] === true && $probed['enablemobilewebservice'] === 0 && $probeCalls === 2, 'probe follows Arvan 307');
+
+// An unanswered probe is retried after an hour, not a day.
+hamiad_keepalive_write(hamiad_mobile_probe_path(), ['at' => date(DATE_ATOM, time() - 4000), 'answered' => false]);
+check(hamiad_mobile_probe_due(time()), 'unanswered probe retries hourly');
+hamiad_keepalive_write(hamiad_mobile_probe_path(), ['at' => date(DATE_ATOM, time() - 4000), 'answered' => true]);
+check(!hamiad_mobile_probe_due(time()), 'answered probe waits a day');
+
 echo "HAMIAD_KEEPALIVE_TESTS_OK\n";
