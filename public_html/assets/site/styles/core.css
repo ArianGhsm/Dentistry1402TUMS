@@ -138,7 +138,7 @@
     --motion-ease-soft: cubic-bezier(0.2, 0.88, 0.24, 1);
     --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
     --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
-    --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --motion-ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
     --shell-header-offset: calc(64px + env(safe-area-inset-top, 0px));
     --shell-nav-offset: calc(104px + env(safe-area-inset-bottom, 0px));
     --shell-nav-content-reserve: calc(var(--shell-nav-offset) + 0.5rem);
@@ -1127,7 +1127,6 @@ body.app-shell-hidden {
 .shell-bottom-nav__link:not(.is-active):focus-visible {
     color: var(--text-primary);
     background: var(--shell-nav-active-bg);
-    transform: translateY(-1px);
 }
 
 .shell-bottom-nav__link.is-active {
@@ -1212,10 +1211,11 @@ html.site-bottom-nav-solid .shell-bottom-nav__inner {
     touch-action: manipulation;
 }
 
-/* Tactile press: the whole control dips under the finger, then springs back. */
-.shell-bottom-nav__link:active {
-    transform: scale(0.88);
-    transition-duration: 90ms;
+/* Tactile press: the whole control dips under the finger, then comes back. */
+.shell-bottom-nav__link:active,
+.shell-bottom-nav__link:not(.is-active):active {
+    transform: scale(0.97);
+    transition-duration: 100ms;
 }
 
 .shell-bottom-nav__link.is-active:active {
@@ -1432,7 +1432,8 @@ html.site-bottom-nav-solid .shell-bottom-nav__inner {
 }
 
 .shell-search-input:focus {
-    outline: none;
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
 }
 
 .shell-search-close {
@@ -2325,7 +2326,7 @@ html[data-performance-mode="lite"] .shell-modal {
     }
 
     .shell-bottom-nav__label {
-        font-size: 0.74rem;
+        font-size: 0.78rem;
     }
 
     .shell-notification-banner {

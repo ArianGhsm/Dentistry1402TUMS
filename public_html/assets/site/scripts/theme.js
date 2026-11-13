@@ -87,7 +87,8 @@
     }
 
     function themeColor(theme) {
-        return theme === "dark" ? "#0d1420" : "#eef2f7";
+        /* the phone status bar continues the teal shell header */
+        return theme === "dark" ? "#0f302d" : "#0b3f3c";
     }
 
     function launchSplashColor(theme) {

@@ -201,6 +201,7 @@
             });
         }
         card.hidden = false;
+        endEntranceSoon();
         if (start) {
             start.hidden = true;
         }
@@ -420,6 +421,17 @@
             + (priceText || "، با یک بار پرداخت برای همیشه.");
     }
 
+    /* the entrance plays once: after the lead's content has arrived, later
+       re-renders (auth refresh, bfcache) must not replay it */
+    var entranceTimer = null;
+    function endEntranceSoon() {
+        var root = document.documentElement;
+        if (!root.classList.contains("h26-enter") || entranceTimer) {
+            return;
+        }
+        entranceTimer = window.setTimeout(function () { root.classList.remove("h26-enter"); }, 700);
+    }
+
     function renderFeature(course) {
         var card = $("[data-h26-feature]");
         if (!card) {
@@ -436,7 +448,8 @@
         var questions = Number(stats.questionCount) || 0;
         card.textContent = "";
 
-        var title = document.createElement("h2");
+        /* the hero's one heading is its h1; the featured set is its content */
+        var title = document.createElement("p");
         title.className = "h26-feature__title";
         var titleLink = document.createElement("a");
         titleLink.href = course.path;
@@ -485,6 +498,44 @@
         card.appendChild(tape);
         card.appendChild(actions);
         card.hidden = false;
+        endEntranceSoon();
+    }
+
+    /* a slow or failed network must not leave a slogan over nothing */
+    function renderCatalogError(state) {
+        var card = $("[data-h26-feature]");
+        if (!card || ($("[data-h26-continue]") && !$("[data-h26-continue]").hidden)) {
+            return;
+        }
+        card.textContent = "";
+        var title = document.createElement("p");
+        title.className = "h26-feature__title";
+        title.textContent = "فهرست نمونه‌سؤال‌ها باز نشد";
+        var meta = document.createElement("p");
+        meta.className = "h26-feature__meta";
+        meta.textContent = "اینترنت کند است یا قطع شد. دوباره امتحان کن یا مستقیم به آزمون‌ها برو.";
+        var actions = document.createElement("div");
+        actions.className = "h26-feature__actions";
+        var retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "h26-feature__buy";
+        retry.textContent = "تلاش دوباره";
+        retry.addEventListener("click", function () {
+            card.hidden = true;
+            shelfLoadedFor = null;
+            renderShelf(state || authState());
+        });
+        var more = document.createElement("a");
+        more.className = "h26-feature__more";
+        more.href = "/exams/";
+        more.textContent = "رفتن به آزمون‌ها";
+        actions.appendChild(retry);
+        actions.appendChild(more);
+        card.appendChild(title);
+        card.appendChild(meta);
+        card.appendChild(actions);
+        card.hidden = false;
+        endEntranceSoon();
     }
 
     function unitCourses(unit) {
@@ -532,32 +583,47 @@
     }
 
     function unitRow(unit) {
+        /* the same row grammar as the sample sets: name and meta lead to the
+           course, the end action buys (or opens) it */
         var courses = unitCourses(unit);
         var href = unit.entryMode === "direct" && unit.entryHref ? unit.entryHref : courses[0].path;
         if (courses.length > 1) {
             href = "/exams/?mode=term&term=" + encodeURIComponent(String(unit.termNumber || "")) + "&unit=" + encodeURIComponent(String(unit.key || ""));
         }
+        var single = courses.length === 1 ? courses[0] : null;
         var owned = courses.every(function (course) { return course.access && course.access.hasAccess; });
-        var price = courses.length === 1 ? priceLabel(courses[0]) : "";
-        var row = document.createElement("a");
-        row.className = "h26-unit";
-        row.href = href;
-        var copy = document.createElement("span");
-        copy.className = "h26-unit__copy";
+        var row = document.createElement("div");
+        row.className = "h26-sample h26-unit";
+        var copy = document.createElement("a");
+        copy.className = "h26-sample__copy";
+        copy.href = href;
         var title = document.createElement("strong");
         title.textContent = String(unit.title || "");
         var meta = document.createElement("small");
         meta.textContent = [
             faNumber(unit.stats.questionCount) + " سؤال",
-            courses.length > 1 ? faNumber(courses.length) + " مجموعه" : ""
+            courses.length > 1 ? faNumber(courses.length) + " مجموعه" : "",
+            single && !owned ? priceLabel(single) : ""
         ].filter(Boolean).join("، ");
         copy.appendChild(title);
         copy.appendChild(meta);
-        var end = document.createElement("span");
-        end.className = "h26-unit__end" + (owned ? " is-owned" : "");
-        end.textContent = owned ? "فعال" : (price || "مشاهده");
+        var action = document.createElement("a");
+        action.className = "h26-sample__go";
+        if (owned) {
+            action.className += " is-owned";
+            action.href = href;
+            action.textContent = "شروع";
+        } else if (single) {
+            action.href = single.paymentPath || href;
+            action.textContent = "خرید";
+            action.setAttribute("aria-label", "خرید " + title.textContent);
+        } else {
+            action.className += " is-owned";
+            action.href = href;
+            action.textContent = "دیدن";
+        }
         row.appendChild(copy);
-        row.appendChild(end);
+        row.appendChild(action);
         return row;
     }
 
@@ -623,6 +689,7 @@
         }).catch(function () {
             if (shelfLoadedFor === cohortKey) {
                 shelf.hidden = true;
+                renderCatalogError(state);
             }
         });
     }
