@@ -68,6 +68,45 @@ function hamiad_keepalive_persist_cookies(string $sessionPath, string $loadedCon
 }
 
 /**
+ * GET /my/ with the saved cookies, following only Arvan's same-URL 307
+ * challenge. Moodle answers an expired session with a 303 to /login (or the
+ * login form itself); both mean "expired", not a transport error.
+ */
+function hamiad_keepalive_probe_home(array &$cookies, ?callable $request = null): string
+{
+    $request ??= 'hamiad_http_request';
+    for ($attempt = 0; $attempt < 5; $attempt++) {
+        $result = $request('GET', HAMIAD_HOME, [
+            'cookies' => $cookies, 'timeoutSec' => 22, 'referer' => HAMIAD_HOME,
+        ]);
+        $cookies = hamiad_merge_cookies($cookies, (array) ($result['cookies'] ?? []));
+        if (empty($result['ok'])) {
+            return 'error';
+        }
+        $status = (int) ($result['status'] ?? 0);
+        $location = hamiad_response_header_value((array) ($result['headers'] ?? []), 'location');
+        if ($status === 200) {
+            $body = (string) ($result['body'] ?? '');
+            if (str_contains($body, 'login/logout.php')) {
+                return 'alive';
+            }
+            if (str_contains($body, 'login_captcha_id0') || str_contains($body, 'id="login"')) {
+                return 'expired';
+            }
+            return 'error';
+        }
+        if ($status === 307 && hash_equals(HAMIAD_HOME, $location)) {
+            continue;
+        }
+        if (in_array($status, [301, 302, 303, 307], true) && str_contains($location, '/login/')) {
+            return 'expired';
+        }
+        return 'error';
+    }
+    return 'error';
+}
+
+/**
  * Touch the saved session. Returns ['state' => 'alive'|'expired'|'none'|'error'].
  * The saved session is only rewritten when it is still the one we loaded, so
  * a login that lands meanwhile is never overwritten with older cookies.
@@ -81,24 +120,11 @@ function hamiad_keepalive_touch(?callable $request = null): array
         $result = ['state' => 'none'];
     } else {
         $loadedConnectedAt = (string) ($saved['connectedAt'] ?? '');
-        try {
-            $body = hamiad_get_html_with_waf_retry(HAMIAD_HOME, $cookies, $request);
-            $alive = str_contains($body, 'login/logout.php');
-        } catch (RuntimeException $error) {
-            $alive = false;
-            $expired = str_contains($error->getMessage(), 'منقضی');
-            if (!$expired) {
-                $result = ['state' => 'error'];
-            }
+        $state = hamiad_keepalive_probe_home($cookies, $request);
+        if ($state === 'alive') {
+            hamiad_keepalive_persist_cookies($sessionPath, $loadedConnectedAt, $cookies);
         }
-        if (!isset($result)) {
-            if ($alive) {
-                hamiad_keepalive_persist_cookies($sessionPath, $loadedConnectedAt, $cookies);
-                $result = ['state' => 'alive'];
-            } else {
-                $result = ['state' => 'expired'];
-            }
-        }
+        $result = ['state' => $state];
     }
 
     $prior = dent_read_json_file(hamiad_keepalive_status_path(), []);
@@ -120,11 +146,24 @@ function hamiad_keepalive_touch(?callable $request = null): array
 function hamiad_mobile_probe(?callable $request = null): array
 {
     $request ??= 'hamiad_http_request';
-    $result = $request('POST', HAMIAD_BASE . '/lib/ajax/service-nologin.php?info=tool_mobile_get_public_config', [
-        'json' => [['index' => 0, 'methodname' => 'tool_mobile_get_public_config', 'args' => (object) []]],
-        'timeoutSec' => 16,
-        'referer' => HAMIAD_LOGIN,
-    ]);
+    $url = HAMIAD_BASE . '/lib/ajax/service-nologin.php?info=tool_mobile_get_public_config';
+    $cookies = [];
+    $result = [];
+    // Arvan answers with a same-URL 307 that sets short-lived cookies; repeat
+    // the POST with them (bounded), exactly like the GET challenge handling.
+    for ($attempt = 0; $attempt < 4; $attempt++) {
+        $result = $request('POST', $url, [
+            'json' => [['index' => 0, 'methodname' => 'tool_mobile_get_public_config', 'args' => (object) []]],
+            'cookies' => $cookies,
+            'timeoutSec' => 16,
+            'referer' => HAMIAD_LOGIN,
+        ]);
+        $cookies = hamiad_merge_cookies($cookies, (array) ($result['cookies'] ?? []));
+        $location = hamiad_response_header_value((array) ($result['headers'] ?? []), 'location');
+        if (empty($result['ok']) || (int) ($result['status'] ?? 0) !== 307 || !hash_equals($url, $location)) {
+            break;
+        }
+    }
     $record = ['at' => dent_iso_now(), 'reachable' => !empty($result['ok']),
         'httpStatus' => (int) ($result['status'] ?? 0)];
     $decoded = json_decode((string) ($result['body'] ?? ''), true);
@@ -145,7 +184,9 @@ function hamiad_mobile_probe_due(int $clock): bool
 {
     $prior = dent_read_json_file(hamiad_mobile_probe_path(), []);
     $at = strtotime((string) ($prior['at'] ?? ''));
-    return $at === false || $at < $clock - 86400;
+    // Unanswered probes (e.g. a WAF challenge) retry hourly; answers daily.
+    $interval = !empty($prior['answered']) ? 86400 : 3600;
+    return $at === false || $at < $clock - $interval;
 }
 
 /**

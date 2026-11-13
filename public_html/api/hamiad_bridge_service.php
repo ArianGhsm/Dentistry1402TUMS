@@ -303,18 +303,32 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         || !preg_match('/^[A-Za-z0-9]{4,10}$/D', $captcha)) {
         throw new RuntimeException('اطلاعات ورود یا عبارت امنیتی ناقص است.');
     }
-    $response = hamiad_http_request('POST', HAMIAD_LOGIN, [
-        'cookies' => (array) $challenge['cookies'],
-        'origin' => HAMIAD_BASE, 'referer' => HAMIAD_LOGIN, 'timeoutSec' => 22,
-        'form' => [
-            'anchor' => '',
-            'logintoken' => (string) $challenge['token'],
-            'username' => $username,
-            'password' => $password,
-            'login_captcha_id0' => (string) $challenge['captchaId'],
-            'login_captcha' => $captcha,
-        ],
-    ]);
+    // ArvanCloud may answer the POST itself with a same-URL 307 challenge
+    // before Moodle sees it. Repeat the identical POST with the refreshed
+    // cookies (bounded); Moodle only ever evaluates one submission.
+    $postCookies = (array) $challenge['cookies'];
+    $response = [];
+    for ($wafAttempt = 0; $wafAttempt < 3; $wafAttempt++) {
+        $response = hamiad_http_request('POST', HAMIAD_LOGIN, [
+            'cookies' => $postCookies,
+            'origin' => HAMIAD_BASE, 'referer' => HAMIAD_LOGIN, 'timeoutSec' => 22,
+            'form' => [
+                'anchor' => '',
+                'logintoken' => (string) $challenge['token'],
+                'username' => $username,
+                'password' => $password,
+                'login_captcha_id0' => (string) $challenge['captchaId'],
+                'login_captcha' => $captcha,
+            ],
+        ]);
+        $postCookies = hamiad_merge_cookies($postCookies, (array) ($response['cookies'] ?? []));
+        $wafLocation = hamiad_response_header_value((array) ($response['headers'] ?? []), 'location');
+        if (empty($response['ok']) || (int) ($response['status'] ?? 0) !== 307
+            || !hash_equals(HAMIAD_LOGIN, $wafLocation)) {
+            break;
+        }
+    }
+    $challenge['cookies'] = $postCookies;
     $location = hamiad_response_header_value((array)($response['headers'] ?? []), 'location');
     $postTrace = [
         'postStatus'=>(int)($response['status'] ?? 0),
