@@ -355,11 +355,99 @@
         (catalog && Array.isArray(catalog.homeActiveCourses) ? catalog.homeActiveCourses : []).forEach(function (course) {
             if (course && course.slug) freshSlugs[course.slug] = true;
         });
+        renderFact(courses);
+        /* the first screen offers one thing: continue an exam, else the newest set */
+        var continuing = !!($("[data-h26-continue]") && !$("[data-h26-continue]").hidden);
+        var featured = continuing ? null : courses[0] || null;
+        renderFeature(featured);
+        var rest = featured ? courses.slice(1) : courses;
         list.textContent = "";
-        courses.slice(0, 6).forEach(function (course, index) {
-            list.appendChild(sampleRow(course, !!freshSlugs[course.slug] || index === 0));
+        rest.slice(0, 6).forEach(function (course, index) {
+            list.appendChild(sampleRow(course, !!freshSlugs[course.slug] || (!featured && index === 0)));
         });
-        box.hidden = courses.length === 0;
+        box.hidden = rest.length === 0;
+    }
+
+    function renderFact(courses) {
+        var fact = $("[data-h26-fact]");
+        if (!fact || !courses.length) {
+            return;
+        }
+        var prices = {};
+        var common = "";
+        courses.forEach(function (course) {
+            var label = priceLabel(course);
+            if (!label) return;
+            prices[label] = (prices[label] || 0) + 1;
+            if (!common || prices[label] > prices[common]) common = label;
+        });
+        fact.textContent = faNumber(courses.length) + " مجموعه نمونه‌سؤال میان‌ترم و پایان‌ترم"
+            + (common ? "، هر کدام " + common + " و برای همیشه." : "، با یک بار پرداخت برای همیشه.");
+    }
+
+    function renderFeature(course) {
+        var card = $("[data-h26-feature]");
+        if (!card) {
+            return;
+        }
+        if (!course) {
+            card.hidden = true;
+            card.textContent = "";
+            return;
+        }
+        var access = course.access || {};
+        var stats = course.stats || {};
+        var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
+        var questions = Number(stats.questionCount) || 0;
+        card.textContent = "";
+
+        var title = document.createElement("h2");
+        title.className = "h26-feature__title";
+        var titleLink = document.createElement("a");
+        titleLink.href = course.path;
+        titleLink.textContent = String(course.title || "").replace(/\s*\|\s*/g, "، ");
+        title.appendChild(titleLink);
+        var fresh = document.createElement("span");
+        fresh.className = "h26-sample__fresh";
+        fresh.textContent = "تازه";
+        title.appendChild(fresh);
+
+        var meta = document.createElement("p");
+        meta.className = "h26-feature__meta";
+        meta.textContent = [curriculum.termLabel || "", questions ? faNumber(questions) + " سؤال با پاسخ تشریحی" : (course.badge || "")]
+            .filter(Boolean).join("، ");
+
+        /* the set's size as indicator tape: one raw cell per question (grouped past 60) */
+        var tape = document.createElement("div");
+        tape.className = "h26-tape h26-tape--feature";
+        tape.setAttribute("aria-hidden", "true");
+        var cells = Math.max(1, Math.min(questions || 20, 60));
+        tape.style.setProperty("--cells", String(cells));
+        tape.innerHTML = new Array(cells + 1).join("<i></i>");
+
+        var actions = document.createElement("div");
+        actions.className = "h26-feature__actions";
+        var primary = document.createElement("a");
+        primary.className = "h26-feature__buy";
+        if (access.hasAccess) {
+            primary.href = course.path;
+            primary.textContent = "شروع آزمون";
+        } else {
+            primary.href = course.paymentPath || course.path;
+            primary.textContent = "خرید " + (priceLabel(course) || "مجموعه");
+        }
+        actions.appendChild(primary);
+        var more = document.createElement("a");
+        more.className = "h26-feature__more";
+        more.href = course.path;
+        more.textContent = "دیدن جلسه‌ها و سؤال‌ها";
+        actions.appendChild(more);
+
+        card.appendChild(title);
+        card.appendChild(meta);
+        card.appendChild(tape);
+        card.appendChild(actions);
+        card.hidden = false;
     }
 
     function unitCourses(unit) {

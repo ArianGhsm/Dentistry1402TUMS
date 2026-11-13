@@ -57,7 +57,7 @@ html[data-theme="light"] {
     --surface-contrast: #e9f0ed;
     --text-primary: #0f1f1d;
     --text-secondary: #3f5652;
-    --text-tertiary: #5d7873;
+    --text-tertiary: #536d68;
     --accent-color: #12605a;
     --accent-strong: #0b3f3c;
     --accent-soft: rgba(18, 96, 90, 0.09);
@@ -86,7 +86,7 @@ html[data-theme="light"] {
     --shell-nav-active-text: #ffffff;
     --shell-nav-active-shadow: none;
     --footer-title-color: #12605a;
-    --footer-credit-color: #5d7873;
+    --footer-credit-color: #536d68;
     --font-accent: "Estedad", "YekanBakh", "Yekan", "IRANSans", system-ui, sans-serif;
     --font-special: "AbarHigh", "Estedad", "YekanBakh", sans-serif;
 }
