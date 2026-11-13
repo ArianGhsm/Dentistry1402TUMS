@@ -162,7 +162,7 @@
         }
     }
 
-    function renderContinue() {
+    function renderContinueState() {
         var card = $("[data-h26-continue]");
         var start = $("[data-h26-start]");
         var data = readLastExam();
@@ -203,6 +203,15 @@
         card.hidden = false;
         if (start) {
             start.hidden = true;
+        }
+    }
+
+    /* the lead offers continue OR the newest set: re-pick whenever continue
+       changes (bfcache restore, auth refresh), using the cached catalog */
+    function renderContinue() {
+        renderContinueState();
+        if (lastSamplesCatalog) {
+            renderSamples(lastSamplesCatalog);
         }
     }
 
@@ -293,6 +302,21 @@
 
     var SAMPLE_PATTERN = /نمونه|سوالات|سؤالات/;
 
+    /* «آزمون نمونه سوالات پایان‌ترم فوریت پزشکی» → { name: «فوریت پزشکی», kind: «پایان‌ترم» }.
+       Inside a sample-question list the shared prefix is noise; the course name is the point. */
+    function splitSampleTitle(raw) {
+        var text = String(raw || "").replace(/\s*\|\s*/g, "، ").replace(/\u200c/g, "\u200c").trim();
+        var rest = text.replace(/^آزمون\s+/, "").replace(/^نمونه[\s\u200c]*(سؤالات|سوالات|سؤال|سوال)\s*/, "");
+        var kind = "";
+        var match = rest.match(/^(میان[\s\u200c]*ترم|پایان[\s\u200c]*ترم)\s*/);
+        if (match) {
+            kind = /میان/.test(match[1]) ? "میان‌ترم" : "پایان‌ترم";
+            rest = rest.slice(match[0].length);
+        }
+        rest = rest.trim();
+        return { name: rest || text, kind: kind };
+    }
+
     function sampleRow(course, isFresh) {
         /* one row per set: what it is, then a direct way to buy (or start) */
         var row = document.createElement("div");
@@ -300,8 +324,10 @@
         var copy = document.createElement("a");
         copy.className = "h26-sample__copy";
         copy.href = course.path;
+        var split = splitSampleTitle(course.title);
         var title = document.createElement("strong");
-        title.textContent = String(course.title || "").replace(/\s*\|\s*/g, "، ");
+        title.textContent = split.name;
+        copy.title = String(course.title || "");
         if (isFresh) {
             var fresh = document.createElement("span");
             fresh.className = "h26-sample__fresh";
@@ -312,6 +338,7 @@
         var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
         var stats = course.stats || {};
         meta.textContent = [
+            split.kind,
             curriculum.termLabel || "",
             Number(stats.questionCount) ? faNumber(stats.questionCount) + " سؤال" : (course.badge || ""),
             course.access && course.access.hasAccess ? "" : priceLabel(course)
@@ -335,7 +362,10 @@
         return row;
     }
 
+    var lastSamplesCatalog = null;
+
     function renderSamples(catalog) {
+        lastSamplesCatalog = catalog || lastSamplesCatalog;
         var box = $("[data-h26-samples]");
         var list = $("[data-h26-samples-list]");
         if (!box || !list) {
@@ -355,11 +385,106 @@
         (catalog && Array.isArray(catalog.homeActiveCourses) ? catalog.homeActiveCourses : []).forEach(function (course) {
             if (course && course.slug) freshSlugs[course.slug] = true;
         });
+        renderFact(courses);
+        /* the first screen offers one thing: continue an exam, else the newest set */
+        var continuing = !!($("[data-h26-continue]") && !$("[data-h26-continue]").hidden);
+        var featured = continuing ? null : courses[0] || null;
+        renderFeature(featured);
+        var rest = featured ? courses.slice(1) : courses;
         list.textContent = "";
-        courses.slice(0, 6).forEach(function (course, index) {
-            list.appendChild(sampleRow(course, !!freshSlugs[course.slug] || index === 0));
+        rest.slice(0, 6).forEach(function (course, index) {
+            list.appendChild(sampleRow(course, !!freshSlugs[course.slug] || (!featured && index === 0)));
         });
-        box.hidden = courses.length === 0;
+        box.hidden = rest.length === 0;
+    }
+
+    function renderFact(courses) {
+        var fact = $("[data-h26-fact]");
+        if (!fact || !courses.length) {
+            return;
+        }
+        /* real prices only: «each» when every set costs the same, else «from» the lowest */
+        var amounts = [];
+        courses.forEach(function (course) {
+            var label = priceLabel(course);
+            var value = Number(String(label).replace(/[^\d۰-۹]/g, "").replace(/[۰-۹]/g, function (d) { return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)); }));
+            if (value) amounts.push({ value: value, label: label });
+        });
+        var priceText = "";
+        if (amounts.length) {
+            var lowest = amounts.reduce(function (min, item) { return item.value < min.value ? item : min; }, amounts[0]);
+            var uniform = amounts.length === courses.length && amounts.every(function (item) { return item.value === lowest.value; });
+            priceText = uniform ? "، هر کدام " + lowest.label + " و برای همیشه." : "، از " + lowest.label + "، با یک بار پرداخت برای همیشه.";
+        }
+        fact.textContent = faNumber(courses.length) + " مجموعه نمونه‌سؤال میان‌ترم و پایان‌ترم"
+            + (priceText || "، با یک بار پرداخت برای همیشه.");
+    }
+
+    function renderFeature(course) {
+        var card = $("[data-h26-feature]");
+        if (!card) {
+            return;
+        }
+        if (!course) {
+            card.hidden = true;
+            card.textContent = "";
+            return;
+        }
+        var access = course.access || {};
+        var stats = course.stats || {};
+        var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
+        var questions = Number(stats.questionCount) || 0;
+        card.textContent = "";
+
+        var title = document.createElement("h2");
+        title.className = "h26-feature__title";
+        var titleLink = document.createElement("a");
+        titleLink.href = course.path;
+        var split = splitSampleTitle(course.title);
+        titleLink.textContent = split.name;
+        titleLink.title = String(course.title || "");
+        title.appendChild(titleLink);
+        var fresh = document.createElement("span");
+        fresh.className = "h26-sample__fresh";
+        fresh.textContent = "تازه";
+        title.appendChild(fresh);
+
+        var meta = document.createElement("p");
+        meta.className = "h26-feature__meta";
+        meta.textContent = ["نمونه‌سؤال " + (split.kind || "امتحان"), curriculum.termLabel || "", questions ? faNumber(questions) + " سؤال با پاسخ تشریحی" : (course.badge || "")]
+            .filter(Boolean).join("، ");
+
+        /* the set's size as indicator tape: one raw cell per question (grouped past 60) */
+        var tape = document.createElement("div");
+        tape.className = "h26-tape h26-tape--feature";
+        tape.setAttribute("aria-hidden", "true");
+        var cells = Math.max(1, Math.min(questions || 20, 60));
+        tape.style.setProperty("--cells", String(cells));
+        tape.innerHTML = new Array(cells + 1).join("<i></i>");
+
+        var actions = document.createElement("div");
+        actions.className = "h26-feature__actions";
+        var primary = document.createElement("a");
+        primary.className = "h26-feature__buy";
+        if (access.hasAccess) {
+            primary.href = course.path;
+            primary.textContent = "شروع آزمون";
+        } else {
+            primary.href = course.paymentPath || course.path;
+            primary.textContent = "خرید " + (priceLabel(course) || "مجموعه");
+        }
+        actions.appendChild(primary);
+        var more = document.createElement("a");
+        more.className = "h26-feature__more";
+        more.href = course.path;
+        more.textContent = "دیدن جلسه‌ها و سؤال‌ها";
+        actions.appendChild(more);
+
+        card.appendChild(title);
+        card.appendChild(meta);
+        card.appendChild(tape);
+        card.appendChild(actions);
+        card.hidden = false;
     }
 
     function unitCourses(unit) {

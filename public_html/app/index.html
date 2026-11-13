@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20261112-exams-hub3">
-    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261112-newest2">
+    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261113-flat2">
 </head>
 <body class="app-dashboard-page app-dashboard-page--digipay home-2026">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -33,36 +33,40 @@
     </header>
 
     <main class="app-home-main">
-        <section class="h26-top">
+        <section class="h26-lead" data-h26-lead aria-labelledby="h26-lead-title">
             <span id="app-home-title" hidden></span>
-            <div class="h26-top__copy">
-                <span class="h26-kicker" data-h26-today>ورودی ۱۴۰۲</span>
-                <h2 class="h26-greeting"><span data-h26-hello>سلام،</span> <span class="h26-greeting__soft">امروز چی می‌خونی؟</span></h2>
+            <div class="h26-lead__copy">
+                <p class="h26-lead__hello"><span class="h26-greeting" data-h26-hello>سلام،</span> <span class="h26-lead__today" data-h26-today></span></p>
+                <h1 class="h26-lead__title" id="h26-lead-title">نمونه‌سؤال امتحان‌های دندانپزشکی، درس به درس</h1>
+                <p class="h26-lead__fact" data-h26-fact>میان‌ترم و پایان‌ترم هر درس، با یک بار پرداخت برای همیشه.</p>
+                <button type="button" class="h26-search" data-h26-search>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-4.2-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <span>جستجو در آزمون‌ها و دروس</span>
+                </button>
             </div>
-            <button type="button" class="h26-search" data-h26-search>
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-4.2-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                <span>جستجو در آزمون‌ها و دروس</span>
-            </button>
+            <div class="h26-lead__feature">
+                <a class="h26-continue" data-h26-continue href="/exams/" hidden>
+                    <h2 class="h26-continue__title" data-h26-continue-title></h2>
+                    <span class="h26-continue__meta" data-h26-continue-meta></span>
+                    <div class="h26-tape" data-h26-tape aria-hidden="true"></div>
+                    <span class="h26-continue__count" data-h26-continue-count></span>
+                    <span class="h26-continue__cta"><span data-h26-continue-cta>ادامهٔ آزمون</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m5-5-5 5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </a>
+                <article class="h26-feature" data-h26-feature hidden></article>
+            </div>
         </section>
 
         <section class="h26-samples" data-h26-samples hidden aria-labelledby="h26-samples-title">
             <header class="h26-head">
-                <div><h3 id="h26-samples-title">تازه‌ترین نمونه‌سؤال‌ها</h3><p>میان‌ترم و پایان‌ترم، با یک بار پرداخت برای همیشه</p></div>
+                <div><h2 id="h26-samples-title">نمونه‌سؤال‌های دیگر</h2></div>
                 <a href="/exams/?mode=term">همهٔ درس‌ها</a>
             </header>
             <div class="h26-samples__list" data-h26-samples-list></div>
         </section>
 
         <section class="h26-hero" data-h26-hero>
-            <a class="h26-continue" data-h26-continue href="/exams/" hidden>
-                <h3 class="h26-continue__title" data-h26-continue-title></h3>
-                <span class="h26-continue__meta" data-h26-continue-meta></span>
-                <div class="h26-tape" data-h26-tape aria-hidden="true"></div>
-                <span class="h26-continue__count" data-h26-continue-count></span>
-                <span class="h26-continue__cta"><span data-h26-continue-cta>ادامهٔ آزمون</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m5-5-5 5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            </a>
             <section class="h26-week" data-h26-week hidden aria-labelledby="h26-week-title">
-                <header class="h26-head"><h3 id="h26-week-title">برنامهٔ کلاس و کارها</h3><span class="h26-head__meta" data-h26-plan-range></span></header>
+                <header class="h26-head"><h2 id="h26-week-title">برنامهٔ کلاس و کارها</h2><span class="h26-head__meta" data-h26-plan-range></span></header>
                 <div class="h26-plan" data-h26-plan></div>
             </section>
         </section>
@@ -70,7 +74,7 @@
 
         <section class="h26-terms" data-h26-shelf hidden aria-labelledby="h26-terms-title">
             <header class="h26-head">
-                <div><h3 id="h26-terms-title">درس‌ها، ترم به ترم</h3><p>آزمون‌های هر درس، همان‌طور که در دانشکده خوانده می‌شود</p></div>
+                <div><h2 id="h26-terms-title">درس‌ها، ترم به ترم</h2><p>آزمون‌های هر درس، همان‌طور که در دانشکده خوانده می‌شود</p></div>
                 <a href="/exams/?mode=term">همهٔ ترم‌ها</a>
             </header>
             <div class="h26-terms__tabs" role="tablist" aria-label="ترم" data-h26-term-tabs></div>
@@ -226,7 +230,7 @@
     <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/app-home.js?v=20260813-home-access1"></script>
-    <script src="/assets/site/scripts/home-2026.js?v=20261112-newest1"></script>
+    <script src="/assets/site/scripts/home-2026.js?v=20261113-flat2"></script>
     <script src="/assets/site/scripts/shell.js?v=20261111-side-nav1"></script>
 </body>
 </html>
