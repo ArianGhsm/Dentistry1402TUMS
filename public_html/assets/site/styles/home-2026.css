@@ -717,3 +717,5 @@ body.home-2026 .h26-lead .h26-continue__cta {
 html[data-theme="dark"] body.home-2026 .h26-feature__buy,
 html[data-theme="dark"] body.home-2026 .h26-lead .h26-continue__cta { background: var(--brand-brass) !important; color: var(--text-on-accent) !important; }
 body.home-2026 .h26-feature__more { color: var(--on-shell-strong); }
+/* continue moved into the lead: the old hero holds only the week plan, full width */
+body.home-2026 .h26-hero { grid-template-columns: minmax(0, 1fr) !important; }
