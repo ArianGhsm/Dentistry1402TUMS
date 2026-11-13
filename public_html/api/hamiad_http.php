@@ -117,7 +117,7 @@ function hamiad_parse_set_cookie(string $line): ?array
     return $cookie;
 }
 
-function hamiad_http_request(string $method, string $url, array $options = []): array
+function hamiad_http_request_single(string $method, string $url, array $options = []): array
 {
     $uri = parse_url($url);
     if (!is_array($uri) || strtolower((string) ($uri['host'] ?? '')) !== 'lms.tums.ac.ir'
@@ -209,6 +209,10 @@ function hamiad_http_request(string $method, string $url, array $options = []): 
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($curl, CURLOPT_ENCODING, '');
     curl_setopt($curl, CURLOPT_PROXY, '');
+    $sourceIp = (string) ($options['sourceIp'] ?? '');
+    if ($sourceIp !== '' && filter_var($sourceIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        curl_setopt($curl, CURLOPT_INTERFACE, $sourceIp);
+    }
     if (defined('CURL_IPRESOLVE_V4')) {
         curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     }
@@ -259,6 +263,7 @@ function hamiad_http_request(string $method, string $url, array $options = []): 
 
     $body = curl_exec($curl);
     $error = curl_error($curl);
+    $errno = curl_errno($curl);
     $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
     $effectiveUrl = (string) curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
 
@@ -275,8 +280,121 @@ function hamiad_http_request(string $method, string $url, array $options = []): 
         'headers' => $responseHeaders,
         'cookies' => $setCookies,
         'error' => $error,
+        'errno' => $errno,
         'effectiveUrl' => $effectiveUrl !== '' ? $effectiveUrl : $url,
     ];
+}
+
+/*
+ * Egress: Hamiad traffic normally leaves through the server's default route.
+ * Extra public IPv4 addresses (short-lived, ~1 month leases) are a fallback
+ * only: used when the current path cannot connect or is blocked by the WAF
+ * (403/429/503), and silently skipped once they no longer exist on the host.
+ * The path that last worked stays sticky (Arvan cookies and Moodle sessions
+ * may be tied to it). Never used for any other host.
+ */
+const HAMIAD_DEFAULT_EGRESS_IPS = ['185.239.0.118', '185.239.0.198', '185.239.0.230'];
+const HAMIAD_EGRESS_DEFAULT_ROUTE = 'default';
+
+function hamiad_egress_ips(): array
+{
+    $configured = function_exists('dent_env_value') ? (string) dent_env_value('DENT_HAMIAD_EGRESS_IPS') : (string) getenv('DENT_HAMIAD_EGRESS_IPS');
+    $list = $configured !== '' ? preg_split('/[\s,]+/', $configured) : HAMIAD_DEFAULT_EGRESS_IPS;
+    $ips = [];
+    foreach ((array) $list as $ip) {
+        $ip = trim((string) $ip);
+        if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && !in_array($ip, $ips, true)) {
+            $ips[] = $ip;
+        }
+    }
+    return $ips;
+}
+
+function hamiad_egress_state_path(): string
+{
+    return dent_storage_path('hamiad/egress.json');
+}
+
+/** Sticky path first, then the default route, then the extra addresses. */
+function hamiad_egress_order(array $ips): array
+{
+    $paths = array_merge([HAMIAD_EGRESS_DEFAULT_ROUTE], $ips);
+    try {
+        $state = dent_read_json_file(hamiad_egress_state_path(), []);
+    } catch (Throwable $ignored) {
+        // Optional bookkeeping: a damaged state file must never stop Hamiad.
+        return $paths;
+    }
+    $sticky = (string) ($state['ip'] ?? '');
+    if ($sticky === '' || !in_array($sticky, $paths, true)) {
+        return $paths;
+    }
+    return array_values(array_merge([$sticky], array_diff($paths, [$sticky])));
+}
+
+function hamiad_egress_remember(string $ip, string $reason): void
+{
+    try {
+        $state = dent_read_json_file(hamiad_egress_state_path(), []);
+        if (($state['ip'] ?? '') === $ip) {
+            return;
+        }
+        $oldUmask = umask(0077);
+        try {
+            dent_write_json_file(hamiad_egress_state_path(), [
+                'ip' => $ip, 'since' => dent_iso_now(), 'previous' => (string) ($state['ip'] ?? ''), 'reason' => $reason,
+            ]);
+            @chmod(hamiad_egress_state_path(), 0600);
+        } finally {
+            umask($oldUmask);
+        }
+    } catch (Throwable $ignored) {
+        // Egress bookkeeping must never break a Hamiad request.
+    }
+}
+
+/**
+ * A failure that proves the request never reached Hamiad (safe to resend even
+ * a login POST from another address): could not resolve/connect/bind/TLS.
+ */
+function hamiad_egress_not_sent(array $result): bool
+{
+    return empty($result['ok']) && in_array((int) ($result['errno'] ?? 0), [6, 7, 35, 45], true);
+}
+
+function hamiad_egress_blocked(array $result): bool
+{
+    return !empty($result['ok']) && in_array((int) ($result['status'] ?? 0), [403, 429, 503], true);
+}
+
+function hamiad_http_request(string $method, string $url, array $options = [], ?callable $single = null): array
+{
+    $single ??= 'hamiad_http_request_single';
+    if (array_key_exists('sourceIp', $options)) {
+        return $single($method, $url, $options);
+    }
+    $safeToRepeat = strtoupper($method) === 'GET';
+    $result = [];
+    $first = true;
+    foreach (hamiad_egress_order(hamiad_egress_ips()) as $path) {
+        $attempt = $path === HAMIAD_EGRESS_DEFAULT_ROUTE ? $options : array_merge($options, ['sourceIp' => $path]);
+        $result = $single($method, $url, $attempt);
+        $unbound = (int) ($result['errno'] ?? 0) === 45; // address gone (lease ended)
+        $notSent = hamiad_egress_not_sent($result);
+        $blocked = hamiad_egress_blocked($result);
+        $transportFailed = empty($result['ok']);
+        if (!$unbound && !$notSent && !$blocked && !($transportFailed && $safeToRepeat)) {
+            hamiad_egress_remember($path, $first ? 'steady' : 'failover'); // no-op when unchanged
+            $result['sourceIp'] = $path;
+            return $result;
+        }
+        if (!$unbound && !$notSent && !$safeToRepeat && !$blocked) {
+            // A POST that may have reached Hamiad is never resent elsewhere.
+            return $result;
+        }
+        $first = false;
+    }
+    return $result;
 }
 
 function hamiad_response_header_value(array $headers, string $name): string
