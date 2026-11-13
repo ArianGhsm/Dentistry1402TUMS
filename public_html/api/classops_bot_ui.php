@@ -103,7 +103,7 @@ function classops_bot_ui_term7_record(
     $startsAt = $start !== '' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
     $endsAt = $end !== '' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
     $selector = (string) ($event['selector'] ?? '');
-    $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : null);
+    $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : ($selector === 'restorativePmSubgroup' ? ($assignment['restorativePmSubgroup'] ?? null) : null));
     $sessionNumber = isset($event['sessionNumber']) && (int) $event['sessionNumber'] > 0 ? (int) $event['sessionNumber'] : null;
     $sessionKey = trim((string) ($event['sessionKey'] ?? ''));
     if ($sessionKey === '') $sessionKey = $sessionNumber !== null ? (string) $sessionNumber : '';
@@ -147,7 +147,7 @@ function classops_bot_ui_term7_record(
         'applicability' => [
             'selector' => $selector,
             'group' => is_int($group) ? $group : null,
-            'groupLabel' => $selector === 'group10' ? 'گروه صبح' : ($selector === 'group8' ? 'گروه عصر' : ''),
+            'groupLabel' => $selector === 'group10' ? 'گروه صبح' : ($selector === 'group8' ? 'گروه عصر' : ($selector === 'restorativePmSubgroup' ? 'گروه ترمیمی عصر' : '')),
         ],
     ];
 }

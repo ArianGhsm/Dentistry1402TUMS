@@ -154,6 +154,10 @@ function dent_term7_public_assignment_for_student(string $studentNumber, ?array 
         'studentNumber' => $studentNumber,
         'group10' => is_int($assignment['group10'] ?? null) ? (int) $assignment['group10'] : null,
         'group8' => is_int($assignment['group8'] ?? null) ? (int) $assignment['group8'] : null,
+        'restorativePmSubgroup' => is_int($assignment['restorativePmSubgroup'] ?? null) ? (int) $assignment['restorativePmSubgroup'] : null,
+        'restorativePmWeekdayLabel' => dent_term7_weekday_label(
+            dent_term7_restorative_pm_weekday($assignment['restorativePmSubgroup'] ?? null) ?? 0
+        ),
         'group10Status' => $morning['key'],
         'group10StatusLabel' => $morning['label'],
         'group8Status' => $afternoon['key'],
@@ -238,14 +242,16 @@ function dent_term7_owner_update_assignment(array $owner, string $studentNumber,
     dent_term7_require_owner($owner);
     $user = dent_term7_require_target_student($studentNumber);
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? $studentNumber));
-    $meta = dent_term7_group_field_meta($field);
+    $meta = $field === 'restorativePmSubgroup'
+        ? ['minimum' => 1, 'maximum' => 4, 'label' => 'ترمیمی عصر']
+        : dent_term7_group_field_meta($field);
     if ($group !== null && ($group < $meta['minimum'] || $group > $meta['maximum'])) {
         dent_error('شماره گروه معتبر نیست.', 422, ['code' => 'TERM7_GROUP_RANGE_INVALID']);
     }
 
     $before = dent_term7_assignment_for_student($studentNumber);
     $previousGroup = is_int($before[$field] ?? null) ? (int) $before[$field] : null;
-    if ($previousGroup !== null && $previousGroup !== $group) {
+    if (in_array($field, ['group10', 'group8'], true) && $previousGroup !== null && $previousGroup !== $group) {
         dent_term7_group_leader_state_with_lock(static function (array &$state) use ($studentNumber, $field, $previousGroup): array {
             $key = (string) $previousGroup;
             if ((string) ($state[$field][$key] ?? '') === $studentNumber) {

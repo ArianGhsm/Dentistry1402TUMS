@@ -12,7 +12,7 @@ require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.14';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.15';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -96,6 +96,12 @@ function dent_term7_normalize_assignment(string $studentNumber, array $assignmen
     if ($oralHealthRotationBWeekday !== null && !in_array($oralHealthRotationBWeekday, [1, 3, 6], true)) {
         $oralHealthRotationBWeekday = null;
     }
+    $restorativePmSubgroup = isset($assignment['restorativePmSubgroup']) && $assignment['restorativePmSubgroup'] !== ''
+        ? (int) $assignment['restorativePmSubgroup']
+        : null;
+    if ($restorativePmSubgroup !== null && !in_array($restorativePmSubgroup, [1, 2, 3, 4], true)) {
+        $restorativePmSubgroup = null;
+    }
     return [
         'studentNumber' => $studentNumber,
         'cohortKey' => DENT_TERM7_COHORT,
@@ -104,6 +110,7 @@ function dent_term7_normalize_assignment(string $studentNumber, array $assignmen
         'group8' => $group8,
         'oralHealthRotationAWeekday' => $oralHealthRotationAWeekday,
         'oralHealthRotationBWeekday' => $oralHealthRotationBWeekday,
+        'restorativePmSubgroup' => $restorativePmSubgroup,
         'updatedAt' => trim((string) ($assignment['updatedAt'] ?? '')),
     ];
 }
@@ -415,6 +422,16 @@ function dent_term7_jalali_key(DateTimeImmutable $date): string
     return sprintf('%04d/%02d/%02d', $year, $month, $day);
 }
 
+/**
+ * Course-only afternoon restorative subgroups. Never reinterpret the official
+ * group8 (11..18) or group10 (1..10) assignment as these 1..4 subgroups.
+ * Weekdays use ISO-8601 numbering: Sat=6, Sun=7, Tue=2, Wed=3.
+ */
+function dent_term7_restorative_pm_weekday(?int $subgroup): ?int
+{
+    return [1 => 2, 2 => 3, 3 => 7, 4 => 6][$subgroup ?? 0] ?? null;
+}
+
 function dent_term7_assignment_for_student(string $studentNumber, ?array $state = null): array
 {
     $studentNumber = dent_normalize_student_number($studentNumber);
@@ -429,12 +446,20 @@ function dent_term7_assignment_for_student(string $studentNumber, ?array $state 
             'group8' => null,
             'oralHealthRotationAWeekday' => null,
             'oralHealthRotationBWeekday' => null,
+            'restorativePmSubgroup' => null,
         ];
 }
 
 function dent_term7_event_matches(array $event, array $assignment, string $rotation = '', int $weekday = 0): bool
 {
     $selector = (string) ($event['selector'] ?? '');
+    // The official afternoon restorative template is replaced only for
+    // explicitly assigned students in rotation B. Unassigned peers retain it.
+    if ($rotation === 'B'
+        && (string) ($event['slug'] ?? '') === 'restorative-practical-2-pm'
+        && is_int($assignment['restorativePmSubgroup'] ?? null)) {
+        return false;
+    }
     $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : null);
     if (!is_int($group) || !in_array($group, is_array($event['groups'] ?? null) ? $event['groups'] : [], true)) {
         return false;
@@ -542,6 +567,22 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
         } else {
             $morning[] = $event;
         }
+    }
+    // A named course subgroup is an individual timetable override. Reuse the
+    // existing event pipeline for web, Telegram, Bale and notifications.
+    $subgroup = $assignment['restorativePmSubgroup'] ?? null;
+    if (!$closed && $inTerm && $matchRotation === 'B' && is_int($subgroup)
+        && dent_term7_restorative_pm_weekday($subgroup) === $matchWeekday
+        && classops_term7_syllabus_source_occurrence_decision(
+            'restorative-practical-2-pm', $jalaliDate, $matchRotation
+        ) !== false) {
+        $custom = dent_term7_event(
+            'restorative-practical-2-pm', 'ترمیمی عملی ۲ — گروه ' . dent_to_fa_digits((string) $subgroup),
+            'afternoon', 'restorativePmSubgroup', [$subgroup]
+        );
+        $custom['source'] = 'owner-confirmed-restorative-subgroup';
+        $custom['subgroupNumber'] = $subgroup;
+        $afternoon[] = $custom;
     }
     $timingRotation = $matchRotation !== '' ? $matchRotation : $rotation;
     return [

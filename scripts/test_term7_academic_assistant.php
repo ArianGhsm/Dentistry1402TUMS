@@ -61,6 +61,56 @@ try {
     term7_assert(term7_titles($satB11['practicalAfternoon']) === ['ترمیمی عملی ۲'], 'Rotation B group8=11 Saturday afternoon');
     term7_assert(term7_titles($sunB11['practicalAfternoon']) === ['جراحی عملی ۲'], 'Rotation B group8=11 Sunday afternoon');
 
+    // Restorative afternoon subgroups are course-specific; the canonical
+    // group8 11/14 and all non-restorative events must remain unchanged.
+    $pmCases = [
+        1 => ['date' => '1405/09/04', 'weekday' => 2],
+        2 => ['date' => '1405/09/05', 'weekday' => 3],
+        3 => ['date' => '1405/09/02', 'weekday' => 7],
+        4 => ['date' => '1405/09/01', 'weekday' => 6],
+    ];
+    foreach ($pmCases as $subgroup => $expected) {
+        $assignment = ['group10' => 5, 'group8' => $subgroup === 1 ? 14 : 11, 'restorativePmSubgroup' => $subgroup];
+        $date = $expected['date'];
+        $weekday = $expected['weekday'];
+        $resolved = dent_term7_resolve_jalali($date, $weekday, $assignment);
+        $found = array_values(array_filter($resolved['practicalAfternoon'], static fn(array $event): bool =>
+            (string) ($event['slug'] ?? '') === 'restorative-practical-2-pm'
+        ));
+        term7_assert(count($found) === 1 && (int) ($found[0]['subgroupNumber'] ?? 0) === $subgroup
+            && str_contains((string) $found[0]['title'], 'گروه ' . dent_to_fa_digits((string) $subgroup)),
+            "Owner-assigned restorative afternoon subgroup {$subgroup} appears only on its weekday");
+        $sat = dent_term7_resolve_jalali('1405/09/01', 6, $assignment);
+        $satRestorative = array_values(array_filter($sat['practicalAfternoon'], static fn(array $event): bool =>
+            (string) ($event['slug'] ?? '') === 'restorative-practical-2-pm'
+        ));
+        term7_assert(count($satRestorative) === ($subgroup === 4 ? 1 : 0),
+            "Owner-assigned restorative subgroup {$subgroup} suppresses the original Saturday occurrence");
+        $clean = dent_term7_normalize_assignment('40211272003', $assignment);
+        term7_assert(($clean['restorativePmSubgroup'] ?? null) === $subgroup
+            && ($clean['group8'] ?? null) === ($subgroup === 1 ? 14 : 11),
+            "Restorative afternoon subgroup {$subgroup} survives canonical persistence normalization");
+    }
+    $pmInvalid = dent_term7_normalize_assignment('40211272003', [
+        'group10' => 5, 'group8' => 14, 'restorativePmSubgroup' => 99,
+    ]);
+    term7_assert(array_key_exists('restorativePmSubgroup', $pmInvalid) && $pmInvalid['restorativePmSubgroup'] === null,
+        'Invalid restorative subgroup fails closed and never changes canonical group8');
+    $unassignedRestorative = dent_term7_resolve_jalali('1405/09/01', 6, ['group10' => 5, 'group8' => 11]);
+    term7_assert(term7_titles($unassignedRestorative['practicalAfternoon']) === ['ترمیمی عملی ۲'],
+        'Unassigned students keep the official Saturday class unchanged');
+    $pmA = dent_term7_resolve_jalali('1405/07/04', 6, [
+        'group10' => 5, 'group8' => 15, 'restorativePmSubgroup' => 1,
+    ]);
+    term7_assert(in_array('ترمیمی عملی ۲', term7_titles($pmA['practicalAfternoon']), true),
+        'Rotation A course timetable is not overridden by Rotation B subgroup assignments');
+    $pmBaseWed = dent_term7_resolve_jalali('1405/09/05', 3, [
+        'group10' => 5, 'group8' => 14, 'restorativePmSubgroup' => 1,
+    ]);
+    term7_assert(!in_array('ترمیمی عملی ۲', term7_titles($pmBaseWed['practicalAfternoon']), true)
+        && !array_filter(term7_titles($pmBaseWed['practicalAfternoon']), static fn(string $title): bool => str_contains($title, 'ترمیمی')),
+        'A student moved to Tuesday does not retain their old group8 Wednesday restorative class');
+
     $mondayA = dent_term7_resolve_jalali('1405/07/06', 1, ['group10' => 1, 'group8' => 15]);
     $mondayB = dent_term7_resolve_jalali('1405/09/03', 1, ['group10' => 6, 'group8' => 11]);
     term7_assert($mondayA['practicalAfternoon'] === [] && $mondayB['practicalAfternoon'] === [], 'Monday afternoon is disabled in both rotations');
