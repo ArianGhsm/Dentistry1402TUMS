@@ -72,4 +72,10 @@ $seen = [];
 hamiad_http_request('GET', HAMIAD_HOME, ['sourceIp' => '10.0.0.3'], $fake([]));
 check($seen === ['10.0.0.3'], 'explicit source address is used directly');
 
+// A damaged egress state file never blocks Hamiad: default route first.
+file_put_contents(hamiad_egress_state_path(), "{not json");
+$seen = [];
+$r = hamiad_http_request('GET', HAMIAD_HOME, [], $fake([]));
+check(!empty($r['ok']) && $seen[0] === 'default', 'corrupt egress state falls back to the default route');
+
 echo "HAMIAD_EGRESS_TESTS_OK\n";

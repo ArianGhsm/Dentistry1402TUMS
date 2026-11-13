@@ -319,7 +319,12 @@ function hamiad_egress_state_path(): string
 function hamiad_egress_order(array $ips): array
 {
     $paths = array_merge([HAMIAD_EGRESS_DEFAULT_ROUTE], $ips);
-    $state = dent_read_json_file(hamiad_egress_state_path(), []);
+    try {
+        $state = dent_read_json_file(hamiad_egress_state_path(), []);
+    } catch (Throwable $ignored) {
+        // Optional bookkeeping: a damaged state file must never stop Hamiad.
+        return $paths;
+    }
     $sticky = (string) ($state['ip'] ?? '');
     if ($sticky === '' || !in_array($sticky, $paths, true)) {
         return $paths;
