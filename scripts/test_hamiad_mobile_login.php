@@ -109,4 +109,35 @@ check($fixed['ok'] === true, 're-saved credentials unblock the automatic login')
 check(hamiad_mobile_next_url('https://evil.example/my/', HAMIAD_BASE) === null, 'foreign redirect refused');
 check(hamiad_mobile_next_url('/my/', HAMIAD_BASE) === 'https://lms.tums.ac.ir/my/', 'relative redirect resolved');
 
+// A token issued for other saved credentials is never reused.
+$log = [];
+check(hamiad_mobile_relogin(fake_hamiad($log), 1_800_020_000, true)['ok'] === true, 'baseline connect');
+$sealed = dent_read_json_file(hamiad_mobile_token_path(), []);
+$tokens = hamiad_unseal($sealed['sealed'] ?? null);
+$tokens['credentialId'] = hash('sha256', "someone-else\n2020-01-01");
+dent_write_json_file(hamiad_mobile_token_path(), ['schemaVersion' => 1, 'sealed' => hamiad_seal($tokens)]);
+$log = [];
+hamiad_mobile_relogin(fake_hamiad($log), 1_800_030_000, true);
+check(in_array('/login/token.php', $log, true), 'foreign-credential token is discarded and re-issued');
+sleep(1);
+hamiad_credentials_save('40199999999', 'correct-horse');
+check(!is_file(hamiad_mobile_token_path()), 'saving credentials invalidates the cached token');
+
+// Attempts are serialised: a held lock makes a concurrent attempt wait.
+if (function_exists('pcntl_fork')) {
+    $lockHandle = fopen(dent_storage_path('hamiad/mobile-login.lock'), 'c');
+    check(flock($lockHandle, LOCK_EX), 'test holds the relogin lock');
+    $pid = pcntl_fork();
+    if ($pid === 0) {
+        $childLog = [];
+        $start = microtime(true);
+        hamiad_mobile_relogin(fake_hamiad($childLog), 1_800_040_000, true);
+        exit(microtime(true) - $start >= 0.25 ? 0 : 1);
+    }
+    usleep(400000);
+    flock($lockHandle, LOCK_UN);
+    pcntl_waitpid($pid, $childStatus);
+    check(pcntl_wexitstatus($childStatus) === 0, 'a concurrent relogin waits for the lock');
+}
+
 echo "HAMIAD_MOBILE_LOGIN_TESTS_OK\n";

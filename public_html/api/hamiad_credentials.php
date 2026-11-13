@@ -58,6 +58,7 @@ function hamiad_credentials_save(string $username, string $password): array
     } finally {
         umask($oldUmask);
     }
+    @unlink(dent_storage_path('hamiad/mobile-token.json')); // token belongs to the previous credentials
     return hamiad_credentials_status();
 }
 
@@ -83,5 +84,6 @@ function hamiad_credentials_delete(): array
     } finally {
         umask($oldUmask);
     }
+    @unlink(dent_storage_path('hamiad/mobile-token.json')); // token belongs to the previous credentials
     return hamiad_credentials_status();
 }

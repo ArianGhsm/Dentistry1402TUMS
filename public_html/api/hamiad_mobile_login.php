@@ -168,6 +168,28 @@ function hamiad_mobile_save_session(string $username, array $cookies): void
  */
 function hamiad_mobile_relogin(?callable $request = null, ?int $clock = null, bool $force = false): array
 {
+    // One attempt at a time across the timer and the bot: the retry state is
+    // read, checked and updated inside this lock, so a rejected password is
+    // never submitted twice.
+    $lockPath = dent_storage_path('hamiad/mobile-login.lock');
+    dent_ensure_directory(dirname($lockPath));
+    $oldUmask = umask(0077);
+    $lock = @fopen($lockPath, 'c');
+    umask($oldUmask);
+    if (!is_resource($lock) || !@flock($lock, LOCK_EX)) {
+        if (is_resource($lock)) @fclose($lock);
+        return ['ok' => false, 'reason' => 'busy'];
+    }
+    try {
+        return hamiad_mobile_relogin_locked($request, $clock, $force);
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
+function hamiad_mobile_relogin_locked(?callable $request, ?int $clock, bool $force): array
+{
     $clock ??= time();
     $credentials = hamiad_credentials_load();
     if ($credentials === null) {
@@ -193,8 +215,14 @@ function hamiad_mobile_relogin(?callable $request = null, ?int $clock = null, bo
         return $result;
     };
 
+    $credentialId = hash('sha256', $credentials['username'] . "\n" . $savedAt);
     $stored = dent_read_json_file(hamiad_mobile_token_path(), []);
     $tokens = hamiad_unseal($stored['sealed'] ?? null);
+    if (is_array($tokens) && !hash_equals($credentialId, (string) ($tokens['credentialId'] ?? ''))) {
+        // Issued for other (or older) saved credentials: never reuse it.
+        @unlink(hamiad_mobile_token_path());
+        $tokens = null;
+    }
     if (is_array($tokens) && ($tokens['token'] ?? '') !== '') {
         $session = hamiad_mobile_session_from_token((string) $tokens['token'], (string) ($tokens['privatetoken'] ?? ''), $request);
         if ($session['ok']) {
@@ -220,7 +248,8 @@ function hamiad_mobile_relogin(?callable $request = null, ?int $clock = null, bo
     hamiad_keepalive_write(hamiad_mobile_token_path(), [
         'schemaVersion' => 1,
         'createdAt' => dent_iso_now(),
-        'sealed' => hamiad_seal(['token' => $fresh['token'], 'privatetoken' => $fresh['privatetoken']]),
+        'sealed' => hamiad_seal(['token' => $fresh['token'], 'privatetoken' => $fresh['privatetoken'],
+            'credentialId' => $credentialId]),
     ]);
     $session = hamiad_mobile_session_from_token($fresh['token'], $fresh['privatetoken'], $request);
     if (!$session['ok']) {
