@@ -663,3 +663,28 @@ html body.account-page #notifications-push-card,
 html body.account-page .account-notifications-card--feed { display: none !important; }
 html body .shell-account-trigger__badge,
 html body .shell-notification-banner { display: none !important; }
+
+/* Header type: calmer weights, and on home the brand reads as the name over
+   its cohort (like the desktop rail) instead of one wrapped heavy line. */
+html body:not(.chat-page) .site-header--minimal .site-info h1 { font-weight: 700 !important; letter-spacing: 0; }
+html body:not(.chat-page) .site-header--minimal .shell-page-label { font-weight: 700; }
+html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .site-info h1 {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    white-space: nowrap !important;
+    line-height: 1.25 !important;
+}
+html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-main {
+    order: 1;
+    font: 700 1.02rem/1.3 var(--font-accent);
+}
+html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-sub {
+    order: 2;
+    font: 500 0.74rem/1.3 var(--font-main);
+    color: var(--on-shell-muted);
+}
+@media (min-width: 1024px) {
+    html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-sub { color: var(--text-tertiary); }
+}

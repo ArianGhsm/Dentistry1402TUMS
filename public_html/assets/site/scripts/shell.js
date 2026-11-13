@@ -234,6 +234,29 @@
         return state.user.canUseChat !== false && !state.user.isExternalExamUser;
     }
 
+    /* «ورودی ۱۴۰۲ دندانپزشکی تهران» → main «دندانپزشکی تهران» + sub «ورودی ۱۴۰۲»,
+       so the header can set the name and the cohort as two calm lines. */
+    function setHeaderBrand(node, brand) {
+        if (!node) return;
+        var text = String(brand || node.textContent || "").trim();
+        var match = text.match(/^(ورودی\s+[۰-۹0-9]+)\s+(.+)$/);
+        if (!match) {
+            node.textContent = text;
+            return;
+        }
+        node.textContent = "";
+        var main = document.createElement("span");
+        main.className = "shell-brand-main";
+        main.textContent = match[2];
+        var sub = document.createElement("span");
+        sub.className = "shell-brand-sub";
+        sub.textContent = match[1];
+        node.appendChild(sub);
+        node.appendChild(document.createTextNode(" "));
+        node.appendChild(main);
+        node.setAttribute("aria-label", text);
+    }
+
     function brandName(state) {
         return isProsthesisState(state) ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
     }
@@ -316,7 +339,10 @@
             document.title = pageTitle.replace(/ورودی ۱۴۰۲ دندانپزشکی/g, isProsthesisState(state) ? "ورودی ۱۴۰۲ پروتز" : "ورودی ۱۴۰۲ دندانپزشکی");
         }
 
-        document.querySelectorAll(".site-header .site-info h1, .site-footer p").forEach(function (node) {
+        document.querySelectorAll(".site-header .site-info h1").forEach(function (node) {
+            setHeaderBrand(node, brand);
+        });
+        document.querySelectorAll(".site-footer p").forEach(function (node) {
             if (node) {
                 node.textContent = brand;
             }
@@ -1143,6 +1169,7 @@
             if (useDynamicBranding()) {
                 title.textContent = brandName(authState());
             }
+            setHeaderBrand(title, title.textContent);
 
             siteInfo.querySelectorAll("p").forEach(function (node) {
                 node.remove();
