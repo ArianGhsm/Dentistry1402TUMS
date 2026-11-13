@@ -1,13 +1,15 @@
 [Unit]
-Description=Scheduled Hamiad assignment check for Dentistry1402 owner
+Description=Hamiad session keep-alive and assignment check for Dentistry1402 owner
 
 [Timer]
-OnCalendar=*-*-* 08:00:00 Asia/Tehran
-OnCalendar=*-*-* 14:00:00 Asia/Tehran
-OnCalendar=*-*-* 20:00:00 Asia/Tehran
+# Every 10 minutes: keeps the Moodle session from idling out so the CAPTCHA
+# login is rarely needed. Reminders still run only in their 08/14/20 Tehran
+# slots (tracked in storage by the CLI).
+OnBootSec=2min
+OnCalendar=*:0/10
 Persistent=true
-RandomizedDelaySec=3m
-AccuracySec=1m
+RandomizedDelaySec=45s
+AccuracySec=30s
 Unit=dentistry1402-hamiad-reminders.service
 
 [Install]

@@ -1,5 +1,5 @@
 [Unit]
-Description=Dentistry1402 Hamiad owner reminder check
+Description=Dentistry1402 Hamiad session keep-alive and owner reminder check
 After=network-online.target
 
 [Service]
