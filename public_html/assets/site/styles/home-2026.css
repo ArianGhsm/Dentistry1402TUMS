@@ -456,8 +456,9 @@ body.home-2026 .home-service-link:focus-visible { outline: 2px solid var(--focus
 @keyframes h26-in { from { opacity: 0; transform: translateY(8px); } }
 @keyframes h26-tape-draw { from { clip-path: inset(0 0 0 100%); } }
 html.h26-enter body.home-2026 .h26-lead [data-h26-enter] { animation: h26-in 280ms var(--h26-ease-out) both; }
-html.h26-enter body.home-2026 .h26-lead [data-h26-enter] + [data-h26-enter] { animation-delay: 60ms; }
-html.h26-enter body.home-2026 .h26-lead .h26-tape { animation: h26-tape-draw 420ms var(--h26-ease-out) 160ms both; }
+/* the featured set or continue card plays when it actually arrives (it leaves display:none) */
+html.h26-enter body.home-2026 .h26-lead__feature [data-h26-enter] { animation-delay: 60ms; }
+html.h26-enter body.home-2026 .h26-lead .h26-tape { animation: h26-tape-draw 300ms var(--h26-ease-out) 100ms both; }
 
 body.home-2026 :is(.h26-feature__buy, .h26-continue__cta, .h26-sample__go, .h26-terms__tabs button) {
     transition: transform 120ms var(--h26-ease-out), background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;

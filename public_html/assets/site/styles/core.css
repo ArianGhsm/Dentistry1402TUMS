@@ -1127,7 +1127,6 @@ body.app-shell-hidden {
 .shell-bottom-nav__link:not(.is-active):focus-visible {
     color: var(--text-primary);
     background: var(--shell-nav-active-bg);
-    transform: translateY(-1px);
 }
 
 .shell-bottom-nav__link.is-active {
@@ -1212,10 +1211,11 @@ html.site-bottom-nav-solid .shell-bottom-nav__inner {
     touch-action: manipulation;
 }
 
-/* Tactile press: the whole control dips under the finger, then springs back. */
-.shell-bottom-nav__link:active {
-    transform: scale(0.88);
-    transition-duration: 90ms;
+/* Tactile press: the whole control dips under the finger, then comes back. */
+.shell-bottom-nav__link:active,
+.shell-bottom-nav__link:not(.is-active):active {
+    transform: scale(0.97);
+    transition-duration: 100ms;
 }
 
 .shell-bottom-nav__link.is-active:active {

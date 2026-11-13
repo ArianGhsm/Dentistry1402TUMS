@@ -16,12 +16,13 @@
     <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
     <script>
         /* the lead enters once per session; a page seen many times a day does not replay it */
-        try { if (!sessionStorage.getItem("h26-entered") && !matchMedia("(prefers-reduced-motion: reduce)").matches) { document.documentElement.classList.add("h26-enter"); sessionStorage.setItem("h26-entered", "1"); } } catch (_e) {}
+        /* a cold start shows the launch splash instead: that is the entrance then */
+        try { if (!sessionStorage.getItem("h26-entered") && !document.documentElement.classList.contains("dent-launch-splash") && !matchMedia("(prefers-reduced-motion: reduce)").matches) { document.documentElement.classList.add("h26-enter"); sessionStorage.setItem("h26-entered", "1"); } } catch (_e) {}
     </script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20261112-exams-hub3">
-    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261113-v3d">
+    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261113-v3e">
 </head>
 <body class="app-dashboard-page app-dashboard-page--digipay home-2026">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -45,15 +46,15 @@
                     <h1 class="h26-lead__title" id="h26-lead-title">نمونه‌سؤال امتحان‌های دندانپزشکی، درس به درس</h1>
                     <p class="h26-lead__fact" data-h26-fact>میان‌ترم و پایان‌ترم هر درس، با یک بار پرداخت برای همیشه.</p>
                 </div>
-                <div class="h26-lead__feature" data-h26-enter>
-                    <a class="h26-continue" data-h26-continue href="/exams/" hidden>
+                <div class="h26-lead__feature">
+                    <a class="h26-continue" data-h26-continue data-h26-enter href="/exams/" hidden>
                         <span class="h26-continue__title" data-h26-continue-title></span>
                         <span class="h26-continue__meta" data-h26-continue-meta></span>
                         <span class="h26-tape" data-h26-tape aria-hidden="true"></span>
                         <span class="h26-continue__count" data-h26-continue-count></span>
                         <span class="h26-continue__cta"><span data-h26-continue-cta>ادامهٔ آزمون</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                     </a>
-                    <article class="h26-feature" data-h26-feature hidden></article>
+                    <article class="h26-feature" data-h26-feature data-h26-enter hidden></article>
                 </div>
             </div>
         </section>
@@ -228,7 +229,7 @@
     <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/app-home.js?v=20260813-home-access1"></script>
-    <script src="/assets/site/scripts/home-2026.js?v=20261113-v3"></script>
-    <script src="/assets/site/scripts/shell.js?v=20261111-side-nav1"></script>
+    <script src="/assets/site/scripts/home-2026.js?v=20261113-v3f"></script>
+    <script src="/assets/site/scripts/shell.js?v=20261113-v3"></script>
 </body>
 </html>

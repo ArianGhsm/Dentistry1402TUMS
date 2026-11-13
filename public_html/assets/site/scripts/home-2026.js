@@ -201,6 +201,7 @@
             });
         }
         card.hidden = false;
+        endEntranceSoon();
         if (start) {
             start.hidden = true;
         }
@@ -420,6 +421,17 @@
             + (priceText || "، با یک بار پرداخت برای همیشه.");
     }
 
+    /* the entrance plays once: after the lead's content has arrived, later
+       re-renders (auth refresh, bfcache) must not replay it */
+    var entranceTimer = null;
+    function endEntranceSoon() {
+        var root = document.documentElement;
+        if (!root.classList.contains("h26-enter") || entranceTimer) {
+            return;
+        }
+        entranceTimer = window.setTimeout(function () { root.classList.remove("h26-enter"); }, 700);
+    }
+
     function renderFeature(course) {
         var card = $("[data-h26-feature]");
         if (!card) {
@@ -486,6 +498,7 @@
         card.appendChild(tape);
         card.appendChild(actions);
         card.hidden = false;
+        endEntranceSoon();
     }
 
     /* a slow or failed network must not leave a slogan over nothing */
@@ -522,6 +535,7 @@
         card.appendChild(meta);
         card.appendChild(actions);
         card.hidden = false;
+        endEntranceSoon();
     }
 
     function unitCourses(unit) {

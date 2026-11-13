@@ -2356,6 +2356,8 @@
         };
 
         modal.querySelector(".shell-modal__host").textContent = new URL(anchor.href).host;
+        /* flush the closed state first, so the first open transitions too */
+        void modal.offsetWidth;
         modal.classList.add("is-open");
         modalBackdrop.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
