@@ -84,4 +84,22 @@ check(hamiad_reminder_slot_key(strtotime('2026-11-13T13:59:00+03:30')) === '2026
 check(hamiad_reminder_slot_key(strtotime('2026-11-13T14:00:00+03:30')) === '2026-11-13@14', '14 slot');
 check(hamiad_reminder_slot_key(strtotime('2026-11-13T23:30:00+03:30')) === '2026-11-13@20', '20 slot');
 
+// The comparison and write happen under the session-file lock login uses.
+$saveSession('2026-11-13T10:00:00+03:30', [$cookie('MoodleSession', 'locked-check')]);
+if (function_exists('pcntl_fork')) {
+$lockHandle = fopen(hamiad_session_path() . '.lock', 'c');
+check(flock($lockHandle, LOCK_EX), 'test can take the session lock');
+$pid = pcntl_fork();
+if ($pid === 0) {
+    // child: holds nothing; keepalive must block until the parent releases
+    exit(hamiad_keepalive_persist_cookies(hamiad_session_path(), '2026-11-13T09:59:00+03:30', []) ? 1 : 0);
+}
+usleep(200000);
+flock($lockHandle, LOCK_UN);
+pcntl_waitpid($pid, $childStatus);
+check(pcntl_wexitstatus($childStatus) === 0, 'a changed connectedAt is not overwritten under the lock');
+}
+check(hamiad_keepalive_persist_cookies(hamiad_session_path(), '2026-11-13T10:00:00+03:30', [$cookie('MoodleSession', 'refreshed')]),
+    'an unchanged session is refreshed under the lock');
+
 echo "HAMIAD_KEEPALIVE_TESTS_OK\n";

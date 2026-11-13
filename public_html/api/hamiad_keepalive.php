@@ -32,6 +32,42 @@ function hamiad_keepalive_write(string $path, array $record): void
 }
 
 /**
+ * Re-read, compare and write under the same lock dent_write_json_file (and so
+ * hamiad_login) uses, so a login that completes concurrently is never replaced
+ * by the older session's cookies.
+ */
+function hamiad_keepalive_persist_cookies(string $sessionPath, string $loadedConnectedAt, array $cookies): bool
+{
+    dent_ensure_directory(dirname($sessionPath));
+    $oldUmask = umask(0077);
+    $lock = @fopen($sessionPath . '.lock', 'c');
+    umask($oldUmask);
+    if (!is_resource($lock) || !@flock($lock, LOCK_EX)) {
+        if (is_resource($lock)) @fclose($lock);
+        return false;
+    }
+    try {
+        $current = dent_read_json_file($sessionPath, []);
+        if ((string) ($current['connectedAt'] ?? '') !== $loadedConnectedAt) {
+            return false;
+        }
+        $current['cookies'] = hamiad_seal($cookies);
+        $current['lastKeepaliveAt'] = dent_iso_now();
+        $oldUmask = umask(0077);
+        try {
+            dent_write_json_file($sessionPath, $current, true);
+            @chmod($sessionPath, 0600);
+        } finally {
+            umask($oldUmask);
+        }
+        return true;
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
+/**
  * Touch the saved session. Returns ['state' => 'alive'|'expired'|'none'|'error'].
  * The saved session is only rewritten when it is still the one we loaded, so
  * a login that lands meanwhile is never overwritten with older cookies.
@@ -57,12 +93,7 @@ function hamiad_keepalive_touch(?callable $request = null): array
         }
         if (!isset($result)) {
             if ($alive) {
-                $current = dent_read_json_file($sessionPath, []);
-                if ((string) ($current['connectedAt'] ?? '') === $loadedConnectedAt) {
-                    $current['cookies'] = hamiad_seal($cookies);
-                    $current['lastKeepaliveAt'] = dent_iso_now();
-                    hamiad_keepalive_write($sessionPath, $current);
-                }
+                hamiad_keepalive_persist_cookies($sessionPath, $loadedConnectedAt, $cookies);
                 $result = ['state' => 'alive'];
             } else {
                 $result = ['state' => 'expired'];
