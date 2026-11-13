@@ -171,4 +171,14 @@ check(hamiad_complete_login_handoff(HAMIAD_HOME,$successCookies,$successfulFlow,
     'Authenticated page is accepted');
 check($successHtml===null,'No failure page on successful login');
 
+$lockedHtml='<html><form id="login"><input name="login_captcha_id0"></form>'
+    . '<div id="loginerrormessage">حساب کاربری شما به دلیل تلاش‌های ناموفق قفل شده است.</div></html>';
+check(hamiad_login_failure_category($lockedHtml) === 'locked', 'Moodle account lockout is classified');
+check(str_contains(hamiad_login_failure_message($lockedHtml), 'قفل'), 'Lockout message tells the owner retries will not pass');
+$silentRejectHtml='<html><form id="login"><input name="login_captcha_id0"></form></html>';
+check(hamiad_login_failure_category($silentRejectHtml) === 'no_error_shown', 'Login form without an error is classified');
+check(hamiad_login_failure_category($captchaErrorHtml) === 'captcha', 'Captcha category');
+check(hamiad_login_failure_category($rejectedHtml) === 'credentials', 'Credentials category');
+check(hamiad_login_failure_category($unknownSensitiveHtml) === 'unclassified', 'Unknown provider text stays unclassified');
+
 echo "HAMIAD_BRIDGE_TESTS_OK\n";

@@ -121,14 +121,11 @@ function hamiad_verify_home(array &$cookies, ?callable $request = null): bool
     return str_contains($content, 'login/logout.php');
 }
 
-/**
- * Extract only the known, non-sensitive login failure category returned by
- * Moodle. Never return raw remote HTML or arbitrary provider error content.
- */
-function hamiad_login_failure_message(string $body): string
+function hamiad_login_failure_category(string $body): string
 {
+    // Categories only; never return raw remote HTML or provider content.
     if ($body === '' || strlen($body) > 524288) {
-        return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
+        return 'unreadable';
     }
     $dom = new DOMDocument();
     $prior = libxml_use_internal_errors(true);
@@ -139,16 +136,17 @@ function hamiad_login_failure_message(string $body): string
         libxml_use_internal_errors($prior);
     }
     if (!$loaded) {
-        return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
+        return 'unreadable';
     }
     $xpath = new DOMXPath($dom);
     // Prefer Moodle's known error container; some themes use loginerrors
-    // or an alert-danger instead. Never return arbitrary remote content.
+    // or an alert-danger instead.
     $message = '';
     foreach ([
         '//*[@id="loginerrormessage"]',
         '//*[contains(concat(" ", normalize-space(@class), " "), " loginerrors ")]',
         '//*[contains(concat(" ", normalize-space(@class), " "), " alert-danger ")]',
+        '//*[contains(concat(" ", normalize-space(@class), " "), " alert-warning ")]',
     ] as $selector) {
         $nodes = $xpath->query($selector);
         if (!$nodes instanceof DOMNodeList) continue;
@@ -160,21 +158,55 @@ function hamiad_login_failure_message(string $body): string
             }
         }
     }
-    $captchaKeywords = ['کپچا', 'captcha', 'عبارت امنیتی', 'عبارت‌امنیتی',
-        'کد امنیتی', 'verification code', 'security code'];
-    foreach ($captchaKeywords as $needle) {
+    if ($message === '') {
+        return 'no_error_shown';
+    }
+    // Moodle locks an account after repeated failed logins; no CAPTCHA or
+    // password retry can pass until it is unlocked.
+    foreach (['قفل', 'locked', 'lockout', 'suspended', 'معلق', 'مسدود'] as $needle) {
         if (str_contains($message, $needle)) {
-            return 'همیاد کد کپچا را نپذیرفت؛ کد تصویر جدید را بررسی کن.';
+            return 'locked';
         }
     }
-    $credentialKeywords = ['نام کاربری', 'رمز عبور', 'کلمه عبور',
-        'username', 'password', 'invalid login', 'incorrect login'];
-    foreach ($credentialKeywords as $needle) {
+    foreach (['کپچا', 'captcha', 'عبارت امنیتی', 'عبارت‌امنیتی',
+        'کد امنیتی', 'verification code', 'security code'] as $needle) {
         if (str_contains($message, $needle)) {
-            return 'همیاد نام کاربری یا رمز عبور را رد کرد؛ مشخصات ذخیره‌شده را در پنل امن همیاد بررسی و اصلاح کن.';
+            return 'captcha';
         }
+    }
+    foreach (['نام کاربری', 'رمز عبور', 'کلمه عبور',
+        'username', 'password', 'invalid login', 'incorrect login'] as $needle) {
+        if (str_contains($message, $needle)) {
+            return 'credentials';
+        }
+    }
+    return 'unclassified';
+}
+
+function hamiad_login_failure_message_for(string $category): string
+{
+    switch ($category) {
+        case 'locked':
+            return 'همیاد حساب را به‌خاطر تلاش‌های ناموفق پیاپی قفل کرده است؛ تا باز شدن قفل (لینک ایمیل دانشگاه یا گذشت زمان) تلاش دوباره فایده ندارد.';
+        case 'captcha':
+            return 'همیاد کد کپچا را نپذیرفت؛ کد تصویر جدید را بررسی کن.';
+        case 'credentials':
+            return 'همیاد نام کاربری یا رمز عبور را رد کرد؛ مشخصات ذخیره‌شده را در پنل امن همیاد بررسی و اصلاح کن.';
+        case 'no_error_shown':
+            return 'همیاد ورود را رد کرد ولی پیام خطایی نشان نداد؛ کپچای تازه بگیر و یک بار دیگر امتحان کن.';
+        case 'unreadable':
+            return 'ورود تأیید نشد. رمز یا عبارت امنیتی را بررسی کن.';
     }
     return 'همیاد ورود را رد کرد؛ علت مشخصی در پیام صفحه ورود اعلام نکرده است. رمز ذخیره‌شده و ارتباط کپچا را بررسی کن.';
+}
+
+/**
+ * Extract only the known, non-sensitive login failure category returned by
+ * Moodle. Never return raw remote HTML or arbitrary provider error content.
+ */
+function hamiad_login_failure_message(string $body): string
+{
+    return hamiad_login_failure_message_for(hamiad_login_failure_category($body));
 }
 
 /**
@@ -213,6 +245,8 @@ function hamiad_record_login_diagnostic(string $phase, array $trace): void
             'postPath'=>in_array($trace['postPath'] ?? '', $paths, true)
                 ? $trace['postPath'] : 'other',
             'postSessionCookie'=>(bool)($trace['postSessionCookie'] ?? false),
+            'rejection'=>in_array($trace['rejection'] ?? '', ['locked', 'captcha', 'credentials', 'no_error_shown', 'unreadable', 'unclassified'], true)
+                ? $trace['rejection'] : null,
             'hops'=>$hops,
         ];
         $path = dent_storage_path('hamiad/last-login-diagnostic.json');
@@ -291,8 +325,9 @@ function hamiad_login(string $username, string $password, string $captcha): arra
         'hops'=>[],
     ];
     if (!empty($response['ok']) && (int)($response['status'] ?? 0) === 200) {
+        $postTrace['rejection'] = hamiad_login_failure_category((string)($response['body'] ?? ''));
         hamiad_record_login_diagnostic('post_login_form', $postTrace);
-        throw new RuntimeException(hamiad_login_failure_message((string)($response['body'] ?? '')));
+        throw new RuntimeException(hamiad_login_failure_message_for($postTrace['rejection']));
     }
     if (empty($response['ok']) || !in_array((int) ($response['status'] ?? 0), [302, 303], true)) {
         hamiad_record_login_diagnostic('post_nonredirect', $postTrace);
@@ -301,9 +336,12 @@ function hamiad_login(string $username, string $password, string $captcha): arra
     $cookies = hamiad_merge_cookies((array) $challenge['cookies'], (array) ($response['cookies'] ?? []));
     $rejectedLoginHtml = null;
     if (!hamiad_complete_login_handoff($location, $cookies, null, $postTrace['hops'], $rejectedLoginHtml)) {
+        if (is_string($rejectedLoginHtml)) {
+            $postTrace['rejection'] = hamiad_login_failure_category($rejectedLoginHtml);
+        }
         hamiad_record_login_diagnostic('handoff_failed', $postTrace);
         if (is_string($rejectedLoginHtml)) {
-            throw new RuntimeException(hamiad_login_failure_message($rejectedLoginHtml));
+            throw new RuntimeException(hamiad_login_failure_message_for($postTrace['rejection']));
         }
         throw new RuntimeException(hamiad_handoff_failure_message($postTrace['hops']));
     }
