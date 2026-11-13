@@ -33,7 +33,7 @@ Built by and for the class itself: the course list, references, schedules and ex
 
 ## Brand Commitments
 - Keep the «۱۴۰۲» logo mark (the owner made this binding). Fonts, palette and every other visual are open to change; YekanBakh and AbarHigh are licensed and already self-hosted, so they are allowed but not required.
-- Name in use: «ورودی ۱۴۰۲ دندانپزشکی تهران». Footer credit: «ساخته‌شده با عشق · آرین قاسم‌پور».
+- Name in use: «ورودی ۱۴۰۲ دندانپزشکی تهران». Footer credit: «ساخته‌شده با عشق، آرین قاسم‌پور» (the words are binding; «،» replaced «·», which YekanBakh draws like a Persian zero).
 
 ## Evidence on Hand
 - Real exam catalog: `/api/exams_api.php?action=catalog` (terms, courses, references, badges such as «۶ بخش» and «۴۱ سؤال»).
