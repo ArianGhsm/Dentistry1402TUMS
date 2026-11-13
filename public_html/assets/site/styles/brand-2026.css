@@ -724,3 +724,41 @@ html body:not(.chat-page) .site-header--minimal .shell-account-trigger__copy sma
 html body:not(.chat-page) .shell-side-nav :is(a, button, [tabindex]):focus-visible { outline: 2px solid var(--on-shell-strong) !important; outline-offset: -2px !important; box-shadow: none !important; }
 /* the presence dot read as a stray speck on the teal header */
 html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar::after { display: none !important; }
+
+/* Footer in the clinic system: flat, one hairline, the page's own type
+   (YekanBakh) and inks, set on the start edge like every section above it.
+   The heavy Sahel face, the tinted band and the accent stub are retired;
+   «·» is drawn like a Persian zero in YekanBakh, so the credit uses «،». */
+html body .site-footer,
+html body footer.site-footer {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-start !important;
+    gap: 2px 20px !important;
+    padding: 20px max(20px, 5vw) calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    border-top: 1px solid var(--border-color) !important;
+    background: transparent !important;
+    color: var(--text-secondary);
+    font-family: var(--font-main) !important;
+    font-size: 0.875rem;
+    text-align: start !important;
+}
+html body .site-footer p {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--text-primary) !important;
+    font: 700 0.9rem/1.7 var(--font-main) !important;
+}
+html body .site-footer p::after { content: none !important; display: none !important; }
+html body .site-footer::before { content: none !important; display: none !important; }
+html body .site-footer::after {
+    content: "ساخته‌شده با عشق، آرین قاسم‌پور" !important;
+    color: var(--text-secondary) !important;
+    font: 400 0.875rem/1.7 var(--font-main) !important;
+}
+@media (max-width: 560px) {
+    html body .site-footer { flex-direction: column; align-items: flex-start !important; gap: 0 !important; }
+}
+/* home: the footer sits on the same container lines as the sections */
+html body.home-2026 .site-footer { padding-inline: max(var(--h26-gut, 20px), calc((100% - 1120px) / 2)) !important; }
