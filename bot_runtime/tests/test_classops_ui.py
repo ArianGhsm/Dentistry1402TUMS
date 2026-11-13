@@ -184,6 +184,31 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         self.assertIn("بدون گروه", str(missing.text))
         self.assertIn("ترم ۷", str(missing.text))
 
+    def test_restorative_afternoon_subgroup_uses_existing_grouping_and_account_ui(self):
+        academic = {
+            "eligible": True,
+            "academicTerm": {"termLabel": "ترم ۷"},
+            "scheduleContext": {"rotationLabel": "روتیشن دوم"},
+            "groups": {"morning": {"group": 5}, "afternoon": {"group": 11}},
+            "assignment": {"restorativePmSubgroup": 3, "restorativePmWeekdayLabel": "یکشنبه"},
+        }
+        grouping = grouping_screen(academic)
+        self.assertIn("ترمیمی عملی عصر", str(grouping.text))
+        self.assertIn("گروه ۳", str(grouping.text))
+        self.assertIn("یکشنبه", str(grouping.text))
+        self.assertNotIn("Group 3", str(grouping.text))
+        student = {"name": "دانشجو", "cohortKey": "dentistry-1402"}
+        account = account_screen_with_academic_context(
+            account_screen("https://example.test", platform="telegram", linked_user=student),
+            student,
+            academic,
+        )
+        self.assertIn("ترمیمی عصر", str(account.text))
+        self.assertIn("گروه ۳ · یکشنبه", str(account.text))
+        missing = dict(academic)
+        missing["assignment"] = {}
+        self.assertNotIn("ترمیمی عملی عصر", str(grouping_screen(missing).text))
+
     def test_target_account_gets_academic_context_non_target_does_not(self):
         academic = {"eligible": True, "academicTerm": {"termLabel": "ترم ۷", "state": "active"}, "scheduleContext": {"inSchedule": False}, "groups": {
             "morning": {"group": 3, "leaderName": "سارا"}, "afternoon": {"group": 12, "leaderName": "علی"},

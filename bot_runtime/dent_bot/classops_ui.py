@@ -69,6 +69,15 @@ def _meta(item: dict[str, Any]) -> tuple[str, str]:
     return ITEM_META.get(str(item.get("type") or ""), ("•", "مورد کلاس"))
 
 
+def _restorative_pm_group_text(payload: dict[str, Any]) -> str:
+    assignment = dict(payload.get("assignment") or {})
+    group = assignment.get("restorativePmSubgroup")
+    if type(group) is not int or group not in (1, 2, 3, 4):
+        return ""
+    weekday = str(assignment.get("restorativePmWeekdayLabel") or "").strip()
+    return f"گروه {to_persian_digits(group)}" + (f" · {weekday}" if weekday else "")
+
+
 def _account_academic_context_block(payload: dict[str, Any] | None) -> str:
     context = dict(payload or {})
     if not context or not context.get("eligible"):
@@ -91,6 +100,9 @@ def _account_academic_context_block(payload: dict[str, Any] | None) -> str:
         leader = str(group.get("leaderName") or "").strip()
         suffix = f" · سرگروه: {html.escape(leader)}" if leader else ""
         lines.append(f"<code>{label}</code>  <b>{html.escape(number_text)}</b>{suffix}")
+    restorative_group = _restorative_pm_group_text(context)
+    if restorative_group:
+        lines.append(f"<code>ترمیمی عصر</code>  <b>{html.escape(restorative_group)}</b>")
     practical = [str(item.get("title") or "").strip() for item in schedule.get("currentPractical", []) if isinstance(item, dict)]
     if practical:
         lines.append("<code>بخش فعلی</code>  <b>" + html.escape("، ".join(value for value in practical if value)) + "</b>")
@@ -543,6 +555,9 @@ def grouping_screen(payload: dict[str, Any]) -> Screen:
         else "عضو گروه نیست"
     )
     facts.append(("جزوه‌نویسی", booklet_value))
+    restorative_group = _restorative_pm_group_text(payload)
+    if restorative_group:
+        facts.append(("ترمیمی عملی عصر", restorative_group))
     for label, value in facts:
         fallback.append(f"<code>{html.escape(label)}</code>  <b>{_esc(value, 180)}</b>")
         rich.append(f"<tr><th>{html.escape(label)}</th><td><b>{_esc(value, 180)}</b></td></tr>")
