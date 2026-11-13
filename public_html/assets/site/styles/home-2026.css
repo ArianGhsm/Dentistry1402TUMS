@@ -655,3 +655,34 @@ body.home-2026 .h26-lead .h26-tape { animation: h26-tape-draw 640ms cubic-bezier
 }
 /* university links: inset from their hairline frame */
 body.home-2026 .home-service-group { padding: 12px 14px !important; }
+
+/* ---- rows: course name first, one quiet meta line, a light action ---- */
+body.home-2026 .h26-sample { min-height: 64px; padding: 12px 0; gap: 14px; align-items: center; }
+body.home-2026 .h26-sample__copy strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font: 700 1rem/1.55 var(--font-accent);
+}
+body.home-2026 .h26-sample__copy small { display: block; margin-top: 2px; font-size: 0.8rem; line-height: 1.6; color: var(--text-tertiary); }
+body.home-2026 .h26-sample__go { min-height: 40px; min-width: 66px; padding: 0 16px; font-size: 0.9rem; }
+body.home-2026 .h26-sample__fresh { vertical-align: 1px; }
+
+@media (max-width: 899.98px) {
+    body.home-2026 .h26-head :is(h2, h3) { font-size: 1.08rem; }
+    body.home-2026 .h26-head p { font-size: 0.82rem; }
+    body.home-2026 .h26-head { margin-bottom: 4px; }
+    body.home-2026 :is(.h26-samples, .h26-terms) { margin-bottom: 2rem; }
+    body.home-2026 .h26-sample__copy strong { font-size: 0.97rem; }
+    body.home-2026 .h26-lead__hello .h26-greeting { font-size: 1.12rem !important; }
+    body.home-2026 .h26-lead__fact { font-size: 0.95rem; line-height: 1.8; }
+    body.home-2026 .h26-feature__title { font-size: 1.15rem; }
+    body.home-2026 .h26-unit { min-height: 56px; padding: 10px 0; }
+    body.home-2026 .h26-unit__copy strong { font-size: 0.97rem; }
+}
+html[data-theme="dark"] body.home-2026 .h26-sample__go.is-owned {
+    background: none;
+    border: 1px solid var(--border-color-strong);
+    color: var(--text-primary);
+}

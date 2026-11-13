@@ -293,6 +293,21 @@
 
     var SAMPLE_PATTERN = /نمونه|سوالات|سؤالات/;
 
+    /* «آزمون نمونه سوالات پایان‌ترم فوریت پزشکی» → { name: «فوریت پزشکی», kind: «پایان‌ترم» }.
+       Inside a sample-question list the shared prefix is noise; the course name is the point. */
+    function splitSampleTitle(raw) {
+        var text = String(raw || "").replace(/\s*\|\s*/g, "، ").replace(/\u200c/g, "\u200c").trim();
+        var rest = text.replace(/^آزمون\s+/, "").replace(/^نمونه[\s\u200c]*(سؤالات|سوالات|سؤال|سوال)\s*/, "");
+        var kind = "";
+        var match = rest.match(/^(میان[\s\u200c]*ترم|پایان[\s\u200c]*ترم)\s*/);
+        if (match) {
+            kind = /میان/.test(match[1]) ? "میان‌ترم" : "پایان‌ترم";
+            rest = rest.slice(match[0].length);
+        }
+        rest = rest.trim();
+        return { name: rest || text, kind: kind };
+    }
+
     function sampleRow(course, isFresh) {
         /* one row per set: what it is, then a direct way to buy (or start) */
         var row = document.createElement("div");
@@ -300,8 +315,10 @@
         var copy = document.createElement("a");
         copy.className = "h26-sample__copy";
         copy.href = course.path;
+        var split = splitSampleTitle(course.title);
         var title = document.createElement("strong");
-        title.textContent = String(course.title || "").replace(/\s*\|\s*/g, "، ");
+        title.textContent = split.name;
+        copy.title = String(course.title || "");
         if (isFresh) {
             var fresh = document.createElement("span");
             fresh.className = "h26-sample__fresh";
@@ -312,6 +329,7 @@
         var curriculum = course.curriculum && typeof course.curriculum === "object" ? course.curriculum : {};
         var stats = course.stats || {};
         meta.textContent = [
+            split.kind,
             curriculum.termLabel || "",
             Number(stats.questionCount) ? faNumber(stats.questionCount) + " سؤال" : (course.badge || ""),
             course.access && course.access.hasAccess ? "" : priceLabel(course)
@@ -405,7 +423,9 @@
         title.className = "h26-feature__title";
         var titleLink = document.createElement("a");
         titleLink.href = course.path;
-        titleLink.textContent = String(course.title || "").replace(/\s*\|\s*/g, "، ");
+        var split = splitSampleTitle(course.title);
+        titleLink.textContent = split.name;
+        titleLink.title = String(course.title || "");
         title.appendChild(titleLink);
         var fresh = document.createElement("span");
         fresh.className = "h26-sample__fresh";
@@ -414,7 +434,7 @@
 
         var meta = document.createElement("p");
         meta.className = "h26-feature__meta";
-        meta.textContent = [curriculum.termLabel || "", questions ? faNumber(questions) + " سؤال با پاسخ تشریحی" : (course.badge || "")]
+        meta.textContent = ["نمونه‌سؤال " + (split.kind || "امتحان"), curriculum.termLabel || "", questions ? faNumber(questions) + " سؤال با پاسخ تشریحی" : (course.badge || "")]
             .filter(Boolean).join("، ");
 
         /* the set's size as indicator tape: one raw cell per question (grouped past 60) */
