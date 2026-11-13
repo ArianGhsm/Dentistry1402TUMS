@@ -201,10 +201,14 @@ function hamiad_mobile_relogin_locked(?callable $request, ?int $clock, bool $for
         return ['ok' => false, 'reason' => 'credentials_rejected'];
     }
     $last = strtotime((string) ($state['lastAttemptAt'] ?? '')) ?: 0;
-    if (!$force && $last > $clock - HAMIAD_MOBILE_MIN_INTERVAL) {
+    // Newly saved credentials deserve an immediate attempt; the throttle only
+    // spaces out retries with the same credentials.
+    $sameCredentials = ($state['lastCredentialsSavedAt'] ?? null) === $savedAt;
+    if (!$force && $sameCredentials && $last > $clock - HAMIAD_MOBILE_MIN_INTERVAL) {
         return ['ok' => false, 'reason' => 'throttled'];
     }
     $state['lastAttemptAt'] = date(DATE_ATOM, $clock);
+    $state['lastCredentialsSavedAt'] = $savedAt;
 
     $finish = static function (array $result) use (&$state): array {
         $state['lastResult'] = $result['reason'];

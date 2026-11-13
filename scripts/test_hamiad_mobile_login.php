@@ -140,4 +140,16 @@ if (function_exists('pcntl_fork')) {
     check(pcntl_wexitstatus($childStatus) === 0, 'a concurrent relogin waits for the lock');
 }
 
+// Re-saved credentials are tried at once, without waiting for the throttle.
+sleep(1);
+hamiad_credentials_save('40112345603', 'correct-horse');
+$log = [];
+check(hamiad_mobile_relogin(fake_hamiad($log), 1_800_050_000)['ok'] === true, 'baseline after re-save');
+sleep(1);
+hamiad_credentials_save('40112345603', 'correct-horse');
+$log = [];
+check(hamiad_mobile_relogin(fake_hamiad($log), 1_800_050_060)['reason'] !== 'throttled', 'new credentials skip the throttle');
+$log = [];
+check(hamiad_mobile_relogin(fake_hamiad($log), 1_800_050_120)['reason'] === 'throttled', 'same credentials stay throttled');
+
 echo "HAMIAD_MOBILE_LOGIN_TESTS_OK\n";
