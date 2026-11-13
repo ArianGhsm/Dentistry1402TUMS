@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>خانه دانشجو | ورودی ۱۴۰۲ دندانپزشکی</title>
     <meta name="description" content="خانه دانشجویی ورودی ۱۴۰۲ برای دسترسی سریع به آزمون‌ها، نمرات، فرم‌ها، جزوات و همیاد.">
-    <meta name="theme-color" content="#0b1230">
+    <meta name="theme-color" content="#0b3f3c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
@@ -14,10 +14,14 @@
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260722-200509">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
     <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
+    <script>
+        /* the lead enters once per session; a page seen many times a day does not replay it */
+        try { if (!sessionStorage.getItem("h26-entered") && !matchMedia("(prefers-reduced-motion: reduce)").matches) { document.documentElement.classList.add("h26-enter"); sessionStorage.setItem("h26-entered", "1"); } } catch (_e) {}
+    </script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260722-200509">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20261112-exams-hub3">
-    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261113-type1">
+    <link rel="stylesheet" href="/assets/site/styles/home-2026.css?v=20261113-v3d">
 </head>
 <body class="app-dashboard-page app-dashboard-page--digipay home-2026">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -34,72 +38,61 @@
 
     <main class="app-home-main">
         <section class="h26-lead" data-h26-lead aria-labelledby="h26-lead-title">
-            <span id="app-home-title" hidden></span>
-            <div class="h26-lead__copy">
-                <p class="h26-lead__hello"><span class="h26-greeting" data-h26-hello>سلام،</span> <span class="h26-lead__today" data-h26-today></span></p>
-                <h1 class="h26-lead__title" id="h26-lead-title">نمونه‌سؤال امتحان‌های دندانپزشکی، درس به درس</h1>
-                <p class="h26-lead__fact" data-h26-fact>میان‌ترم و پایان‌ترم هر درس، با یک بار پرداخت برای همیشه.</p>
-                <button type="button" class="h26-search" data-h26-search>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-4.2-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    <span>جستجو در آزمون‌ها و دروس</span>
-                </button>
-            </div>
-            <div class="h26-lead__feature">
-                <a class="h26-continue" data-h26-continue href="/exams/" hidden>
-                    <h2 class="h26-continue__title" data-h26-continue-title></h2>
-                    <span class="h26-continue__meta" data-h26-continue-meta></span>
-                    <div class="h26-tape" data-h26-tape aria-hidden="true"></div>
-                    <span class="h26-continue__count" data-h26-continue-count></span>
-                    <span class="h26-continue__cta"><span data-h26-continue-cta>ادامهٔ آزمون</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m5-5-5 5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                </a>
-                <article class="h26-feature" data-h26-feature hidden></article>
+            <div class="h26-wrap h26-lead__wrap">
+                <span id="app-home-title" hidden></span>
+                <div class="h26-lead__copy" data-h26-enter>
+                    <p class="h26-lead__hello"><span class="h26-greeting" data-h26-hello>سلام،</span> <span class="h26-lead__today" data-h26-today></span></p>
+                    <h1 class="h26-lead__title" id="h26-lead-title">نمونه‌سؤال امتحان‌های دندانپزشکی، درس به درس</h1>
+                    <p class="h26-lead__fact" data-h26-fact>میان‌ترم و پایان‌ترم هر درس، با یک بار پرداخت برای همیشه.</p>
+                </div>
+                <div class="h26-lead__feature" data-h26-enter>
+                    <a class="h26-continue" data-h26-continue href="/exams/" hidden>
+                        <span class="h26-continue__title" data-h26-continue-title></span>
+                        <span class="h26-continue__meta" data-h26-continue-meta></span>
+                        <span class="h26-tape" data-h26-tape aria-hidden="true"></span>
+                        <span class="h26-continue__count" data-h26-continue-count></span>
+                        <span class="h26-continue__cta"><span data-h26-continue-cta>ادامهٔ آزمون</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    </a>
+                    <article class="h26-feature" data-h26-feature hidden></article>
+                </div>
             </div>
         </section>
 
-        <section class="h26-samples" data-h26-samples hidden aria-labelledby="h26-samples-title">
-            <header class="h26-head">
-                <div><h2 id="h26-samples-title">نمونه‌سؤال‌های دیگر</h2></div>
-                <a href="/exams/?mode=term">همهٔ درس‌ها</a>
-            </header>
-            <div class="h26-samples__list" data-h26-samples-list></div>
+        <section class="h26-section h26-samples" data-h26-samples hidden aria-labelledby="h26-samples-title">
+            <div class="h26-wrap">
+                <header class="h26-head">
+                    <h2 id="h26-samples-title">نمونه‌سؤال‌های دیگر</h2>
+                    <a class="h26-head__more" href="/exams/?mode=term">همهٔ درس‌ها<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                </header>
+                <div class="h26-rows h26-samples__list" data-h26-samples-list></div>
+            </div>
         </section>
 
-        <section class="h26-hero" data-h26-hero>
-            <section class="h26-week" data-h26-week hidden aria-labelledby="h26-week-title">
+        <section class="h26-section h26-week" data-h26-week hidden aria-labelledby="h26-week-title">
+            <div class="h26-wrap">
                 <header class="h26-head"><h2 id="h26-week-title">برنامهٔ کلاس و کارها</h2><span class="h26-head__meta" data-h26-plan-range></span></header>
                 <div class="h26-plan" data-h26-plan></div>
-            </section>
+            </div>
         </section>
 
-
-        <section class="h26-terms" data-h26-shelf hidden aria-labelledby="h26-terms-title">
-            <header class="h26-head">
-                <div><h2 id="h26-terms-title">درس‌ها، ترم به ترم</h2><p>آزمون‌های هر درس، همان‌طور که در دانشکده خوانده می‌شود</p></div>
-                <a href="/exams/?mode=term">همهٔ ترم‌ها</a>
-            </header>
-            <div class="h26-terms__tabs" role="tablist" aria-label="ترم" data-h26-term-tabs></div>
-            <div class="h26-terms__list" data-h26-covers></div>
+        <section class="h26-section h26-terms" data-h26-shelf hidden aria-labelledby="h26-terms-title">
+            <div class="h26-wrap">
+                <header class="h26-head">
+                    <h2 id="h26-terms-title">درس‌ها، ترم به ترم</h2>
+                </header>
+                <div class="h26-terms__tabs" role="tablist" aria-label="ترم" data-h26-term-tabs></div>
+                <div class="h26-rows h26-terms__list" data-h26-covers></div>
+                <a class="h26-terms__all" href="/exams/?mode=term">همهٔ آزمون‌ها، ترم به ترم<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            </div>
         </section>
 
-        <div class="h26-cols">
-        <div class="h26-cols__main">
-
-
-
-        </div>
-        <div class="h26-cols__side">
-
-        <section class="home-directory" id="home-services" aria-labelledby="home-services-title">
-            <header class="home-section-heading home-section-heading--directory">
-                <div>
-                    <span class="home-section-heading__eyebrow">همه بخش‌ها</span>
-                    <h2 id="home-services-title">دسترسی‌ها</h2>
-                </div>
-            </header>
-            <div class="home-service-groups" aria-label="دسترسی‌های صفحه اصلی">
+        <section class="h26-section h26-links home-directory" id="home-services" aria-labelledby="home-services-title">
+            <div class="h26-wrap">
+                <h2 class="h26-visually-hidden" id="home-services-title">دسترسی‌ها</h2>
+                <div class="home-service-groups">
                 <section class="home-service-group" data-tone="owner" data-owner-only hidden>
                     <div class="home-service-group__head">
-                        <span class="portal-section-title">ویژه مالک سایت</span>
+                        <h3 class="h26-links__title">ویژه مالک سایت</h3>
                     </div>
                     <div class="home-service-strip">
                         <a class="home-service-link" href="/admin/#appearance">
@@ -169,7 +162,7 @@
 
                 <section class="home-service-group" data-tone="orange">
                     <div class="home-service-group__head">
-                        <span class="portal-section-title">سایت‌های دانشگاه</span>
+                        <h3 class="h26-links__title">سایت‌های دانشگاه</h3>
                     </div>
                     <div class="home-service-strip">
                         <a class="home-service-link" href="https://sipad.tums.ac.ir/" target="_blank" rel="noopener">
@@ -198,12 +191,17 @@
                         </a>
                     </div>
                 </section>
+                </div>
+                <div class="h26-bots">
+                    <h3 class="h26-links__title">ربات کلاس</h3>
+                    <p>اطلاعیه‌ها، یادآوری امتحان و خرید نمونه‌سؤال، در تلگرام و بله.</p>
+                    <div class="h26-bots__actions">
+                        <a class="h26-bots__go" href="https://t.me/Dent1402Bot" target="_blank" rel="noopener" aria-label="باز کردن ربات کلاس در تلگرام">ربات تلگرام</a>
+                        <a class="h26-bots__go" href="https://ble.ir/dent1402bot" target="_blank" rel="noopener" aria-label="باز کردن ربات کلاس در بله">ربات بله</a>
+                    </div>
+                </div>
             </div>
         </section>
-
-        </div>
-        </div>
-
 
         <section id="home-identity-panel" class="portal-panel portal-panel--identity" data-auth-state="restoring" aria-live="polite" hidden>
             <div class="portal-identity">
@@ -230,7 +228,7 @@
     <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
     <script src="/assets/site/scripts/app-home.js?v=20260813-home-access1"></script>
-    <script src="/assets/site/scripts/home-2026.js?v=20261113-flat2"></script>
+    <script src="/assets/site/scripts/home-2026.js?v=20261113-v3"></script>
     <script src="/assets/site/scripts/shell.js?v=20261111-side-nav1"></script>
 </body>
 </html>

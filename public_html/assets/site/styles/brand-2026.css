@@ -93,9 +93,10 @@ html[data-theme="light"] {
 
 html[data-theme="dark"] {
     color-scheme: dark;
-    --brand-navy-950: #071a19;
-    --brand-navy-900: #0d2d2a;
-    --brand-navy-800: #123a36;
+    /* the shell stays a visible teal above the near-black ground */
+    --brand-navy-950: #0f302d;
+    --brand-navy-900: #164340;
+    --brand-navy-800: #1b4d49;
     --brand-navy-600: #1f5a54;
     --brand-brass: #5cc2b4;
     --brand-brass-strong: #8ed8cc;
@@ -235,7 +236,7 @@ body:not(.chat-page) :where(h1, h2, h3, h4, h5, h6) {
 }
 .shell-side-nav__brand img { width: 48px; height: 48px; border-radius: 12px; background: #fff; padding: 3px; }
 .shell-side-nav__brand b { display: block; font: 800 1rem/1.4 var(--font-accent); }
-.shell-side-nav__brand small { color: var(--brand-brass); font-size: 0.8rem; font-weight: 600; }
+.shell-side-nav__brand small { color: var(--on-shell-muted); font-size: 0.8rem; font-weight: 600; }
 
 .shell-side-nav__list { display: grid; gap: 2px; }
 .shell-side-nav__list--secondary {
@@ -675,6 +676,9 @@ html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .site-info 
     gap: 1px;
     white-space: nowrap !important;
     line-height: 1.25 !important;
+    /* two stacked lines: the box must not clip the name's ascenders */
+    overflow: visible !important;
+    padding-block: 2px;
 }
 html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-main {
     order: 1;
@@ -688,3 +692,35 @@ html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-bran
 @media (min-width: 1024px) {
     html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-sub { color: var(--text-tertiary); }
 }
+
+/* Header, v3 home pass: one family (YekanBakh) in the bar, 44px targets, and
+   an avatar that sits in the shell instead of shouting over it (rose stays
+   for the tape and its marks). */
+html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-main { font: 800 1.05rem/1.35 var(--font-main); }
+html body:not(.chat-page) .site-header--minimal:not(.has-page-label) .shell-brand-sub { font-size: 0.8rem; }
+html body:not(.chat-page) .site-header--minimal .site-info h1,
+html body:not(.chat-page) .site-header--minimal .shell-page-label { font-family: var(--font-main) !important; }
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger { min-height: 44px; min-width: 44px; justify-content: center; }
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar {
+    width: 34px !important;
+    height: 34px !important;
+    font: 700 0.9rem/1 var(--font-main) !important;
+}
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger__copy :is(strong, small) { line-height: 1.45 !important; overflow: visible !important; }
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger__copy small { font-size: 0.8rem !important; }
+@media (max-width: 1023.98px) {
+    html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar {
+        background: transparent !important;
+        box-shadow: inset 0 0 0 1.5px var(--on-shell-muted) !important;
+        color: var(--on-shell-strong) !important;
+    }
+    html body:not(.chat-page) .site-header--minimal :is(.shell-search-trigger, .theme-toggle-btn) { width: 44px !important; height: 44px !important; }
+}
+@media (min-width: 1024px) {
+    html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar { background: var(--accent-soft) !important; color: var(--accent-strong) !important; }
+}
+/* focus on the teal rail: a white ring reads where the page ring does not */
+/* inset: the rail scrolls, so an outer ring would be clipped */
+html body:not(.chat-page) .shell-side-nav :is(a, button, [tabindex]):focus-visible { outline: 2px solid var(--on-shell-strong) !important; outline-offset: -2px !important; box-shadow: none !important; }
+/* the presence dot read as a stray speck on the teal header */
+html body:not(.chat-page) .site-header--minimal .shell-account-trigger__avatar::after { display: none !important; }
