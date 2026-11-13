@@ -719,3 +719,11 @@ html[data-theme="dark"] body.home-2026 .h26-lead .h26-continue__cta { background
 body.home-2026 .h26-feature__more { color: var(--on-shell-strong); }
 /* continue moved into the lead: the old hero holds only the week plan, full width */
 body.home-2026 .h26-hero { grid-template-columns: minmax(0, 1fr) !important; }
+
+/* greeting: the page's own voice, not a display face */
+body.home-2026 .h26-lead__hello { font: 500 0.95rem/1.6 var(--font-main); color: var(--on-shell-muted); }
+body.home-2026 .h26-lead__hello .h26-greeting {
+    font: 700 0.95rem/1.6 var(--font-main) !important;
+    color: var(--on-shell-strong) !important;
+    margin-inline-end: 4px;
+}
