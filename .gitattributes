@@ -19,3 +19,8 @@
 *.woff binary
 *.woff2 binary
 *.ttf binary
+
+# Term-6 reference exam data keeps carriage returns *inside* question strings
+# (Word imports). They are content, not line endings: store the bytes as-is so
+# checkouts are never "dirty" and release workspaces verify clean.
+public_html/api/exams_term6_reference_data/*.php -text
