@@ -144,8 +144,12 @@ function hamiad_http_request(string $method, string $url, array $options = []): 
     $origin = trim((string) ($options['origin'] ?? ''));
     $referer = trim((string) ($options['referer'] ?? ''));
 
+    $userAgent = trim((string) ($options['userAgent'] ?? ''));
+    if ($userAgent === '' || preg_match('/[\r\n]/', $userAgent)) {
+        $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+    }
     $headers = [
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'User-Agent: ' . $userAgent,
         'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
         'Accept-Language: fa-IR,fa;q=0.9,en-US;q=0.7,en;q=0.6',
     ];

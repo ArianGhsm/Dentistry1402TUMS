@@ -6,7 +6,7 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 require_once __DIR__ . '/hamiad_reminders.php';
-require_once __DIR__ . '/hamiad_keepalive.php';
+require_once __DIR__ . '/hamiad_mobile_login.php';
 
 $dryRun = in_array('--dry-run', $argv, true);
 $clock = time();
@@ -17,6 +17,15 @@ try {
     $out['keepalive'] = hamiad_keepalive_touch()['state'];
 } catch (Throwable $error) {
     $out['keepalive'] = 'error';
+}
+
+// 1b) Expired or missing: restore it without a CAPTCHA via the mobile token.
+if (in_array($out['keepalive'], ['expired', 'none'], true)) {
+    try {
+        $out['relogin'] = hamiad_mobile_relogin()['reason'];
+    } catch (Throwable $error) {
+        $out['relogin'] = 'error';
+    }
 }
 
 // 2) Once a day, check whether CAPTCHA-free mobile login is possible. Never fatal.

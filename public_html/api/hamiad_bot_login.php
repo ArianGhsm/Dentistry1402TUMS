@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/hamiad_bridge_service.php';
 require_once __DIR__ . '/hamiad_credentials.php';
+require_once __DIR__ . '/hamiad_mobile_login.php';
 
 /* The website owns the only Moodle session. The bot never sees credentials or cookies. */
 function hamiad_bot_login_path(string $platform): string
@@ -23,6 +24,22 @@ function hamiad_bot_login_start(string $platform): array
     if ($cookies && hamiad_verify_home($cookies)) {
         return ['success'=>true, 'status'=>'connected',
             'message'=>'حساب همیاد از قبل متصل است.'];
+    }
+
+    // Try the CAPTCHA-free mobile-token path first; fall back to the CAPTCHA.
+    try {
+        $mobile = hamiad_mobile_relogin(null, null, true);
+        if (!empty($mobile['ok'])) {
+            return ['success'=>true, 'status'=>'connected',
+                'message'=>'ورود به همیاد بدون کپچا (مسیر اپ موبایل) تأیید شد.'];
+        }
+        if (($mobile['reason'] ?? '') === 'credentials_rejected') {
+            throw new RuntimeException('همیاد نام کاربری یا رمز عبور ذخیره‌شده را رد کرد؛ مشخصات را در پنل امن همیاد اصلاح کن.');
+        }
+    } catch (RuntimeException $error) {
+        if (str_contains($error->getMessage(), 'رمز عبور')) {
+            throw $error;
+        }
     }
 
     $image = hamiad_challenge();
