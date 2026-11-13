@@ -207,7 +207,7 @@ html body.home-2026 .h26-lead :is(a, button):focus-visible {
         border-top: 0;
         border-inline-start: 1px solid color-mix(in srgb, var(--on-shell-strong) 16%, transparent);
     }
-    body.home-2026 .h26-feature__actions { flex-direction: row; align-items: center; gap: 8px 20px; }
+    body.home-2026 .h26-feature__actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
     body.home-2026 .h26-feature__more { align-self: auto; padding-inline: 0; }
     body.home-2026 .h26-continue__cta { justify-self: start; }
 }
@@ -499,4 +499,15 @@ body.home-2026 .h26-bots__go:focus-visible { outline: 2px solid var(--focus-ring
 /* the header bar lines up with the page container on wide screens */
 @media (min-width: 1024px) {
     html body.home-2026:not(.chat-page) .site-header.site-header--minimal { padding-inline: max(48px, calc((100% - 1120px) / 2)) !important; }
+}
+
+/* beside the rail, under ~1180px the split leaves the featured set ~190px: stack it */
+@media (min-width: 900px) and (max-width: 1179.98px) {
+    body.home-2026 .h26-lead__wrap { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+    body.home-2026 .h26-lead__feature {
+        padding-inline-start: 0;
+        padding-top: 24px;
+        border-inline-start: 0;
+        border-top: 1px solid color-mix(in srgb, var(--on-shell-strong) 16%, transparent);
+    }
 }
