@@ -162,7 +162,7 @@
         }
     }
 
-    function renderContinue() {
+    function renderContinueState() {
         var card = $("[data-h26-continue]");
         var start = $("[data-h26-start]");
         var data = readLastExam();
@@ -203,6 +203,15 @@
         card.hidden = false;
         if (start) {
             start.hidden = true;
+        }
+    }
+
+    /* the lead offers continue OR the newest set: re-pick whenever continue
+       changes (bfcache restore, auth refresh), using the cached catalog */
+    function renderContinue() {
+        renderContinueState();
+        if (lastSamplesCatalog) {
+            renderSamples(lastSamplesCatalog);
         }
     }
 
@@ -353,7 +362,10 @@
         return row;
     }
 
+    var lastSamplesCatalog = null;
+
     function renderSamples(catalog) {
+        lastSamplesCatalog = catalog || lastSamplesCatalog;
         var box = $("[data-h26-samples]");
         var list = $("[data-h26-samples-list]");
         if (!box || !list) {
