@@ -391,16 +391,21 @@
         if (!fact || !courses.length) {
             return;
         }
-        var prices = {};
-        var common = "";
+        /* real prices only: «each» when every set costs the same, else «from» the lowest */
+        var amounts = [];
         courses.forEach(function (course) {
             var label = priceLabel(course);
-            if (!label) return;
-            prices[label] = (prices[label] || 0) + 1;
-            if (!common || prices[label] > prices[common]) common = label;
+            var value = Number(String(label).replace(/[^\d۰-۹]/g, "").replace(/[۰-۹]/g, function (d) { return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)); }));
+            if (value) amounts.push({ value: value, label: label });
         });
+        var priceText = "";
+        if (amounts.length) {
+            var lowest = amounts.reduce(function (min, item) { return item.value < min.value ? item : min; }, amounts[0]);
+            var uniform = amounts.length === courses.length && amounts.every(function (item) { return item.value === lowest.value; });
+            priceText = uniform ? "، هر کدام " + lowest.label + " و برای همیشه." : "، از " + lowest.label + "، با یک بار پرداخت برای همیشه.";
+        }
         fact.textContent = faNumber(courses.length) + " مجموعه نمونه‌سؤال میان‌ترم و پایان‌ترم"
-            + (common ? "، هر کدام " + common + " و برای همیشه." : "، با یک بار پرداخت برای همیشه.");
+            + (priceText || "، با یک بار پرداخت برای همیشه.");
     }
 
     function renderFeature(course) {

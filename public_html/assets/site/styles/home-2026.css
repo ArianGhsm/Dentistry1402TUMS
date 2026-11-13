@@ -686,3 +686,34 @@ html[data-theme="dark"] body.home-2026 .h26-sample__go.is-owned {
     border: 1px solid var(--border-color-strong);
     color: var(--text-primary);
 }
+
+/* Flat by contract: the featured set sits directly on the teal band — no
+   card frame or shadow — in the band's own ink, tape and a white action. */
+body.home-2026 .h26-feature,
+body.home-2026 .h26-lead .h26-continue {
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: var(--on-shell) !important;
+}
+body.home-2026 .h26-lead__feature { border-top: 1px solid rgba(255, 255, 255, 0.16); padding-top: 18px; }
+@media (min-width: 900px) {
+    body.home-2026 .h26-lead__feature { border-top: 0; padding-top: 0; border-inline-start: 1px solid rgba(255, 255, 255, 0.16); padding-inline-start: 40px; }
+}
+body.home-2026 .h26-feature__title,
+body.home-2026 .h26-lead .h26-continue__title { color: var(--on-shell-strong) !important; }
+body.home-2026 .h26-feature__title a:hover { color: var(--shell-mark); }
+body.home-2026 .h26-feature__meta,
+body.home-2026 .h26-lead :is(.h26-continue__meta, .h26-continue__count) { color: var(--on-shell-muted) !important; }
+body.home-2026 .h26-tape--feature i,
+body.home-2026 .h26-lead .h26-tape i { background: repeating-linear-gradient(-45deg, var(--shell-tape-raw) 0 4px, var(--shell-tape-raw-line) 4px 6px) !important; }
+body.home-2026 .h26-lead .h26-tape i.is-done { background: repeating-linear-gradient(-45deg, var(--shell-tape-done) 0 4px, var(--shell-tape-done-line) 4px 6px) !important; }
+body.home-2026 .h26-feature__buy,
+body.home-2026 .h26-lead .h26-continue__cta {
+    background: var(--on-shell-strong) !important;
+    color: var(--brand-navy-950) !important;
+}
+html[data-theme="dark"] body.home-2026 .h26-feature__buy,
+html[data-theme="dark"] body.home-2026 .h26-lead .h26-continue__cta { background: var(--brand-brass) !important; color: var(--text-on-accent) !important; }
+body.home-2026 .h26-feature__more { color: var(--on-shell-strong); }
