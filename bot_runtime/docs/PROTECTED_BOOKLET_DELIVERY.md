@@ -43,6 +43,13 @@ message. No bulk export archive or persistent PDF copies are created.
 - Every job gets a private `0700` directory. Source, output, page batches and
   scratch files are removed in `finally`; age-based orphan cleanup handles a
   process crash without deleting active jobs.
+- Purchased AI booklets and DentNotes now arrive as **original, unmodified
+  source PDFs** without a watermark or forward lock after fresh authorization.
+  AI booklets must come from the canonical private channel. A DentNote paid
+  asset must match an active channel DentNote by original source chat, message
+  and Telegram unique-file identity; other paid PDFs stay personalized and
+  protected. Existing protected messages cannot be changed in place; buyers
+  request a fresh original through the bot.
 - Voice, non-PDF media, and direct source copies always use
   `protect_content=true`. By default, first personalized PDF uploads and
   cached `file_id` resends also set `protect_content=true`.

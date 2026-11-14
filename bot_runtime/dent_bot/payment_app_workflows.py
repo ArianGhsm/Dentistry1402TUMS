@@ -200,6 +200,11 @@ class PaymentAppWorkflows:
             )
         if not self._paid_file_asset_is_pdf(asset):
             return None
+        if self.state.is_active_dentnote_asset(
+            asset, expected_source_chat_id=self.booklet_source_channel_id
+        ):
+            # DentNote buyers receive the original unwatermarked PDF.
+            return None
         try:
             self.site_api.booklet_watermark_identity(user_id)
         except (SiteApiError, AttributeError):
