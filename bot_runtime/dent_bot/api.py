@@ -577,13 +577,19 @@ class TelegramBotApi:
         return dict(self.call("copyMessage", payload, timeout=30) or {})
 
     def send_original_booklet_pdf(
-        self, chat_id: int, source: dict, *, expected_source_chat_id: int
+        self, chat_id: int, source: dict, *, expected_source_chat_id: int,
+        allowed_content_kind: str = "booklet",
     ) -> dict:
-        """Send the unmodified PDF, only from the authorized booklet source channel."""
+        """Send an unmodified study PDF from the canonical private source channel.
+
+        The dispatcher must verify entitlement and, for paid-file DentNotes,
+        their exact provenance before selecting the paid_file opt-in.
+        """
         if (
-            expected_source_chat_id >= 0
+            allowed_content_kind not in {"booklet", "ai_booklet", "paid_file"}
+            or expected_source_chat_id >= 0
             or int(source.get("sourceChatId") or 0) != expected_source_chat_id
-            or str(source.get("contentKind") or "") != "booklet"
+            or str(source.get("contentKind") or "") != allowed_content_kind
             or str(source.get("telegramMethod") or "") != "sendDocument"
             or str(source.get("mimeType") or "").lower() != "application/pdf"
             or not str(source.get("fileId") or "")

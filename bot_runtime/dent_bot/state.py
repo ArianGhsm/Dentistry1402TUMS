@@ -2167,6 +2167,39 @@ class BotState:
             ).fetchall()
         return self._paid_file_asset_payload(rows[0]) if len(rows) == 1 else None
 
+    def is_active_dentnote_asset(self, asset: dict, *, expected_source_chat_id: int) -> bool:
+        """Confirm a paid PDF is exactly an active DentNote from our source channel.
+
+        File name/title are never authoritative. A match must include immutable
+        Telegram file identity and the precise original source message.
+        """
+        if (
+            str(asset.get("contentKind") or "") != "paid_file"
+            or str(asset.get("sourcePlatform") or "") != "telegram"
+            or int(expected_source_chat_id) >= 0
+            or int(asset.get("sourceChatId") or 0) != int(expected_source_chat_id)
+            or int(asset.get("sourceMessageId") or 0) <= 0
+            or str(asset.get("telegramMethod") or "") != "sendDocument"
+            or str(asset.get("mimeType") or "").lower() != "application/pdf"
+            or not str(asset.get("fileId") or "").strip()
+            or not str(asset.get("fileUniqueId") or "").strip()
+            or asset.get("active") is not True
+        ):
+            return False
+        with self._lock:
+            match = self.connection.execute(
+                "SELECT 1 FROM protected_media_sources WHERE active=1 "
+                "AND content_kind='dentnote' AND telegram_method='sendDocument' "
+                "AND mime_type='application/pdf' AND source_chat_id=? "
+                "AND source_message_id=? AND file_unique_id=? LIMIT 1",
+                (
+                    int(expected_source_chat_id),
+                    int(asset["sourceMessageId"]),
+                    str(asset["fileUniqueId"]),
+                ),
+            ).fetchone()
+        return match is not None
+
     def paid_file_asset_by_id(self, asset_id: int) -> dict | None:
         with self._lock:
             row = self.payment_connection.execute(

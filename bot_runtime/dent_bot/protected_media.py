@@ -601,7 +601,19 @@ class ProtectedMediaDispatcher:
                     continue
                 kind = str(source.get("contentKind") or "").strip()
                 if kind == "paid_file":
-                    if self._is_pdf(source):
+                    if self._is_pdf(source) and self.state.is_active_dentnote_asset(
+                        source, expected_source_chat_id=self.original_booklet_source_chat_id
+                    ):
+                        # Only a currently indexed DentNote matching the paid asset's
+                        # original Telegram message may bypass watermark/protection.
+                        if not self.authorize(job.user_id, source):
+                            raise PermissionError("DentNote purchase was revoked before delivery")
+                        result = self.api.send_original_booklet_pdf(
+                            job.user_id, source,
+                            expected_source_chat_id=self.original_booklet_source_chat_id,
+                            allowed_content_kind="paid_file",
+                        )
+                    elif self._is_pdf(source):
                         result = self._send_pdf(job, source)
                     else:
                         if not self.authorize(job.user_id, source):
@@ -616,11 +628,15 @@ class ProtectedMediaDispatcher:
                     if not self.authorize(job.user_id, source):
                         raise PermissionError("Booklet entitlement was revoked before media delivery")
                     result = self.api.send_protected_media(job.user_id, source)
-                elif kind == "booklet" and self._is_pdf(source) and self.original_booklet_delivery:
+                elif kind in {"booklet", "ai_booklet"} and self._is_pdf(source) and (
+                    kind == "ai_booklet" or self.original_booklet_delivery
+                ):
                     if not self.authorize(job.user_id, source):
-                        raise PermissionError("Booklet access was revoked")
+                        raise PermissionError("Study booklet access was revoked")
                     result = self.api.send_original_booklet_pdf(
-                        job.user_id, source, expected_source_chat_id=self.original_booklet_source_chat_id
+                        job.user_id, source,
+                        expected_source_chat_id=self.original_booklet_source_chat_id,
+                        allowed_content_kind=kind,
                     )
                 elif self._is_pdf(source):
                     result = self._send_pdf(job, source)
