@@ -6,7 +6,7 @@ require_once __DIR__ . '/classops_term7_syllabus_data.php';
 
 // Owner-confirmed changes to individual theory occurrences are keyed by their
 // original syllabus date; the PDF-derived source date remains intact.
-const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.20';
+const CLASSOPS_TERM7_SYLLABUS_VERSION = '1405-1406-1.corrected.21';
 
 function classops_term7_syllabus_theory_date_moves(): array
 {
@@ -70,6 +70,29 @@ function classops_term7_syllabus_one_off_clock_overrides(): array
             'start' => '12:45',
             'end' => '13:45',
             'reason' => 'تغییر استثنایی ساعت جلسه روش تحقیق ۲ در چهارشنبه ۲۲ مهر ۱۴۰۵',
+        ],
+    ];
+}
+
+/**
+ * Confirmed date-specific classes copied from a matching syllabus session.
+ * The original historical entry is retained unless its cancellation is
+ * explicitly confirmed. The extra date uses the same course source of truth
+ * in the website, bot, and notification renderers.
+ */
+function classops_term7_syllabus_extra_occurrences(): array
+{
+    return [
+        'endodontics-theory-1' => [
+            [
+                'sourceSessionNumber' => 6,
+                'sourceInstructor' => 'دکتر اسدیان',
+                'sourceTitle' => 'رادیولوژی در اندودانتیکس',
+                'date' => '1405/08/25',
+                'start' => '12:40',
+                'end' => '13:40',
+                'reason' => 'انتقال کلاس رادیولوژی اندو نظری ۱ با دکتر اسدیان به دوشنبه ۲۵ آبان، ساعت ۱۲:۴۰ تا ۱۳:۴۰',
+            ],
         ],
     ];
 }
@@ -169,6 +192,32 @@ function classops_term7_syllabus_catalog(): array
         $course['sessions'] = $sessions;
     }
     unset($course);
+
+    foreach (classops_term7_syllabus_extra_occurrences() as $courseKey => $occurrences) {
+        if (!is_array($catalog[$courseKey]['sessions'] ?? null)) continue;
+        foreach ($occurrences as $occurrence) {
+            if (!is_array($occurrence)) continue;
+            $matches = array_values(array_filter(
+                $catalog[$courseKey]['sessions'],
+                static fn(array $session): bool =>
+                    in_array((int) ($occurrence['sourceSessionNumber'] ?? 0), $session['sessionNumbers'] ?? [], true)
+                    && (string) ($session['instructor'] ?? '') === (string) ($occurrence['sourceInstructor'] ?? '')
+                    && (string) ($session['title'] ?? '') === (string) ($occurrence['sourceTitle'] ?? '')
+            ));
+            if (count($matches) !== 1) continue; // No guessed session mapping.
+            $extra = $matches[0];
+            $extra['sourceDate'] = (string) (($extra['canonicalDates'][0] ?? null) ?: ($extra['dates'][0] ?? ''));
+            $extra['dates'] = [(string) $occurrence['date']];
+            $extra['canonicalDates'] = [(string) $occurrence['date']];
+            $extra['oneOffStart'] = (string) $occurrence['start'];
+            $extra['oneOffEnd'] = (string) $occurrence['end'];
+            $extra['oneOffLocationUnconfirmed'] = true;
+            $extra['rescheduleReason'] = (string) $occurrence['reason'];
+            $extra['sessionOverrideKind'] = 'one_off';
+            $extra['extraOccurrence'] = true;
+            $catalog[$courseKey]['sessions'][] = $extra;
+        }
+    }
     return $catalog;
 }
 
@@ -446,9 +495,11 @@ function classops_term7_syllabus_enrich_events(array $events, string $jalaliDate
             $copy['timeSource'] = 'academic-term7';
             if (isset($session['oneOffStart'])) {
                 $copy['start'] = (string) $session['oneOffStart'];
+                if (isset($session['oneOffEnd'])) $copy['end'] = (string) $session['oneOffEnd'];
                 if (!empty($session['oneOffEndUnconfirmed'])) $copy['end'] = '';
                 $copy['timeSource'] = 'one-off-academic-notice';
             }
+            if (!empty($session['oneOffLocationUnconfirmed'])) $copy['location'] = '';
             if (!empty($session['oneOffTimeUnconfirmed'])) {
                 $copy['start'] = '';
                 $copy['end'] = '';

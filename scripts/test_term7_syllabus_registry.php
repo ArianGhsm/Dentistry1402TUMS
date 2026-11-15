@@ -85,7 +85,11 @@ $counts = [
     'partial-basics-theory' => 15,
 ];
 foreach ($counts as $key => $expected) {
-    syllabus_assert(count($catalog[$key]['sessions'] ?? []) === $expected, "{$key} preserves {$expected} source rows/sessions");
+    $originalSessions = array_values(array_filter(
+        $catalog[$key]['sessions'] ?? [],
+        static fn(array $session): bool => empty($session['extraOccurrence'])
+    ));
+    syllabus_assert(count($originalSessions) === $expected, "{$key} preserves {$expected} source rows/sessions");
 }
 
 $bookletCatalog = classops_term7_syllabus_booklet_catalog();
@@ -244,12 +248,23 @@ $endoVirtual = classops_term7_syllabus_enrich_events([
     syllabus_event('endodontics-theory-1', 'اندو نظری ۱', 'آمفی‌تئاتر ۹۰', '13:50', '15:50'),
 ], '1405/08/25');
 syllabus_assert(
-    count($endoVirtual) === 1
-        && ($endoVirtual[0]['sessionNumber'] ?? null) === 15
-        && ($endoVirtual[0]['sessionMode'] ?? '') === 'virtual'
-        && ($endoVirtual[0]['sessionModeLabel'] ?? '') === 'مجازی (غیرحضوری ـ همیاد)'
-        && ($endoVirtual[0]['location'] ?? 'x') === '',
-    'Endodontics session 15 preserves the PDF non-presential Hamyaad modality'
+    count($endoVirtual) === 2
+        && array_column($endoVirtual, 'sessionNumber') === [6, 15]
+        && ($endoVirtual[0]['start'] ?? '') === '12:40'
+        && ($endoVirtual[0]['end'] ?? '') === '13:40'
+        && ($endoVirtual[0]['instructor'] ?? '') === 'دکتر اسدیان'
+        && ($endoVirtual[0]['sessionTitle'] ?? '') === 'رادیولوژی در اندودانتیکس'
+        && ($endoVirtual[0]['location'] ?? 'x') === ''
+        && ($endoVirtual[0]['timeSource'] ?? '') === 'one-off-academic-notice'
+        && ($endoVirtual[0]['sourceDate'] ?? '') === '1405/07/20'
+        && ($endoVirtual[1]['sessionNumber'] ?? null) === 15
+        && ($endoVirtual[1]['start'] ?? '') === '13:50'
+        && ($endoVirtual[1]['end'] ?? '') === '15:50'
+        && ($endoVirtual[1]['instructor'] ?? '') === 'دکتر صراف'
+        && ($endoVirtual[1]['sessionMode'] ?? '') === 'virtual'
+        && ($endoVirtual[1]['sessionModeLabel'] ?? '') === 'مجازی (غیرحضوری ـ همیاد)'
+        && ($endoVirtual[1]['location'] ?? 'x') === '',
+    'Added Asadian radiology class on 25 Aban has confirmed clock without changing Dr Sarraf session'
 );
 syllabus_assert(
     syllabus_virtual_session_numbers($catalog['endodontics-theory-1']['sessions'] ?? []) === [15],
