@@ -220,5 +220,52 @@ $assert(
     'Cancelled Monday Shakib occurrence is absent without affecting ENT'
 );
 
+// Owner announcement for Monday 25 Aban: the Asadian radiology class is an
+// additional date-specific occurrence, not a recurring change or a guess
+// about cancellation of the overlapping orthodontics class.
+$endo25 = dent_term7_enriched_event_groups(dent_term7_resolve_jalali('1405/08/25', 1, []))['theory'];
+$radiology25 = array_values(array_filter($endo25,
+    static fn(array $e): bool => ($e['slug'] ?? '') === 'endodontics-theory-1'
+        && ($e['sessionNumber'] ?? null) === 6
+));
+$ortho25 = array_values(array_filter($endo25,
+    static fn(array $e): bool => ($e['slug'] ?? '') === 'orthodontics-theory-1'
+));
+$endoSarraf25 = array_values(array_filter($endo25,
+    static fn(array $e): bool => ($e['slug'] ?? '') === 'endodontics-theory-1'
+        && ($e['sessionNumber'] ?? null) === 15
+));
+$assert(
+    count($radiology25) === 1
+        && ($radiology25[0]['start'] ?? '') === '12:40'
+        && ($radiology25[0]['end'] ?? '') === '13:40'
+        && ($radiology25[0]['instructor'] ?? '') === 'دکتر اسدیان'
+        && ($radiology25[0]['sessionTitle'] ?? '') === 'رادیولوژی در اندودانتیکس'
+        && ($radiology25[0]['location'] ?? 'x') === '',
+    'Asadian radiology is scheduled once for Monday 25 Aban 12:40-13:40 with no unconfirmed venue'
+);
+$assert(
+    count($ortho25) === 1 && ($ortho25[0]['start'] ?? '') === '12:40'
+        && count($endoSarraf25) === 1 && ($endoSarraf25[0]['start'] ?? '') === '13:50',
+    'Neither overlapping orthodontics nor existing later endodontics session is silently cancelled'
+);
+$rows25 = dent_term7_ordered_schedule_rows(dent_term7_resolve_jalali('1405/08/25', 1, []));
+$radiologyRows25 = array_values(array_filter($rows25,
+    static fn(array $row): bool => str_contains((string) ($row['title'] ?? ''), 'رادیولوژی در اندودانتیکس')
+));
+$assert(
+    count($radiologyRows25) === 1
+        && ($radiologyRows25[0]['start'] ?? '') === '12:40'
+        && ($radiologyRows25[0]['instructor'] ?? '') === 'دکتر اسدیان',
+    'Unified daily/web/reminder rows retain Asadian radiology clock and professor'
+);
+$endo18 = dent_term7_enriched_event_groups(dent_term7_resolve_jalali('1405/08/18', 1, []))['theory'];
+$assert(
+    array_values(array_filter($endo18, static fn(array $e): bool =>
+        ($e['slug'] ?? '') === 'endodontics-theory-1' && ($e['sessionNumber'] ?? null) === 6
+    )) === [],
+    'Asadian one-off does not leak to the prior Monday'
+);
+
 echo "Official Term 7 timetable tests: {$checks}; failures: {$failures}\n";
 exit($failures === 0 ? 0 : 1);
