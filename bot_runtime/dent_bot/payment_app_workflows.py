@@ -9,6 +9,7 @@ from datetime import timedelta, timezone
 from pathlib import Path
 
 from .api import BotApiError
+from .app_shell_screens import home
 from .message_frames import frame_error
 from .navid import local_now
 from .payments import identity_from_account
@@ -22,6 +23,13 @@ from .ui import (
     keyboard,
     payment_control_center_screen,
     payment_offer_wizard_screen,
+    payment_offer_preview_screen,
+    payment_offer_admin_detail_screen,
+    owner_payment_offers_screen,
+    payment_confirm_screen,
+    payment_created_screen,
+    account_screen,
+    payment_phone_required_screen,
 )
 
 
@@ -215,6 +223,120 @@ class PaymentAppWorkflows:
                 self._screen("account", user_id).keyboard,
             )
         return None
+
+    def _payment_offer_mode_wizard_screen(self, name: str, user_id: int) -> Screen:
+        dialog = self.state.dialog(user_id)
+        if not dialog or dialog.get("kind") != "payment-offer" or dialog.get("step") != "quantity-mode":
+            return Screen(frame_error("فرایند ساخت محصول منقضی شده است."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+        selected = name.rsplit(":", 1)[1]
+        if selected not in {"single", "multiple"}:
+            return payment_offer_wizard_screen("quantity-mode", dict(dialog.get("payload") or {}))
+        payload = dict(dialog.get("payload") or {})
+        payload["allowMultiple"] = selected == "multiple"
+        self.state.update_dialog(user_id, step="preview", payload=payload)
+        return payment_offer_preview_screen(payload)
+
+    def _payment_offer_quantity_owner_screen(self, name: str, user_id: int) -> Screen:
+        if name.startswith("payment-offer-quantity-settings:") and user_id == self.owner_id:
+            offer_ref = name.rsplit(":", 1)[1]
+            offer = self._ordinary_payment_offer(offer_ref)
+            if not offer:
+                return Screen(frame_error("محصول پیدا نشد."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            return Screen(
+                "<b>⚙️ شیوهٔ خرید</b>\n\n"
+                f"<b>{html.escape(str(offer.get('title') or 'محصول'))}</b>\n"
+                f"<blockquote>وضعیت فعلی: {'چندتایی' if offer.get('allowMultiple') else 'تکی'}\n"
+                "تکی: هر سفارش یک عدد. چندتایی: انتخاب تا ۲۰ عدد در هر سفارش؛ "
+                "ظرفیت و سقف خرید هر نفر نیز اعمال می‌شوند.</blockquote>",
+                keyboard(
+                    [button("تکی (هر نفر یک عدد)", action=f"payment-offer-mode-set:{offer_ref}:single")],
+                    [button("چندتایی (انتخاب تعداد)", action=f"payment-offer-mode-set:{offer_ref}:multiple", style="success")],
+                    [button("↩️ محصول", action=f"payment-offer:{offer_ref}")],
+                ),
+            )
+        if name.startswith("payment-offer-mode-set:") and user_id == self.owner_id:
+            parts = name.split(":")
+            if len(parts) != 3 or parts[2] not in {"single", "multiple"}:
+                return Screen(frame_error("شیوهٔ خرید معتبر نیست."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            offer = self._ordinary_payment_offer(parts[1])
+            if not offer:
+                return Screen(frame_error("محصول پیدا نشد."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            try:
+                updated = self.state.update_payment_offer(
+                    parts[1], {"allowMultiple": parts[2] == "multiple"},
+                    actor_user_id=user_id, actor_platform=self.platform,
+                )
+            except ValueError:
+                updated = None
+            return payment_offer_admin_detail_screen(updated, bot_username=self.bot_username, platform=self.platform) if updated else Screen(frame_error("برای این محصول امکان تغییر به خرید چندتایی وجود ندارد."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+
+    def _payment_quantity_picker_screen(self, name: str, user_id: int) -> Screen:
+        via_link = name.startswith("payment-quantity-link:")
+        parts = name.split(":")
+        if len(parts) != 3 or not parts[2].isdigit() or int(parts[2]) > 20:
+            return Screen(frame_error("تعداد انتخابی معتبر نیست."), self._screen("payments", user_id).keyboard)
+        account = self._account_snapshot(user_id)
+        candidate = self.state.payment_offer_by_share_token(parts[1]) if via_link else None
+        offer_ref = str(candidate.get("ref") or "") if candidate else parts[1]
+        item = self.state.payment_offer_for_user(offer_ref, identity_from_account(account), via_link=via_link)
+        if item is None:
+            return Screen(frame_error("محصول در دسترس نیست."), self._screen("payments", user_id).keyboard)
+        states = self._payment_product_states(user_id, [item])
+        return payment_confirm_screen(
+            item,
+            action_ref=f"payment-create-link:{parts[1]}" if via_link else "",
+            state=dict(states.get(str(item.get("ref") or "")) or {}),
+            quantity=int(parts[2]),
+        )
+
+    def _payment_multiunit_checkout_screen(self, name: str, user_id: int, request_id: str) -> Screen:
+        via_link = name.startswith("payment-create-link:")
+        parts = name.split(":")
+        if len(parts) not in {2, 3} or (len(parts) == 3 and not parts[2].isdigit()):
+            return Screen(frame_error("درخواست خرید معتبر نیست."), self._screen("payments", user_id).keyboard)
+        quantity = int(parts[2]) if len(parts) == 3 else 1
+        account = self._account_snapshot(user_id)
+        if via_link:
+            raw_token = parts[1]
+            candidate = self.state.payment_offer_by_share_token(raw_token)
+            offer = self.state.payment_offer_for_user(str(candidate.get("ref") or ""), identity_from_account(account), via_link=True) if candidate else None
+        else:
+            offer = self.state.payment_offer_for_user(parts[1], identity_from_account(account))
+        if offer is None:
+            return Screen(frame_error("این محصول در دسترس این حساب نیست یا اعتبارش پایان یافته است."), self._screen("home", user_id).keyboard)
+        if quantity < 1 or quantity > 20 or (quantity > 1 and not offer.get("allowMultiple")):
+            return Screen(frame_error("تعداد برای این محصول مجاز نیست."), self._screen("payments", user_id).keyboard)
+        blocked = self._paid_file_purchase_blocker(user_id, offer)
+        if blocked is not None:
+            return blocked
+        stable_request_id = hashlib.sha256(request_id.encode("utf-8")).hexdigest()
+        try:
+            return payment_created_screen(
+                self.site_api.create_bot_payment(
+                    user_id,
+                    offer_ref=str(offer["ref"]),
+                    title=str(offer["title"]),
+                    description=str(offer["description"]),
+                    amount_rials=int(offer["amountRials"]),
+                    request_id=stable_request_id,
+                    product_version=int(offer.get("version") or 1),
+                    available_from=str(offer.get("availableFrom") or ""),
+                    expires_at=str(offer.get("expiresAt") or ""),
+                    capacity=int(offer.get("capacity") or 0),
+                    max_per_user=int(offer.get("maxPurchasesPerUser") or 0),
+                    quantity=quantity,
+                    allow_multiple=bool(offer.get("allowMultiple")),
+                    fulfillment=dict(offer.get("fulfillment") or {}),
+                ),
+                platform=self.platform,
+                return_to_bot_enabled=self.payment_return_v1_enabled,
+            )
+        except SiteApiError as error:
+            if error.code == "ACCOUNT_LINK_REQUIRED":
+                return account_screen(self.site_url, platform=self.platform)
+            if error.code == "PAYMENT_PHONE_REQUIRED":
+                return payment_phone_required_screen()
+            return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
 
     def _ordinary_payment_offers(self, *, include_inactive: bool = True) -> list[dict]:
         return [
