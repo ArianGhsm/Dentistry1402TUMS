@@ -193,6 +193,15 @@ function dent_bot_payment_order_offer_refs(array $order): array
     )));
 }
 
+function dent_bot_payment_order_quantity_for_offer(array $order, string $offerRef): int
+{
+    $extra = dent_bot_payment_extra($order);
+    if ((string) ($extra['source'] ?? '') === 'bot-offer') {
+        return max(1, min(20, (int) ($order['quantity'] ?? 1)));
+    }
+    return 1;
+}
+
 function dent_bot_payment_order_amount_for_offer(array $order, string $offerRef): int
 {
     $extra = dent_bot_payment_extra($order);
@@ -263,6 +272,8 @@ function dent_bot_payment_order_payload(array $order, bool $owner = false): arra
             ? ('سبد خرید' . (count($cartItems) > 1 ? ' (' . count($cartItems) . ' محصول)' : ''))
             : (string) ($extra['bot_offer_title'] ?? 'محصول'),
         'amountRials' => max(0, (int) ($order['amount'] ?? 0)),
+        'quantity' => $isCart ? count($cartItems) : max(1, (int) ($order['quantity'] ?? 1)),
+        'unitAmountRials' => max(0, (int) ($order['unit_price'] ?? 0)),
         'subtotalRials' => max(0, (int) ($order['subtotal'] ?? ($order['amount'] ?? 0))),
         'discountCode' => (string) ($order['discount_code'] ?? ''),
         'discountAmountRials' => max(0, (int) ($order['discount_amount'] ?? 0)),
@@ -316,6 +327,7 @@ function dent_bot_payment_existing_response(array $order): ?array
         'alreadyCreated' => true,
         'orderToken' => $orderToken,
         'amountRials' => max(0, (int) ($order['amount'] ?? 0)),
+        'quantity' => max(1, (int) ($order['quantity'] ?? 1)),
         'subtotalRials' => max(0, (int) ($order['subtotal'] ?? ($order['amount'] ?? 0))),
         'discountCode' => (string) ($order['discount_code'] ?? ''),
         'discountAmountRials' => max(0, (int) ($order['discount_amount'] ?? 0)),
@@ -447,9 +459,10 @@ function dent_bot_payment_reservation_state(
             && !dent_bot_payment_pending_reserves_slot($existing, $nowEpoch)) {
             continue;
         }
-        $state['reserved']++;
+        $orderQuantity = dent_bot_payment_order_quantity_for_offer($existing, $offerRef);
+        $state['reserved'] += $orderQuantity;
         if (in_array((string) ($existing['user_id'] ?? ''), $identityKeys, true)) {
-            $state['userReserved']++;
+            $state['userReserved'] += $orderQuantity;
         }
     }
     return $state;
@@ -497,12 +510,12 @@ function dent_bot_payment_reusable_pending_offer(
     return null;
 }
 
-function dent_bot_payment_reservation_error(array $state, int $capacity, int $maxPerUser): string
+function dent_bot_payment_reservation_error(array $state, int $capacity, int $maxPerUser, int $quantity = 1): string
 {
-    if ($capacity > 0 && (int) ($state['reserved'] ?? 0) >= $capacity) {
+    if ($quantity < 1 || $capacity > 0 && (int) ($state['reserved'] ?? 0) + $quantity > $capacity) {
         return 'PRODUCT_CAPACITY_REACHED';
     }
-    if ($maxPerUser > 0 && (int) ($state['userReserved'] ?? 0) >= $maxPerUser) {
+    if ($maxPerUser > 0 && (int) ($state['userReserved'] ?? 0) + $quantity > $maxPerUser) {
         return 'PRODUCT_PURCHASE_LIMIT_REACHED';
     }
     return '';
@@ -514,7 +527,13 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
     $offerRef = trim((string) ($payload['offerRef'] ?? ''));
     $title = dent_clean_text((string) ($payload['title'] ?? ''), 160);
     $description = dent_clean_text((string) ($payload['description'] ?? ''), 360);
-    $amount = max(0, (int) dent_normalize_digits((string) ($payload['amountRials'] ?? '0')));
+    $unitAmount = max(0, (int) dent_normalize_digits((string) ($payload['amountRials'] ?? '0')));
+    $quantity = (int) dent_normalize_digits((string) ($payload['quantity'] ?? '1'));
+    $allowMultiple = ($payload['allowMultiple'] ?? false) === true;
+    if ($quantity < 1 || $quantity > 20 || ($quantity > 1 && !$allowMultiple)) {
+        dent_error('تعداد انتخاب‌شده برای محصول معتبر نیست.', 422, ['code' => 'BOT_PAYMENT_QUANTITY_INVALID']);
+    }
+    $amount = $unitAmount * $quantity;
     $requestRef = dent_bot_payment_request_ref($platform, $platformUserId, (string) ($payload['requestId'] ?? ''));
     $productVersion = max(1, min(1000000, (int) ($payload['productVersion'] ?? 1)));
     $availableFrom = dent_bot_payment_iso((string) ($payload['availableFrom'] ?? ''));
@@ -522,6 +541,9 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
     $capacity = max(0, min(1000000, (int) ($payload['capacity'] ?? 0)));
     $maxPerUser = max(0, min(10000, (int) ($payload['maxPurchasesPerUser'] ?? 1)));
     $fulfillment = dent_bot_payment_safe_fulfillment($payload['fulfillment'] ?? []);
+    if (($fulfillment['kind'] ?? '') === 'paid_file' && $quantity !== 1) {
+        dent_error('فایل فروش فقط به‌صورت تکی قابل خرید است.', 422, ['code' => 'BOT_PAYMENT_QUANTITY_INVALID']);
+    }
     $nowEpoch = time();
     if (($availableFrom !== '' && (int) strtotime($availableFrom) > $nowEpoch)
         || ($expiresAt !== '' && (int) strtotime($expiresAt) <= $nowEpoch)) {
@@ -530,7 +552,7 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
     if (preg_match('/^[A-Za-z0-9_-]{16,80}$/', $offerRef) !== 1 || $title === '') {
         dent_error('محصول پرداختی ربات نامعتبر است.', 422, ['code' => 'BOT_PAYMENT_OFFER_INVALID']);
     }
-    if ($amount < 10000 || $amount > 100000000000) {
+    if ($unitAmount < 10000 || $unitAmount > 100000000000 || $amount > 100000000000) {
         dent_error('مبلغ پرداخت نامعتبر است.', 422, ['code' => 'PAYMENT_AMOUNT_INVALID']);
     }
 
@@ -559,6 +581,9 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
         $title,
         $description,
         $amount,
+        $unitAmount,
+        $quantity,
+        $allowMultiple,
         $requestRef,
         $studentNumber,
         $payerKey,
@@ -589,7 +614,7 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
                 return ['existing' => $existing];
             }
             if ((string) ($existing['status'] ?? PAYMENTS_ORDER_STATUS_PENDING) !== PAYMENTS_ORDER_STATUS_PENDING) {
-                $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser);
+                $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser, $quantity);
                 if ($reservationError === 'PRODUCT_CAPACITY_REACHED') {
                     dent_error('ظرفیت این محصول تکمیل شده است.', 409, ['code' => 'PRODUCT_CAPACITY_REACHED']);
                 }
@@ -603,7 +628,7 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
         // for the same user's unfinished standalone offer. Reuse only when
         // this is their sole active reservation for the product; successful
         // purchases and mixed-cart reservations keep their normal limits.
-        if ((int) ($reservation['userReserved'] ?? 0) === 1) {
+        if ((int) ($reservation['userReserved'] ?? 0) > 0) {
             $pending = dent_bot_payment_reusable_pending_offer(
                 is_array($store['orders'] ?? null) ? $store['orders'] : [],
                 $offerRef,
@@ -619,7 +644,7 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
                     : ['existing' => $pending];
             }
         }
-        $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser);
+        $reservationError = dent_bot_payment_reservation_error($reservation, $capacity, $maxPerUser, $quantity);
         if ($reservationError === 'PRODUCT_CAPACITY_REACHED') {
             dent_error('ظرفیت این محصول تکمیل شده است.', 409, ['code' => 'PRODUCT_CAPACITY_REACHED']);
         }
@@ -652,10 +677,12 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
                 'bot_expires_at' => $expiresAt,
                 'bot_capacity' => $capacity,
                 'bot_max_purchases_per_user' => $maxPerUser,
+                'bot_allow_multiple' => $allowMultiple,
+                'bot_unit_amount_rials' => $unitAmount,
                 'bot_fulfillment_json' => json_encode($fulfillment, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
             ],
-            'quantity' => 1,
-            'unit_price' => $amount,
+            'quantity' => $quantity,
+            'unit_price' => $unitAmount,
             'subtotal' => $amount,
             'discount_code' => '',
             'discount_amount' => 0,
@@ -765,6 +792,7 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
         'alreadyCreated' => $gatewayRefreshed,
         'gatewayRefreshed' => $gatewayRefreshed,
         'orderToken' => $orderToken,
+        'quantity' => max(1, (int) ($order['quantity'] ?? 1)),
         'amountRials' => $gatewayAmount,
         'redirectUrl' => $redirectUrl,
         'resultUrl' => dent_bot_payment_result_url($orderToken),
@@ -846,18 +874,18 @@ function dent_bot_payment_product_states(array $user, array $payload): array
         $belongsToUser = in_array((string) ($order['user_id'] ?? ''), $payerKeys, true);
         foreach ($refsInOrder as $ref) {
             if (in_array($status, [PAYMENTS_ORDER_STATUS_SUCCESS, PAYMENTS_ORDER_STATUS_PENDING], true)) {
-                $states[$ref]['reservedCount']++;
+                $states[$ref]['reservedCount'] += dent_bot_payment_order_quantity_for_offer($order, $ref);
             }
             if (!$belongsToUser) {
                 continue;
             }
             if ($status === PAYMENTS_ORDER_STATUS_SUCCESS) {
-                $states[$ref]['successCount']++;
+                $states[$ref]['successCount'] += dent_bot_payment_order_quantity_for_offer($order, $ref);
                 if ($states[$ref]['latestSuccessOrderToken'] === '') {
                     $states[$ref]['latestSuccessOrderToken'] = (string) ($order['public_token'] ?? '');
                 }
             } elseif ($status === PAYMENTS_ORDER_STATUS_PENDING) {
-                $states[$ref]['pendingCount']++;
+                $states[$ref]['pendingCount'] += dent_bot_payment_order_quantity_for_offer($order, $ref);
             }
         }
     }
@@ -921,7 +949,7 @@ function dent_bot_payment_product_report(array $owner, array $payload): array
     $dateFrom = strtotime((string) ($payload['dateFrom'] ?? '')) ?: 0;
     $dateTo = strtotime((string) ($payload['dateTo'] ?? '')) ?: 0;
     $orders = dent_bot_payment_orders($offerRef);
-    $counts = ['success' => 0, 'pending' => 0, 'failed' => 0, 'uniquePayers' => 0];
+    $counts = ['success' => 0, 'pending' => 0, 'failed' => 0, 'uniquePayers' => 0, 'successUnits' => 0, 'pendingUnits' => 0];
     $payers = [];
     $unique = [];
     $received = 0;
@@ -949,6 +977,7 @@ function dent_bot_payment_product_report(array $owner, array $payload): array
         $payerIdentity = trim((string) ($order['user_id'] ?? ''));
         if ($status === PAYMENTS_ORDER_STATUS_SUCCESS) {
             $counts['success']++;
+            $counts['successUnits'] += dent_bot_payment_order_quantity_for_offer($order, $offerRef);
             $received += $amount;
             if ($payerIdentity !== '' && !isset($unique[$payerIdentity])) {
                 $unique[$payerIdentity] = true;
@@ -962,6 +991,9 @@ function dent_bot_payment_product_report(array $owner, array $payload): array
             }
         } elseif ($status === PAYMENTS_ORDER_STATUS_PENDING) {
             $counts['pending']++;
+            if (dent_bot_payment_pending_reserves_slot($order)) {
+                $counts['pendingUnits'] += dent_bot_payment_order_quantity_for_offer($order, $offerRef);
+            }
             $pendingRials += $amount;
         } else {
             $counts['failed']++;
@@ -971,6 +1003,7 @@ function dent_bot_payment_product_report(array $owner, array $payload): array
     return [
         'success' => true, 'contractVersion' => 'bot-commerce-v2', 'offerRef' => $offerRef,
         'counts' => $counts, 'receivedRials' => $received, 'pendingRials' => $pendingRials,
+        'reservedUnits' => dent_bot_payment_reservation_state($orders, $offerRef, '', '')['reserved'],
         'payers' => $payers,
         'dateFrom' => $dateFrom > 0 ? gmdate('Y-m-d\TH:i:s\Z', $dateFrom) : '',
         'dateTo' => $dateTo > 0 ? gmdate('Y-m-d\TH:i:s\Z', $dateTo) : '',

@@ -284,6 +284,7 @@ class DentBotApp(BookletAppWorkflows, CartAppWorkflows, DialogAppWorkflows, Dyna
             "payment-offer-delete", "payment-offer:",
             "payment-products-page:", "payment-offer-audience:",
             "payment-offer-edit:", "payment-offer-schedule:", "payment-offer-advanced:",
+            "payment-offer-mode:", "payment-offer-mode-set:", "payment-offer-quantity-settings:",
             "payment-offer-stats:", "payment-offer-payers:", "payment-offer-unpaid:",
             "payment-offer-export:", "payment-offer-duplicate:", "payment-offer-rotate:",
             "payment-export-file:", "payment-export-text:", "payment-reminder-preview:",

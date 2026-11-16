@@ -1298,7 +1298,7 @@ def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
             keyboard(cancel),
         )
     if step == "title":
-        step_text = "۲ از ۵" if is_file_sale else "۱ از ۴"
+        step_text = "۲ از ۵" if is_file_sale else "۱ از ۵"
         example = "مثال: جزوه جمع‌بندی پاتولوژی" if is_file_sale else "مثال: ثبت‌نام آزمون جامع"
         return Screen(
             f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\n"
@@ -1308,7 +1308,7 @@ def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
         )
     if step == "amount":
         title = html.escape(str(payload.get("title") or "محصول"))
-        step_text = "۳ از ۵" if is_file_sale else "۲ از ۴"
+        step_text = "۳ از ۵" if is_file_sale else "۲ از ۵"
         return Screen(
             f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\n{title}\n\n"
             "مبلغ را انتخاب کن یا مقدار دلخواه را به تومان وارد کن.",
@@ -1326,7 +1326,7 @@ def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
             keyboard(cancel),
         )
     if step == "audience":
-        step_text = "۴ از ۵" if is_file_sale else "۳ از ۴"
+        step_text = "۴ از ۵" if is_file_sale else "۳ از ۵"
         return Screen(
             f"<b>{'📁' if is_file_sale else '➕'} {label} · {step_text}</b>\n\nچه کسانی این محصول را ببینند؟\n"
             "<blockquote>«دارندگان لینک» در فهرست محصولات دیده نمی‌شود و فقط با لینک امن باز می‌شود.</blockquote>",
@@ -1335,6 +1335,19 @@ def payment_offer_wizard_screen(step: str, payload: dict) -> Screen:
                 [button("ورودی ۱۴۰۲ دندان‌پزشکی تهران", action="payment-offer-audience:primary")],
                 [button("فقط دارندگان لینک", action="payment-offer-audience:open")],
                 [button("انتخاب افراد / فهرست", action="payment-offer-audience:advanced", style="primary")],
+                cancel,
+            ),
+        )
+    if step == "quantity-mode" and not is_file_sale:
+        return Screen(
+            "<b>➕ محصول جدید · ۴ از ۵</b>\n\n"
+            "<b>شیوهٔ خرید را انتخاب کن</b>\n"
+            "<blockquote>در حالت تکی، هر نفر فقط یک عدد می‌خرد. "
+            "در حالت چندتایی، خریدار می‌تواند تعداد را پیش از پرداخت تغییر دهد؛ "
+            "سقف خرید هر نفر و موجودی از تنظیمات پیشرفته قابل تعیین است.</blockquote>",
+            keyboard(
+                [button("۱ عدد برای هر نفر", action="payment-offer-mode:single")],
+                [button("انتخاب تعداد هنگام خرید", action="payment-offer-mode:multiple", style="success")],
                 cancel,
             ),
         )
@@ -1353,15 +1366,16 @@ def payment_offer_preview_screen(payload: dict) -> Screen:
     audience = html.escape(audience_label(payload.get("audience") or {"mode": "all"}))
     is_file_sale = str(payload.get("saleType") or "") == "file"
     asset = dict(payload.get("fileAsset") or {})
+    mode_label = "انتخاب تعداد" if payload.get("allowMultiple") else "تکی (هر نفر یک عدد)"
     file_line = ""
     if is_file_sale:
         media_label = html.escape(str(asset.get("mediaLabel") or "فایل"))
         file_name = html.escape(str(asset.get("fileName") or "").strip())
         file_line = f"\nفایل: <b>{media_label}</b>" + (f" · <code>{file_name}</code>" if file_name else "")
     return Screen(
-        f"<b>{'📁 فروش فایل' if is_file_sale else '➕ محصول جدید'} · {'۵ از ۵' if is_file_sale else '۴ از ۴'}</b>\n\n"
+        f"<b>{'📁 فروش فایل' if is_file_sale else '➕ محصول جدید'} · ۵ از ۵</b>\n\n"
         f"<b>{title}</b>\n<blockquote>{description}</blockquote>{file_line}\n"
-        f"مبلغ نهایی: <code>{amount}</code>\nمخاطب: <b>{audience}</b>\n\n"
+        f"قیمت هر واحد: <code>{amount}</code>\nشیوه خرید: <b>{mode_label}</b>\nمخاطب: <b>{audience}</b>\n\n"
         + (
             "پس از تأیید، لینک خرید تلگرام ساخته می‌شود و فایل فقط بعد از پرداخت موفق قابل دریافت است."
             if is_file_sale
@@ -1433,7 +1447,7 @@ def payment_offer_admin_detail_screen(item: dict, *, bot_username: str, platform
         )
     return Screen(
         f"<b>{'📁' if is_file_sale else '💳'} {title}</b>\n\n<blockquote>{description}</blockquote>\n"
-        f"مبلغ: <code>{amount}</code>\nوضعیت: <b>{marker} {status}</b>\n"
+        f"مبلغ هر واحد: <code>{amount}</code>\nشیوهٔ خرید: <b>{'چندتایی' if item.get('allowMultiple') else 'تکی'}</b>\nوضعیت: <b>{marker} {status}</b>\n"
         f"مخاطب: <b>{audience}</b>\nمهلت: {html.escape(deadline)}"
         f"{file_meta}\nتحویل پس از خرید: <b>{fulfillment_state}</b>\n"
         f"نسخه: <code>{to_persian_digits(item.get('version', 1))}</code>",
@@ -1488,35 +1502,79 @@ def payment_offer_saved_screen(item: dict, *, bot_username: str = "", platform: 
     )
 
 
-def payment_confirm_screen(item: dict, *, action_ref: str = "", state: dict | None = None) -> Screen:
+def payment_confirm_screen(
+    item: dict, *, action_ref: str = "", state: dict | None = None, quantity: int = 0
+) -> Screen:
     offer_ref = str(item.get("ref") or "")
     title = html.escape(str(item.get("title") or "آیتم خرید"))
-    amount = html.escape(format_rials(item.get("amountRials")))
+    unit_amount = max(0, int(item.get("amountRials") or 0))
+    amount = html.escape(format_rials(unit_amount))
     product_state = dict(state or {})
     max_per_user = max(0, int(item.get("maxPurchasesPerUser") or 0))
-    paid = max_per_user > 0 and int(product_state.get("successCount") or 0) >= max_per_user
+    success_count = max(0, int(product_state.get("successCount") or 0))
+    paid = max_per_user > 0 and success_count >= max_per_user
     capacity = max(0, int(item.get("capacity") or 0))
     remaining = max(0, capacity - int(product_state.get("reservedCount") or 0)) if capacity else 0
+    allow_multiple = bool(item.get("allowMultiple")) and str(dict(item.get("fulfillment") or {}).get("kind") or "") != "paid_file"
+    max_quantity = 20
+    if capacity:
+        max_quantity = min(max_quantity, remaining)
+    if unit_amount:
+        max_quantity = min(max_quantity, 100_000_000_000 // unit_amount)
+    if max_per_user:
+        max_quantity = min(max_quantity, max(0, max_per_user - success_count))
     create_action = action_ref or f"payment-create:{offer_ref}"
+    is_link = create_action.startswith("payment-create-link:")
+    token = create_action.split(":", 1)[1] if is_link else offer_ref
+    select_prefix = "payment-quantity-link" if is_link else "payment-quantity"
     rows: list[list[dict]] = []
+    details = [f"قیمت هر واحد: <code>{amount}</code>"]
     if paid:
         fulfillment = dict(item.get("fulfillment") or {})
         fulfillment_action = str(fulfillment.get("action") or "").strip()
         if str(fulfillment.get("kind") or "") == "paid_file" and fulfillment_action:
             rows.append([button("📥 دریافت فایل", action=fulfillment_action, style="success")])
-        token = str(product_state.get("latestSuccessOrderToken") or "")
-        if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", token):
-            rows.append([button("✅ مشاهده رسید", action=f"payment-status:{token}", style="success")])
-    elif not capacity or remaining > 0:
-        rows.append([
-            button(f"⚡ خرید فوری · {amount}", action=create_action, style="success"),
-            button("🛒 افزودن به سبد", action=f"cart-add:{offer_ref}"),
-        ])
+        receipt_token = str(product_state.get("latestSuccessOrderToken") or "")
+        if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", receipt_token):
+            rows.append([button("✅ مشاهده رسید", action=f"payment-status:{receipt_token}", style="success")])
+    elif (not capacity or remaining > 0) and max_quantity > 0:
+        if allow_multiple:
+            if quantity <= 0:
+                rows.append([button("انتخاب تعداد و خرید", action=f"{select_prefix}:{token}:1", style="success")])
+                rows.append([button("🛒 افزودن ۱ عدد به سبد", action=f"cart-add:{offer_ref}")])
+            else:
+                quantity = min(max(1, int(quantity)), max_quantity)
+                total_amount = html.escape(format_rials(unit_amount * quantity))
+                details.extend((
+                    f"تعداد: <b>{to_persian_digits(quantity)}</b>",
+                    f"<b>جمع کل: <code>{total_amount}</code></b>",
+                ))
+                controls = []
+                if quantity > 1:
+                    controls.append(button("−", action=f"{select_prefix}:{token}:{quantity - 1}"))
+                controls.append(button(f"{to_persian_digits(quantity)} عدد", action=f"{select_prefix}:{token}:{quantity}"))
+                if quantity < max_quantity:
+                    controls.append(button("+", action=f"{select_prefix}:{token}:{quantity + 1}"))
+                rows.append(controls)
+                rows.append([button(f"💳 پرداخت {to_persian_digits(quantity)} عدد · {total_amount}", action=f"{create_action}:{quantity}", style="success")])
+                rows.append([button("↩️ بازگشت به محصول", action=f"{select_prefix}:{token}:0")])
+        else:
+            rows.append([
+                button(f"⚡ خرید فوری · {amount}", action=create_action, style="success"),
+                button("🛒 افزودن به سبد", action=f"cart-add:{offer_ref}"),
+            ])
     rows.append([button("بازگشت به محصولات", action="payments"), button("🏠 منوی اصلی", action="home")])
-    status_copy = "✅ این محصول قبلاً پرداخت شده است." if paid else ("ظرفیت این محصول تکمیل شده است." if capacity and remaining <= 0 else "پس از لمس دکمه پرداخت، سفارش در سایت ساخته می‌شود و به درگاه امن منتقل می‌شوی.")
+    if paid:
+        status_copy = "✅ سقف خرید این محصول برای حساب شما تکمیل شده است."
+    elif capacity and remaining <= 0:
+        status_copy = "ظرفیت این محصول تکمیل شده است."
+    elif allow_multiple:
+        status_copy = "تعداد موردنظر را انتخاب کن؛ مبلغ نهایی بر اساس تعداد محاسبه می‌شود."
+    else:
+        status_copy = "این محصول به‌صورت تکی فروخته می‌شود؛ هر سفارش فقط یک عدد."
     return Screen(
         f"<b>🛍 {title}</b>\n\n<blockquote>{html.escape(str(item.get('description') or 'بدون توضیح'))}</blockquote>\n"
-        f"مبلغ: <code>{amount}</code>\n\n{status_copy}",
+        + "\n".join(details) + f"\n\n{status_copy}",
         keyboard(*rows),
     )
 
@@ -1530,6 +1588,8 @@ def payment_created_screen(
     amount = html.escape(format_rials(payload.get("amountRials")))
     order_token = str(payload.get("orderToken") or "")
     platform_label = "بله" if platform == "bale" else "تلگرام"
+    quantity = max(1, int(payload.get("quantity") or 1))
+    quantity_line = f"تعداد: <b>{to_persian_digits(quantity)}</b>\n" if quantity > 1 else ""
     rows = [[button("ورود به درگاه پرداخت", url=str(payload.get("redirectUrl") or ""), style="success")]]
     if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", order_token):
         rows.append([button("بررسی وضعیت پرداخت", action=f"payment-status:{order_token}")])
@@ -1540,7 +1600,7 @@ def payment_created_screen(
         else "پس از پرداخت، وضعیت سفارش را از همین صفحه بررسی کن. "
     )
     return Screen(
-        f"<b>🟢 سفارش آماده پرداخت است</b>\n\nمبلغ نهایی\n<blockquote>{amount}</blockquote>\n"
+        f"<b>🟢 سفارش آماده پرداخت است</b>\n\n{quantity_line}مبلغ نهایی\n<blockquote>{amount}</blockquote>\n"
         + completion_copy
         + "تأیید نهایی فقط بعد از callback معتبر و بررسی سمت سایت انجام می‌شود.",
         keyboard(*rows),
@@ -1565,6 +1625,8 @@ def payment_status_screen(
     title, description = labels.get(status, labels["pending"])
     amount = html.escape(format_rials(payload.get("amountRials")))
     platform_label = "بله" if platform == "bale" else "تلگرام"
+    quantity = max(1, int(payload.get("quantity") or 1))
+    quantity_line = f"تعداد: <b>{to_persian_digits(quantity)}</b>\n" if quantity > 1 else ""
     rows: list[list[dict]] = []
     if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", order_token) and status == "pending":
         rows.append([button("بررسی دوباره", action=f"payment-status:{order_token}", style="primary")])
@@ -1592,6 +1654,7 @@ def payment_status_screen(
         rows.insert(0, [button("🎁 دریافت محصول", url=fulfillment_url, style="success")])
     return Screen(
         f"<b>{title}</b>\n\n<b>{item_title}</b>\n{html.escape(description)}\n<blockquote>{amount}</blockquote>\n"
+        + quantity_line
         + (f"زمان: {html.escape(paid_at)}\n" if paid_at else "")
         + f"کد پیگیری: <code>{tracking}</code>\n"
         + (f"\n<b>🎁 تحویل</b>\n{fulfillment_text}\n" if status == "success" and fulfillment_text else "")
@@ -1606,6 +1669,8 @@ def payment_success_push_screen(payload: dict, *, platform: str = "telegram") ->
         raise ValueError("Only verified successful payments may be pushed")
     title = html.escape(" ".join(str(payload.get("title") or "خرید").split())[:160])
     amount = html.escape(format_rials(payload.get("amountRials")))
+    quantity = max(1, int(payload.get("quantity") or 1))
+    quantity_line = f"تعداد: <b>{to_persian_digits(quantity)}</b> واحد\n" if quantity > 1 else ""
     order_token = str(payload.get("orderToken") or "")
     rows: list[list[dict]] = []
     if re.fullmatch(r"[A-Za-z0-9_-]{20,46}", order_token):
@@ -1629,7 +1694,7 @@ def payment_success_push_screen(payload: dict, *, platform: str = "telegram") ->
     tracking = html.escape(str(payload.get("trackingRef") or "—"))
     return Screen(
         f"<b>✅ پرداخت با موفقیت تأیید شد</b>\n\n<b>{title}</b>\n"
-        f"<blockquote>{amount}</blockquote>\n"
+        f"<blockquote>{amount}</blockquote>\n{quantity_line}"
         f"زمان: {verified}\nکد پیگیری: <code>{tracking}</code>\n"
         + (f"\n<b>🎁 تحویل</b>\n{fulfillment_text}\n" if fulfillment_text else "")
         + f"این نتیجه پس از تأیید درگاه، فقط در همان ربات <b>{platform_label}</b> ارسال شده است.",
@@ -1674,6 +1739,7 @@ def payment_owner_success_push_screen(payload: dict) -> Screen:
         f"<b>💰 پرداخت جدید</b>\n\nنام: <b>{payer}</b>\nشماره دانشجویی: <code>{student}</code>\n"
         f"محصول: <b>{title}</b>"
         + cart_section
+        + (f"\nتعداد: <b>{to_persian_digits(max(1, int(payload.get('quantity') or 1)))}</b> واحد" if int(payload.get("quantity") or 1) > 1 and not cart_items else "")
         + f"\nمبلغ کل: <code>{amount}</code>\nزمان: {verified}\nکد پیگیری: <code>{tracking}</code>",
         keyboard(*rows),
     )
@@ -1691,7 +1757,10 @@ def payment_product_report_screen(item: dict, report: dict, *, period: str = "al
     conversion = "—" if not target else f"{(unique * 100 / max(1, int(target))):.1f}%"
     offer_ref = str(item.get("ref") or "")
     capacity = max(0, int(item.get("capacity") or 0))
-    remaining = max(0, capacity - paid - pending) if capacity else None
+    reserved_units = max(0, int(report.get("reservedUnits", paid + pending) or 0))
+    sold_units = max(0, int(counts.get("successUnits", paid) or 0))
+    pending_units = max(0, int(counts.get("pendingUnits", pending) or 0))
+    remaining = max(0, capacity - reserved_units) if capacity else None
     period_label = {"today": "امروز", "7": "۷ روز", "30": "۳۰ روز", "all": "کل"}.get(period, "بازه سفارشی")
     target_label = "—" if target is None else to_persian_digits(target)
     deadline = format_jalali_datetime(item.get("expiresAt")) or "بدون مهلت"
@@ -1700,6 +1769,7 @@ def payment_product_report_screen(item: dict, report: dict, *, period: str = "al
         f"<b>📊 آمار · {title}</b>\n<blockquote>بازه: {period_label}</blockquote>\n"
         f"مبلغ: <code>{html.escape(format_rials(item.get('amountRials')))}</code> · مخاطب هدف: <b>{target_label}</b>\n"
         f"موفق: <b>{to_persian_digits(paid)}</b> · خریدار یکتا: <b>{to_persian_digits(unique)}</b>\n"
+        f"تعداد فروخته‌شده: <b>{to_persian_digits(sold_units)}</b> واحد · در انتظار: <b>{to_persian_digits(pending_units)}</b> واحد\n"
         f"در انتظار: <b>{to_persian_digits(pending)}</b> · ناموفق: <b>{to_persian_digits(failed)}</b>\n"
         + (f"پرداخت‌نکرده: <b>{to_persian_digits(unpaid)}</b>\n" if unpaid is not None else "")
         + (f"ظرفیت باقی‌مانده: <b>{to_persian_digits(remaining)}</b> از <b>{to_persian_digits(capacity)}</b>\n" if remaining is not None else "")
@@ -1794,6 +1864,7 @@ def payment_transaction_detail_screen(payload: dict) -> Screen:
         f"شماره دانشجویی: <code>{html.escape(str(order.get('studentNumber') or '—'))}</code>",
         f"محصول: <b>{html.escape(str(order.get('title') or 'محصول'))}</b>",
         f"مبلغ: <code>{html.escape(format_rials(order.get('amountRials')))}</code>",
+        f"تعداد: <b>{to_persian_digits(max(1, int(order.get('quantity') or 1)))}</b> واحد",
         f"وضعیت: <b>{html.escape(str(order.get('statusLabel') or status))}</b>",
         f"ایجاد: {html.escape(format_jalali_datetime(order.get('createdAt')) or '—')}",
         f"شروع پرداخت: {html.escape(format_jalali_datetime(order.get('paymentStartedAt')) or '—')}",

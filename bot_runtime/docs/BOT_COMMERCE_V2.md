@@ -61,6 +61,23 @@ per-user successful/pending reservations and a platform/user-bound idempotency
 key while holding the existing payment-store lock. A later product edit cannot
 change an older order.
 
+Product creation explicitly selects **single-unit** or **multi-unit**
+checkout; the same setting is editable later, with a per-offer additive
+allow_multiple SQLite column (legacy offers default to single-unit).
+A single-unit purchase uses one unit per standalone order (and the owner's
+default per-customer cap is one). Multi-unit checkout presents a Persian
+quantity picker on Telegram and Bale, with a maximum of 20 units per
+standalone order and a unit-price-times-quantity total. The signed
+createBotPayment payload carries quantity and allowMultiple; the
+website enforces quantity, paid-file exclusion, total payment
+ceiling, remaining stock and per-payer limits atomically. Counts are
+**units**, not just orders, for capacity reservation, per-user eligibility
+and stock displays, while transaction counts stay transaction counts.
+A mixed cart still contains at most one of any offer: the cart's
+one-unit action is explicitly labelled as such, and the multi-unit picker
+uses the standalone checkout. Verified receipts, owner notifications,
+transaction detail and reports expose the immutable purchased quantity.
+
 Canonical lifecycle timestamps are `createdAt`, `paymentStartedAt`, `paidAt`,
 `verifiedAt`, `updatedAt` and optional `expiredAt`. Only provider verification
 may create a success. Replayed callbacks and result recovery use existing

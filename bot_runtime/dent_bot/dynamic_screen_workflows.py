@@ -589,6 +589,18 @@ class DynamicScreenWorkflows:
             payload = dict(dialog.get("payload") or {})
             payload["audience"] = audience
             payload.setdefault("description", "")
+            next_step = "preview" if str(payload.get("saleType") or "") == "file" else "quantity-mode"
+            self.state.update_dialog(user_id, step=next_step, payload=payload)
+            return payment_offer_wizard_screen(next_step, payload)
+        if name.startswith("payment-offer-mode:") and user_id == self.owner_id:
+            dialog = self.state.dialog(user_id)
+            if not dialog or dialog.get("kind") != "payment-offer" or dialog.get("step") != "quantity-mode":
+                return Screen(frame_error("فرایند ساخت محصول منقضی شده است."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            selected = name.rsplit(":", 1)[1]
+            if selected not in {"single", "multiple"}:
+                return payment_offer_wizard_screen("quantity-mode", dict(dialog.get("payload") or {}))
+            payload = dict(dialog.get("payload") or {})
+            payload["allowMultiple"] = selected == "multiple"
             self.state.update_dialog(user_id, step="preview", payload=payload)
             return payment_offer_preview_screen(payload)
         if name == "payment-offer-publish" and user_id == self.owner_id:
@@ -606,6 +618,7 @@ class DynamicScreenWorkflows:
                 item = self.state.create_payment_offer(
                     str(payload["title"]), int(payload["amountRials"]), str(payload.get("description") or ""),
                     audience=dict(payload.get("audience") or {"mode": "all"}),
+                    allow_multiple=bool(payload.get("allowMultiple")),
                     paid_file_asset=dict(payload["fileAsset"]) if is_file_sale else None,
                     actor_user_id=user_id, actor_platform=self.platform,
                 )
@@ -646,9 +659,42 @@ class DynamicScreenWorkflows:
                 keyboard(
                     [button("عنوان", action=f"payment-offer-field:{offer_ref}:title"), button("مبلغ", action=f"payment-offer-field:{offer_ref}:amountRials")],
                     [button("توضیح", action=f"payment-offer-field:{offer_ref}:description")],
+                    [button("شیوهٔ خرید", action=f"payment-offer-quantity-settings:{offer_ref}")],
                     [button("بازگشت", action=f"payment-offer:{offer_ref}")],
                 ),
             ) if item else Screen(frame_error("محصول پیدا نشد."), payment_control_center_screen([]).keyboard)
+        if name.startswith("payment-offer-quantity-settings:") and user_id == self.owner_id:
+            offer_ref = name.rsplit(":", 1)[1]
+            offer = self._ordinary_payment_offer(offer_ref)
+            if not offer:
+                return Screen(frame_error("محصول پیدا نشد."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            return Screen(
+                "<b>⚙️ شیوهٔ خرید</b>\n\n"
+                f"<b>{html.escape(str(offer.get('title') or 'محصول'))}</b>\n"
+                f"<blockquote>وضعیت فعلی: {'چندتایی' if offer.get('allowMultiple') else 'تکی'}\n"
+                "تکی: هر سفارش یک عدد. چندتایی: انتخاب تا ۲۰ عدد در هر سفارش؛ "
+                "ظرفیت و سقف خرید هر نفر نیز اعمال می‌شوند.</blockquote>",
+                keyboard(
+                    [button("تکی (هر نفر یک عدد)", action=f"payment-offer-mode-set:{offer_ref}:single")],
+                    [button("چندتایی (انتخاب تعداد)", action=f"payment-offer-mode-set:{offer_ref}:multiple", style="success")],
+                    [button("↩️ محصول", action=f"payment-offer:{offer_ref}")],
+                ),
+            )
+        if name.startswith("payment-offer-mode-set:") and user_id == self.owner_id:
+            parts = name.split(":")
+            if len(parts) != 3 or parts[2] not in {"single", "multiple"}:
+                return Screen(frame_error("شیوهٔ خرید معتبر نیست."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            offer = self._ordinary_payment_offer(parts[1])
+            if not offer:
+                return Screen(frame_error("محصول پیدا نشد."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
+            try:
+                updated = self.state.update_payment_offer(
+                    parts[1], {"allowMultiple": parts[2] == "multiple"},
+                    actor_user_id=user_id, actor_platform=self.platform,
+                )
+            except ValueError:
+                updated = None
+            return payment_offer_admin_detail_screen(updated, bot_username=self.bot_username, platform=self.platform) if updated else Screen(frame_error("برای این محصول امکان تغییر به خرید چندتایی وجود ندارد."), owner_payment_offers_screen(self._ordinary_payment_offers()).keyboard)
         if name.startswith("payment-offer-schedule:") and user_id == self.owner_id:
             offer_ref = name.rsplit(":", 1)[1]
             return Screen(
@@ -665,6 +711,7 @@ class DynamicScreenWorkflows:
                 "<b>⚙️ تنظیمات پیشرفته</b>\n\nصفر برای ظرفیت یا سقف خرید یعنی نامحدود.",
                 keyboard(
                     [button("ظرفیت", action=f"payment-offer-field:{offer_ref}:capacity"), button("سقف خرید هر نفر", action=f"payment-offer-field:{offer_ref}:maxPurchasesPerUser")],
+                    [button("تکی / چندتایی", action=f"payment-offer-quantity-settings:{offer_ref}")],
                     [button("متن تحویل پس از خرید", action=f"payment-offer-field:{offer_ref}:fulfillmentText")],
                     [button("لینک تحویل HTTPS", action=f"payment-offer-field:{offer_ref}:fulfillmentUrl")],
                     [button("بازگشت", action=f"payment-offer:{offer_ref}")],
@@ -746,6 +793,24 @@ class DynamicScreenWorkflows:
                 return self._paid_file_telegram_screen(item)
             states = self._payment_product_states(user_id, [item])
             return payment_confirm_screen(item, state=dict(states.get(str(item.get("ref") or "")) or {}))
+        if name.startswith(("payment-quantity:", "payment-quantity-link:")):
+            via_link = name.startswith("payment-quantity-link:")
+            parts = name.split(":")
+            if len(parts) != 3 or not parts[2].isdigit() or int(parts[2]) > 20:
+                return Screen(frame_error("تعداد انتخابی معتبر نیست."), self._screen("payments", user_id).keyboard)
+            account = self._account_snapshot(user_id)
+            candidate = self.state.payment_offer_by_share_token(parts[1]) if via_link else None
+            offer_ref = str(candidate.get("ref") or "") if candidate else parts[1]
+            item = self.state.payment_offer_for_user(offer_ref, identity_from_account(account), via_link=via_link)
+            if item is None:
+                return Screen(frame_error("محصول در دسترس نیست."), self._screen("payments", user_id).keyboard)
+            states = self._payment_product_states(user_id, [item])
+            return payment_confirm_screen(
+                item,
+                action_ref=f"payment-create-link:{parts[1]}" if via_link else "",
+                state=dict(states.get(str(item.get("ref") or "")) or {}),
+                quantity=int(parts[2]),
+            )
         if name == "student-assistant" and not self.student_assistant_v1_enabled:
             return self._screen("home", user_id)
         if name in {"exams", "exam-owner"} and not self.exams_v1_enabled:
@@ -1029,15 +1094,21 @@ class DynamicScreenWorkflows:
             return self._paid_file_delivery_screen(user_id, name.split(":", 1)[1])
         if name.startswith(("payment-create:", "payment-create-link:")):
             via_link = name.startswith("payment-create-link:")
+            parts = name.split(":")
+            if len(parts) not in {2, 3} or (len(parts) == 3 and not parts[2].isdigit()):
+                return Screen(frame_error("درخواست خرید معتبر نیست."), self._screen("payments", user_id).keyboard)
+            quantity = int(parts[2]) if len(parts) == 3 else 1
             account = self._account_snapshot(user_id)
             if via_link:
-                raw_token = name.split(":", 1)[1]
+                raw_token = parts[1]
                 candidate = self.state.payment_offer_by_share_token(raw_token)
                 offer = self.state.payment_offer_for_user(str(candidate.get("ref") or ""), identity_from_account(account), via_link=True) if candidate else None
             else:
-                offer = self.state.payment_offer_for_user(name.split(":", 1)[1], identity_from_account(account))
+                offer = self.state.payment_offer_for_user(parts[1], identity_from_account(account))
             if offer is None:
                 return Screen(frame_error("این محصول در دسترس این حساب نیست یا اعتبارش پایان یافته است."), self._screen("home", user_id).keyboard)
+            if quantity < 1 or quantity > 20 or (quantity > 1 and not offer.get("allowMultiple")):
+                return Screen(frame_error("تعداد برای این محصول مجاز نیست."), self._screen("payments", user_id).keyboard)
             blocked = self._paid_file_purchase_blocker(user_id, offer)
             if blocked is not None:
                 return blocked
@@ -1056,6 +1127,8 @@ class DynamicScreenWorkflows:
                         expires_at=str(offer.get("expiresAt") or ""),
                         capacity=int(offer.get("capacity") or 0),
                         max_per_user=int(offer.get("maxPurchasesPerUser") or 0),
+                        quantity=quantity,
+                        allow_multiple=bool(offer.get("allowMultiple")),
                         fulfillment=dict(offer.get("fulfillment") or {}),
                     ),
                     platform=self.platform,
