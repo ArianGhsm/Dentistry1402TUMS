@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
+import time
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -8,7 +10,7 @@ from pathlib import Path
 
 from dent_bot.app import DentBotApp
 from dent_bot.payments import identity_from_account, product_eligibility
-from dent_bot.state import BotState
+from dent_bot.state import BotState, _migrate_offer_quantity_schema
 from dent_bot.ui import (
     home,
     payment_offers_screen,
@@ -464,6 +466,47 @@ class PaymentProductsV2Tests(unittest.TestCase):
                 self.assertTrue(site.create_calls[-1]["allow_multiple"])
             finally:
                 state.close()
+
+    def test_shared_quantity_migration_serializes_concurrent_startup(self) -> None:
+        # Regression: Telegram and Bale can initialize the same shared offers
+        # database while the first process is still adding the new column.
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "shared.sqlite3"
+            first = sqlite3.connect(path, timeout=5, check_same_thread=False)
+            second = sqlite3.connect(path, timeout=5, check_same_thread=False)
+            try:
+                first.execute("PRAGMA journal_mode=WAL")
+                first.execute("CREATE TABLE payment_offers(id INTEGER PRIMARY KEY, title TEXT)")
+                first.commit()
+                first.execute("BEGIN IMMEDIATE")
+                first.execute(
+                    "ALTER TABLE payment_offers ADD COLUMN allow_multiple INTEGER NOT NULL DEFAULT 0"
+                )
+                started = threading.Event()
+                errors: list[BaseException] = []
+
+                def concurrent_migration() -> None:
+                    started.set()
+                    try:
+                        _migrate_offer_quantity_schema(second)
+                    except BaseException as error:
+                        errors.append(error)
+
+                worker = threading.Thread(target=concurrent_migration)
+                worker.start()
+                self.assertTrue(started.wait(timeout=2))
+                time.sleep(0.04)
+                first.commit()
+                worker.join(timeout=3)
+                self.assertFalse(worker.is_alive())
+                self.assertEqual(errors, [])
+                self.assertEqual(
+                    sum(1 for row in second.execute("PRAGMA table_info(payment_offers)")
+                        if row[1] == "allow_multiple"), 1
+                )
+            finally:
+                first.close()
+                second.close()
 
     def test_modern_offer_schema_adds_quantity_flag_without_changing_prior_rows(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -339,13 +339,20 @@ PAYMENT_OFFER_COLUMNS = (
 
 
 def _migrate_offer_quantity_schema(connection: sqlite3.Connection) -> None:
-    columns = {str(row[1]) for row in connection.execute("PRAGMA table_info(payment_offers)")}
-    if "allow_multiple" not in columns:
-        connection.execute(
-            "ALTER TABLE payment_offers ADD COLUMN allow_multiple INTEGER NOT NULL DEFAULT 0 "
-            "CHECK(allow_multiple IN (0,1))"
-        )
+    # Telegram and Bale share the offer store; inspect the columns only after
+    # obtaining the SQLite writer lock so their simultaneous startups serialize.
+    connection.execute("BEGIN IMMEDIATE")
+    try:
+        columns = {str(row[1]) for row in connection.execute("PRAGMA table_info(payment_offers)")}
+        if "allow_multiple" not in columns:
+            connection.execute(
+                "ALTER TABLE payment_offers ADD COLUMN allow_multiple INTEGER NOT NULL DEFAULT 0 "
+                "CHECK(allow_multiple IN (0,1))"
+            )
         connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
 
 
 def _migrate_payment_schema(connection: sqlite3.Connection) -> None:
