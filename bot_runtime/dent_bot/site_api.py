@@ -334,6 +334,8 @@ class SiteApiClient:
         expires_at: str = "",
         capacity: int = 0,
         max_per_user: int = 1,
+        quantity: int = 1,
+        allow_multiple: bool = False,
         fulfillment: dict | None = None,
     ) -> dict:
         return self.request(
@@ -350,6 +352,8 @@ class SiteApiClient:
             expiresAt=expires_at,
             capacity=max(0, int(capacity)),
             maxPurchasesPerUser=max(0, int(max_per_user)),
+            quantity=int(quantity),
+            allowMultiple=bool(allow_multiple),
             fulfillment=fulfillment or {},
         )
 

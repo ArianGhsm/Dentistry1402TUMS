@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS payment_offers (
     expires_at TEXT NOT NULL DEFAULT '',
     capacity INTEGER NOT NULL DEFAULT 0 CHECK(capacity >= 0),
     max_per_user INTEGER NOT NULL DEFAULT 1 CHECK(max_per_user >= 0),
+    allow_multiple INTEGER NOT NULL DEFAULT 0 CHECK(allow_multiple IN (0,1)),
     fulfillment_json TEXT NOT NULL DEFAULT '{}',
     version INTEGER NOT NULL DEFAULT 1 CHECK(version >= 1),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -333,18 +334,37 @@ CREATE INDEX IF NOT EXISTS idx_daily_content_digest_delivery_status
 
 PAYMENT_OFFER_COLUMNS = (
     "id,ref,share_token,title,description,amount_rials,status,audience_json,available_from,"
-    "expires_at,capacity,max_per_user,fulfillment_json,version,created_at,updated_at"
+    "expires_at,capacity,max_per_user,fulfillment_json,version,created_at,updated_at,allow_multiple"
 )
+
+
+def _migrate_offer_quantity_schema(connection: sqlite3.Connection) -> None:
+    # Telegram and Bale share the offer store; inspect the columns only after
+    # obtaining the SQLite writer lock so their simultaneous startups serialize.
+    connection.execute("BEGIN IMMEDIATE")
+    try:
+        columns = {str(row[1]) for row in connection.execute("PRAGMA table_info(payment_offers)")}
+        if "allow_multiple" not in columns:
+            connection.execute(
+                "ALTER TABLE payment_offers ADD COLUMN allow_multiple INTEGER NOT NULL DEFAULT 0 "
+                "CHECK(allow_multiple IN (0,1))"
+            )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
 
 
 def _migrate_payment_schema(connection: sqlite3.Connection) -> None:
     columns = {str(row[1]) for row in connection.execute("PRAGMA table_info(payment_offers)")}
     if not columns:
         connection.executescript(PAYMENT_OFFERS_SCHEMA)
+        _migrate_offer_quantity_schema(connection)
         connection.commit()
         return
     if "share_token" in columns and "audience_json" in columns and "version" in columns:
         connection.executescript(PAYMENT_OFFERS_SCHEMA)
+        _migrate_offer_quantity_schema(connection)
         connection.commit()
         return
     connection.execute("BEGIN IMMEDIATE")
@@ -353,6 +373,7 @@ def _migrate_payment_schema(connection: sqlite3.Connection) -> None:
         if "share_token" in columns and "audience_json" in columns and "version" in columns:
             connection.commit()
             connection.executescript(PAYMENT_OFFERS_SCHEMA)
+            _migrate_offer_quantity_schema(connection)
             connection.commit()
             return
         rows = connection.execute(
@@ -385,6 +406,7 @@ def _migrate_payment_schema(connection: sqlite3.Connection) -> None:
         connection.rollback()
         raise
     connection.executescript(PAYMENT_OFFERS_SCHEMA)
+    _migrate_offer_quantity_schema(connection)
     connection.commit()
 
 
@@ -655,6 +677,7 @@ class BotState:
             "version": int(row[13]),
             "createdAt": str(row[14]),
             "updatedAt": str(row[15]),
+            "allowMultiple": bool(row[16]),
         }
         value["effectiveStatus"] = effective_status(value)
         return value
@@ -2050,6 +2073,7 @@ class BotState:
         expires_at: str = "",
         capacity: int = 0,
         max_per_user: int = 1,
+        allow_multiple: bool = False,
         fulfillment: dict | None = None,
         paid_file_asset: dict | None = None,
         actor_user_id: int = 0,
@@ -2069,6 +2093,9 @@ class BotState:
             raise ValueError("Invalid product availability window")
         capacity = max(0, min(1_000_000, int(capacity)))
         max_per_user = max(0, min(10_000, int(max_per_user)))
+        allow_multiple = bool(allow_multiple) and paid_file_asset is None and str(dict(fulfillment or {}).get("kind") or "") != "paid_file"
+        if allow_multiple and max_per_user == 1:
+            max_per_user = 0
         normalized_asset = self._normalize_paid_file_asset(paid_file_asset) if isinstance(paid_file_asset, dict) else None
         if normalized_asset is not None and normalized_asset["sourceChatId"] < 0:
             # Private-channel paid artifacts must be backed by an active,
@@ -2100,11 +2127,12 @@ class BotState:
             try:
                 cursor = self.payment_connection.execute(
                     "INSERT INTO payment_offers(ref,share_token,title,description,amount_rials,status,audience_json,"
-                    "available_from,expires_at,capacity,max_per_user,fulfillment_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "available_from,expires_at,capacity,max_per_user,fulfillment_json,allow_multiple) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         offer_ref, share_token, clean_title, clean_description, int(amount_rials), normalized_status,
                         json.dumps(normalized_audience, separators=(",", ":")), available, expires, capacity,
                         max_per_user, json.dumps(effective_fulfillment, ensure_ascii=False, separators=(",", ":")),
+                        int(allow_multiple),
                     ),
                 )
                 if normalized_asset is not None:
@@ -2928,7 +2956,8 @@ class BotState:
         allowed = {
             "title": "title", "description": "description", "amountRials": "amount_rials",
             "audience": "audience_json", "availableFrom": "available_from", "expiresAt": "expires_at",
-            "capacity": "capacity", "maxPurchasesPerUser": "max_per_user", "fulfillment": "fulfillment_json",
+            "capacity": "capacity", "maxPurchasesPerUser": "max_per_user", "allowMultiple": "allow_multiple",
+            "fulfillment": "fulfillment_json",
         }
         values: dict[str, object] = {}
         for key, column in allowed.items():
@@ -2951,6 +2980,8 @@ class BotState:
                 value = iso_utc(str(value or ""))
             elif key in {"capacity", "maxPurchasesPerUser"}:
                 value = max(0, min(1_000_000, int(value)))
+            elif key == "allowMultiple":
+                value = int(bool(value))
             elif key == "fulfillment":
                 value = json.dumps(value if isinstance(value, dict) else {}, ensure_ascii=False, separators=(",", ":"))
             values[column] = value
@@ -2960,6 +2991,14 @@ class BotState:
             before = self.payment_offer(offer_ref, require_active=False)
             if before is None or str(dict(before.get("fulfillment") or {}).get("kind") or "") == "term_subscription":
                 return None
+            target_multiple = bool(values.get("allow_multiple", before.get("allowMultiple", False)))
+            if str(dict(before.get("fulfillment") or {}).get("kind") or "") == "paid_file" and target_multiple:
+                raise ValueError("File sales cannot be multi-quantity")
+            if not target_multiple and "allow_multiple" in values:
+                values["max_per_user"] = 1
+            if target_multiple and "allow_multiple" in values and "max_per_user" not in values:
+                if int(before.get("maxPurchasesPerUser") or 0) == 1:
+                    values["max_per_user"] = 0
             candidate_available = str(values.get("available_from", before.get("availableFrom") or ""))
             candidate_expires = str(values.get("expires_at", before.get("expiresAt") or ""))
             if candidate_available and candidate_expires and candidate_available >= candidate_expires:
@@ -2986,7 +3025,8 @@ class BotState:
             f"کپی {source['title']}"[:160], int(source["amountRials"]), str(source.get("description") or ""),
             status="draft", audience=dict(source.get("audience") or {}),
             available_from="", expires_at="", capacity=int(source.get("capacity") or 0),
-            max_per_user=int(source.get("maxPurchasesPerUser") or 1),
+            max_per_user=int(source.get("maxPurchasesPerUser") or 0) if source.get("allowMultiple") else 1,
+            allow_multiple=bool(source.get("allowMultiple")),
             fulfillment=dict(source.get("fulfillment") or {}), actor_user_id=actor_user_id,
             actor_platform=actor_platform,
         )

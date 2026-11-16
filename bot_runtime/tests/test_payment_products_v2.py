@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
+import time
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -8,7 +10,7 @@ from pathlib import Path
 
 from dent_bot.app import DentBotApp
 from dent_bot.payments import identity_from_account, product_eligibility
-from dent_bot.state import BotState
+from dent_bot.state import BotState, _migrate_offer_quantity_schema
 from dent_bot.ui import (
     home,
     payment_offers_screen,
@@ -341,6 +343,259 @@ class PaymentProductsV2Tests(unittest.TestCase):
         self.assertIn("payment-product-share-preview", str(screen.keyboard))
         self.assertIn("switch_inline_query", str(screen.keyboard))
 
+
+    def test_multi_quantity_wizard_checkout_and_copy_across_platforms(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            site = SiteStub()
+            telegram_api = ApiStub()
+            app = DentBotApp(telegram_api, state, owner_id=1, site_url="https://example.test", site_api=site)
+
+            def callback(user: int, action: str) -> None:
+                app.handle({"callback_query": {
+                    "id": f"callback-{user}-{action}",
+                    "from": {"id": user},
+                    "data": f"v1:{action}",
+                    "message": {"message_id": 10, "chat": {"id": user, "type": "private"}},
+                }})
+
+            try:
+                callback(1, "payment-offer-new")
+                app.handle({"message": {"text": "سه محصول آزمایشی", "from": {"id": 1},
+                                        "chat": {"id": 1, "type": "private"}}})
+                callback(1, "payment-offer-amount:100000")
+                callback(1, "payment-offer-audience:all")
+                self.assertEqual(state.dialog(1)["step"], "quantity-mode")
+                self.assertIn("انتخاب تعداد هنگام خرید", str(telegram_api.sent[-1][2]))
+                callback(1, "payment-offer-mode:multiple")
+                self.assertIn("انتخاب تعداد", telegram_api.sent[-1][1])
+                callback(1, "payment-offer-publish")
+                offers = [item for item in state.payment_offers() if item["title"] == "سه محصول آزمایشی"]
+                self.assertEqual(len(offers), 1)
+                item = offers[0]
+                self.assertTrue(item["allowMultiple"])
+                self.assertEqual(item["maxPurchasesPerUser"], 0)
+                self.assertIn("چندتایی", app._dynamic_screen(f"payment-offer:{item['ref']}", 1).text)
+
+                callback(20, f"payment-confirm:{item['ref']}")
+                self.assertIn("انتخاب تعداد و خرید", str(telegram_api.sent[-1][2]))
+                callback(20, f"payment-quantity:{item['ref']}:3")
+                self.assertIn("۳", telegram_api.sent[-1][1])
+                self.assertIn("۳۰۰", telegram_api.sent[-1][1])
+                self.assertIn(f"payment-create:{item['ref']}:3", str(telegram_api.sent[-1][2]))
+                callback(20, f"payment-create:{item['ref']}:3")
+                self.assertEqual(site.create_calls[-1]["quantity"], 3)
+                self.assertTrue(site.create_calls[-1]["allow_multiple"])
+                self.assertEqual(site.create_calls[-1]["amount_rials"], 1000000)
+
+                callback(1, f"payment-offer-duplicate:{item['ref']}")
+                copied = [offer for offer in state.payment_offers(include_inactive=True)
+                          if offer["title"].startswith("کپی سه محصول")]
+                self.assertEqual(len(copied), 1)
+                self.assertTrue(copied[0]["allowMultiple"])
+            finally:
+                state.close()
+
+    def test_shared_payment_offer_mode_and_quantity_picker_match_in_telegram_and_bale(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shared = root / "shared-offers.sqlite3"
+            telegram = BotState(root / "tg.sqlite3", payment_offers_path=shared)
+            bale = BotState(root / "bale.sqlite3", payment_offers_path=shared)
+            site = SiteStub()
+            try:
+                product = telegram.create_payment_offer("پک ابزار مشترک", 450000, allow_multiple=True)
+                self.assertTrue(bale.payment_offer(product["ref"])["allowMultiple"])
+                for platform, state in (("telegram", telegram), ("bale", bale)):
+                    app = DentBotApp(ApiStub(), state, owner_id=1, site_url="https://example.test",
+                                     site_api=site, platform=platform)
+                    screen = app._dynamic_screen(f"payment-quantity:{product['ref']}:4", 20)
+                    self.assertIn("۴", screen.text)
+                    self.assertIn("۱۸۰٬۰۰۰ تومان", screen.text)
+                    self.assertIn(f"payment-create:{product['ref']}:4", str(screen.keyboard))
+                    app._dynamic_screen(f"payment-create:{product['ref']}:4", 20)
+                    self.assertEqual(site.create_calls[-1]["quantity"], 4)
+                    self.assertTrue(site.create_calls[-1]["allow_multiple"])
+                bale.update_payment_offer(product["ref"], {"allowMultiple": False},
+                                          actor_user_id=1, actor_platform="bale")
+                self.assertFalse(telegram.payment_offer(product["ref"])["allowMultiple"])
+            finally:
+                telegram.close()
+                bale.close()
+
+    def test_multi_unit_receipt_and_owner_report_distinguish_orders_from_units(self) -> None:
+        from dent_bot.ui import (
+            payment_created_screen, payment_status_screen, payment_success_push_screen
+        )
+        order = {"orderToken": "a" * 25, "title": "پک", "status": "success",
+                 "amountRials": 1_500_000, "quantity": 3,
+                 "redirectUrl": "https://example.test/pay", "trackingRef": "۱۲۳"}
+        for screen in (
+            payment_created_screen(order),
+            payment_status_screen(order),
+            payment_success_push_screen(order),
+        ):
+            self.assertIn("تعداد: <b>۳</b>", screen.text)
+        screen = payment_product_report_screen(
+            {"ref": "p" * 24, "title": "پک", "amountRials": 500000, "capacity": 8},
+            {"counts": {"success": 1, "successUnits": 3, "pending": 1,
+                        "pendingUnits": 2, "uniquePayers": 1},
+             "reservedUnits": 5, "receivedRials": 1500000},
+        )
+        self.assertIn("تعداد فروخته‌شده: <b>۳</b>", screen.text)
+        self.assertIn("ظرفیت باقی‌مانده: <b>۳</b> از <b>۸</b>", screen.text)
+
+    def test_multi_quantity_deep_link_purchase_stays_in_link_only_audience(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            site = SiteStub(accounts={20: verified_generic_account()})
+            api = ApiStub()
+            try:
+                item = state.create_payment_offer("سه واحد با لینک", 125000,
+                                                  audience={"mode": "open"}, allow_multiple=True)
+                app = DentBotApp(api, state, owner_id=1, site_url="https://example.test", site_api=site)
+                app.handle({"message": {"text": f"/start product_{item['shareToken']}",
+                                        "from": {"id": 20},
+                                        "chat": {"id": 20, "type": "private"}}})
+                self.assertIn("payment-quantity-link", str(api.sent[-1][2]))
+                action = f"payment-quantity-link:{item['shareToken']}:3"
+                screen = app._dynamic_screen(action, 20)
+                self.assertIn(f"payment-create-link:{item['shareToken']}:3", str(screen.keyboard))
+                app._dynamic_screen(f"payment-create-link:{item['shareToken']}:3", 20)
+                self.assertEqual(site.create_calls[-1]["quantity"], 3)
+                self.assertTrue(site.create_calls[-1]["allow_multiple"])
+            finally:
+                state.close()
+
+    def test_shared_quantity_migration_serializes_concurrent_startup(self) -> None:
+        # Regression: Telegram and Bale can initialize the same shared offers
+        # database while the first process is still adding the new column.
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "shared.sqlite3"
+            first = sqlite3.connect(path, timeout=5, check_same_thread=False)
+            second = sqlite3.connect(path, timeout=5, check_same_thread=False)
+            try:
+                first.execute("PRAGMA journal_mode=WAL")
+                first.execute("CREATE TABLE payment_offers(id INTEGER PRIMARY KEY, title TEXT)")
+                first.commit()
+                first.execute("BEGIN IMMEDIATE")
+                first.execute(
+                    "ALTER TABLE payment_offers ADD COLUMN allow_multiple INTEGER NOT NULL DEFAULT 0"
+                )
+                started = threading.Event()
+                errors: list[BaseException] = []
+
+                def concurrent_migration() -> None:
+                    started.set()
+                    try:
+                        _migrate_offer_quantity_schema(second)
+                    except BaseException as error:
+                        errors.append(error)
+
+                worker = threading.Thread(target=concurrent_migration)
+                worker.start()
+                self.assertTrue(started.wait(timeout=2))
+                time.sleep(0.04)
+                first.commit()
+                worker.join(timeout=3)
+                self.assertFalse(worker.is_alive())
+                self.assertEqual(errors, [])
+                self.assertEqual(
+                    sum(1 for row in second.execute("PRAGMA table_info(payment_offers)")
+                        if row[1] == "allow_multiple"), 1
+                )
+            finally:
+                first.close()
+                second.close()
+
+    def test_modern_offer_schema_adds_quantity_flag_without_changing_prior_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "modern.sqlite3"
+            connection = sqlite3.connect(path)
+            connection.executescript("""
+                CREATE TABLE payment_offers (
+                    id INTEGER PRIMARY KEY, ref TEXT UNIQUE, share_token TEXT UNIQUE, title TEXT,
+                    description TEXT, amount_rials INTEGER, status TEXT, audience_json TEXT,
+                    available_from TEXT, expires_at TEXT, capacity INTEGER, max_per_user INTEGER,
+                    fulfillment_json TEXT, version INTEGER, created_at TEXT, updated_at TEXT
+                );
+                INSERT INTO payment_offers VALUES (
+                    1, 'modern-ref-abcdefghijkl', 'modern-token-abcd', 'کالای قدیمی', '',
+                    100000, 'active', '{"mode":"all"}', '', '', 0, 1, '{}', 4,
+                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                );
+            """)
+            connection.commit()
+            connection.close()
+            state = BotState(path)
+            try:
+                item = state.payment_offer("modern-ref-abcdefghijkl")
+                self.assertFalse(item["allowMultiple"])
+                self.assertEqual(item["version"], 4)
+                self.assertEqual(item["amountRials"], 100000)
+                columns = {row[1] for row in state.payment_connection.execute("PRAGMA table_info(payment_offers)")}
+                self.assertIn("allow_multiple", columns)
+            finally:
+                state.close()
+
+    def test_single_quantity_rejects_modified_checkout_and_legacy_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            site = SiteStub()
+            api = ApiStub()
+            try:
+                item = state.create_payment_offer("میزبان", 300000)
+                self.assertFalse(item["allowMultiple"])
+                self.assertEqual(item["maxPurchasesPerUser"], 1)
+                app = DentBotApp(api, state, owner_id=1, site_url="https://example.test", site_api=site)
+                self.assertNotIn("انتخاب تعداد", app._dynamic_screen(f"payment-confirm:{item['ref']}", 20).text)
+                bad = app._dynamic_screen(f"payment-create:{item['ref']}:3", 20)
+                self.assertIn("تعداد", bad.text)
+                self.assertEqual(site.create_calls, [])
+                good = app._dynamic_screen(f"payment-create:{item['ref']}", 20)
+                self.assertIn("سفارش", good.text)
+                self.assertEqual(site.create_calls[-1]["quantity"], 1)
+                self.assertFalse(site.create_calls[-1]["allow_multiple"])
+                changed = state.update_payment_offer(item["ref"], {"allowMultiple": True},
+                                                     actor_user_id=1, actor_platform="telegram")
+                self.assertTrue(changed["allowMultiple"])
+                self.assertEqual(changed["maxPurchasesPerUser"], 0)
+                changed = state.update_payment_offer(item["ref"], {"allowMultiple": False},
+                                                     actor_user_id=1, actor_platform="telegram")
+                self.assertFalse(changed["allowMultiple"])
+                self.assertEqual(changed["maxPurchasesPerUser"], 1)
+            finally:
+                state.close()
+
+    def test_quantity_picker_enforces_remaining_stock_and_customer_limit(self) -> None:
+        from dent_bot.ui import payment_confirm_screen
+        item = {"ref": "r" * 24, "title": "پک تجهیزات", "amountRials": 750000,
+                "allowMultiple": True, "maxPurchasesPerUser": 5, "capacity": 8}
+        state = {"successCount": 3, "reservedCount": 5}
+        screen = payment_confirm_screen(item, state=state, quantity=20)
+        self.assertIn("۲", screen.text)
+        self.assertIn("۱۵۰٬۰۰۰", screen.text)
+        self.assertIn("payment-create:" + item["ref"] + ":2", str(screen.keyboard))
+        self.assertNotIn(":3", str(screen.keyboard))
+        paid = payment_confirm_screen(item, state={"successCount": 5, "reservedCount": 5}, quantity=1)
+        self.assertNotIn("payment-create", str(paid.keyboard))
+        self.assertIn("سقف خرید", paid.text)
+
+    def test_paid_file_cannot_be_switched_to_multi_quantity(self) -> None:
+        # The underlying delivery is a single entitlement, not physical stock.
+        with tempfile.TemporaryDirectory() as directory:
+            state = BotState(Path(directory) / "state.sqlite3")
+            try:
+                item = state.create_payment_offer(
+                    "فایل آموزشی", 200000,
+                    fulfillment={"kind": "paid_file", "action": "paid-file-get:" + "a" * 20},
+                )
+                # A real file sale is identified by its saved fulfillment kind.
+                with self.assertRaises(ValueError):
+                    state.update_payment_offer(item["ref"], {"allowMultiple": True},
+                                               actor_user_id=1, actor_platform="telegram")
+            finally:
+                state.close()
 
 if __name__ == "__main__":
     unittest.main()

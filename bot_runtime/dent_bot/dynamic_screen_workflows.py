@@ -589,8 +589,11 @@ class DynamicScreenWorkflows:
             payload = dict(dialog.get("payload") or {})
             payload["audience"] = audience
             payload.setdefault("description", "")
-            self.state.update_dialog(user_id, step="preview", payload=payload)
-            return payment_offer_preview_screen(payload)
+            next_step = "preview" if str(payload.get("saleType") or "") == "file" else "quantity-mode"
+            self.state.update_dialog(user_id, step=next_step, payload=payload)
+            return payment_offer_wizard_screen(next_step, payload)
+        if name.startswith("payment-offer-mode:") and user_id == self.owner_id:
+            return self._payment_offer_mode_wizard_screen(name, user_id)
         if name == "payment-offer-publish" and user_id == self.owner_id:
             dialog = self.state.dialog(user_id)
             payload = dict(dialog.get("payload") or {}) if dialog else {}
@@ -606,6 +609,7 @@ class DynamicScreenWorkflows:
                 item = self.state.create_payment_offer(
                     str(payload["title"]), int(payload["amountRials"]), str(payload.get("description") or ""),
                     audience=dict(payload.get("audience") or {"mode": "all"}),
+                    allow_multiple=bool(payload.get("allowMultiple")),
                     paid_file_asset=dict(payload["fileAsset"]) if is_file_sale else None,
                     actor_user_id=user_id, actor_platform=self.platform,
                 )
@@ -646,9 +650,12 @@ class DynamicScreenWorkflows:
                 keyboard(
                     [button("عنوان", action=f"payment-offer-field:{offer_ref}:title"), button("مبلغ", action=f"payment-offer-field:{offer_ref}:amountRials")],
                     [button("توضیح", action=f"payment-offer-field:{offer_ref}:description")],
+                    [button("شیوهٔ خرید", action=f"payment-offer-quantity-settings:{offer_ref}")],
                     [button("بازگشت", action=f"payment-offer:{offer_ref}")],
                 ),
             ) if item else Screen(frame_error("محصول پیدا نشد."), payment_control_center_screen([]).keyboard)
+        if name.startswith(("payment-offer-quantity-settings:", "payment-offer-mode-set:")) and user_id == self.owner_id:
+            return self._payment_offer_quantity_owner_screen(name, user_id)
         if name.startswith("payment-offer-schedule:") and user_id == self.owner_id:
             offer_ref = name.rsplit(":", 1)[1]
             return Screen(
@@ -665,6 +672,7 @@ class DynamicScreenWorkflows:
                 "<b>⚙️ تنظیمات پیشرفته</b>\n\nصفر برای ظرفیت یا سقف خرید یعنی نامحدود.",
                 keyboard(
                     [button("ظرفیت", action=f"payment-offer-field:{offer_ref}:capacity"), button("سقف خرید هر نفر", action=f"payment-offer-field:{offer_ref}:maxPurchasesPerUser")],
+                    [button("تکی / چندتایی", action=f"payment-offer-quantity-settings:{offer_ref}")],
                     [button("متن تحویل پس از خرید", action=f"payment-offer-field:{offer_ref}:fulfillmentText")],
                     [button("لینک تحویل HTTPS", action=f"payment-offer-field:{offer_ref}:fulfillmentUrl")],
                     [button("بازگشت", action=f"payment-offer:{offer_ref}")],
@@ -746,6 +754,8 @@ class DynamicScreenWorkflows:
                 return self._paid_file_telegram_screen(item)
             states = self._payment_product_states(user_id, [item])
             return payment_confirm_screen(item, state=dict(states.get(str(item.get("ref") or "")) or {}))
+        if name.startswith(("payment-quantity:", "payment-quantity-link:")):
+            return self._payment_quantity_picker_screen(name, user_id)
         if name == "student-assistant" and not self.student_assistant_v1_enabled:
             return self._screen("home", user_id)
         if name in {"exams", "exam-owner"} and not self.exams_v1_enabled:
@@ -1028,45 +1038,7 @@ class DynamicScreenWorkflows:
         if name.startswith("paid-file-get:"):
             return self._paid_file_delivery_screen(user_id, name.split(":", 1)[1])
         if name.startswith(("payment-create:", "payment-create-link:")):
-            via_link = name.startswith("payment-create-link:")
-            account = self._account_snapshot(user_id)
-            if via_link:
-                raw_token = name.split(":", 1)[1]
-                candidate = self.state.payment_offer_by_share_token(raw_token)
-                offer = self.state.payment_offer_for_user(str(candidate.get("ref") or ""), identity_from_account(account), via_link=True) if candidate else None
-            else:
-                offer = self.state.payment_offer_for_user(name.split(":", 1)[1], identity_from_account(account))
-            if offer is None:
-                return Screen(frame_error("این محصول در دسترس این حساب نیست یا اعتبارش پایان یافته است."), self._screen("home", user_id).keyboard)
-            blocked = self._paid_file_purchase_blocker(user_id, offer)
-            if blocked is not None:
-                return blocked
-            stable_request_id = hashlib.sha256(request_id.encode("utf-8")).hexdigest()
-            try:
-                return payment_created_screen(
-                    self.site_api.create_bot_payment(
-                        user_id,
-                        offer_ref=str(offer["ref"]),
-                        title=str(offer["title"]),
-                        description=str(offer["description"]),
-                        amount_rials=int(offer["amountRials"]),
-                        request_id=stable_request_id,
-                        product_version=int(offer.get("version") or 1),
-                        available_from=str(offer.get("availableFrom") or ""),
-                        expires_at=str(offer.get("expiresAt") or ""),
-                        capacity=int(offer.get("capacity") or 0),
-                        max_per_user=int(offer.get("maxPurchasesPerUser") or 0),
-                        fulfillment=dict(offer.get("fulfillment") or {}),
-                    ),
-                    platform=self.platform,
-                    return_to_bot_enabled=self.payment_return_v1_enabled,
-                )
-            except SiteApiError as error:
-                if error.code == "ACCOUNT_LINK_REQUIRED":
-                    return account_screen(self.site_url, platform=self.platform)
-                if error.code == "PAYMENT_PHONE_REQUIRED":
-                    return payment_phone_required_screen()
-                return Screen(frame_error(str(error)), home(self.site_url, is_owner=user_id == self.owner_id).keyboard)
+            return self._payment_multiunit_checkout_screen(name, user_id, request_id)
         if name.startswith("payment-status:"):
             order_token = name.split(":", 1)[1]
             try:

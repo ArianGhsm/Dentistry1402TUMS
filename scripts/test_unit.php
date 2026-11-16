@@ -277,6 +277,38 @@ unit_assert(
     dent_bot_payment_reservation_error($reservationState, 0, 1) === 'PRODUCT_PURCHASE_LIMIT_REACHED',
     'Bot checkout enforces the per-user purchase limit independently of global capacity'
 );
+
+$multiUnitOrder = [
+    'id' => 1001,
+    'user_id' => '40211272010',
+    'quantity' => 3,
+    'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+    'extra_form_data' => [
+        'source' => 'bot-offer',
+        'bot_offer_ref' => 'offer-ref-1234567890',
+        'bot_request_ref' => 'request-xyz',
+    ],
+];
+$multiReservation = dent_bot_payment_reservation_state(
+    [$multiUnitOrder],
+    'offer-ref-1234567890',
+    '40211272010',
+    'new-request'
+);
+unit_assert(
+    $multiReservation['reserved'] === 3 && $multiReservation['userReserved'] === 3,
+    'A single paid multi-quantity order reserves three stock units and three per-user units'
+);
+unit_assert(
+    dent_bot_payment_reservation_error($multiReservation, 4, 0, 2) === 'PRODUCT_CAPACITY_REACHED'
+        && dent_bot_payment_reservation_error($multiReservation, 0, 4, 2) === 'PRODUCT_PURCHASE_LIMIT_REACHED'
+        && dent_bot_payment_reservation_error($multiReservation, 5, 5, 2) === '',
+    'Admission checks the requested quantity against remaining stock and purchase cap'
+);
+unit_assert(
+    dent_bot_payment_order_quantity_for_offer($multiUnitOrder, 'offer-ref-1234567890') === 3,
+    'A standalone order preserves purchased quantity in payment accounting'
+);
 $crossIdentityReservation = dent_bot_payment_reservation_state(
     [[
         'id' => 9,
