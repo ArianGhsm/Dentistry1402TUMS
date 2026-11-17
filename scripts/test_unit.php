@@ -885,23 +885,31 @@ $homeHighlightExpiryTimes = array_values(array_filter(array_map(
     static fn(array $course): int|false => strtotime((string) ($course['curriculum']['finalExam']['expiresAt'] ?? '')),
     $homeHighlightsSeed
 ), static fn(int|false $timestamp): bool => $timestamp !== false));
-$homeHighlightFirstExpiry = $homeHighlightExpiryTimes !== [] ? min($homeHighlightExpiryTimes) : 0;
+$homeHighlightFirstExpiry = $homeHighlightExpiryTimes !== [] ? min($homeHighlightExpiryTimes) : null;
 $homeHighlightsBeforeExpiry = dent_exams_home_highlights_courses_for_cohort(
     'dentistry-1402',
-    max(0, $homeHighlightFirstExpiry - 1)
+    $homeHighlightFirstExpiry !== null ? max(0, $homeHighlightFirstExpiry - 1) : 0
 );
 $homeHighlightsAfterExpiry = dent_exams_home_highlights_courses_for_cohort(
     'dentistry-1402',
-    $homeHighlightFirstExpiry
+    $homeHighlightFirstExpiry ?? 0
 );
+$expiryFixture = [
+    'curriculum' => ['finalExam' => ['expiresAt' => '2026-01-02T00:00:00+03:30']],
+];
 unit_assert(
-    $homeHighlightFirstExpiry > 0
-        && count($homeHighlightsBeforeExpiry) === 2
-        && count($homeHighlightsAfterExpiry) < 2
-        && array_diff(
-            array_column($homeHighlightsAfterExpiry, 'slug'),
-            array_column($homeHighlightsBeforeExpiry, 'slug')
-        ) === [],
+    count($homeHighlightsSeed) === 2
+        && count(dent_exams_home_highlights_index()['catalogs']['shared'] ?? []) === 2
+        && ($homeHighlightFirstExpiry === null
+            ? count($homeHighlightsAfterExpiry) === 2
+            : (count($homeHighlightsBeforeExpiry) === 2
+                && count($homeHighlightsAfterExpiry) < 2
+                && array_diff(
+                    array_column($homeHighlightsAfterExpiry, 'slug'),
+                    array_column($homeHighlightsBeforeExpiry, 'slug')
+                ) === []))
+        && !dent_exams_home_highlights_course_has_expired($expiryFixture, strtotime('2026-01-01T23:59:59+03:30'))
+        && dent_exams_home_highlights_course_has_expired($expiryFixture, strtotime('2026-01-02T00:00:00+03:30')),
     'exams: home highlights use the two-entry index and never backfill an expired item'
 );
 $homeHighlightsApiSource = (string) file_get_contents(__DIR__ . '/../public_html/api/exams_home_highlights_api.php');
