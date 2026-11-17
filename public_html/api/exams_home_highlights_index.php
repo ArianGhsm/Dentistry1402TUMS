@@ -9,7 +9,7 @@ function dent_exams_home_highlights_index(): array
 {
     return array (
   'schemaVersion' => 1,
-  'sourceSignature' => '14985d2eb5f1cc6f2384f328ae034489e92f02bf1fdae68c620e675bec1b09a9',
+  'sourceSignature' => '92712c743b8eb7d4bc9a421ace730f5489bc7a296eec859d9be98636a7cea95f',
   'defaultCatalogKey' => 'shared',
   'catalogByCohort' => 
   array (
@@ -26,16 +26,16 @@ function dent_exams_home_highlights_index(): array
       0 => 
       array (
         'catalogKey' => 'shared',
-        'slug' => 'diagnostics-3-midterm-practice',
-        'title' => 'آزمون‌های تمرینی میان‌ترم تشخیصی ۳',
-        'shortTitle' => 'میان‌ترم تشخیصی ۳',
-        'cardDescription' => '۱۵ آزمون جلسه‌ای با مجموع ۵۵۰ سؤال چهارگزینه‌ای و پاسخ تشریحی.',
-        'heroDescription' => 'آزمون‌های جلسه‌به‌جلسهٔ تشخیصی ۳ در آزمون‌گیر مشترک سایت همراه با مرور، کارنامه و پاسخ تشریحی. موضوع سؤال‌های جلسات ۱۳ و ۱۴ با عنوان جزوه‌های اصلی آن‌ها مغایرت دارد و در توضیح آزمون‌ها مشخص شده است.',
-        'addedAt' => '2026-11-17T17:00:00+03:30',
-        'path' => '/exams/diagnostics-3-midterm-practice/',
+        'slug' => 'diagnostics-3-midterm-sample',
+        'title' => 'نمونه‌سؤالات میان‌ترم تشخیصی ۳',
+        'shortTitle' => 'نمونه‌سؤالات تشخیصی ۳',
+        'cardDescription' => '۴۴ سؤال میان‌ترم با پاسخ مستقل، کلید علامت‌خورده در اسکن، بررسی تک‌تک گزینه‌ها، رفرنس جلسه و مرور آموزشی.',
+        'heroDescription' => '۴۴ سؤال نمونهٔ میان‌ترم تشخیصی ۳ همراه با کلید اسکن، پاسخ علمی مستقل، علت درست یا غلط بودن هر گزینه و ارجاع به جزوه. سؤال‌های ۲۳، ۲۴ و ۳۰ به علت ابهام در کلید و سؤال ۳۹ به علت در دسترس نبودن تصویر اصلی، فقط برای مطالعه نمایش داده می‌شوند و در محاسبهٔ نمره لحاظ نمی‌شوند.',
+        'addedAt' => '2026-11-17T23:24:00+03:30',
+        'path' => '/exams/diagnostics-3-midterm-sample/',
         'stats' => 
         array (
-          'examCount' => 15,
+          'examCount' => 1,
         ),
         'curriculum' => 
         array (
@@ -45,16 +45,16 @@ function dent_exams_home_highlights_index(): array
       1 => 
       array (
         'catalogKey' => 'shared',
-        'slug' => 'partial-foundations-midterm-sample',
-        'title' => 'نمونه‌سؤالات میان‌ترم مبانی پروتز پارسیل ۱',
-        'shortTitle' => 'میان‌ترم مبانی پارسیل',
-        'cardDescription' => '۴۱ سؤال میان‌ترم ترم ۷؛ پاسخ مستقل، بررسی گزینه‌ها، منابع جلسات و یادداشت‌های آموزشی.',
-        'heroDescription' => 'مجموعه ۴۱ سؤال میان‌ترم مبانی پروتز پارسیل ۱ برای ترم ۷، با پاسخ مستقل و تحلیل هر گزینه. در چهار سؤال، کلید اسکن با بررسی مستقل متفاوت است. سؤال تصویریِ شماره ۶ به علت در دسترس نبودن تصویر اسکن، در نمره لحاظ نمی‌شود. هزینه دسترسی طبق تعرفه استاندارد آزمون‌ها ۴۵ هزار تومان است.',
-        'addedAt' => '2026-11-08T00:30:00+03:30',
-        'path' => '/exams/partial-foundations-midterm-sample/',
+        'slug' => 'diagnostics-3-midterm-practice',
+        'title' => 'آزمون‌های تمرینی میان‌ترم تشخیصی ۳',
+        'shortTitle' => 'میان‌ترم تشخیصی ۳',
+        'cardDescription' => '۱۵ آزمون جلسه‌ای با مجموع ۵۵۰ سؤال چهارگزینه‌ای و پاسخ تشریحی.',
+        'heroDescription' => '۱۵ آزمون جلسه‌به‌جلسهٔ تشخیصی ۳ با ۵۵۰ سؤال، مرور، کارنامه و پاسخ تشریحی. با یک بار پرداخت ۴۵ هزار تومان، همهٔ ۱۵ آزمون برای همین حساب باز می‌شوند. موضوع سؤال‌های جلسات ۱۳ و ۱۴ با عنوان جزوه‌های اصلی آن‌ها مغایرت دارد و در توضیح آزمون‌ها مشخص شده است.',
+        'addedAt' => '2026-11-17T17:00:00+03:30',
+        'path' => '/exams/diagnostics-3-midterm-practice/',
         'stats' => 
         array (
-          'examCount' => 1,
+          'examCount' => 15,
         ),
         'curriculum' => 
         array (

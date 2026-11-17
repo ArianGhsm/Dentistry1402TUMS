@@ -67,6 +67,8 @@ section "Auth store resilience"
 section "Exam content quality"
 "$PHP_BIN" scripts/check_exam_content_quality.php || fail "check_exam_content_quality.php"
 "$PHP_BIN" scripts/test_diagnostics3_midterm_practice.php || fail "test_diagnostics3_midterm_practice.php"
+"$PYTHON_BIN" scripts/build_diagnostics3_midterm_sample_data.py --check || fail "build_diagnostics3_midterm_sample_data.py --check"
+"$PHP_BIN" scripts/test_diagnostics3_midterm_payment_and_sample.php || fail "test_diagnostics3_midterm_payment_and_sample.php"
 
 section "Exam catalog timeline"
 "$PHP_BIN" scripts/check_exam_catalog_timeline.php || fail "check_exam_catalog_timeline.php"

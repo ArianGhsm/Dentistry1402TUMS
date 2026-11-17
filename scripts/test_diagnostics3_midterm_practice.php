@@ -21,7 +21,7 @@ dig3_assert(is_array($courses), 'courses missing');
 $slug = 'diagnostics-3-midterm-practice';
 $course = $courses[$slug] ?? null;
 dig3_assert(is_array($course), 'new course missing');
-dig3_assert(($course['defaultPaymentMode'] ?? '') === 'free', 'unexpected paywall');
+dig3_assert(($course['defaultPaymentMode'] ?? '') === 'paid' && ($course['defaultAmount'] ?? 0) === 450000, 'bundle must cost ۴۵ هزار تومان');
 dig3_assert(($course['addedAt'] ?? '') !== '', 'missing course timeline');
 
 $sessions = [1=>35,2=>35,3=>35,4=>35,5=>40,6=>35,8=>40,9=>40,10=>35,12=>35,13=>35,14=>35,15=>40,16=>40,17=>35];
