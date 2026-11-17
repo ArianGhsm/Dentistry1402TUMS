@@ -37,6 +37,7 @@ function dent_exams_diagnostics3_midterm_practice_session_index(): array
             continue;
         }
         $index[$session] = [
+            'sourceTopicMismatch' => ($data['sourceTopicMismatch'] ?? false) === true,
             'session' => $session,
             'topic' => (string) $data['topic'],
             'questionCount' => (int) $data['questionCount'],
@@ -70,14 +71,20 @@ function dent_exams_diagnostics3_midterm_practice_catalog_course(): array
         $topic = (string) $session['topic'];
         $count = (int) $session['questionCount'];
         $label = 'جلسهٔ ' . dent_exams_diagnostics3_midterm_practice_fa($number);
+        $sourceTopicMismatch = !empty($session['sourceTopicMismatch']);
+        $warning = $sourceTopicMismatch
+            ? 'توجه: مبحث سؤال‌های این فایل با عنوان جزوهٔ اصلی همین جلسه یکسان نیست.'
+            : '';
         $total += $count;
         $exams[] = [
             'slug' => (string) $number,
             'path' => $path . $number . '/',
             'label' => $label,
             'title' => $label . ' | ' . $topic,
-            'subtitle' => dent_exams_diagnostics3_midterm_practice_fa($count) . ' سؤال چهارگزینه‌ای با پاسخ تشریحی',
-            'description' => 'آزمون تمرینی ' . $label . ' از میان‌ترم تشخیصی ۳، مبحث «' . $topic . '».',
+            'subtitle' => dent_exams_diagnostics3_midterm_practice_fa($count) . ' سؤال چهارگزینه‌ای با پاسخ تشریحی'
+                . ($sourceTopicMismatch ? ' • نیازمند تطبیق با جزوهٔ جلسه' : ''),
+            'description' => 'آزمون تمرینی ' . $label . ' از میان‌ترم تشخیصی ۳، مبحث «' . $topic . '».'
+                . ($warning !== '' ? ' ' . $warning : ''),
             'eyebrow' => 'تشخیصی ۳ | میان‌ترم | ' . $label,
             'ctaLabel' => 'انتخاب حالت و شروع آزمون',
             'backHref' => $path,
@@ -103,7 +110,7 @@ function dent_exams_diagnostics3_midterm_practice_catalog_course(): array
         'badge' => $examCount . ' آزمون',
         'cardDescription' => $examCount . ' آزمون جلسه‌ای با مجموع ' . $questionCount . ' سؤال چهارگزینه‌ای و پاسخ تشریحی.',
         'heroTitle' => $title,
-        'heroDescription' => 'آزمون‌های جلسه‌به‌جلسهٔ تشخیصی ۳، در قالب آزمون‌گیر مشترک سایت همراه با مرور، کارنامه و پاسخ تشریحی. فقط جلساتی نمایش داده می‌شوند که سؤال و کلید معتبر دارند.',
+        'heroDescription' => 'آزمون‌های جلسه‌به‌جلسهٔ تشخیصی ۳ در آزمون‌گیر مشترک سایت همراه با مرور، کارنامه و پاسخ تشریحی. موضوع سؤال‌های جلسات ۱۳ و ۱۴ با عنوان جزوه‌های اصلی آن‌ها مغایرت دارد و در توضیح آزمون‌ها مشخص شده است.',
         'path' => $path,
         'defaultPaymentMode' => 'free',
         'defaultAmount' => 0,

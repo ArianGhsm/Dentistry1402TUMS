@@ -9,7 +9,7 @@ function dent_exams_home_highlights_index(): array
 {
     return array (
   'schemaVersion' => 1,
-  'sourceSignature' => '8263f49d9df5350e2fd716636f5c0a819434a0fcb537637c4cc211fc97ca2c49',
+  'sourceSignature' => '14985d2eb5f1cc6f2384f328ae034489e92f02bf1fdae68c620e675bec1b09a9',
   'defaultCatalogKey' => 'shared',
   'catalogByCohort' => 
   array (
@@ -29,13 +29,13 @@ function dent_exams_home_highlights_index(): array
         'slug' => 'diagnostics-3-midterm-practice',
         'title' => 'آزمون‌های تمرینی میان‌ترم تشخیصی ۳',
         'shortTitle' => 'میان‌ترم تشخیصی ۳',
-        'cardDescription' => '۱۳ آزمون جلسه‌ای با مجموع ۴۸۰ سؤال چهارگزینه‌ای و پاسخ تشریحی.',
-        'heroDescription' => 'آزمون‌های جلسه‌به‌جلسهٔ تشخیصی ۳، در قالب آزمون‌گیر مشترک سایت همراه با مرور، کارنامه و پاسخ تشریحی. فقط جلساتی نمایش داده می‌شوند که سؤال و کلید معتبر دارند.',
+        'cardDescription' => '۱۵ آزمون جلسه‌ای با مجموع ۵۵۰ سؤال چهارگزینه‌ای و پاسخ تشریحی.',
+        'heroDescription' => 'آزمون‌های جلسه‌به‌جلسهٔ تشخیصی ۳ در آزمون‌گیر مشترک سایت همراه با مرور، کارنامه و پاسخ تشریحی. موضوع سؤال‌های جلسات ۱۳ و ۱۴ با عنوان جزوه‌های اصلی آن‌ها مغایرت دارد و در توضیح آزمون‌ها مشخص شده است.',
         'addedAt' => '2026-11-17T17:00:00+03:30',
         'path' => '/exams/diagnostics-3-midterm-practice/',
         'stats' => 
         array (
-          'examCount' => 13,
+          'examCount' => 15,
         ),
         'curriculum' => 
         array (

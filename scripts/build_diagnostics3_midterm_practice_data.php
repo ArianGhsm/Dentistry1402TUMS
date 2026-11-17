@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 // Convert reviewed owner-authored Drive HTML exams to the site's native question contract.
-// Read-only source: staged Google Drive HTML; 13/14 deliberately excluded for topic mismatch.
+// Read-only source: staged Google Drive HTML; preserve both mismatched session files with explicit flags.
 $sessions=[
 1=>['ضایعات اگزوفیتیک خارج‌استخوانی ۱',35,'1kBRQgMsqVUZzGoFKozU4WaOs-QULvbxE'],
 2=>['ضایعات اگزوفیتیک خارج‌استخوانی ۲',35,'1jFgMd3FeZG-QF2nRF5jCJghgsbWyV_gJ'],
@@ -13,6 +13,8 @@ $sessions=[
 9=>['ضایعات سفید و قرمز ۲؛ کاندیدا و لیکن‌پلان',40,'1Xe98pJZG2vrPGeJy097z-q2To4nmXUN2'],
 10=>['ضایعات سفید و قرمز ۳',35,'1Hoo_4H7iNphZXYFbcscHmMg4OlRDDUed'],
 12=>['ضایعات خوش‌خیم اپیتلیالی ۱',35,'1kGqAxmk65BsvlnBlPvLb5pCNTs18artE'],
+13=>['ضایعات پیگمانته؛ لنتیگو و کک‌ومک',35,'1bNmVACTx44_41rtr_P-4Qhr6G23OjtFt'],
+14=>['ضایعات پیگمانته؛ خال‌های ملانوسیتی',35,'1IRW8siKdX0sHZbETgqgxw4tl26dczpI-'],
 15=>['ضایعات پیگمانته ۱',40,'1LDo5bqcNE4-Jp8CeQGEJv39HzU39yRjg'],
 16=>['ضایعات پیگمانته ۲',40,'1uSgtHk9d_AyeoNTyIEI2LWL-hq9QZXKT'],
 17=>['ضایعات پیگمانته ۳',35,'1-BL57vyu03T79o3MO33wapjHy0xRakFz'],
@@ -64,7 +66,9 @@ function dig3_parse(string $html,int $session,string $topic,int $expected,string
   $result[$i]['correctIndex']=$key;$result[$i]['explanation']=$why;
   if($ref&&dig3_t($ref->textContent)!=='')$result[$i]['reference']=dig3_t($ref->textContent);
  }
- return ['session'=>$session,'topic'=>$topic,'sourceDriveId'=>$id,'questionCount'=>count($result),'questions'=>$result];
+ return ['session'=>$session,'topic'=>$topic,'sourceDriveId'=>$id]
+  + (in_array($session,[13,14],true) ? ['sourceTopicMismatch'=>true] : [])
+  + ['questionCount'=>count($result),'questions'=>$result];
 }
 $root=$argv[1]??'/var/lib/sentinelx/uploads/dent-diagnostic3-20261117';
 $out=__DIR__.'/../public_html/api/data/diagnostics3_midterm_practice';
@@ -77,4 +81,4 @@ foreach($sessions as $n=>[$topic,$expected,$driveId]){
  if(file_put_contents($out.'/session-'.$n.'.txt',$json."\n")===false)throw new RuntimeException("Cannot write {$n}");
  $total+=$expected;echo "PASS session {$n}: {$expected}\n";
 }
-echo "PASS ".count($sessions)." sessions; {$total} questions; 7/11 absent, 13/14 held for mismatched topics.\n";
+echo "PASS ".count($sessions)." sessions; {$total} questions; 7/11 absent; 13/14 included with explicit source-topic flags.\n";
