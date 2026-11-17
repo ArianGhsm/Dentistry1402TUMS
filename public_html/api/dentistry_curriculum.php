@@ -657,7 +657,16 @@ function dent_dentistry_curriculum_terms(): array
                     'title' => $titles['theory'],
                     'units' => [
                         ['key' => 'perio-theory-1', 'title' => 'پریو نظری ۱'],
-                        ['key' => 'diagnostics-3', 'title' => 'تشخیصی ۳'],
+                        [
+                            'key' => 'diagnostics-3',
+                            'title' => 'تشخیصی ۳',
+                            // Shared exam course slugs are the only term-navigation mapping.
+                            // Home highlights and all unit collections read the same catalog.
+                            'examCourseSlugs' => [
+                                'diagnostics-3-midterm-practice',
+                                'diagnostics-3-midterm-sample',
+                            ],
+                        ],
                         ['key' => 'ent', 'title' => 'گوش و حلق و بینی'],
                         ['key' => 'ortho-theory-1', 'title' => 'ارتو نظری ۱'],
                         ['key' => 'partial-foundations-theory', 'title' => 'مبانی پارسیل نظری', 'examCourseSlugs' => ['partial-foundations-midterm-sample']],
