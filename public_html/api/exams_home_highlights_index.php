@@ -9,7 +9,7 @@ function dent_exams_home_highlights_index(): array
 {
     return array (
   'schemaVersion' => 1,
-  'sourceSignature' => '575b9f226569de5f0b9f2d5ba11ac900547b84a35dcba826374b6f396adea0d8',
+  'sourceSignature' => '14985d2eb5f1cc6f2384f328ae034489e92f02bf1fdae68c620e675bec1b09a9',
   'defaultCatalogKey' => 'shared',
   'catalogByCohort' => 
   array (
@@ -26,6 +26,25 @@ function dent_exams_home_highlights_index(): array
       0 => 
       array (
         'catalogKey' => 'shared',
+        'slug' => 'diagnostics-3-midterm-practice',
+        'title' => 'آزمون‌های تمرینی میان‌ترم تشخیصی ۳',
+        'shortTitle' => 'میان‌ترم تشخیصی ۳',
+        'cardDescription' => '۱۵ آزمون جلسه‌ای با مجموع ۵۵۰ سؤال چهارگزینه‌ای و پاسخ تشریحی.',
+        'heroDescription' => 'آزمون‌های جلسه‌به‌جلسهٔ تشخیصی ۳ در آزمون‌گیر مشترک سایت همراه با مرور، کارنامه و پاسخ تشریحی. موضوع سؤال‌های جلسات ۱۳ و ۱۴ با عنوان جزوه‌های اصلی آن‌ها مغایرت دارد و در توضیح آزمون‌ها مشخص شده است.',
+        'addedAt' => '2026-11-17T17:00:00+03:30',
+        'path' => '/exams/diagnostics-3-midterm-practice/',
+        'stats' => 
+        array (
+          'examCount' => 15,
+        ),
+        'curriculum' => 
+        array (
+          'finalExam' => NULL,
+        ),
+      ),
+      1 => 
+      array (
+        'catalogKey' => 'shared',
         'slug' => 'partial-foundations-midterm-sample',
         'title' => 'نمونه‌سؤالات میان‌ترم مبانی پروتز پارسیل ۱',
         'shortTitle' => 'میان‌ترم مبانی پارسیل',
@@ -40,28 +59,6 @@ function dent_exams_home_highlights_index(): array
         'curriculum' => 
         array (
           'finalExam' => NULL,
-        ),
-      ),
-      1 => 
-      array (
-        'catalogKey' => 'shared',
-        'slug' => 'medical-emergencies-term6-final-sample',
-        'title' => 'آزمون نمونه سوالات پایان‌ترم فوریت پزشکی',
-        'shortTitle' => 'نمونه سوالات فوریت پزشکی',
-        'cardDescription' => 'سه آزمون نمونه سوال فوریت پزشکی شامل ۸۵ سؤال چهارگزینه‌ای با پاسخ تشریحی، کلید سال‌های اخیر، منبع و تحلیل گزینه‌ها.',
-        'heroDescription' => 'این مجموعه شامل سه آزمون فوریت پزشکی با مجموع ۸۵ سؤال چهارگزینه‌ای است. پاسخنامه‌ها با بخش پیش‌بینی از کلیدهای سال‌های اخیر، منبع و تحلیل گزینه‌ها تکمیل شده‌اند. با یک بار پرداخت ۴۵ هزار تومان، هر سه آزمون برای همین حساب فعال می‌شوند.',
-        'addedAt' => '2026-08-23T22:01:11+03:30',
-        'path' => '/exams/medical-emergencies-term6-final-sample/',
-        'stats' => 
-        array (
-          'examCount' => 3,
-        ),
-        'curriculum' => 
-        array (
-          'finalExam' => 
-          array (
-            'expiresAt' => '2026-08-25T00:00:00+03:30',
-          ),
         ),
       ),
     ),
