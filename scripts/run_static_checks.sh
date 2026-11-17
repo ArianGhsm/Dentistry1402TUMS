@@ -70,8 +70,9 @@ section "Exam content quality"
 "$PYTHON_BIN" scripts/build_diagnostics3_midterm_sample_data.py --check || fail "build_diagnostics3_midterm_sample_data.py --check"
 "$PHP_BIN" scripts/test_diagnostics3_midterm_payment_and_sample.php || fail "test_diagnostics3_midterm_payment_and_sample.php"
 
-section "Exam catalog timeline"
+section "Exam catalog timeline and navigation consistency"
 "$PHP_BIN" scripts/check_exam_catalog_timeline.php || fail "check_exam_catalog_timeline.php"
+"$PHP_BIN" scripts/test_exam_catalog_navigation_sync.php || fail "test_exam_catalog_navigation_sync.php"
 
 section "Exam home highlights index"
 "$PHP_BIN" scripts/build_exam_home_highlights_index.php --check || fail "build_exam_home_highlights_index.php --check"
