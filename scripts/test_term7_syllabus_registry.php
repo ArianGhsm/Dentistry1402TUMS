@@ -176,8 +176,8 @@ syllabus_assert(
     'Orthodontics one-off modality is explicit and traceable in the canonical catalog'
 );
 syllabus_assert(
-    syllabus_virtual_session_numbers($catalog['orthodontics-theory-1']['sessions'] ?? []) === [1, 3, 4, 6, 8, 9, 10, 13, 14],
-    'Orthodontics honors both announced mode corrections while retaining nine virtual sessions'
+    syllabus_virtual_session_numbers($catalog['orthodontics-theory-1']['sessions'] ?? []) === [1, 3, 4, 6, 8, 9, 10, 11, 14],
+    'Orthodontics respects the 2 and 16 Azar corrections while retaining nine virtual sessions'
 );
 $orthVirtual8 = classops_term7_syllabus_enrich_events([
     syllabus_event('orthodontics-theory-1', 'ارتودنسی نظری ۱', 'آمفی‌تئاتر ۹۰', '12:40', '13:40'),

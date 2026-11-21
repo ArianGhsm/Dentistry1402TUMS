@@ -113,6 +113,9 @@ $assert(
 // as well as bot, booklet and reminder projections from the same syllabus.
 foreach ([
     ['1405/08/11', 8, 'دکتر قدیریان', 'virtual', '', 'مجازی'],
+    ['1405/09/02', 11, 'دکتر سرمدی', 'virtual', '', 'مجازی'],
+    ['1405/09/09', 12, 'دکتر سرمدی', 'in_person', 'آمفی‌تئاتر ۹۰', 'حضوری'],
+    ['1405/09/16', 13, 'دکتر سرمدی', 'in_person', 'آمفی‌تئاتر ۹۰', 'حضوری'],
     ['1405/10/06', 16, 'دکتر تنباکوچی', 'in_person', 'آمفی‌تئاتر ۹۰', 'حضوری'],
 ] as [$date, $sessionNumber, $instructor, $mode, $location, $label]) {
     $resolved = dent_term7_resolve_jalali($date, 1, []);
@@ -130,6 +133,9 @@ foreach ([
     $assert(($event['instructor'] ?? '') === $instructor, "Orthodontics session {$sessionNumber} instructor preserved");
     $assert(($event['location'] ?? '') === $location, "Orthodontics session {$sessionNumber} location agrees with mode");
     $assert(($event['start'] ?? '') === '12:40' && ($event['end'] ?? '') === '13:40', "Orthodontics session {$sessionNumber} clock unchanged");
+    if ($sessionNumber === 13) {
+        $assert(str_contains((string) ($event['sessionDetails'] ?? ''), 'محتوای مجازی'), 'Orthodontics 16 Azar keeps the supplementary virtual-content notice');
+    }
 }
 
 // Dr. Bahrami's session 13 moved from Wednesday 18 Azar to Monday 16 Azar.
