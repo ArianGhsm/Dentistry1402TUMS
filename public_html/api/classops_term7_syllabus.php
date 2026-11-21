@@ -53,6 +53,19 @@ function classops_term7_syllabus_one_off_overrides(): array
             'overrideKind' => 'one_off',
             'overrideReason' => 'تغییر نحوه برگزاری جلسه هشتم با دکتر قدیریان به مجازی',
         ],
+        'orthodontics-theory-1|1405/09/02|11' => [
+            'sessionMode' => 'virtual',
+            'sessionModeLabel' => 'مجازی',
+            'overrideKind' => 'one_off',
+            'overrideReason' => 'طبق اطلاعیهٔ آموزشی، کلاس دوشنبه ۲ آذر با دکتر سرمدی مجازی است.',
+        ],
+        'orthodontics-theory-1|1405/09/16|13' => [
+            'sessionMode' => 'in_person',
+            'sessionModeLabel' => 'حضوری',
+            'sessionDetails' => 'محتوای مجازی این جلسه نیز در سامانه همیاد بارگذاری می‌شود.',
+            'overrideKind' => 'one_off',
+            'overrideReason' => 'طبق اطلاعیهٔ آموزشی، کلاس دوشنبه ۱۶ آذر با دکتر سرمدی حضوری برگزار می‌شود و محتوای مجازی نیز بارگذاری می‌شود.',
+        ],
         'orthodontics-theory-1|1405/10/06|16' => [
             'sessionMode' => 'in_person',
             'sessionModeLabel' => 'حضوری',
@@ -118,6 +131,9 @@ function classops_term7_syllabus_apply_one_off_override(string $courseKey, array
             if (!is_array($override)) continue;
             $session['sessionMode'] = (string) ($override['sessionMode'] ?? $session['sessionMode'] ?? 'in_person');
             $session['sessionModeLabel'] = (string) ($override['sessionModeLabel'] ?? '');
+            if (array_key_exists('sessionDetails', $override)) {
+                $session['sessionDetails'] = (string) $override['sessionDetails'];
+            }
             $session['sessionOverrideKind'] = (string) ($override['overrideKind'] ?? 'one_off');
             $session['sessionOverrideReason'] = (string) ($override['overrideReason'] ?? '');
             $session['sessionOverrideDate'] = $date;
