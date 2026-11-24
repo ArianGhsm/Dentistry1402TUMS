@@ -286,7 +286,8 @@ def academic_notification_text(item: dict[str, Any]):
         and raw_title.startswith(("📣 اصلاح برنامه |", "📣 اصلاحیه برنامه |"))
         and "📚 کلاس‌های نظری" in str(item.get("body") or "")
     )
-    if source != "academic-term7" and not structured_correction:
+    public_theory = source == "academic-term7-theory-channel"
+    if source != "academic-term7" and not structured_correction and not public_theory:
         return None
     if "|" not in raw_title:
         return None
@@ -295,8 +296,10 @@ def academic_notification_text(item: dict[str, Any]):
         return None
 
     rows = _structured_rows(item)
-    legacy_rows, notices = _legacy_rows(item)
-    if not rows:
+    legacy_rows, notices = ([], []) if public_theory else _legacy_rows(item)
+    if public_theory:
+        rows = [row for row in rows if row["kind"] == "theory"]
+    elif not rows:
         rows = legacy_rows
 
     fallback = [f"<b>{html.escape(heading)}</b>", "", f"<blockquote>{html.escape(date_label)}</blockquote>"]
@@ -356,12 +359,14 @@ def academic_notification_text(item: dict[str, Any]):
             )
         rich.append("</table>")
     else:
-        fallback.extend(("", "برای فردا برنامه ثبت‌شده‌ای ندارید."))
-        rich.append("<blockquote>برای فردا برنامه ثبت‌شده‌ای ندارید.</blockquote>")
+        empty = "فردا کلاس نظری ثبت نشده است." if public_theory else "برای فردا برنامه ثبت‌شده‌ای ندارید."
+        fallback.extend(("", empty))
+        rich.append(f"<blockquote>{empty}</blockquote>")
     for notice in notices:
         fallback.extend(("", f"<blockquote>ℹ️ {html.escape(notice)}</blockquote>"))
         rich.append(f"<blockquote>ℹ️ {html.escape(notice)}</blockquote>")
-    rich.append("<footer>منبع: برنامه شخصی ترم ۷ و امور کلاس</footer>")
+    footer = "منبع: برنامه رسمی و طرح درس ترم ۷" if public_theory else "منبع: برنامه شخصی ترم ۷ و امور کلاس"
+    rich.append(f"<footer>{footer}</footer>")
     return ui_module.native_rich_text("\n".join(fallback), "".join(rich))
 
 

@@ -7,6 +7,7 @@ putenv('DENT_SERVER_ONLY_ROOT=' . $testRoot . DIRECTORY_SEPARATOR . 'server-only
 putenv('DENT_AUTH_SECRET_KEY=' . base64_encode(str_repeat('t', 32)));
 
 require_once __DIR__ . '/../public_html/api/bot_store.php';
+require_once __DIR__ . '/../public_html/api/academic_term7_bot_service.php';
 
 restore_error_handler();
 restore_exception_handler();
@@ -38,6 +39,13 @@ function term7_cleanup(string $path): void
 }
 
 try {
+    $shared = dent_term7_public_theory_tomorrow(new DateTimeImmutable('2026-11-24 16:00:00', new DateTimeZone('Asia/Tehran')));
+    term7_assert($shared['date'] === '2026-11-25' && $shared['inSchedule'] && count($shared['rows']) === 3, 'Public channel tomorrow has canonical Wednesday theory');
+    term7_assert(array_unique(array_column($shared['rows'], 'kind')) === ['theory'], 'Public schedule contains only theory rows');
+    $empty = dent_term7_public_theory_tomorrow(new DateTimeImmutable('2026-11-25 16:00:00', new DateTimeZone('Asia/Tehran')));
+    term7_assert($empty['rows'] === [], 'Thursday shared theory is empty');
+    $after = dent_term7_public_theory_tomorrow(new DateTimeImmutable('2026-11-29 16:00:00', new DateTimeZone('Asia/Tehran')));
+    term7_assert(!str_contains(json_encode($after['rows'], JSON_UNESCAPED_UNICODE), 'اندودانتیکس'), 'Completed Endodontics absent from public theory');
     $group6 = ['group10' => 6, 'group8' => 15];
     $expectedA = [
         6 => ['پروتز پارسیل عملی ۱'],
