@@ -166,6 +166,10 @@ try {
             && str_contains($entInPersonSummary, '📍 آمفی‌تئاتر ۹۰'),
         'ENT in-person session keeps the canonical 07:00-08:00 timetable clock and room'
     );
+    $endoAfterEnd = dent_term7_resolve_jalali('1405/09/02', 1, []);
+    term7_assert(!str_contains(dent_term7_summary_body($endoAfterEnd), 'اندو نظری'),
+        'Completed Endodontics Theory 1 is absent from the daily reminder body');
+
     $entAfterEnd = dent_term7_resolve_jalali('1405/09/30', 1, ['group10' => 6, 'group8' => 11]);
     term7_assert(
         !in_array('گوش و حلق و بینی', term7_titles($entAfterEnd['theory']), true),

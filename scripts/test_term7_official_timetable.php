@@ -273,5 +273,20 @@ $assert(
     'Asadian one-off does not leak to the prior Monday'
 );
 
+// Completed theory courses must not leak from the recurring weekly template.
+foreach ([
+    ['endodontics-theory-1', '1405/09/02', 1, 'اندو نظری'],
+    ['oral-health-theory-2', '1405/09/24', 2, 'سلامت دهان نظری'],
+    ['partial-basics-theory', '1405/10/02', 3, 'مبانی پارسیل نظری'],
+    ['orthodontics-theory-1', '1405/10/13', 1, 'ارتودنسی نظری'],
+] as [$slug, $date, $weekday, $title]) {
+    $resolved = dent_term7_resolve_jalali($date, $weekday, []);
+    $assert(array_filter($resolved['theory'], static fn(array $e): bool => ($e['slug'] ?? '') === $slug) === [],
+        "Completed theory is absent from resolved schedule: {$slug}");
+    $assert(array_filter(dent_term7_ordered_schedule_rows($resolved), static fn(array $e): bool =>
+        ($e['kind'] ?? '') === 'theory' && str_contains((string) ($e['title'] ?? ''), $title)) === [],
+        "Completed theory is absent from structured rows: {$slug}");
+}
+
 echo "Official Term 7 timetable tests: {$checks}; failures: {$failures}\n";
 exit($failures === 0 ? 0 : 1);

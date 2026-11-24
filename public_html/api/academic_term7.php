@@ -482,6 +482,20 @@ function dent_term7_theory_events(array $events, string $jalaliDate = ''): array
         if ($jalaliDate !== '' && $activeFrom !== '' && strcmp($jalaliDate, $activeFrom) < 0) continue;
         if ($jalaliDate !== '' && $activeThrough !== '' && strcmp($jalaliDate, $activeThrough) > 0) continue;
         if ($jalaliDate !== '' && classops_term7_syllabus_theory_occurrence_cancelled((string) ($event['slug'] ?? ''), $jalaliDate)) continue;
+        // A recurring timetable slot cannot outlive the dated theory syllabus.
+        // Use effective dates (including confirmed moves and extra occurrences),
+        // not a separately maintained hard-coded course end.
+        if ($jalaliDate !== '') {
+            $mapping = classops_term7_syllabus_course_for_slug((string) ($event['slug'] ?? ''));
+            $lastDate = '';
+            foreach ($mapping['course']['sessions'] ?? [] as $session) {
+                foreach ($session['canonicalDates'] ?? $session['dates'] ?? [] as $date) {
+                    if (is_string($date) && classops_term7_syllabus_jalali_day_of_year($date) !== null
+                        && strcmp($date, $lastDate) > 0) $lastDate = $date;
+                }
+            }
+            if ($lastDate !== '' && strcmp($jalaliDate, $lastDate) > 0) continue;
+        }
         $event['eventType'] = 'theory';
         $event['source'] = 'official-theory-schedule';
         $out[] = $event;
