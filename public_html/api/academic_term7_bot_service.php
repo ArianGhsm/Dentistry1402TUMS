@@ -8,6 +8,7 @@ function dent_term7_bot_service_action(string $action): bool
 {
     return in_array($action, [
         'academicTerm7Self',
+        'academicTerm7TheoryTomorrow',
         'academicTerm7Roster',
         'academicTerm7AssignmentUpdate',
         'academicTerm7LeaderUpdate',
@@ -154,6 +155,26 @@ function dent_term7_bot_service_schedule_context(array $assignment, ?DateTimeImm
     ];
 }
 
+/** Shared theory-only schedule, independent of student assignment. */
+function dent_term7_public_theory_tomorrow(?DateTimeImmutable $now = null): array
+{
+    $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
+    $tomorrow = ($now ?? new DateTimeImmutable('now', $timezone))
+        ->setTimezone($timezone)->modify('+1 day');
+    $resolved = dent_term7_resolve_date($tomorrow, []);
+    $rows = array_values(array_filter(
+        dent_term7_ordered_schedule_rows($resolved),
+        static fn(array $row): bool => ($row['kind'] ?? '') === 'theory'
+    ));
+    return [
+        'date' => $tomorrow->format('Y-m-d'),
+        'inSchedule' => !empty($resolved['inTerm']),
+        'title' => '📅 برنامه کلاس‌های نظری فردا | ' . $resolved['weekdayLabel']
+            . ' ' . dent_to_fa_digits((string) $resolved['date']),
+        'rows' => $rows,
+    ];
+}
+
 function dent_term7_bot_service_dispatch(array $request): array
 {
     $action = trim((string) ($request['action'] ?? ''));
@@ -179,6 +200,10 @@ function dent_term7_bot_service_dispatch(array $request): array
     }
 
     dent_term7_require_owner($user);
+
+    if ($action === 'academicTerm7TheoryTomorrow') {
+        return ['success' => true] + dent_term7_public_theory_tomorrow();
+    }
 
     if ($action === 'academicTerm7Roster') {
         return ['success' => true, 'roster' => dent_term7_bot_service_roster($user)];
