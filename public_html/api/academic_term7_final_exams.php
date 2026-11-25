@@ -25,7 +25,8 @@ function dent_term7_midterm_exams(): array
     return dent_term7_exam_rows([
         ['midterm-partial-theory', '2026-11-11', '07:00', 'مبانی پارسیل نظری'],
         ['midterm-diagnostic-3', '2026-11-22', '07:00', 'دندانپزشکی تشخیصی ۳'],
-        ['midterm-ortho-theory-1', '2026-11-29', '07:00', 'ارتودنسی نظری ۱'],
+        // Owner-confirmed correction, supersedes the 07:00 time in the faculty PDF.
+        ['midterm-ortho-theory-1', '2026-11-29', '11:20', 'ارتودنسی نظری ۱'],
     ], 'میان‌ترم نظری');
 }
 
