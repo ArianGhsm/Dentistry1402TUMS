@@ -902,13 +902,18 @@ foreach (['1405/08/23', '1405/08/25', '1405/08/27'] as $date) {
 }
 $healthRotationBWeek8 = classops_term7_syllabus_enrich_events([
     syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
-], '1405/10/14', 'B');
+], '1405/10/21', 'B');
 syllabus_assert(
     count($healthRotationBWeek8) === 1
         && ($healthRotationBWeek8[0]['sessionNumber'] ?? null) === 8
         && str_contains((string) ($healthRotationBWeek8[0]['sessionTitle'] ?? ''), 'ارائه کار گروهی'),
     'Oral Health Practical maps Rotation B week 8 to source session 8'
 );
+$healthBoard = classops_term7_syllabus_sessions_for_date($catalog['oral-health-practical-2'], '1405/09/28', 'B');
+syllabus_assert($healthBoard === [], 'Board closure consumes no rotation-relative session');
+$healthMakeup = classops_term7_syllabus_sessions_for_date($catalog['oral-health-practical-2'], '1405/10/26', 'B');
+syllabus_assert(count($healthMakeup) === 1 && ($healthMakeup[0]['sessionNumber'] ?? null) === 7,
+    '26 Dey makeup retains the missed Wednesday session after the board shift');
 $healthNoRotationGuess = classops_term7_syllabus_enrich_events([
     syllabus_event('oral-health-practical-2', 'سلامت دهان عملی ۲', '', '08:15', '11:15'),
 ], '1405/08/23');

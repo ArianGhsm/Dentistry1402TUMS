@@ -139,8 +139,8 @@ foreach ([
 }
 
 // Dr. Bahrami's session 13 moved from Wednesday 18 Azar to Monday 16 Azar.
-// Time is intentionally unconfirmed: inheriting Wednesday's 07:00 slot
-// would conflict with the actual Monday ENT class.
+// The class representative subsequently confirmed 07:00–08:00.
+// Do not silently move or cancel any independent theory class.
 $movedMonday = dent_term7_resolve_jalali('1405/09/16', 1, []);
 $movedWednesday = dent_term7_resolve_jalali('1405/09/18', 3, []);
 $movedRows = array_values(array_filter(
@@ -151,9 +151,9 @@ $assert(count($movedRows) === 1, 'Moved partial session appears exactly once on 
 if (count($movedRows) === 1) {
     $assert(
         ($movedRows[0]['instructor'] ?? '') === 'دکتر بهرامی'
-            && ($movedRows[0]['start'] ?? 'x') === ''
-            && ($movedRows[0]['end'] ?? 'x') === '',
-        'Moved Dr Bahrami class preserves instructor without inventing Monday time'
+            && ($movedRows[0]['start'] ?? 'x') === '07:00'
+            && ($movedRows[0]['end'] ?? 'x') === '08:00',
+        'Moved Dr Bahrami class preserves instructor and representative-confirmed time'
     );
 }
 $assert(

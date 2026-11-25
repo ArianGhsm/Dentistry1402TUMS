@@ -19,6 +19,7 @@ from dent_bot.classops_ui import (
     account_screen_with_academic_context,
 )
 from dent_bot.ui import Screen, account_screen, keyboard, button
+from dent_bot.academic_term7_rich import academic_notification_text
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -42,6 +43,29 @@ class ClassOpsUxV3Tests(unittest.TestCase):
         for expected in ("📅 امروز", "🗓 هفته من", "📆 ماه پیش رو", "📝 امتحان‌ها", "👥 گروه‌بندی من", "🔔 اعلان‌های امور کلاس"):
             self.assertIn(expected, labels)
         self.assertNotIn("مدیریت امور کلاس", labels)
+
+    def test_board_closure_notice_in_structured_notification(self):
+        reason = "بخش‌های عملی به علت برگزاری آزمون بورد تخصصی تعطیل است."
+        item = {"source": "academic-term7", "title": "📅 برنامه فردا | شنبه ۱۴۰۵/۰۹/۲۸",
+                "body": "ℹ️ " + reason, "meta": {"academicPracticalClosureReason": reason,
+                "academicScheduleRows": [{"kind": "theory", "title": "درس نظری", "start": "07:00", "end": "08:00"}]}}
+        message = academic_notification_text(item)
+        self.assertEqual(str(message).count(reason), 1)
+        self.assertEqual(message.rich_html.count(reason), 1)
+        self.assertIn("درس نظری", str(message))
+
+    def test_board_closure_notice_visible_in_every_schedule_view(self):
+        reason = "بخش‌های عملی به علت برگزاری آزمون بورد تخصصی تعطیل است."
+        for owner in (False, True):
+            for items in ([], [sample_item(type="theory", title="درس نظری")]):
+                day = {"localDate": "2026-12-19", "items": items, "practicalClosureReason": reason}
+                for screen in (daily_screen(day, owner=owner), weekly_screen([day], 1, owner=owner), month_screen([day], 0, owner=owner)):
+                    self.assertIn(reason, str(screen.text))
+                    self.assertIn(reason, screen.text.rich_html)
+                    if items:
+                        self.assertIn("درس نظری", str(screen.text))
+        plain_day = {"localDate": "2026-12-18", "items": []}
+        self.assertNotIn(reason, str(daily_screen(plain_day).text))
 
     def test_daily_rows_are_chronological_table_like_and_emphasize_exam_deadline(self):
         day = {"localDate": "2026-09-09", "items": [

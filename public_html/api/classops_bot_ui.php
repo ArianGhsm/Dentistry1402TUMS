@@ -238,6 +238,8 @@ function classops_bot_ui_timeline(array $request, array $user): array
             'localDate' => $date->format('Y-m-d'),
             'jalaliDate' => dent_term7_jalali_key($date),
             'weekdayLabel' => dent_term7_weekday_label((int) $date->format('N')),
+            'practicalClosureReason' => dent_user_cohort_key($user) === DENT_TERM7_COHORT
+                ? dent_term7_practical_closure_reason(dent_term7_jalali_key($date)) : '',
             'items' => [],
         ];
     }

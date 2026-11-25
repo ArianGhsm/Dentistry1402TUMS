@@ -297,6 +297,10 @@ def academic_notification_text(item: dict[str, Any]):
 
     rows = _structured_rows(item)
     legacy_rows, notices = ([], []) if public_theory else _legacy_rows(item)
+    if not public_theory and isinstance(item.get("meta"), dict):
+        closure_reason = " ".join(str(item["meta"].get("academicPracticalClosureReason") or "").split())[:180]
+        if closure_reason and closure_reason not in notices:
+            notices.insert(0, closure_reason)
     if public_theory:
         rows = [row for row in rows if row["kind"] == "theory"]
     elif not rows:

@@ -357,12 +357,12 @@ try {
         term7_assert($weeklyHealthCount === 1, "Rotation B oral-health weekday {$assignedWeekday} appears exactly once in the three-day week");
     }
 
-    foreach (['1405/10/02', '1405/10/16'] as $closedDate) {
+    foreach (['1405/09/28', '1405/09/29', '1405/09/30', '1405/10/01', '1405/10/02', '1405/10/16'] as $closedDate) {
         $closed = dent_term7_resolve_jalali($closedDate, 3, ['group10' => 2, 'group8' => 14]);
         term7_assert($closed['practicalClosed'] && $closed['practicalMorning'] === [] && $closed['practicalAfternoon'] === [], "Red practical closure {$closedDate}");
     }
 
-    foreach (['1405/10/19', '1405/10/20'] as $makeupDate) {
+    foreach (['1405/10/26'] as $makeupDate) {
         $makeup = dent_term7_resolve_jalali($makeupDate, 6, ['group10' => 2, 'group8' => 14]);
         term7_assert(
             $makeup['rotation'] === 'makeup'
@@ -372,7 +372,7 @@ try {
         );
     }
 
-    foreach (['1405/10/19', '1405/10/20'] as $makeupDate) {
+    foreach (['1405/10/26'] as $makeupDate) {
         $makeupHealthWednesday = dent_term7_resolve_jalali($makeupDate, 6, [
             'group10' => 6,
             'group8' => 14,
@@ -402,6 +402,19 @@ try {
         );
     }
 
+    $board = dent_term7_resolve_jalali('1405/09/28', 6, ['group10' => 4, 'group8' => 12, 'restorativePmSubgroup' => 4]);
+    term7_assert($board['practicalClosed'] && str_contains($board['practicalClosureReason'], 'بورد تخصصی')
+        && $board['practicalMorning'] === [] && $board['practicalAfternoon'] === []
+        && $board['theory'] !== [], 'Board closure cancels practical only, including personal override');
+    term7_assert(str_contains(dent_term7_summary_body($board), 'بورد تخصصی'), 'Board reason appears in canonical summary');
+    $cleanMeta = notifications_clean_meta(['academicPracticalClosureReason' => $board['practicalClosureReason']]);
+    term7_assert(($cleanMeta['academicPracticalClosureReason'] ?? '') === $board['practicalClosureReason'], 'Board closure reason survives notification normalization');
+    foreach ([['1405/10/19', 6], ['1405/10/20', 7], ['1405/10/23', 3]] as [$day, $weekday]) {
+        $normal = dent_term7_resolve_jalali($day, $weekday, ['group10' => 2, 'group8' => 14]);
+        term7_assert($normal['rotation'] === 'B' && $normal['practicalMorning'] !== [], 'Regular rotation on ' . $day);
+    }
+    $after = dent_term7_resolve_jalali('1405/10/27', 7, ['group10' => 2, 'group8' => 14]);
+    term7_assert(!$after['inTerm'] && $after['practicalMorning'] === [] && $after['practicalAfternoon'] === [], 'Rotation ends after 26 Dey');
     $thursday = dent_term7_resolve_jalali('1405/07/02', 4, []);
     $nextThursday = dent_term7_resolve_jalali('1405/07/09', 4, []);
     term7_assert(

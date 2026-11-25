@@ -149,6 +149,7 @@ function dent_term7_bot_service_schedule_context(array $assignment, ?DateTimeImm
         'rotationLabel' => dent_term7_bot_service_rotation_label($rotation),
         'rotationPeriod' => $period,
         'practicalClosed' => !empty($resolved['practicalClosed']),
+        'practicalClosureReason' => (string) ($resolved['practicalClosureReason'] ?? ''),
         'currentPractical' => $current,
         'currentTheory' => $theory,
         'nextPractical' => $next,
@@ -168,7 +169,7 @@ function dent_term7_public_theory_tomorrow(?DateTimeImmutable $now = null): arra
     ));
     return [
         'date' => $tomorrow->format('Y-m-d'),
-        'inSchedule' => !empty($resolved['inTerm']),
+        'inSchedule' => !empty($resolved['inTheoryWindow']),
         'title' => '📅 برنامه کلاس‌های نظری فردا | ' . $resolved['weekdayLabel']
             . ' ' . dent_to_fa_digits((string) $resolved['date']),
         'rows' => $rows,
