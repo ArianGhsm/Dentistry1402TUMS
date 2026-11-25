@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 from .api import BotApiError
 from .academic_term7_rich import decorate_academic_notification_screen
 from .classops_runtime import run_classops_background_loop
-from .theory_channel_digest import dispatch_theory_channel_digest
+from .theory_channel_digest import dispatch_final_exam_channel, dispatch_theory_channel_digest
 from .cart import cart_media_requests
 from .daily_content_digest import (
     DIGEST_HOUR,
@@ -795,6 +795,7 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
     next_navid_group_poll = 0.0
     next_daily_content_digest_poll = 0.0
     next_theory_channel_poll = 0.0
+    next_final_exam_channel_poll = 0.0
     next_booklet_delivery_retry = 0.0
     while not stop_event.is_set():
         now = time.monotonic()
@@ -907,6 +908,22 @@ def _run_background_tasks_core(*, settings, api, state, site_api, platform_name:
                 except Exception:
                     logging.exception("%s term renewal dispatch failed", platform_name)
             next_term_renewal_poll = time.monotonic() + 3600
+        now = time.monotonic()
+        if now >= next_final_exam_channel_poll:
+            interval = 60
+            try:
+                status = dispatch_final_exam_channel(
+                    settings=settings, api=api, state=state, site_api=site_api,
+                )
+                if status == "sent":
+                    logging.info("%s final exam timetable channel sent", platform_name)
+                if status in {"sent", "already-sent", "disabled", "unconfigured"}:
+                    interval = 3600
+            except SiteApiError as error:
+                logging.warning("%s final exam channel unavailable code=%s", platform_name, error.code)
+            except Exception as error:
+                logging.warning("%s final exam channel failed type=%s", platform_name, type(error).__name__)
+            next_final_exam_channel_poll = time.monotonic() + interval
         now = time.monotonic()
         if now >= next_theory_channel_poll:
             try:

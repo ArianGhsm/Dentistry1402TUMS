@@ -5,6 +5,7 @@ import re
 from typing import Any
 
 from . import ui as ui_module
+from .final_exam_schedule import exam_schedule_parts
 
 
 _DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -280,6 +281,13 @@ def academic_notification_text(item: dict[str, Any]):
     if presentation is not None:
         return presentation
     source = str(item.get("source") or "")
+    meta = item.get("meta") if isinstance(item.get("meta"), dict) else {}
+    exam_rows = meta.get("academicFinalExamRows")
+    if not isinstance(exam_rows, list):
+        exam_rows = []
+    if source == "academic-term7-final-exam":
+        fallback, rich = exam_schedule_parts(exam_rows, str(item.get("title") or "📝 یادآوری امتحان پایان‌ترم"))
+        return ui_module.native_rich_text("\n".join(fallback), "".join(rich))
     raw_title = " ".join(str(item.get("title") or "").split())
     structured_correction = (
         source in {"manager", "manager-correction", "academic-term7-correction"}
@@ -363,12 +371,17 @@ def academic_notification_text(item: dict[str, Any]):
             )
         rich.append("</table>")
     else:
-        empty = "فردا کلاس نظری ثبت نشده است." if public_theory else "برای فردا برنامه ثبت‌شده‌ای ندارید."
+        empty = "فردا کلاس نظری ثبت نشده است." if public_theory else ("فردا کلاس یا بخش آموزشی ثبت نشده است." if exam_rows else "برای فردا برنامه ثبت‌شده‌ای ندارید.")
         fallback.extend(("", empty))
         rich.append(f"<blockquote>{empty}</blockquote>")
     for notice in notices:
         fallback.extend(("", f"<blockquote>ℹ️ {html.escape(notice)}</blockquote>"))
         rich.append(f"<blockquote>ℹ️ {html.escape(notice)}</blockquote>")
+    if exam_rows and not public_theory and source == "academic-term7":
+        exam_fallback, exam_rich = exam_schedule_parts(exam_rows, "📝 امتحان‌های پیش رو",
+                                                      subtitle="تا ۱۰ روز آینده")
+        fallback.extend(("", *exam_fallback))
+        rich.extend(exam_rich)
     footer = "منبع: برنامه رسمی و طرح درس ترم ۷" if public_theory else "منبع: برنامه شخصی ترم ۷ و امور کلاس"
     rich.append(f"<footer>{footer}</footer>")
     return ui_module.native_rich_text("\n".join(fallback), "".join(rich))

@@ -21,6 +21,7 @@ from .classops_shell import (
     hamiad_assignment_screen,
     service_status_screen,
 )
+from .final_exam_schedule import exam_schedule_parts, final_exam_schedule_screen
 from .persian_datetime import PERSIAN_WEEKDAYS, format_jalali_datetime, gregorian_to_jalali, to_persian_digits
 from .site_api import SiteApiError
 from .hamiad_login import start_hamiad_login
@@ -344,6 +345,7 @@ def classops_home_screen(items: list[dict[str, Any]], academic: dict[str, Any] |
         keyboard(
             [button("📅 امروز", action="c3:d:today", style="primary"), button("🗓 هفته من", action="c3:w:0")],
             [button("📆 ماه پیش رو", action="c3:m:0")],
+            *([[button("📝 برنامه امتحانات", action="c3:final-exams")]] if isinstance(academic, dict) and academic.get("eligible") else []),
             [button("📝 امتحان‌ها", action="c3:l:exams"), button("📌 رویدادها", action="c3:l:events")],
             [button("✅ کارها و ددلاین‌ها", action="c3:l:tasks")],
             [button("👥 گروه‌بندی من", action="c3:g"), button("🔔 اعلان‌های امور کلاس", action="c3:n")],
@@ -401,6 +403,13 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
     notice = _closure_notice(day)
     if notice: fallback.insert(1, notice)
     rich = [f"<h2>{html.escape(heading)}</h2>", notice, _rich_day_table(rich_day)]
+    upcoming = day.get("upcomingFinalExams")
+    if isinstance(upcoming, list) and upcoming:
+        exam_fallback, exam_rich = exam_schedule_parts(upcoming, "📝 امتحان‌های پیش رو",
+                                                       subtitle="تا ۱۰ روز آینده")
+        fallback.extend(("", *exam_fallback))
+        rich.extend(exam_rich)
+
     if max_page:
         nav = []
         prefix = "c3:o:d" if owner else "c3:d"
@@ -1034,6 +1043,10 @@ def handle_classops_ui_callback(
             if mode not in FILTER_TYPES:
                 raise ValueError("filter")
             _show(app, chat_id, callback, filtered_screen(_list_items(app, user_id), mode, owner=owner))
+            return True
+        if data == "c3:final-exams":
+            payload = app.site_api.request("academicTerm7FinalExams", user_id)
+            _show(app, chat_id, callback, final_exam_schedule_screen(payload))
             return True
         if data == "c3:g":
             _show(app, chat_id, callback, grouping_screen(app.site_api.request("academicTerm7Self", user_id)))

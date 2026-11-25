@@ -174,3 +174,22 @@ canonical، cohort دقیق `dentistry-1402` و assignment صریح ترم ۷ د
 یادآوری‌های فردا و رزرو غذا فقط برای اتصال‌های احرازشدهٔ cohort دقیق
 `dentistry-1402` ساخته می‌شوند. تأیید رزرو غذا با کلید user canonical + تاریخ
 سه‌شنبه ذخیره می‌شود و برای تلگرام و بله مشترک است.
+
+
+### Final examinations — semester 1405–1406
+
+The owner-confirmed official final timetable is defined once in
+`public_html/api/academic_term7_final_exams.php`. Its dates and exact start
+times are independent of teaching-session clocks and practical assignments;
+unknown exam end times are not inferred. Add subsequent official exam
+entries to this canonical dataset, keeping the stable ID and local start.
+
+The linked cohort receives canonical private notifications 168, 24 and 12
+hours before each exam, with a bounded one-hour recovery window and a
+stable per-exam/per-phase/per-student source key. The daily view and the
+16:00/21:00 next-day summary include the selected day through the tenth
+following calendar day, and summary generation continues through finals
+even after teaching ends. The final timetable screen and the configured
+Telegram information channel share the native rich table renderer. A new
+timetable revision posts once to the information channel, with a durable
+delivery receipt; no private assignment is included in that post.

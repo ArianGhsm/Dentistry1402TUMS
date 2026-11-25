@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/classops_term7_syllabus.php';
 require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
+require_once __DIR__ . '/academic_term7_final_exams.php';
 
 /**
  * Canonical Term 7 academic timetable and food-reminder state.
@@ -1105,8 +1106,10 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
     $local = ($now ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
     $tomorrow = $local->modify('+1 day');
     $academicHour = (int) $local->format('G');
+    $upcomingFinals = dent_term7_upcoming_final_exams($tomorrow);
+    $finalDue = dent_term7_final_exam_due($local);
     $academicDue = in_array($academicHour, [16, 21], true)
-        && dent_term7_jalali_in_active_window(dent_term7_jalali_key($tomorrow));
+        && (dent_term7_jalali_in_active_window(dent_term7_jalali_key($tomorrow)) || $upcomingFinals !== []);
     // Evening-before (16:00, with 21:00 as fallback) and morning-of (07:00,
     // with 08:00 as fallback) use idempotent source keys per quiz/student/phase.
     $quizPhase = in_array($academicHour, [16, 21], true) ? 'tomorrow'
@@ -1118,7 +1121,7 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
     if ($foodSlot !== null && !dent_term7_jalali_in_active_window(dent_term7_jalali_key($local))) {
         $foodSlot = null;
     }
-    if (!$academicDue && !$quizDue && $foodSlot === null) {
+    if (!$academicDue && !$quizDue && $foodSlot === null && $finalDue === []) {
         return [
             'success' => true,
             'contractVersion' => DENT_TERM7_CONTRACT,
@@ -1149,12 +1152,14 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
                     'sourceKey' => 'term7:' . DENT_TERM7_SCHEDULE_VERSION . ':tomorrow:' . $tomorrow->format('Y-m-d')
                         . ($academicHour === 21 ? '' : ':' . sprintf('%02d', $academicHour)) . ':' . $studentNumber,
                     'title' => '📅 برنامه فردا | ' . $resolved['weekdayLabel'] . ' ' . dent_to_fa_digits((string) $resolved['date']),
-                    'body' => dent_term7_summary_body($resolved, (string) $studentNumber),
+                    'body' => dent_term7_summary_body($resolved, (string) $studentNumber)
+                        . ($upcomingFinals === [] ? '' : "\n\n📝 امتحان‌های پیش رو\n" . dent_term7_final_exam_body($upcomingFinals)),
                     'tone' => 'accent',
                     'meta' => [
                         'important' => true,
                         'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION,
                         'academicScheduleRows' => dent_term7_ordered_schedule_rows($resolved, (string) $studentNumber),
+                        'academicFinalExamRows' => $upcomingFinals,
                         'academicPracticalClosureReason' => (string) ($resolved['practicalClosureReason'] ?? ''),
                     ],
                 ];
@@ -1165,6 +1170,29 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
             }
         }
         dent_term7_scheduler_finish_slot($academicSlotKey, $slotErrors === []);
+        $errors = array_merge($errors, $slotErrors);
+    }
+
+    foreach ($finalDue as $due) {
+        if (!dent_term7_scheduler_claim_slot($due['key'], $local->getTimestamp())) continue;
+        $slotErrors = [];
+        foreach ($users as $studentNumber => $user) {
+            try {
+                $candidate = [
+                    'source' => 'academic-term7-final-exam',
+                    'sourceKey' => $due['key'] . ':' . $studentNumber,
+                    'title' => '📝 یادآوری امتحان پایان‌ترم | ' . $due['label'],
+                    'body' => dent_term7_final_exam_body([$due['row']]),
+                    'tone' => 'warn',
+                    'meta' => ['important' => true, 'academicFinalExamRows' => [$due['row']]],
+                ];
+                $result = notifications_ensure_user_candidate($user, $candidate);
+                !empty($result['created']) ? $created++ : $existing++;
+            } catch (Throwable $error) {
+                $slotErrors[] = 'final-exam:' . substr(hash('sha256', (string) $studentNumber), 0, 10);
+            }
+        }
+        dent_term7_scheduler_finish_slot($due['key'], $slotErrors === []);
         $errors = array_merge($errors, $slotErrors);
     }
 

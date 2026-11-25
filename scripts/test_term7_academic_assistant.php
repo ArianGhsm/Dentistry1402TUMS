@@ -8,6 +8,7 @@ putenv('DENT_AUTH_SECRET_KEY=' . base64_encode(str_repeat('t', 32)));
 
 require_once __DIR__ . '/../public_html/api/bot_store.php';
 require_once __DIR__ . '/../public_html/api/academic_term7_bot_service.php';
+require_once __DIR__ . '/../public_html/api/classops_bot_ui.php';
 
 restore_error_handler();
 restore_exception_handler();
@@ -855,6 +856,58 @@ try {
         && count(array_filter($secondDiagnostic,
             static fn($n): bool => str_contains((string) ($n['body'] ?? ''), 'دکتر شکیب'))) === 2,
         'December sixth Diagnostic syllabus quiz uses the same generic notification machinery');
+
+    $examViewer = ['studentNumber' => '40211272991', 'cohortKey' => DENT_TERM7_COHORT, 'role' => 'student'];
+    $examDay = classops_bot_ui_final_exam_day($examViewer, new DateTimeImmutable('2026-12-09', $tz));
+    term7_assert(count($examDay['upcomingFinalExams']) === 2 && count($examDay['items']) === 1
+        && $examDay['items'][0]['type'] === 'exam' && $examDay['items'][0]['endsAt'] === ''
+        && $examDay['items'][0]['location'] === 'آمفی‌تئاتر ۴۰۰ نفره',
+        'ClassOps shows exam day even without practical assignment and does not invent end time');
+    $otherViewer = ['studentNumber' => '40211272991', 'cohortKey' => 'prosthesis-1402', 'role' => 'student'];
+    term7_assert(classops_bot_ui_final_exam_day($otherViewer, new DateTimeImmutable('2026-12-09', $tz)) ===
+        ['upcomingFinalExams' => [], 'items' => []], 'Final exam projection fails closed for another cohort');
+    $finals = dent_term7_final_exams();
+    term7_assert(count($finals) === 8 && array_column($finals, 'jalaliDate') === [
+        '1405/09/18', '1405/09/24', '1405/10/07', '1405/10/12',
+        '1405/10/21', '1405/10/30', '1405/11/05', '1405/11/10',
+    ], 'Official final timetable preserves all eight Solar Hijri dates');
+    term7_assert(array_column($finals, 'start') === ['14:30','14:30','07:15','07:15','13:00','10:00','08:30','12:00']
+        && array_unique(array_column($finals, 'location')) === ['آمفی‌تئاتر ۴۰۰ نفره'], 'Exact exam starts and common location');
+    term7_assert(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-11-28', $tz)) === [], 'Exam outside ten-day horizon is excluded');
+    term7_assert(count(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-11-29', $tz))) === 1, 'Tenth calendar day is included');
+    term7_assert(count(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-12-09', $tz))) === 2, 'Exam day and next exam included');
+    foreach ($finals as $exam) {
+        foreach ([168, 24, 12] as $hours) {
+            $instant = (new DateTimeImmutable($exam['startsAt']))->modify('-' . $hours . ' hours');
+            $matching = array_filter(dent_term7_final_exam_due($instant), static fn($due): bool =>
+                $due['row']['id'] === $exam['id'] && str_ends_with($due['key'], ':' . $hours));
+            term7_assert(count($matching) === 1, 'Exact due instant: ' . $exam['id'] . ' - ' . $hours . 'h');
+        }
+    }
+    $clock = new DateTimeImmutable('2026-12-02 14:30:00', $tz);
+    term7_assert(dent_term7_final_exam_due($clock->modify('-1 second')) === [], 'No early exam reminder');
+    $phaseDates = ['2026-12-02 14:30:00', '2026-12-08 14:30:00', '2026-12-09 02:30:00'];
+    foreach ($phaseDates as $when) {
+        $tick = new DateTimeImmutable($when, $tz);
+        term7_assert(count(dent_term7_final_exam_due($tick)) === ($when === '2026-12-08 14:30:00' ? 2 : 1), 'Due exam reminder ' . $when);
+        dent_term7_scheduler_tick($tick);
+        dent_term7_scheduler_tick($tick->modify('+10 minutes'));
+    }
+    $finalNotices = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($r): bool => is_array($r) && ($r['source'] ?? '') === 'academic-term7-final-exam'));
+    term7_assert(count($finalNotices) === 8, 'Three Endo reminders plus concurrent Oral Health week-before reminder, each for both students; no duplicates');
+    term7_assert(count(array_filter($finalNotices, static fn($r): bool =>
+        ($r['meta']['academicFinalExamRows'][0]['title'] ?? '') === 'اندو نظری ۱'
+        && ($r['meta']['academicFinalExamRows'][0]['location'] ?? '') === 'آمفی‌تئاتر ۴۰۰ نفره'
+    )) === 6, 'Final exam structured date and venue survive notification normalization');
+    dent_term7_scheduler_tick(new DateTimeImmutable('2027-01-29 16:00:00', $tz));
+    $afterTeaching = array_values(array_filter(notifications_read_store()['notifications'], static fn($r): bool =>
+        is_array($r) && ($r['source'] ?? '') === 'academic-term7'
+        && str_contains((string) ($r['sourceKey'] ?? ''), '2027-01-30')));
+    term7_assert(count($afterTeaching) === 2 && count(array_filter($afterTeaching, static fn($r): bool =>
+        ($r['meta']['academicFinalExamRows'][0]['title'] ?? '') === 'مبانی پروتز پارسیل نظری')) === 2,
+        'Tomorrow summary continues through final exams after teaching ends');
+
 
 } finally {
     term7_cleanup($testRoot);
