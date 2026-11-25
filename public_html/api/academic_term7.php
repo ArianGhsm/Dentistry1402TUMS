@@ -12,7 +12,7 @@ require_once __DIR__ . '/academic_term7_oral_disease_presentations.php';
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.15';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.16';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -266,6 +266,7 @@ function dent_term7_schedule(): array
     }
     $g1to5 = range(1, 5);
     $g6to10 = range(6, 10);
+    $practicalCalendar = dent_term7_practical_calendar();
     $endoLocation = 'پری‌کلینیک منفی ۲';
     $theoryLocation = 'آمفی‌تئاتر ۹۰';
     $schedule = [
@@ -275,7 +276,8 @@ function dent_term7_schedule(): array
         'term' => 7,
         'timezone' => DENT_TERM7_TIMEZONE,
         'activeFrom' => '1405/06/28',
-        'activeThrough' => '1405/10/20',
+        'activeThrough' => $practicalCalendar['rotationBThrough'],
+        'theoryThrough' => '1405/10/20',
         'foodUrl' => DENT_TERM7_FOOD_URL,
         'timePolicy' => [
             'theoryMorning' => ['start' => DENT_TERM7_THEORY_MORNING_START, 'end' => DENT_TERM7_THEORY_MORNING_END],
@@ -352,7 +354,7 @@ function dent_term7_schedule(): array
                 ],
             ],
             'B' => [
-                'from' => '1405/08/23', 'through' => '1405/10/16',
+                'from' => '1405/08/23', 'through' => $practicalCalendar['rotationBThrough'],
                 'days' => [
                     6 => [
                         dent_term7_event('oral-disease-practical-1', 'بیماری‌های دهان عملی ۱', 'morning', 'group10', [1, 3]),
@@ -399,15 +401,22 @@ function dent_term7_schedule(): array
                 ],
             ],
         ],
-        'practicalClosures' => ['1405/10/02', '1405/10/16'],
-        'makeupDays' => [
-            '1405/10/19' => 3,
-            '1405/10/20' => 3,
-        ],
+        'practicalClosures' => $practicalCalendar['closures'],
+        'makeupDays' => array_map(static fn(array $day): int => $day['weekday'], $practicalCalendar['makeup']),
         // Prepared for later owner-provided requirements; intentionally empty now.
         'prepChecklists' => [],
     ];
     return $schedule;
+}
+
+function dent_term7_practical_closure_reason(string $jalaliDate): string
+{
+    $schedule = dent_term7_schedule();
+    return match ($schedule['practicalClosures'][$jalaliDate] ?? '') {
+        'board' => 'بخش‌های عملی به علت برگزاری آزمون بورد تخصصی تعطیل است.',
+        'official' => 'بخش‌های عملی طبق برنامه آموزش تعطیل است.',
+        default => '',
+    };
 }
 
 function dent_term7_weekday_label(int $weekday): string
@@ -508,10 +517,11 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
     $schedule = dent_term7_schedule();
     $inTerm = strcmp($jalaliDate, (string) $schedule['activeFrom']) >= 0
         && strcmp($jalaliDate, (string) $schedule['activeThrough']) <= 0;
-    $theory = $inTerm ? dent_term7_theory_events(is_array($schedule['theory'][$weekday] ?? null) ? $schedule['theory'][$weekday] : [], $jalaliDate) : [];
+    $inTheory = $inTerm && strcmp($jalaliDate, (string) $schedule['theoryThrough']) <= 0;
+    $theory = $inTheory ? dent_term7_theory_events(is_array($schedule['theory'][$weekday] ?? null) ? $schedule['theory'][$weekday] : [], $jalaliDate) : [];
     // Project owner date corrections share one source with the syllabus and
     // therefore remain consistent in the bot, reminders, and ClassOps views.
-    if ($inTerm) {
+    if ($inTheory) {
         foreach (classops_term7_syllabus_theory_date_moves() as $key => $move) {
             if ((string) ($move['to'] ?? '') !== $jalaliDate || !empty($move['reuseExistingSlot'])) continue;
             $parts = explode('|', (string) $key, 3);
@@ -537,7 +547,8 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
     $matchRotation = '';
     $matchWeekday = $weekday;
     $practicalSource = [];
-    $closed = in_array($jalaliDate, $schedule['practicalClosures'], true);
+    $closureReason = dent_term7_practical_closure_reason($jalaliDate);
+    $closed = $closureReason !== '';
     if (!$closed && isset($schedule['makeupDays'][$jalaliDate])) {
         $rotation = 'makeup';
         $matchRotation = 'B';
@@ -604,9 +615,11 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
         'weekday' => $weekday,
         'weekdayLabel' => dent_term7_weekday_label($weekday),
         'inTerm' => $inTerm,
+        'inTheoryWindow' => $inTheory,
         'rotation' => $rotation,
         'syllabusRotation' => $timingRotation,
         'practicalClosed' => $closed,
+        'practicalClosureReason' => $closureReason,
         'theory' => $theory,
         'practicalMorning' => $morning,
         'practicalAfternoon' => $afternoon,
@@ -756,6 +769,11 @@ function dent_term7_summary_body(array $resolved, string $studentNumber = ''): s
     $afternoon = $groups['practicalAfternoon'];
 
     $lines = [];
+    $closureReason = trim((string) ($resolved['practicalClosureReason'] ?? ''));
+    if ($closureReason !== '') {
+        $lines[] = 'ℹ️ ' . $closureReason;
+        $lines[] = '';
+    }
     $jalaliDate = trim((string) ($resolved['date'] ?? ''));
     $personalPresentation = $studentNumber !== '' && $jalaliDate !== ''
         ? dent_term7_oral_disease_public_presentation_on_date($studentNumber, $jalaliDate)
@@ -1137,6 +1155,7 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
                         'important' => true,
                         'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION,
                         'academicScheduleRows' => dent_term7_ordered_schedule_rows($resolved, (string) $studentNumber),
+                        'academicPracticalClosureReason' => (string) ($resolved['practicalClosureReason'] ?? ''),
                     ],
                 ];
                 $result = notifications_ensure_user_candidate($user, $candidate);

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 require_once __DIR__ . '/classops_term7_syllabus_data.php';
+require_once __DIR__ . '/academic_term7_practical_calendar.php';
 
 // Owner-confirmed changes to individual theory occurrences are keyed by their
 // original syllabus date; the PDF-derived source date remains intact.
@@ -19,8 +20,8 @@ function classops_term7_syllabus_theory_date_moves(): array
         ],
         'partial-basics-theory|1405/09/18|13' => [
             'to' => '1405/09/16',
-            'timeConfirmed' => false,
-            'reason' => 'انتقال جلسه دکتر بهرامی از چهارشنبه ۱۸ آذر به دوشنبه ۱۶ آذر، طبق اطلاعیه آموزشی',
+            'timeConfirmed' => true,
+            'reason' => 'انتقال جلسه دکتر بهرامی از چهارشنبه ۱۸ آذر به دوشنبه ۱۶ آذر ساعت ۰۷:۰۰–۰۸:۰۰، طبق تأیید نماینده کلاس',
         ],
     ];
 }
@@ -293,9 +294,20 @@ function classops_term7_syllabus_session_matches_date(array $course, array $sess
     $targetAnchor = classops_term7_syllabus_rotation_anchor($rotation);
     $sourceOrdinal = classops_term7_syllabus_jalali_day_of_year($sourceAnchor);
     $targetOrdinal = classops_term7_syllabus_jalali_day_of_year($targetAnchor);
-    $dateOrdinal = classops_term7_syllabus_jalali_day_of_year($jalaliDate);
+    $calendar = dent_term7_practical_calendar();
+    $effectiveDate = $jalaliDate;
+    $boardShift = 0;
+    if (strtoupper(trim($rotation)) === 'B') {
+        // Only relative teaching sequences move; independently dated theory,
+        // assessments, and announcements retain their own confirmed dates.
+        $effectiveDate = $calendar['makeup'][$jalaliDate]['replaces'] ?? $jalaliDate;
+        if (isset($calendar['closures'][$jalaliDate])) return false;
+        $boardDates = array_keys(array_filter($calendar['closures'], static fn(string $reason): bool => $reason === 'board'));
+        if ($boardDates !== [] && strcmp($effectiveDate, max($boardDates)) > 0) $boardShift = 7;
+    }
+    $dateOrdinal = classops_term7_syllabus_jalali_day_of_year($effectiveDate);
     if ($sourceOrdinal === null || $targetOrdinal === null || $dateOrdinal === null) return false;
-    $targetOffset = $dateOrdinal - $targetOrdinal;
+    $targetOffset = $dateOrdinal - $targetOrdinal - $boardShift;
     if ($targetOffset < 0) return false;
     foreach ($dates as $sourceDate) {
         $sourceDateOrdinal = classops_term7_syllabus_jalali_day_of_year($sourceDate);

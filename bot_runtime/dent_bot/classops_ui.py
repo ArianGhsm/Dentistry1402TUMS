@@ -106,6 +106,8 @@ def _account_academic_context_block(payload: dict[str, Any] | None) -> str:
     practical = [str(item.get("title") or "").strip() for item in schedule.get("currentPractical", []) if isinstance(item, dict)]
     if practical:
         lines.append("<code>بخش فعلی</code>  <b>" + html.escape("، ".join(value for value in practical if value)) + "</b>")
+    if notice := _closure_notice(schedule):
+        lines.append(notice)
     period = dict(schedule.get("rotationPeriod") or {})
     if period.get("from") and period.get("through"):
         lines.append(f"<code>بازه</code>  {html.escape(to_persian_digits(period['from']))} تا {html.escape(to_persian_digits(period['through']))}")
@@ -208,6 +210,11 @@ def _row_time(item: dict[str, Any]) -> str:
         return start
     label = _plain(item.get("timeLabel"), 20)
     return label or "—"
+
+
+def _closure_notice(context: dict[str, Any]) -> str:
+    reason = _plain(context.get("practicalClosureReason"), 180)
+    return f"<blockquote>ℹ️ {html.escape(reason)}</blockquote>" if reason else ""
 
 
 def _day_title(day: dict[str, Any]) -> tuple[str, str]:
@@ -391,7 +398,9 @@ def daily_screen(day: dict[str, Any], *, owner: bool = False, page: int = 0) -> 
     if not items:
         fallback.append("برای این روز موردی ثبت نشده است.")
     rich_day = dict(day); rich_day["items"] = visible
-    rich = [f"<h2>{html.escape(heading)}</h2>", _rich_day_table(rich_day)]
+    notice = _closure_notice(day)
+    if notice: fallback.insert(1, notice)
+    rich = [f"<h2>{html.escape(heading)}</h2>", notice, _rich_day_table(rich_day)]
     if max_page:
         nav = []
         prefix = "c3:o:d" if owner else "c3:d"
@@ -420,11 +429,14 @@ def weekly_screen(days: list[dict[str, Any]], week_offset: int, *, owner: bool =
         day_title, relative = _day_title(day)
         items = sorted((item for item in day.get("items", []) if isinstance(item, dict)), key=_item_sort_key)
         fallback.extend(("", f"<b>{html.escape(day_title)}</b>" + (f" · {relative}" if relative else "")))
+        notice = _closure_notice(day)
+        if notice:
+            fallback.append(notice)
         if not items:
             fallback.append("<code>—</code>  بدون مورد")
-            rich.append(f"<p><b>{html.escape(day_title)}</b> · بدون مورد</p>")
+            rich.append(f"<p><b>{html.escape(day_title)}</b> · بدون مورد</p>" + notice)
             continue
-        rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>")
+        rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>" + notice)
         rich.append(_rich_day_table(day, limit=_WEEKLY_DAY_PREVIEW))
         for item in items[:_WEEKLY_DAY_PREVIEW]:
             icon, label = _meta(item)
@@ -468,6 +480,9 @@ def month_screen(days: list[dict[str, Any]], page: int, *, owner: bool = False) 
         items = sorted((item for item in day.get("items", []) if isinstance(item, dict)), key=_item_sort_key)
         accent = "🔵" if delta == 0 else ("📅" if 0 < delta <= 7 else ("📆" if 7 < delta <= 14 else "▫️"))
         fallback.append(f"{accent} <b>{html.escape(day_title)}</b> · {to_persian_digits(len(items))} مورد")
+        notice = _closure_notice(day)
+        if notice:
+            fallback.append(notice)
         if items:
             for item in items[:4]:
                 icon, label = _meta(item)
@@ -483,13 +498,14 @@ def month_screen(days: list[dict[str, Any]], page: int, *, owner: bool = False) 
                     suffix += " · 🎤 ارائه دارید"
                 fallback.append(f"   <code>{html.escape(_row_time(item))}</code> {icon} {_display_title(item, 76)}{suffix}")
             if len(items) > 4: fallback.append(f"   +{to_persian_digits(len(items) - 4)} مورد دیگر")
-            rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>")
+            rich.append(f"<h3>{html.escape(day_title)} · {to_persian_digits(len(items))} مورد</h3>" + notice)
             rich.append(_rich_day_table(day, limit=_MONTH_DAY_PREVIEW))
             local = str(day.get("localDate") or "")
             drill_action = f"c3:o:d:{local}" if owner else f"c3:d:{local}"
             rows.append([button(f"{day_title} · {to_persian_digits(len(items))} مورد", action=drill_action)])
         else:
             fallback.append("   <code>—</code> بدون مورد")
+            if notice: rich.append(f"<p><b>{html.escape(day_title)}</b></p>" + notice)
     prefix = "c3:o:m" if owner else "c3:m"
     nav = []
     if page > 0: nav.append(button("‹ قبلی", action=f"{prefix}:{page - 1}"))
@@ -610,6 +626,9 @@ def grouping_screen(payload: dict[str, Any]) -> Screen:
         current_text = "، ".join(practical)
         fallback.extend(("", "<b>🦷 بخش فعلی</b>", html.escape(current_text)))
         rich.append(f"<blockquote>🦷 بخش فعلی: {html.escape(current_text)}</blockquote>")
+    if notice := _closure_notice(schedule):
+        fallback.extend(("", notice))
+        rich.append(notice)
     period = dict(schedule.get("rotationPeriod") or {})
     if period.get("from") and period.get("through"):
         period_text = f"{to_persian_digits(period['from'])} تا {to_persian_digits(period['through'])}"

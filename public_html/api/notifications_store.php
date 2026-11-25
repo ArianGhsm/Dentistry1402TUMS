@@ -468,6 +468,10 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['scheduleVersion'] = $scheduleVersion;
     }
 
+    $closureReason = dent_clean_text((string) ($meta['academicPracticalClosureReason'] ?? ''), 180);
+    if ($closureReason !== '') {
+        $clean['academicPracticalClosureReason'] = $closureReason;
+    }
     $academicRows = [];
     foreach (array_slice(is_array($meta['academicScheduleRows'] ?? null) ? $meta['academicScheduleRows'] : [], 0, 24) as $row) {
         if (!is_array($row)) {
