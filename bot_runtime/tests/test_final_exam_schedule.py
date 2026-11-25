@@ -54,8 +54,34 @@ class FinalExamScheduleTests(TestCase):
             args = dict(settings=settings, api=api, state=state, site_api=site)
             self.assertEqual(dispatch_final_exam_channel(**args), "sent")
             state.mark_notification_delivery.assert_called_once_with("term7-final-exam-channel:" + "a" * 24)
-            self.assertIn("برنامه امتحانات نظری", api.send.call_args.args[1].rich_html)
+            self.assertIn("برنامه امتحانات پایان‌ترم", api.send.call_args.args[1].rich_html)
             self.assertEqual(api.send.call_args.args[2], {"inline_keyboard": []})
             state.has_notification_delivery.return_value = True
             self.assertEqual(dispatch_final_exam_channel(**args), "already-sent")
             api.send.assert_called_once()
+
+    def test_midterm_and_final_separate_and_no_repeat(self):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        midterm = dict(ROW, title="ارتودنسی نظری ۱", startsAt="2026-11-29T07:00:00+03:30", typeLabel="میان‌ترم نظری")
+        past = dict(midterm, title="تشخیصی ۳", startsAt="2026-11-22T07:00:00+03:30")
+        payload = dict(PAYLOAD, midtermRows=[past, midterm], midtermRevision="b" * 24)
+        screen = final_exam_schedule_screen(payload, now=datetime(2026, 11, 25, 22, tzinfo=ZoneInfo("Asia/Tehran")))
+        self.assertIn("میان‌ترم", screen.text.rich_html)
+        self.assertIn("پایان‌ترم", screen.text.rich_html)
+        self.assertIn("<td>گذشته</td>", screen.text.rich_html)
+        self.assertIn("<td>پیش رو</td>", screen.text.rich_html)
+        reminder = academic_notification_text({"source": "academic-term7-midterm-exam", "title": "📝 یادآوری امتحان میان‌ترم | ۱۲ ساعت قبل", "meta": {"academicFinalExamRows": [midterm]}})
+        self.assertIn("میان‌ترم", reminder.rich_html)
+        self.assertIn("۰۷:۰۰", reminder.rich_html)
+        settings = SimpleNamespace(platform="telegram", owner_id=1)
+        api, state, site = Mock(), Mock(), Mock()
+        state.has_notification_delivery.side_effect = lambda receipt: receipt.startswith("term7-final-exam-channel:")
+        site.request.return_value = payload
+        api.call.return_value = {"type": "channel"}
+        api.send.return_value = {"message_id": 3}
+        with patch.dict("os.environ", {"DENT_CLASSOPS_TELEGRAM_INFORMATION_CHANNEL_ID": "-100123456"}):
+            self.assertEqual(dispatch_final_exam_channel(settings=settings, api=api, state=state, site_api=site), "sent")
+        api.send.assert_called_once()
+        self.assertIn("برنامه امتحانات میان‌ترم", api.send.call_args.args[1].rich_html)
+        state.mark_notification_delivery.assert_called_once_with("term7-midterm-exam-channel:" + "b" * 24)

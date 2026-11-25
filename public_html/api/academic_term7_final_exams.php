@@ -17,6 +17,20 @@ function dent_term7_final_exams(): array
         ['diagnostic-3', '2027-01-25', '08:30', 'تشخیصی ۳'],
         ['partial-theory', '2027-01-30', '12:00', 'مبانی پروتز پارسیل نظری'],
     ];
+    return dent_term7_exam_rows($schedule, 'پایان‌ترم نظری');
+}
+
+function dent_term7_midterm_exams(): array
+{
+    return dent_term7_exam_rows([
+        ['midterm-partial-theory', '2026-11-11', '07:00', 'مبانی پارسیل نظری'],
+        ['midterm-diagnostic-3', '2026-11-22', '07:00', 'دندانپزشکی تشخیصی ۳'],
+        ['midterm-ortho-theory-1', '2026-11-29', '07:00', 'ارتودنسی نظری ۱'],
+    ], 'میان‌ترم نظری');
+}
+
+function dent_term7_exam_rows(array $schedule, string $typeLabel): array
+{
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
     $rows = [];
     foreach ($schedule as [$id, $date, $time, $title]) {
@@ -27,9 +41,16 @@ function dent_term7_final_exams(): array
             'jalaliDate' => dent_term7_jalali_key($start),
             'weekdayLabel' => dent_term7_weekday_label((int) $start->format('N')),
             'start' => $time, 'location' => 'آمفی‌تئاتر ۴۰۰ نفره',
-            'typeLabel' => 'پایان‌ترم نظری',
+            'typeLabel' => $typeLabel,
         ];
     }
+    usort($rows, static fn(array $a, array $b): int => strcmp($a['startsAt'], $b['startsAt']));
+    return $rows;
+}
+
+function dent_term7_all_official_exams(): array
+{
+    $rows = array_merge(dent_term7_final_exams(), dent_term7_midterm_exams());
     usort($rows, static fn(array $a, array $b): int => strcmp($a['startsAt'], $b['startsAt']));
     return $rows;
 }
@@ -37,10 +58,13 @@ function dent_term7_final_exams(): array
 function dent_term7_final_exam_payload(): array
 {
     $rows = dent_term7_final_exams();
+    $midterms = dent_term7_midterm_exams();
     return [
         'semesterLabel' => 'نیمسال اول ۱۴۰۵–۱۴۰۶',
         'revision' => substr(hash('sha256', json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)), 0, 24),
         'rows' => $rows,
+        'midtermRows' => $midterms,
+        'midtermRevision' => substr(hash('sha256', json_encode($midterms, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)), 0, 24),
     ];
 }
 
@@ -50,7 +74,7 @@ function dent_term7_upcoming_final_exams(DateTimeImmutable $date): array
     $day = $date->setTimezone(new DateTimeZone(DENT_TERM7_TIMEZONE))->setTime(0, 0);
     $from = $day->format('Y-m-d');
     $through = $day->modify('+10 days')->format('Y-m-d');
-    return array_values(array_filter(dent_term7_final_exams(), static fn(array $row): bool =>
+    return array_values(array_filter(dent_term7_all_official_exams(), static fn(array $row): bool =>
         $row['localDate'] >= $from && $row['localDate'] <= $through
     ));
 }
@@ -58,14 +82,14 @@ function dent_term7_upcoming_final_exams(DateTimeImmutable $date): array
 function dent_term7_final_exam_due(DateTimeImmutable $now): array
 {
     $due = [];
-    foreach (dent_term7_final_exams() as $row) {
+    foreach (dent_term7_all_official_exams() as $row) {
         $start = new DateTimeImmutable($row['startsAt']);
         $remaining = $start->getTimestamp() - $now->getTimestamp();
         foreach ([168 => 'یک هفته قبل', 24 => '۲۴ ساعت قبل', 12 => '۱۲ ساعت قبل'] as $hours => $label) {
             $seconds = $hours * 3600;
             // One-hour recovery window; never emit stale reminders after it.
             if ($remaining <= $seconds && $remaining > $seconds - 3600) {
-                $key = 'term7-final:' . $row['id'] . ':' . $row['localDate'] . ':' . $row['start'] . ':' . $hours;
+                $key = ($row['typeLabel'] === 'میان‌ترم نظری' ? 'term7-midterm:' : 'term7-final:') . $row['id'] . ':' . $row['localDate'] . ':' . $row['start'] . ':' . $hours;
                 $due[] = ['key' => $key, 'label' => $label, 'row' => $row];
             }
         }
@@ -77,7 +101,7 @@ function dent_term7_final_exam_body(array $rows): string
 {
     $lines = [];
     foreach ($rows as $row) {
-        $lines[] = $row['title'] . ' | ' . $row['weekdayLabel'] . ' '
+        $lines[] = $row['title'] . ' (' . $row['typeLabel'] . ') | ' . $row['weekdayLabel'] . ' '
             . dent_to_fa_digits($row['jalaliDate']) . ' | ساعت '
             . dent_to_fa_digits($row['start']) . ' | ' . $row['location'];
     }

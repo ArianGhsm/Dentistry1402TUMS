@@ -866,6 +866,26 @@ try {
     $otherViewer = ['studentNumber' => '40211272991', 'cohortKey' => 'prosthesis-1402', 'role' => 'student'];
     term7_assert(classops_bot_ui_final_exam_day($otherViewer, new DateTimeImmutable('2026-12-09', $tz)) ===
         ['upcomingFinalExams' => [], 'items' => []], 'Final exam projection fails closed for another cohort');
+    $midterms = dent_term7_midterm_exams();
+    term7_assert(array_column($midterms, 'jalaliDate') === ['1405/08/20', '1405/09/01', '1405/09/08']
+        && array_column($midterms, 'start') === ['07:00','07:00','07:00'], 'Three official midterms match PDF');
+    term7_assert(count(dent_term7_all_official_exams()) === 11 && dent_term7_final_exam_payload()['revision'] === '655f544d849ad16dfb88d4f5',
+        'Eleven official exams; original final channel revision unchanged');
+    $current = new DateTimeImmutable('2026-11-25 22:25:00', $tz);
+    term7_assert(dent_term7_final_exam_due($current) === [], 'No stale midterm reminders');
+    term7_assert(array_column(dent_term7_upcoming_final_exams($current), 'id') === ['midterm-ortho-theory-1'],
+        'Only remaining midterm appears in current ten-day horizon');
+    foreach (['2026-11-28 07:00:00', '2026-11-28 19:00:00'] as $when) {
+        $midDue = dent_term7_final_exam_due(new DateTimeImmutable($when, $tz));
+        term7_assert(count($midDue) === 1 && $midDue[0]['row']['id'] === 'midterm-ortho-theory-1', 'Remaining midterm reminder due at ' . $when);
+        dent_term7_scheduler_tick(new DateTimeImmutable($when, $tz));
+        dent_term7_scheduler_tick(new DateTimeImmutable($when, $tz));
+    }
+    $midNotices = array_values(array_filter(notifications_read_store()['notifications'],
+        static fn($r): bool => is_array($r) && ($r['source'] ?? '') === 'academic-term7-midterm-exam'));
+    term7_assert(count($midNotices) === 4 && count(array_filter($midNotices, static fn($r): bool =>
+        ($r['meta']['academicFinalExamRows'][0]['typeLabel'] ?? '') === 'میان‌ترم نظری')) === 4,
+        'Only remaining midterm gets two independent reminders per student, no duplicates');
     $finals = dent_term7_final_exams();
     term7_assert(count($finals) === 8 && array_column($finals, 'jalaliDate') === [
         '1405/09/18', '1405/09/24', '1405/10/07', '1405/10/12',
@@ -873,8 +893,8 @@ try {
     ], 'Official final timetable preserves all eight Solar Hijri dates');
     term7_assert(array_column($finals, 'start') === ['14:30','14:30','07:15','07:15','13:00','10:00','08:30','12:00']
         && array_unique(array_column($finals, 'location')) === ['آمفی‌تئاتر ۴۰۰ نفره'], 'Exact exam starts and common location');
-    term7_assert(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-11-28', $tz)) === [], 'Exam outside ten-day horizon is excluded');
-    term7_assert(count(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-11-29', $tz))) === 1, 'Tenth calendar day is included');
+    term7_assert(count(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-11-28', $tz))) === 1, 'Only remaining midterm is within ten-day horizon');
+    term7_assert(count(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-11-29', $tz))) === 2, 'Tenth calendar day and same-day midterm are included');
     term7_assert(count(dent_term7_upcoming_final_exams(new DateTimeImmutable('2026-12-09', $tz))) === 2, 'Exam day and next exam included');
     foreach ($finals as $exam) {
         foreach ([168, 24, 12] as $hours) {

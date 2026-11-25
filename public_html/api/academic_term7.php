@@ -1179,9 +1179,9 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
         foreach ($users as $studentNumber => $user) {
             try {
                 $candidate = [
-                    'source' => 'academic-term7-final-exam',
+                    'source' => $due['row']['typeLabel'] === 'میان‌ترم نظری' ? 'academic-term7-midterm-exam' : 'academic-term7-final-exam',
                     'sourceKey' => $due['key'] . ':' . $studentNumber,
-                    'title' => '📝 یادآوری امتحان پایان‌ترم | ' . $due['label'],
+                    'title' => '📝 یادآوری امتحان ' . ($due['row']['typeLabel'] === 'میان‌ترم نظری' ? 'میان‌ترم' : 'پایان‌ترم') . ' | ' . $due['label'],
                     'body' => dent_term7_final_exam_body([$due['row']]),
                     'tone' => 'warn',
                     'meta' => ['important' => true, 'academicFinalExamRows' => [$due['row']]],

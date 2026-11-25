@@ -285,7 +285,7 @@ def academic_notification_text(item: dict[str, Any]):
     exam_rows = meta.get("academicFinalExamRows")
     if not isinstance(exam_rows, list):
         exam_rows = []
-    if source == "academic-term7-final-exam":
+    if source in {"academic-term7-final-exam", "academic-term7-midterm-exam"}:
         fallback, rich = exam_schedule_parts(exam_rows, str(item.get("title") or "📝 یادآوری امتحان پایان‌ترم"))
         return ui_module.native_rich_text("\n".join(fallback), "".join(rich))
     raw_title = " ".join(str(item.get("title") or "").split())

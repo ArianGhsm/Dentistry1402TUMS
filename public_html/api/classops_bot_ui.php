@@ -235,9 +235,9 @@ function classops_bot_ui_final_exam_day(array $user, DateTimeImmutable $date): a
     foreach ($upcoming as $exam) {
         if ($exam['localDate'] !== $date->format('Y-m-d')) continue;
         $items[] = [
-            'source' => 'term7-final-exam', 'ref' => 't7f_' . $exam['id'],
+            'source' => $exam['typeLabel'] === 'میان‌ترم نظری' ? 'term7-midterm-exam' : 'term7-final-exam', 'ref' => 't7f_' . $exam['id'],
             'type' => 'exam', 'status' => 'active', 'importance' => 'high',
-            'title' => $exam['title'], 'description' => $exam['typeLabel'],
+            'title' => $exam['title'] . ' · ' . $exam['typeLabel'], 'description' => $exam['typeLabel'],
             'localDate' => $exam['localDate'], 'startsAt' => $exam['startsAt'],
             'sortAt' => $exam['startsAt'], 'location' => $exam['location'],
             'endsAt' => '', 'dueAt' => '', 'overdue' => false,
