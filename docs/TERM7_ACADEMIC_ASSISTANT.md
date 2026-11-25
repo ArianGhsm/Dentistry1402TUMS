@@ -193,3 +193,15 @@ even after teaching ends. The final timetable screen and the configured
 Telegram information channel share the native rich table renderer. A new
 timetable revision posts once to the information channel, with a durable
 delivery receipt; no private assignment is included in that post.
+
+
+### Official midterms and finals — permanent exam policy
+
+The same canonical official exam dataset now distinguishes midterm and final
+exams. The full ClassOps timetable shows both categories, including elapsed
+dates marked as past; the selected-day through day + 10 horizon and the
+168/24/12-hour reminder rule apply to both categories without replaying past
+reminders. Missing end times remain unknown. Midterm publication has an
+independent revision receipt and must not resend an unchanged final schedule.
+The three official midterms are from the faculty in-person midterm schedule
+for semester 1405–1406, page 1, rows 5, 6 and 8 (term 7 only).
