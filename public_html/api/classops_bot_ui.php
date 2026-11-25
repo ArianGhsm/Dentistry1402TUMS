@@ -226,6 +226,26 @@ function classops_bot_ui_term7_records(array $user, DateTimeImmutable $date, ?ar
     }
     return $out;
 }
+/** Shared official exam projection; independent of practical assignment. */
+function classops_bot_ui_final_exam_day(array $user, DateTimeImmutable $date): array
+{
+    if (!dent_term7_user_is_eligible($user)) return ['upcomingFinalExams' => [], 'items' => []];
+    $upcoming = dent_term7_upcoming_final_exams($date);
+    $items = [];
+    foreach ($upcoming as $exam) {
+        if ($exam['localDate'] !== $date->format('Y-m-d')) continue;
+        $items[] = [
+            'source' => 'term7-final-exam', 'ref' => 't7f_' . $exam['id'],
+            'type' => 'exam', 'status' => 'active', 'importance' => 'high',
+            'title' => $exam['title'], 'description' => $exam['typeLabel'],
+            'localDate' => $exam['localDate'], 'startsAt' => $exam['startsAt'],
+            'sortAt' => $exam['startsAt'], 'location' => $exam['location'],
+            'endsAt' => '', 'dueAt' => '', 'overdue' => false,
+        ];
+    }
+    return ['upcomingFinalExams' => $upcoming, 'items' => $items];
+}
+
 function classops_bot_ui_timeline(array $request, array $user): array
 {
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
@@ -251,6 +271,11 @@ function classops_bot_ui_timeline(array $request, array $user): array
     foreach ($buckets as $dateKey => &$bucket) {
         $date = new DateTimeImmutable($dateKey . ' 00:00:00', $timezone);
         $bucket['items'] = array_merge($bucket['items'], classops_bot_ui_term7_records($user, $date));
+        $finalDay = classops_bot_ui_final_exam_day($user, $date);
+        if ($finalDay['upcomingFinalExams'] !== []) {
+            $bucket['upcomingFinalExams'] = $finalDay['upcomingFinalExams'];
+            $bucket['items'] = array_merge($bucket['items'], $finalDay['items']);
+        }
     }
     unset($bucket);
     foreach ($buckets as &$bucket) {

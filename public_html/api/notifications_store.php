@@ -521,6 +521,20 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['academicScheduleRows'] = $academicRows;
     }
 
+    $finalRows = [];
+    foreach (array_slice(is_array($meta['academicFinalExamRows'] ?? null) ? $meta['academicFinalExamRows'] : [], 0, 32) as $row) {
+        if (!is_array($row)) continue;
+        $title = dent_clean_text((string) ($row['title'] ?? ''), 180);
+        $startsAt = notifications_normalize_iso_datetime((string) ($row['startsAt'] ?? ''));
+        if ($title === '' || $startsAt === '') continue;
+        $finalRows[] = [
+            'title' => $title, 'startsAt' => $startsAt,
+            'location' => dent_clean_text((string) ($row['location'] ?? ''), 180),
+            'typeLabel' => dent_clean_text((string) ($row['typeLabel'] ?? ''), 80),
+        ];
+    }
+    if ($finalRows !== []) $clean['academicFinalExamRows'] = $finalRows;
+
     $virtualClassSummaryRows = [];
     foreach (array_slice(is_array($meta['virtualClassSummaryRows'] ?? null) ? $meta['virtualClassSummaryRows'] : [], 0, 8) as $row) {
         if (!is_array($row)) continue;

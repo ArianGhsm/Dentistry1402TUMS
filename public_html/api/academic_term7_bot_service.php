@@ -9,6 +9,7 @@ function dent_term7_bot_service_action(string $action): bool
     return in_array($action, [
         'academicTerm7Self',
         'academicTerm7TheoryTomorrow',
+        'academicTerm7FinalExams',
         'academicTerm7Roster',
         'academicTerm7AssignmentUpdate',
         'academicTerm7LeaderUpdate',
@@ -198,6 +199,13 @@ function dent_term7_bot_service_dispatch(array $request): array
             'bookletSystem' => dent_term7_booklet_public_context($studentNumber),
             'scheduleContext' => dent_term7_bot_service_schedule_context($assignment),
         ];
+    }
+
+    if ($action === 'academicTerm7FinalExams') {
+        if (!dent_term7_user_is_eligible($user)) {
+            return ['success' => true, 'eligible' => false, 'rows' => []];
+        }
+        return ['success' => true, 'eligible' => true] + dent_term7_final_exam_payload();
     }
 
     dent_term7_require_owner($user);
