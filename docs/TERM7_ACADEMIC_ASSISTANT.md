@@ -205,3 +205,6 @@ reminders. Missing end times remain unknown. Midterm publication has an
 independent revision receipt and must not resend an unchanged final schedule.
 The three official midterms are from the faculty in-person midterm schedule
 for semester 1405–1406, page 1, rows 5, 6 and 8 (term 7 only).
+
+Owner-confirmed correction (1405/09/04): Orthodontics Theory 1 midterm
+on 1405/09/08 begins at 11:20 Tehran, superseding 07:00 in the faculty PDF.

@@ -868,14 +868,17 @@ try {
         ['upcomingFinalExams' => [], 'items' => []], 'Final exam projection fails closed for another cohort');
     $midterms = dent_term7_midterm_exams();
     term7_assert(array_column($midterms, 'jalaliDate') === ['1405/08/20', '1405/09/01', '1405/09/08']
-        && array_column($midterms, 'start') === ['07:00','07:00','07:00'], 'Three official midterms match PDF');
+        && array_column($midterms, 'start') === ['07:00','07:00','11:20'], 'Three midterms preserve PDF dates and owner-corrected Orthodontics clock');
     term7_assert(count(dent_term7_all_official_exams()) === 11 && dent_term7_final_exam_payload()['revision'] === '655f544d849ad16dfb88d4f5',
         'Eleven official exams; original final channel revision unchanged');
     $current = new DateTimeImmutable('2026-11-25 22:25:00', $tz);
     term7_assert(dent_term7_final_exam_due($current) === [], 'No stale midterm reminders');
     term7_assert(array_column(dent_term7_upcoming_final_exams($current), 'id') === ['midterm-ortho-theory-1'],
         'Only remaining midterm appears in current ten-day horizon');
-    foreach (['2026-11-28 07:00:00', '2026-11-28 19:00:00'] as $when) {
+    foreach (['2026-11-28 07:00:00', '2026-11-28 19:00:00'] as $obsolete) {
+        term7_assert(dent_term7_final_exam_due(new DateTimeImmutable($obsolete, $tz)) === [], 'No reminders at superseded Orthodontics time');
+    }
+    foreach (['2026-11-28 11:20:00', '2026-11-28 23:20:00'] as $when) {
         $midDue = dent_term7_final_exam_due(new DateTimeImmutable($when, $tz));
         term7_assert(count($midDue) === 1 && $midDue[0]['row']['id'] === 'midterm-ortho-theory-1', 'Remaining midterm reminder due at ' . $when);
         dent_term7_scheduler_tick(new DateTimeImmutable($when, $tz));
