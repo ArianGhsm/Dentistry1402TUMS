@@ -668,7 +668,7 @@ function dent_dentistry_curriculum_terms(): array
                             ],
                         ],
                         ['key' => 'ent', 'title' => 'گوش و حلق و بینی'],
-                        ['key' => 'ortho-theory-1', 'title' => 'ارتو نظری ۱'],
+                        ['key' => 'ortho-theory-1', 'title' => 'ارتو نظری ۱', 'examCourseSlugs' => ['orthodontics-theory-1-midterm-sample']],
                         ['key' => 'partial-foundations-theory', 'title' => 'مبانی پارسیل نظری', 'examCourseSlugs' => ['partial-foundations-midterm-sample']],
                         ['key' => 'endo-theory-1', 'title' => 'اندو نظری ۱'],
                         ['key' => 'research-methods-2-theory', 'title' => 'روش تحقیق ۲'],
