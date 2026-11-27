@@ -13,7 +13,7 @@ function dent_exams_orthodontics_midterm_sample_questions(): array
         return $questions;
     }
     // PHP source, not directly downloadable answer JSON on the public web root.
-    require_once __DIR__ . '/exams_orthodontics_midterm_sample_questions.php';
+    dent_exams_require_optional_module('exams_orthodontics_midterm_sample_questions.php');
     $parsed = dent_exams_orthodontics_midterm_sample_source();
     if (!is_array($parsed) || count($parsed) !== 24) {
         return [];
